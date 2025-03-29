@@ -1,0 +1,91 @@
+<view class="container">
+  <!-- 太阳能输入状态 -->
+  <view class="section">
+    <view class="section-title">太阳能输入</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <text class="label">输入电压</text>
+        <text class="value">{{solarData.inputVoltage}}V</text>
+      </view>
+      <view class="info-item">
+        <text class="label">输入功率</text>
+        <text class="value">{{solarData.inputPower}}W</text>
+      </view>
+      <view class="info-item">
+        <text class="label">昼夜状态</text>
+        <text class="value">{{solarData.isDaytime ? '白天' : '黑夜'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 电池状态 -->
+  <view class="section">
+    <view class="section-title">电池状态</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <text class="label">电池电量</text>
+        <text class="value">{{solarData.batteryLevel}}%</text>
+      </view>
+      <view class="info-item">
+        <text class="label">电池电压</text>
+        <text class="value">{{solarData.batteryVoltage}}V</text>
+      </view>
+    </view>
+    <progress percent="{{solarData.batteryLevel}}" stroke-width="4" color="#07c160" />
+  </view>
+
+  <!-- 输出控制 -->
+  <view class="section">
+    <view class="section-title">输出控制</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <text class="label">输出电压</text>
+        <text class="value">{{solarData.outputVoltage}}V</text>
+      </view>
+      <view class="info-item">
+        <text class="label">输出电流</text>
+        <text class="value">{{solarData.outputCurrent}}A</text>
+      </view>
+      <view class="info-item">
+        <text class="label">输出功率</text>
+        <text class="value">{{solarData.outputPower}}W</text>
+      </view>
+    </view>
+    <view class="control-panel">
+      <switch checked="{{outputEnabled}}" bindchange="toggleOutput" />
+      <text>输出开关</text>
+    </view>
+  </view>
+
+  <!-- 定时控制 -->
+  <view class="section">
+    <view class="section-title">定时控制</view>
+    <view class="timer-controls">
+      <switch checked="{{timerEnabled}}" bindchange="setTimer" />
+      <text>启用定时</text>
+      <view class="time-picker" wx:if="{{timerEnabled}}">
+        <picker mode="time" value="{{timerStart}}" bindchange="setTimer">
+          <view>开始时间：{{timerStart}}</view>
+        </picker>
+        <picker mode="time" value="{{timerEnd}}" bindchange="setTimer">
+          <view>结束时间：{{timerEnd}}</view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <!-- 能源统计 -->
+  <view class="section">
+    <view class="section-title">能源统计</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <text class="label">累计发电量</text>
+        <text class="value">{{solarData.totalGeneration}}kWh</text>
+      </view>
+      <view class="info-item">
+        <text class="label">累计用电量</text>
+        <text class="value">{{solarData.totalConsumption}}kWh</text>
+      </view>
+    </view>
+  </view>
+</view> 

@@ -1,0 +1,102 @@
+<view class="container">
+  <!-- 顶部状态栏 -->
+  <view class="status-bar">
+    <view class="status-item">
+      <text class="label">温度</text>
+      <text class="value">{{temperature}}°C</text>
+    </view>
+    <view class="status-item">
+      <text class="label">湿度</text>
+      <text class="value">{{humidity}}%</text>
+    </view>
+    <view class="status-item">
+      <text class="label">功率</text>
+      <text class="value">{{powerInput}}W</text>
+    </view>
+  </view>
+
+  <!-- 组件卡片区域 -->
+  <view class="components-grid">
+    <!-- 灯光控制卡片 -->
+    <view class="component-card" bindtap="navigateToDetail" data-type="lights">
+      <view class="card-header">
+        <view class="card-icon light-icon"></view>
+        <text class="card-title">灯光控制</text>
+      </view>
+      <view class="card-content">
+        <view class="device-list">
+          <view wx:for="{{lights}}" wx:key="id" class="device-item">
+            <text class="device-name">{{item.name}}</text>
+            <switch checked="{{item.status}}" catchtap="toggleLight" data-id="{{item.id}}" />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 电机控制卡片 -->
+    <view class="component-card" bindtap="navigateToDetail" data-type="motors">
+      <view class="card-header">
+        <view class="card-icon motor-icon"></view>
+        <text class="card-title">电机控制</text>
+      </view>
+      <view class="card-content">
+        <view class="device-list">
+          <view wx:for="{{motors}}" wx:key="id" class="device-item">
+            <text class="device-name">{{item.name}}</text>
+            <switch checked="{{item.status}}" catchtap="toggleMotor" data-id="{{item.id}}" />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 太阳能控制卡片 -->
+    <view class="component-card" bindtap="navigateToDetail" data-type="solar">
+      <view class="card-header">
+        <view class="card-icon solar-icon"></view>
+        <text class="card-title">太阳能控制</text>
+      </view>
+      <view class="card-content">
+        <view class="solar-info">
+          <view class="info-item">
+            <text class="label">电池电量</text>
+            <text class="value">{{solarData.batteryLevel}}%</text>
+          </view>
+          <view class="info-item">
+            <text class="label">输出功率</text>
+            <text class="value">{{solarData.outputPower}}W</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 网络状态卡片 -->
+    <view class="component-card" bindtap="navigateToDetail" data-type="network">
+      <view class="card-header">
+        <view class="card-icon network-icon"></view>
+        <text class="card-title">网络状态</text>
+      </view>
+      <view class="card-content">
+        <view class="network-info">
+          <view class="info-item">
+            <text class="label">连接状态</text>
+            <text class="value {{networkStatus.isConnected ? 'connected' : 'disconnected'}}">
+              {{networkStatus.isConnected ? '已连接' : '未连接'}}
+            </text>
+          </view>
+          <view class="info-item">
+            <text class="label">信号强度</text>
+            <text class="value">{{networkStatus.signalStrength}}%</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部目录按钮 -->
+  <view class="directory-button" bindtap="showDirectory">
+    <view class="button-content">
+      <text class="button-text">设备目录</text>
+      <text class="button-arrow">></text>
+    </view>
+  </view>
+</view> 

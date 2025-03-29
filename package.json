@@ -1,0 +1,16 @@
+{
+  "name": "smart-home-miniprogram",
+  "version": "1.0.0",
+  "description": "智能家居小程序",
+  "scripts": {
+    "generate-icons": "node scripts/create-icons.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24"
+  }
+}
