@@ -86,6 +86,8 @@ int
   millisRoutineInterval = 250,  //  USER PARAMETER - 例程函数的时间间隔刷新率 (ms)
   millisSerialInterval = 1000,     //  USER PARAMETER - USB 串行数据馈送的时间间隔刷新率 (ms)
   millisWiFiInterval = 1000,    //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
+  backflowTriggerLimit = 5,     //  USER PARAMETER - 旁路控制连续触发次数限制
+  backflowCheckInterval = 200;  //  USER PARAMETER - 旁路控制检查间隔(ms)
   baudRate = 115200,            //  用户参数 - USB 串行波特率 (bps)
   resetbutton = 0,
   newResetMode = 0;
@@ -94,7 +96,8 @@ float
   voltageBatteryMin = 10.0000,  //   USER PARAMETER - 电池空电压（电池放电终止电压 V）
   currentCharging = 2.0000,    //   USER PARAMETER - 最大充电电流（A - 输出）
   electricalPrice = 0.6500;   //   USER PARAMETER - 每千瓦时的输入电价（美元/千瓦时，欧元/千瓦时，比索/千瓦时）
-
+  buckProtectVoltage = 0.5000;  //   USER PARAMETER - 输出保护电压（V）
+  buckfloatVoltage = 0.2500;  //   USER PARAMETER - 旁路控制浮动电压（V）
 //================================== 校准参数 =======================================//
 //可以调整以下参数以设计您自己的 MPPT 充电控制器。只修改 //
 //如果你知道你在做什么，下面的值。以下值已针对 //
@@ -163,6 +166,7 @@ int
   menuPage = 0,        // SYSTEM PARAMETER -
   subMenuPage = 0,     // SYSTEM PARAMETER -
   ERR = 0,             // SYSTEM PARAMETER -
+  backflowTriggerCount = 0;  // SYSTEM PARAMETER - 旁路控制防误触发计数器
   conv1 = 0,           // SYSTEM PARAMETER -
   conv2 = 0,           // SYSTEM PARAMETER -
   intTemp = 0;         // SYSTEM PARAMETER -
@@ -212,7 +216,8 @@ unsigned long
   loopTimeStart = 0,         //SYSTEM PARAMETER - 用于循环循环秒表，记录循环开始时间
   loopTimeEnd = 0,           //SYSTEM PARAMETER - 用于循环循环秒表，记录循环结束时间
   secondsElapsed = 0,        //SYSTEM PARAMETER -
-  lastDayReset = 0;          //SYSTEM PARAMETER - 上次日发电重置时间戳
+  lastDayReset = 0,          //SYSTEM PARAMETER - 上次日发电重置时间戳
+  lastBackflowCheck = 0;     //SYSTEM PARAMETER - 旁路控制上次检查时间
 
 //====================================== 主程序 =============================================//
 // The codes below contain all the system processes for the MPPT firmware. Most of them are called //
@@ -305,7 +310,7 @@ void setup() {
   ina2.configure(INA226_AVERAGES_256, INA226_BUS_CONV_TIME_588US, INA226_SHUNT_CONV_TIME_588US, INA226_MODE_SHUNT_BUS_CONT);
   ina2.calibrate(0.002, 40);
 
-  //GPIO INITIALIZATION
+  //GPIO INITIALIZATION；初始化进行disable，进行输入开路电压检测保护IUV
   buck_Disable();
 
   //ENABLE DUAL CORE MULTITASKING

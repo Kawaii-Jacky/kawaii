@@ -6,14 +6,12 @@ void setupWiFi(){
     WiFi.begin(ssid, pass); 
 
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("> WiFi连接成功!");
     } 
 
     Blynk.begin(auth, ssid, pass, blynkServer, blynkPort);
 
     if (Blynk.connect()) {
-      Serial.println("> Blynk连接成功!");
-      
+
       // 打印本机MAC地址
       uint8_t mac[6];
       WiFi.macAddress(mac);
@@ -55,15 +53,11 @@ void Wireless_Telemetry(){
     Blynk.virtualWrite(10,String(voltageBatteryMax, 2)); //最大电池电压（读写）- 保留2位小数
     Blynk.virtualWrite(11,String(voltageBatteryMin, 2)); //最小电池电压（读写）- 保留2位小数
     Blynk.virtualWrite(12,temperature); //温度
-    // Blynk.virtualWrite(8,Wh); //能量
-    // Blynk.virtualWrite(9,energySavings); //能源节省
     Blynk.virtualWrite(13,LED1); //LED - 电池充电状态
     Blynk.virtualWrite(14,buckEfficiency); //降压效率
     Blynk.virtualWrite(15,daysRunning); //运行天数
     Blynk.virtualWrite(16,dailyEnergy); //日发电量（瓦特时）
     Blynk.virtualWrite(17,totalEnergy); //总发电量（瓦特时）
-    // Blynk.virtualWrite(11,LED2); //LED - 满电状态
-    // Blynk.virtualWrite(12,LED3); //LED - 低电状态
     Blynk.virtualWrite(18,LED4); //LED - PV 存在状态
     Blynk.virtualWrite(19,String(currentCharging, 2)); //最大充电电流限制（读写）- 保留2位小数
     Blynk.virtualWrite(20,overrideFan); //风扇手动控制
@@ -71,9 +65,11 @@ void Wireless_Telemetry(){
     Blynk.virtualWrite(22,temperatureFan); //风扇温度阈值（读写）- 范围30-80度
     Blynk.virtualWrite(23,dailyEnergy/1000); //日发电量（千瓦时）
     Blynk.virtualWrite(24,totalEnergy/1000); //总发电量（千瓦时）
-    Blynk.virtualWrite(25,newResetMode);
-    Blynk.virtualWrite(26,resetbutton);
-    Blynk.virtualWrite(29,output_Mode);
+    Blynk.virtualWrite(25,newResetMode);//数据重置周期
+    Blynk.virtualWrite(26,resetbutton);//Flash Memory重置
+    Blynk.virtualWrite(27,pwmMaxLimited);//PWM最大限制
+    Blynk.virtualWrite(28,PWM_MaxDC);//PWM最大占空比  
+    Blynk.virtualWrite(29,output_Mode);//输出模式
     Blynk.virtualWrite(30,Sending_Interval/1000); //发送间隔（秒）- 读写
     Blynk.virtualWrite(31,enableFan); //风扇自动控制开关
   }
@@ -105,7 +101,8 @@ BLYNK_WRITE(10) {
     
     // 重新计算并保存PWM_MaxDC
     recalculateAndSavePWM_MaxDC();
-    
+    Serial.printf("pwmMaxLimited=%d;pwmMaxDC=%d\n", pwmMaxLimited, PWM_MaxDC);
+    Blynk.virtualWrite(V0, "pwmMaxLimited=" + String(pwmMaxLimited) + ";pwmMaxDC=" + String(PWM_MaxDC));
     saveSettings(); // 保存设置到EEPROM
     // 发送正确的值回Blynk
     Blynk.virtualWrite(10, String(voltageBatteryMax, 2));

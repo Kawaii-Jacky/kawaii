@@ -1,18 +1,18 @@
 void Onboard_Telemetry(){    
 
-  /////////////////////// USB SERIAL DATA TELEMETRY ////////////////////////   
-  // 0 - Disable Serial
-  // 1 - Display All
-  // 2 - Display Essential Data
-  // 3 - Display Numbers Only 
+  /////////////////////// USB串口数据遥测 ////////////////////////   
+  // 0 - 禁用串口
+  // 1 - 显示全部数据
+  // 2 - 显示关键数据
+  // 3 - 仅显示数值 
 
   currentSerialMillis = millis();
-  if(currentSerialMillis-prevSerialMillis>=millisSerialInterval){   //Run routine every millisRoutineInterval (ms)
-    prevSerialMillis = currentSerialMillis;                         //Store previous time
+  if(currentSerialMillis-prevSerialMillis>=millisSerialInterval){   //每隔millisSerialInterval毫秒运行一次
+    prevSerialMillis = currentSerialMillis;                         //存储上次时间
 
     if(serialTelemMode==0){}
-//  else if(chargingPause==1){Serial.println("CHARGING PAUSED");}   // Charging paused message
-    else if(serialTelemMode==1){                                    // 1 - Display All                           
+//  else if(chargingPause==1){Serial.println("充电暂停");}   // 充电暂停消息
+    else if(serialTelemMode==1){                                    // 1 - 显示全部数据                           
       Serial.print(" ERR:");   Serial.print(ERR);//错误计数
       Serial.print(" FLV:");   Serial.print(FLV);//系统电压过低
       Serial.print(" BNC:");   Serial.print(BNC);//电池未连接
@@ -23,7 +23,7 @@ void Onboard_Telemetry(){
       Serial.print(" OTE:");   Serial.print(OTE);//过热
       Serial.print(" REC:");   Serial.print(REC);//输入电压过低恢复
       Serial.print(" MPPTA:"); Serial.print(MPPT_Mode);//MPPT模式
-      Serial.print(" CM:");    Serial.print(output_Mode);   //Charging Mode
+      Serial.print(" CM:");    Serial.print(output_Mode);   //充电模式
       
       Serial.print(" ");  //空格
       Serial.print(" BYP:");   Serial.print(bypassEnable);//旁路
@@ -56,7 +56,7 @@ void Onboard_Telemetry(){
       
       Serial.println("");    
     }
-    else if(serialTelemMode==2){ // 2 - Display Essential Data
+    else if(serialTelemMode==2){ // 2 - 显示关键数据
       Serial.print(" PI:");    Serial.print(powerInput,3); 
       Serial.print(" PWM:");   Serial.print(PWM); 
       Serial.print(" PPWM:");  Serial.print(PPWM); 
@@ -78,7 +78,7 @@ void Onboard_Telemetry(){
       
       Serial.println("");    
     }  
-    else if(serialTelemMode==3){ // 3 - Display Numbers Only 
+    else if(serialTelemMode==3){ // 3 - 仅显示数值 
       Serial.print(" ");       Serial.print(powerInput,3); 
       Serial.print(" ");       Serial.print(voltageInput,3); 
       Serial.print(" ");       Serial.print(buckVoltage,3); 
@@ -117,7 +117,7 @@ void sendDebugInfoToBlynk() {
     debugInfo += " OTE:" + String(OTE);   //过热
     debugInfo += " REC:" + String(REC);   //输入电压过低恢复
     debugInfo += " MPPTA:" + String(MPPT_Mode); //MPPT模式
-    debugInfo += " CM:" + String(output_Mode);   //Charging Mode
+    debugInfo += " CM:" + String(output_Mode);   //充电模式
     
     debugInfo += " ";  //空格
     debugInfo += " BYP:" + String(bypassEnable);   //旁路

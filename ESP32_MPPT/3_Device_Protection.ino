@@ -1,8 +1,28 @@
-void backflowControl(){                                                // PV 回流控制（输入 MOSFET 
+void backflowControl(){                                                // PV 回流控制（输入 MOSFET
+  
   if(output_Mode==0){bypassEnable=1;}                                  //PSU 模式：强制回流 MOSFET 打开
-  else{                                                                //强制回流 MOSFET 打开
-    if(voltageInput>buckVoltage+voltageDropout){bypassEnable=1;}    //充电器模式：输入欠压 - 关闭旁路 MOSFET 并防止 PV 回流 光伏无电压输出低电平打开继电器bypassEnable1
-   else{bypassEnable=0;}                                             //充电器模式：输入欠压 - 关闭旁路 MOSFET 并防止 PV 回流 //PV继电器
+  else{                                                                //充电器模式：根据输入输出电压关系控制旁路
+    unsigned long currentTime = millis();
+    
+    // 防误触发机制：每隔backflowCheckInterval ms检查一次
+    if(currentTime - lastBackflowCheck >= backflowCheckInterval) {
+      lastBackflowCheck = currentTime;
+      
+      // 检查是否需要关闭旁路
+      if(voltageInput<=buckVoltage+voltageDropout){
+        bypassEnable = 0;                                              // 输入电压不足 - 直接关闭旁路（物理硬限制）
+        backflowTriggerCount = 0;                                      // 重置计数器
+      }
+      else if(buckVoltage<voltageBatteryMax-buckfloatVoltage){
+        backflowTriggerCount++;                                        // 输出电压异常 - 增加触发计数
+        if(backflowTriggerCount >= backflowTriggerLimit) {
+          bypassEnable = 0;                                            // 连续触发backflowTriggerLimit次后关闭旁路
+        }
+      } else {
+        backflowTriggerCount = 0;                                      // 条件正常时重置计数器
+        bypassEnable = 1;                                              // 输入电压足够且输出电压正常 - 打开旁路 MOSFET
+      }
+    }
   }
   digitalWrite(backflow_MOSFET,bypassEnable);                          //信号回流 MOSFET GPIO 引脚 
 }
@@ -36,8 +56,17 @@ if(voltageInput<vInSystemMin&&buckVoltage<vInSystemMin){FLV=1;ERR++;errorCount++
   else{                                                                                             //Charger MODE 特定保护协议
     backflowControl();                                                                              //启用回流电流检测和控制                           
     if(buckVoltage<vInSystemMin)                   {BNC=1;ERR++;}      else{BNC=0;}               //BNC - BATTERY NOT CONNECTED（仅适用于充电器模式，不在 MPPT 模式下不将 BNC 视为错误)
-    // 只在buck禁用时检测IUV（初始化时检测）
-    if(!buckEnable && voltageInput<voltageBatteryMax+voltageDropout){IUV=1;}else{IUV=0;}               //输入电压低于充电终止电压（仅适用于充电器模式）     
+    
+    // IUV检测：初始化时检测 + 运行时PWM上限保护
+    if(!buckEnable && voltageInput<voltageBatteryMax+voltageDropout){
+      IUV=1;  // 初始化时检测
+    }
+    else if(buckEnable && PWM>=pwmMaxLimited && buckVoltage<voltageBatteryMax-buckProtectVoltage){
+      IUV=1;  // 运行时：PWM达到上限且输出电压无法达到目标电压
+    }
+    else{
+      IUV=0;  // 正常状态
+    }
   } 
   
   // 检测保护触发并发送调试信息
