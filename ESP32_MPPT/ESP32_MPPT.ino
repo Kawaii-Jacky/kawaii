@@ -87,7 +87,8 @@ int
   millisSerialInterval = 1000,     //  USER PARAMETER - USB 串行数据馈送的时间间隔刷新率 (ms)
   millisWiFiInterval = 1000,    //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
   backflowTriggerLimit = 5,     //  USER PARAMETER - 旁路控制连续触发次数限制
-  backflowCheckInterval = 200;  //  USER PARAMETER - 旁路控制检查间隔(ms)
+  BackflowCheckInterval = 100,  //  USER PARAMETER - 旁路控制检查间隔(ms) - 100ms
+  backflowCheckInterval = 1000;  //  USER PARAMETER - 旁路控制检查间隔(ms) - 1秒重置
   baudRate = 115200,            //  用户参数 - USB 串行波特率 (bps)
   resetbutton = 0,
   newResetMode = 0;
