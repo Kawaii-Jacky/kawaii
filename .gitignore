@@ -1,0 +1,44 @@
+# Arduino IDE生成的文件
+*.o
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.sym
+*.lss
+*.eep
+*.srec
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.sym
+*.lss
+*.eep
+*.srec
+*.d
+
+# 编译输出目录
+build/
+.vscode/
+.arduino15/
+
+# 临时文件
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+
+# 备份文件
+*.bak
+*.backup
+
+# 用户特定文件
+*.code-workspace
