@@ -11,14 +11,14 @@ void buck_Disable(){                                                            
 }   
 void predictivePWM(){                                                                //预测PWM 算法 
   if(voltageInput<=0){PPWM=0;}                                                       ///当电压输入为零时防止不确定答案
-  else{PPWM =(PPWM_margin*pwmMax*buckVoltage)/(100.00*voltageInput);}              //计算预测 PWM Floor 并存储在变量中
+  else{PPWM =(PPWM_margin*pwmMax*buckVoltage)/(100.00*voltageInput);}              //计算预测 PWM 下限 并存储在变量中
   PPWM = constrain(PPWM,0,pwmMaxLimited);
 }   
 
 void PWM_Modulation(){
   if(output_Mode==0){PWM = constrain(PWM,0,pwmMaxLimited);}                          //PSU MODE PWM = PWM OVERFLOW PROTECTION（将下限限制为 0%，上限限制为最大允许占空比）
   else{
-    predictivePWM();                                                                 //运行和计算预测 pwm floor
+    predictivePWM();                                                                 //运行和计算预测 pwm 下限
     PWM = constrain(PWM,PPWM,pwmMaxLimited);                                         //CHARGER MODE PWM - 将下限限制为 PPWM，上限限制为最大允许占空比）                                     
   } 
   ledcWrite(pwmChannel,PWM);                                                         //设置 PWM 占空比并在启用降压时写入 GPIO
@@ -50,14 +50,7 @@ void recalculateAndSavePWM_MaxDC() {
   EEPROM.put(112, pwmMaxLimited);
   EEPROM.commit();
   
-  Serial.printf("> PWM参数已重新计算并保存 - PWM_MaxDC: %.2f%%, pwmMaxLimited: %d\n", 
-                PWM_MaxDC, pwmMaxLimited);
 }
-
-
-
-
-
 
 void Charging_Algorithm(){
   if(ERR>0||chargingPause==1){buck_Disable();}                                       //当出现错误或充电暂停用于暂停覆盖时关闭 MPPT 降压
