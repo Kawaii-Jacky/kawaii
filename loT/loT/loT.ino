@@ -1,11 +1,3 @@
-/*
- * loT.ino - 远程天文台控制系统主程序
- * 功能：集成所有模块，实现远程天文台的自动化控制
- * 作者：H2O
- * 版本：1.0
- * 日期：2024
- */
-
 #include "settings.h"
 #include <BlynkSimpleEsp32.h>
 #include <WiFi.h>
@@ -15,8 +7,24 @@
 #include <INA226.h>
 #include <BluetoothSerial.h>
 
+// 命令类型定义
+#define CMD_NONE 0
+#define CMD_PARK 1
+#define CMD_UNPARK 2
+#define CMD_SET_DATETIME 3
+#define CMD_HOME 4
+#define CMD_SET_HOME 5  // 设置当前位置为零位
+#define CMD_SET_PARK 6  // 设置当前位置为停放位
 
-// ==================== 全局变量定义 ====================
+// 时间相关常量
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = TIMEZONE * 3600;  // 从settings.h获取时区
+const int daylightOffset_sec = 0;
+
+// 蓝牙重连超时常量
+const unsigned long RECONNECT_TIMEOUT = 5000; // 5秒超时
+
+// ==================== 全局变量定义 ====================//
 
 // 时间相关变量
 unsigned long lastReadTime = 0;  // 上次传感器读取时间
@@ -83,10 +91,20 @@ bool emailQueueFullFlag = false;  // 邮件队列是否已满
 BluetoothSerial BT;
 bool btConnected = false;
 bool btPairing = false;
+bool CommandSent = false;  // 命令发送状态
+int currentCommand = CMD_NONE;  // 当前命令类型
 
 // 摄像头相关变量
 unsigned long cameraStartTime = 0;
 bool cameraPowered = false;
+
+// 邮件发送相关变量 
+unsigned long lastEmailSendTime = 0;  // 上次邮件发送时间
+unsigned long lastQueueStatusTime = 0;  // 上次队列状态报告时间
+int emailSendCount = 0;  // 当前邮件发送次数
+String currentEmailMessage = "";  // 当前正在发送的邮件内容
+bool isEmailSending = false;  // 邮件发送状态标志
+
 
 // 风扇控制相关变量
 bool fanState = false;           // 风扇状态
@@ -98,7 +116,16 @@ uint8_t fanTempThreshold = 40;   // 风扇温度阈值（默认40度）
 DHT myDHT11(DHT11_PIN, DHT11);
 INA226 ina226(INA226_I2C_ADDRESS);
 
+// ESP-NOW相关变量
+Ticker espnowSendTicker;
 
+// DHT11相关变量
+float dhtHumidity;  // DHT11实际湿度值
+float powerOutput;  // 输出功率
+
+// MAC地址相关变量
+uint8_t flatFieldMac[6];  // 平场板MAC地址
+uint8_t mpptMac[6];  // MPPT MAC地址
 
 // 电机控制状态变量
 bool motorForwardState = false;  // 正转状态
@@ -131,7 +158,13 @@ typedef struct {
   int humiThreshold;
 } EspNowHumiConfig;
 
-// MAC地址存储结构（在MAC_Config.ino中定义）
+// MAC地址存储结构定义
+typedef struct MACAddresses {
+  uint8_t onstepMac[6];
+  uint8_t flatFieldMac[6];
+  uint8_t mpptMac[6];
+} MACAddresses;
+
 
 // ========================================== 类型定义 ==========================================//
 #define uchar unsigned char
@@ -149,12 +182,12 @@ void setup() {
   
   Serial.println("=== 远程天文台控制系统启动 ===");
   Blynk.virtualWrite(TERMINAL_VPIN, String("=== 远程天文台控制系统启动 ==="));
-  sendMessageToEmail("=== 远程天文台控制系统启动 ===");
+  // sendMessageToEmail("=== 远程天文台控制系统启动 ===");
   
   // 配置时间同步
   configTime(8 * 3600, 0, "pool.ntp.org", "time.nist.gov");
-  Serial.println("时间同步已配置");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("时间同步已配置"));
+  // Serial.println("时间同步已配置");
+  // Blynk.virtualWrite(TERMINAL_VPIN, String("时间同步已配置"));
   
   // 初始化所有模块
   initINA226();
@@ -171,15 +204,14 @@ void setup() {
   initEspNow();  // 初始化ESP-NOW通讯
   initMACConfig();  // 初始化MAC地址配置模块
 
-  delay(1000);
 }
 
 // ================================================ Blynk连接状态回调 ==========================================//
 
 // Blynk连接成功回调
 BLYNK_CONNECTED() {
-  Serial.println("=== Blynk连接成功 ===");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("=== Blynk连接成功 ==="));
+  // Serial.println("=== Blynk连接成功 ===");
+  // Blynk.virtualWrite(TERMINAL_VPIN, String("=== Blynk连接成功 ==="));
   // 打印本机MAC地址
   uint8_t mac[6];
   WiFi.macAddress(mac);

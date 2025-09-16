@@ -1,53 +1,3 @@
-/*
- * 蓝牙控制模块（OnStep控制）
- * 功能：通过蓝牙连接OnStep设备，支持配对和回停放位命令
- * 改进：添加SSP认证回调、自动重连机制和专业防抖处理
- * 新增：获取系统时间并设置到OnStep设备
- * 简化：移除终端模式，只保留Blynk引脚控制功能
- * 
- * Blynk引脚功能：
- * V72 (BT_CONTROL_VPIN): OnStep控制分段开关
- *   - 0: 无操作
- *   - 1: 设置日期时间
- *   - 2: 回停放位
- *   - 3: 解除停放位
- *   - 4: 回零位
- * 
- * V75 (BT_POSITION_SET_VPIN): 位置设置分段开关
- *   - 0: 无操作
- *   - 1: 设置当前位置为零位
- *   - 2: 设置当前位置为停放位
- * 
- * V73 (BT_CONNECT_VPIN): 蓝牙连接开关
- * V74 (BT_DISCONNECT_VPIN): 蓝牙断开开关
- */
-
-#include "settings.h"
-#include "BluetoothSerial.h"
-#include <BlynkSimpleEsp32.h>
-#include <WiFi.h>
-#include <time.h>
-
-// ==================== 命令类型定义 ====================
-#define CMD_NONE 0
-#define CMD_PARK 1
-#define CMD_UNPARK 2
-#define CMD_SET_DATETIME 3
-#define CMD_HOME 4
-#define CMD_SET_HOME 5  // 设置当前位置为零位
-#define CMD_SET_PARK 6  // 设置当前位置为停放位
-
-// ==================== 蓝牙状态变量 ====================
-// 注意：btConnected和btPairing已在主程序中定义，这里只声明为extern
-extern bool btConnected;
-extern bool btPairing;
-bool CommandSent = false;  // 命令发送状态
-int currentCommand = CMD_NONE;  // 当前命令类型
-
-// ==================== 时间相关变量 ====================
-const char* ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = TIMEZONE * 3600;  // 从settings.h获取时区
-const int daylightOffset_sec = 0;
 
 // ==================== 蓝牙控制功能函数 ====================
 
@@ -343,7 +293,6 @@ void setCurrentPositionAsPark() {
 void handleBluetoothControl() {
   // 连接状态监测与自动重连（添加5秒超时）
   static unsigned long lastReconnectTime = 0;
-  const unsigned long RECONNECT_TIMEOUT = 5000; // 5秒超时
   
   if (!BT.connected() && btConnected) {
     unsigned long currentTime = millis();
