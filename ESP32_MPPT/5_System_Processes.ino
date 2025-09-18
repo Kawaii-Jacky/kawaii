@@ -219,6 +219,13 @@ void checkSettings() {
     errorMsg += "PWM_MaxDC ";
   }
   
+  // 检查pwmMaxLimited (1740-1986，基于pwmResolution=11和PWM_MaxDC=85-97%)
+  if(isnan(pwmMaxLimited) || isinf(pwmMaxLimited) || pwmMaxLimited < 1740 || pwmMaxLimited > 1986) {
+    pwmMaxLimited = (PWM_MaxDC * pwmMax) / 100.000;  // 重新计算
+    settingsValid = false;
+    errorMsg += "pwmMaxLimited ";
+  }
+  
 
   // 检查totalEnergy (>=0)
   if(isnan(totalEnergy) || isinf(totalEnergy) || totalEnergy < 0) {

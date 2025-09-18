@@ -81,7 +81,7 @@ if(voltageInput<vInSystemMin&&buckVoltage<vInSystemMin){FLV=1;ERR++;errorCount++
   } 
   
   // 检测保护触发并发送调试信息
-  if((OTE && !lastOTxuE) || (IOC && !lastIOC) || (OOC && !lastOOC) || 
+  if((OTE && !lastOTE) || (IOC && !lastIOC) || (OOC && !lastOOC) || 
      (OOV && !lastOOV) || (FLV && !lastFLV) || (IUV && !lastIUV) || (BNC && !lastBNC)) {
     sendDebugInfoToBlynk();
   }
