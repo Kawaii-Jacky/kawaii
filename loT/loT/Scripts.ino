@@ -1,17 +1,3 @@
-/*
- * Scripts.ino - 雨水自动关顶模块
- * 功能：检测雨水并自动关闭顶盖
- */
-
-#include "settings.h"
-
-// 外部变量声明
-extern bool rainDetected;  // 雨水检测状态
-
-// 雨水动作处理相关变量
-bool rainActionTriggered = false;  // 雨水动作是否已触发
-unsigned long lastRainCheckTime = 0;  // 上次雨水检查时间
-const unsigned long RAIN_CHECK_INTERVAL = 5000;  // 雨水检查间隔（5秒）
 
 /**
  * 处理雨水传感器动作 - 下雨自动关顶

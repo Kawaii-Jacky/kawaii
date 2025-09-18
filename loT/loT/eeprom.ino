@@ -1,20 +1,5 @@
 // EEPROM地址定义
-
-#define EEPROM_SIZE 512                // EEPROM大小
-#define EEPROM_MAGIC_NUMBER 0         // EEPROM魔数
-#define EEPROM_MAGIC_NUMBER_ADDR 4    // EEPROM魔数地址
-#define IOT_AUTO_HEATER_ADDR   8      // 自动加热带开关地址
-#define IOT_HUMI_THRESHOLD_ADDR 12   // 湿度阈值地址
-#define FAN_TEMP_THRESHOLD_ADDR 16   // 风扇温度阈值地址
-#define ADDR_BUTTON_STATE 20         // 按钮状态地址
-#define ADDR_MOTOR_STATE 24          // 电机状态地址
-#define ADDR_AUTOCLOSE_MOTOR 28      // 自动开关顶开关地址
-#define ADDR_TEMP_DIFF_THRESHOLD 32  // 温度差值阈值地址
-#define ADDR_HEATER_AUTO_MODE 36     // 加热片自动模式地址
-#define ADDR_REPORT_INTERVAL 40      // 上报间隔地址
-#define ADDR_TIMER_ENABLED 44        // 定时器总开关地址
-#define ADDR_MOSFET_DELAY_ENABLED 48  // MOSFET延时关闭功能开关地址 
-#define ADDR_MOSFET_DELAY_TIME 52    // MOSFET延时关闭时间地址
+// 注意：所有EEPROM地址定义已移至settings.h中
 
 
 /*

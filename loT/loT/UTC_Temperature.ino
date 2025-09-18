@@ -1,15 +1,3 @@
-/*
- * UTC_Temperature.ino - UTC电阻温度检测模块
- * 功能：读取UTC电阻模块的模拟信号和数字信号，计算并输出温度值
- * 使用Blynk虚拟引脚V58输出温度值，V59接收温度设置值
- */
-
-#include "settings.h"
-
-// ==================== 全局变量 ====================
-// 注意：这些变量已在主文件中定义，这里只声明为extern
-extern float utcTemperature;
-extern bool utcDataValid;
 
 // ==================== 功能函数 ====================
 // 初始化UTC温度模块

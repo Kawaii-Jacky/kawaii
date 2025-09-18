@@ -1,15 +1,3 @@
-/*
- * Rain_Sensor.ino - 雨水传感器模块
- * 功能：读取雨水传感器的模拟信号和数字信号
- * 注意：雨水动作处理已移至Scripts.ino
- */
-
-#include "settings.h"
-
-// 外部变量声明
-extern uint16_t rainAnalogValue;  // 雨水传感器模拟量值
-extern bool rainDigitalState;  // 雨水传感器数字量状态
-extern bool rainDetected;  // 雨水检测状态
 
 // 初始化雨水传感器
 void initRainSensor() {

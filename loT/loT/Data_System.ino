@@ -1,14 +1,5 @@
-/*
- * Data_System.ino - 数据发送和调试系统
- * 功能：处理数据发送到Blynk、串口调试输出等
- * 依赖：主文件中的全局变量
- */
-
-#include "settings.h"
-#include <EEPROM.h>
 
 // EEPROM地址定义
-#define ADDR_REPORT_INTERVAL 28
 
 // ==================== 数据发送和调试函数 ====================
 

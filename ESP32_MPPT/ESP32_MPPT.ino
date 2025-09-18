@@ -22,8 +22,8 @@ INA226 ina2;                   //系统参数 - INA226 输出电流/电压传感
 
 //请根据自己的WIFI和Blynk服务器地址修改以下参数
 
-#define WIFI_SSID "rcs_2.4G"                    // WiFi 网络名称
-#define WIFI_PASSWORD "robomaster"           // WiFi 密码
+#define WIFI_SSID "Kawaii-Fatty"                    // WiFi 网络名称
+#define WIFI_PASSWORD "Czh040731"           // WiFi 密码
 #define BLYNK_AUTH_TOKEN "010g89Iz_cGYyWqVxjsO8kdHhHW08dea"    // Blynk 身份验证令牌
 #define BLYNK_SERVER "blynk.warmsake.top"                      // Blynk 服务器地址（默认：blynk.cloud）
 #define BLYNK_PORT 8080                                        // Blynk 服务器端口（默认：80，自定义服务器：8080）

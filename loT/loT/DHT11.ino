@@ -1,16 +1,3 @@
-/*
- * DHT11.ino - DHT11温湿度传感器模块
- * 功能：读取DHT11温湿度数据，使用多采样平均提高精度
- * 使用Blynk虚拟引脚V40(温度)、V41(湿度)输出数据，V42接收温度设置值
- */
-#include "settings.h"
-#include <EEPROM.h>
-#include <esp_now.h>
-
-// ==================== 全局变量 ====================
-// 注意：lastDHT11ReadTime已在主程序中定义，这里只声明为extern
-bool autoHeater = true;
-int humiThreshold = 70;
 
 // EEPROM地址定义
 #define IOT_AUTO_HEATER_ADDR   0   // 自动加热带开关EEPROM地址
@@ -27,12 +14,12 @@ void initDHT11() {
   
   // 初始化EEPROM并加载配置
   EEPROM.begin(32);
-  autoHeater = EEPROM.read(IOT_AUTO_HEATER_ADDR);
-  humiThreshold = EEPROM.readInt(IOT_HUMI_THRESHOLD_ADDR);
-  if (humiThreshold < 0 || humiThreshold > 100) humiThreshold = 70;
+  heaterAutoMode = EEPROM.read(IOT_AUTO_HEATER_ADDR);
+  humidityThreshold = EEPROM.readInt(IOT_HUMI_THRESHOLD_ADDR);
+  if (humidityThreshold < 0 || humidityThreshold > 100) humidityThreshold = 70;
   
   Serial.printf("DHT11 自动加热带: %s, 湿度阈值: %d%%\n", 
-                autoHeater ? "开启" : "关闭", humiThreshold);
+                heaterAutoMode ? "开启" : "关闭", humidityThreshold);
   
 }
 

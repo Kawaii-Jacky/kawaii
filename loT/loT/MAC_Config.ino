@@ -1,17 +1,4 @@
 
-
-
-
-// MAC地址存储结构定义
-typedef struct MACAddresses {
-  uint8_t onstepMac[6];
-  uint8_t flatFieldMac[6];
-  uint8_t mpptMac[6];
-} MACAddresses;
-
-// 全局变量定义
-MACAddresses macAddresses;
-
 // ==================== MAC地址解析函数 ====================
 
 // 解析MAC地址字符串

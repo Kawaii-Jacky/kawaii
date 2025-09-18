@@ -1,12 +1,3 @@
-/*
- * Heater_Control.ino - 加热片控制模块
- * 功能：初始化加热片控制引脚
- * 注意：加热控制逻辑已移至Scripts.ino
- */
-
-#include <Arduino.h>
-#include <BlynkSimpleEsp32.h>
-#include "settings.h"
 
 // ==================== 功能函数 ====================
 void initHeater() {

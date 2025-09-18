@@ -1,21 +1,3 @@
-/*
- * ESPNow.ino - ESP-NOW通讯模块
- * 功能：发送实际湿度值到平场板ESP32
- * 发送powerOutput到MPPT
- * 使用ESP-NOW协议进行设备间通讯
- */
-#include "settings.h"
-#include <esp_now.h>
-#include <WiFi.h>
-#include <Ticker.h>
-
-Ticker espnowSendTicker;
-
-// 外部变量声明
-extern float dhtHumidity;  // DHT11实际湿度值
-extern float powerOutput;  // 输出功率
-extern uint8_t flatFieldMac[6];  // 平场板MAC地址
-extern uint8_t mpptMac[6];  // MPPT MAC地址
 
 // ==================== ESP-NOW初始化函数 ====================
 void initEspNow() {

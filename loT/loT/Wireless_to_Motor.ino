@@ -1,13 +1,3 @@
-/*
- * 无线发射模块（电机控制）
- * 功能：通过无线信号控制电机，支持正转、反转自锁模式
- * 改进：使用硬件定时器提高时序精度
- * 注意：定时器功能已移至Scripts.ino
- */
-
-#include "settings.h"
-#include "esp_timer.h"
-
 
 // 电机控制初始化函数
 void initMotorControl() {

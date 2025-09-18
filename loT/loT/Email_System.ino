@@ -1,17 +1,3 @@
-/*
- * Email_System.ino - 邮件发送系统
- * 功能：处理邮件发送、队列管理等
- * 依赖：主文件中的全局变量
- */
-
-#include "settings.h"
-
-// ==================== 邮件发送相关变量 ====================
-unsigned long lastEmailSendTime = 0;  // 上次邮件发送时间
-unsigned long lastQueueStatusTime = 0;  // 上次队列状态报告时间
-int emailSendCount = 0;  // 当前邮件发送次数
-String currentEmailMessage = "";  // 当前正在发送的邮件内容
-bool isEmailSending = false;  // 邮件发送状态标志
 
 // ==================== 邮件发送函数 ====================
 
