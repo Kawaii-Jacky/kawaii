@@ -63,22 +63,22 @@ if(voltageInput<vInSystemMin&&buckVoltage<vInSystemMin){FLV=1;ERR++;errorCount++
   if(output_Mode==0){                                                                               //PSU MODE 特定保护协议
     REC = 0; BNC = 0;                                                                               //清除恢复和电池未连接布尔标识符
     // 只在buck禁用时检测IUV（初始化时检测）
-    if(!buckEnable && voltageInput<voltageBatteryMax+voltageDropout){IUV=1;}else{IUV=0;}        //输入电压低于电池电压（仅适用于 psu 模式）                     
+    if(!buckEnable && voltageInput<voltageBatteryMax+voltageDropout){IUV=1;ERR++;errorCount++;}
+    else if(buckEnable && PWM>=pwmMaxLimited && buckVoltage<voltageBatteryMax-buckProtectVoltage){IUV=1;ERR++;errorCount++;}
+    else{IUV=0;}
   }
   else{                                                                                             //Charger MODE 特定保护协议
     backflowControl();                                                                              //启用回流电流检测和控制                           
-    if(buckVoltage<vInSystemMin)                   {BNC=1;ERR++;}      else{BNC=0;}               //BNC - BATTERY NOT CONNECTED（仅适用于充电器模式，不在 MPPT 模式下不将 BNC 视为错误)
+    if(buckVoltage<vInSystemMin)                   {BNC=1;ERR++;errorCount++;}      else{BNC=0;}               //BNC - BATTERY NOT CONNECTED（仅适用于充电器模式，不在 MPPT 模式下不将 BNC 视为错误)
     
     // IUV检测：初始化时检测 + 运行时PWM上限保护
     if(!buckEnable && voltageInput<voltageBatteryMax+voltageDropout){
-      IUV=1;  // 初始化时检测
+      IUV=1;ERR++;errorCount++;  // 初始化时检测
     }
     else if(buckEnable && PWM>=pwmMaxLimited && buckVoltage<voltageBatteryMax-buckProtectVoltage){
-      IUV=1;  // 运行时：PWM达到上限且输出电压无法达到目标电压
+      IUV=1;ERR++;errorCount++;  // 运行时：PWM达到上限且输出电压无法达到目标电压
     }
-    else{
-      IUV=0;  // 正常状态
-    }
+    else{IUV=0;}
   } 
   
   // 检测保护触发并发送调试信息

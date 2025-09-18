@@ -87,8 +87,8 @@ int
   millisSerialInterval = 1000,     //  USER PARAMETER - USB 串行数据馈送的时间间隔刷新率 (ms)
   millisWiFiInterval = 1000,    //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
   backflowTriggerLimit = 5,     //  USER PARAMETER - 旁路控制连续触发次数限制
-  BackflowCheckInterval = 100,  //  USER PARAMETER - 旁路控制检查间隔(ms) - 100ms
-  backflowCheckInterval = 1000,  //  USER PARAMETER - 旁路控制检查间隔(ms) - 1秒重置
+  backflowcheckInterval = 100,  //  USER PARAMETER - 旁路控制检查间隔(ms) - 100ms
+  backflowresetInterval = 1000,  //  USER PARAMETER - 旁路控制检查间隔(ms) - 1秒重置
   baudRate = 115200,            //  用户参数 - USB 串行波特率 (bps)
   resetbutton = 0,
   newResetMode = 0;
@@ -105,10 +105,10 @@ float
 // TechBuilder (Angelo S. Casimiro) 设计的 MPPT 充电控制器 //
 //=================================================================================================//
 int
-  avgCountVS = 5,    //  校准参数 - 电压传感器平均采样计数（推荐：5）
-  avgCountCS = 10,   //  校准参数 - 电流传感器平均采样计数（增加到10，提高稳定性）
+  avgCountVS = 5,    //  校准参数 - 电压传感器平均采样计数
+  avgCountCS = 3,   //  校准参数 - 电流传感器平均采样计数
   avgCountTS = 500,  //  校准参数 - 温度传感器平均采样计数
-  avgCountBF = 5;    //  校准参数 - 降压效率平均采样计数（推荐：5）
+  avgCountBF = 5;    //  校准参数 - 降压效率平均采样计数
 float
   inVoltageDivRatio = 3.0000,     //  校准参数 - 输入分压器传感器比率（INA226直接测量，通常为1.0）
   outVoltageDivRatio = 3.0000,    //  校准参数 - 输出分压器传感器比率（INA226直接测量，通常为1.0）
