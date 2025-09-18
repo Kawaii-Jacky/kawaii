@@ -4,39 +4,40 @@ void backflowControl(){                                                // PV 回
   else{                                                                //充电器模式：根据输入输出电压关系控制旁路
     unsigned long currentTime = millis();
     
-    // 防误触发机制：每隔100ms检测一次
-    if(currentTime - lastBackflowCheck >= BackflowCheckInterval) {
+    // 防误触发机制：每隔backflowcheckInterval ms检测一次
+    if(currentTime - lastBackflowCheck >= backflowcheckInterval) {
       lastBackflowCheck = currentTime;
       
-      // 检查是否需要关闭旁路
-      if(voltageInput<=buckVoltage+voltageDropout){
-        bypassEnable = 0;                                              // 输入电压不足 - 直接关闭旁路（物理硬限制）
-        backflowTriggerCount = 0;                                      // 重置计数器
+      // 情况1：初始化时检测 - buck未启用时
+      if(!buckEnable && voltageInput<voltageBatteryMax+voltageDropout){
+        bypassEnable = 0;                                              // 输入电压不足 - 关闭旁路
       }
-      else if(buckVoltage<voltageBatteryMax-buckfloatVoltage){
-        // 输出电压异常 - 增加触发计数
-        backflowTriggerCount++;                                        // 每次检测到异常都增加计数
-        if(backflowTriggerCount >= backflowTriggerLimit) {
-          bypassEnable = 0;                                            // 连续触发backflowTriggerLimit次后关闭旁路
-        }
-      } else {
-        // 条件正常时重置计数器
-        backflowTriggerCount = 0;                                      // 重置计数器
-        bypassEnable = 1;                                              // 输入电压足够且输出电压正常 - 打开旁路 MOSFET
+      // 情况2：运行时检测 - buck启用时，PWM达到上限且输出电压无法达到目标电压
+      else if(buckEnable && PWM>=pwmMaxLimited && buckVoltage<voltageBatteryMax-buckfloatVoltage){
+          backflowTriggerCount++;                                        // 每次检测到异常都增加计数       
+        } 
+      else {                            
+        bypassEnable = 1;                                              //打开旁路 MOSFET
       }
       
-      // 防误触发时间重置机制：每隔backflowCheckInterval ms重置一次计数
+      // 防误触发时间重置机制：每隔backflowresetInterval ms重置一次计数
       static unsigned long lastResetTime = 0;
-      if(currentTime - lastResetTime >= backflowCheckInterval) {
+      if(currentTime - lastResetTime >= backflowresetInterval) {
         lastResetTime = currentTime;
-        if(backflowTriggerCount > 0) {
-          backflowTriggerCount = 0;                                    // 重置错误计数，防止长期累积
+        if(backflowTriggerCount >= backflowTriggerLimit) {
+          bypassEnable = 0;                                            // 连续触发backflowTriggerLimit次后关闭旁路
+          backflowTriggerCount = 0;                                    // 重置计数器
+        }
+        else{
+          backflowTriggerCount = 0;                                    // 重置计数器
         }
       }
     }
   }
   digitalWrite(backflow_MOSFET,bypassEnable);                          //信号回流 MOSFET GPIO 引脚 
 }
+
+
 
 void Device_Protection(){
   //错误计数器复位
