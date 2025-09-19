@@ -83,7 +83,7 @@ int
   errorCountLimit = 5,          //  USER PARAMETER - 最大错误数
   millisRoutineInterval = 250,  //  USER PARAMETER - 例程函数的时间间隔刷新率 (ms)
   millisSerialInterval = 1000,     //  USER PARAMETER - USB 串行数据馈送的时间间隔刷新率 (ms)
-  millisWiFiInterval = 1000,    //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
+  // millisWiFiInterval = 1000,    //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
   backflowTriggerLimit = 5,     //  USER PARAMETER - 旁路控制连续触发次数限制
   backflowcheckInterval = 100,  //  USER PARAMETER - 旁路检查间隔(ms) - 100ms
   backflowresetInterval = 1000;  //  USER PARAMETER - 旁路重置检查间隔(ms) - 1秒重置
@@ -98,8 +98,8 @@ float
   batteryCapacity = 50.0,      //   USER PARAMETER - 电池容量（Ah）
   electricalPrice = 0.6500;   //   USER PARAMETER - 每千瓦时的输入电价（美元/千瓦时，欧元/千瓦时，比索/千瓦时）
   buckProtectVoltage = 0.5000;  //   USER PARAMETER - 输出保护电压（V）
-  buckmaxfloatVoltage = 0.2500;  //   USER PARAMETER - 旁路控制浮动电压（V）
-  buckminfloatVoltage = 0.5000;  //   USER PARAMETER - 旁路控制浮动电压（V）
+  buckmaxfloatVoltage = 0.2500;  //   USER PARAMETER - 旁路控制Max浮动电压（V）
+  buckminfloatVoltage = 0.5000;  //   USER PARAMETER - 旁路控制Min浮动电压（V）
   buckfullrestructvoltage = 0.2000;  //   USER PARAMETER - 满电限制电压（V）
   defaultbatteryCapacity = 50.0;  //   USER PARAMETER - 默认电池容量（Ah）
 
