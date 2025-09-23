@@ -7,9 +7,6 @@ void System_Processes(){
   if(currentSystemProcessesMillis-prevSystemProcessesMillis>=millisRoutineInterval){                                           //每 millisRoutineInterval (ms) 运行例程
     prevSystemProcessesMillis = currentSystemProcessesMillis;                                                                   //存储上一次
     
-    // 根据电池容量计算充电截止电流 (0.05C)
-    currentCutoff = batteryCapacity * currentCutoffRate;
-    currentCutoff = constrain(currentCutoff, 0.05, 7.0);  // 限制在合理范围内
 
     //能量计算
     if(powerInput>0 && buckEnable==1){                                                                       //只有当有输入功率且处于充电状态时才计算能量
@@ -168,7 +165,6 @@ void factoryReset(){
   EEPROM.put(30, defaultCurrent);      // 存储充电电流（浮点数，地址30）
   // 存储发送间隔默认值（5秒 = 5000毫秒）
   EEPROM.put(20, 5000);                // 存储发送间隔（毫秒）
-  EEPROM.put(120, batteryCapacity); // 保存电池容量到EEPROM地址120
   EEPROM.write(25,1); //存储: 启用自动加载（默认开启，新地址25）
   EEPROM.write(13,1); //存储: 风扇启用 (Bool)
   EEPROM.write(14,60); //存储: 风扇温度（整数）
@@ -241,15 +237,6 @@ void checkSettings() {
     Serial.println("> EEPROM数据检查通过，所有参数有效");
   }
   
-  // 检查batteryCapacity (1-100Ah)
-  if(batteryCapacity > 0 && batteryCapacity < 100.0) {
-    Serial.printf("> batteryCapacity正常: %.1fAh\n", batteryCapacity);
-  }else{
-    batteryCapacity = defaultbatteryCapacity;
-    currentCutoff = defaultbatteryCapacity * 0.05;  // 0.05C
-    settingsValid = false;
-    errorMsg += "batteryCapacity ";
-  }
 
   
 
@@ -264,7 +251,6 @@ void loadSettings(){
   EEPROM.get(20, Sending_Interval);                          // 加载发送间隔
   EEPROM.get(108, PWM_MaxDC);                                // 加载保存的PWM_MaxDC设置（地址108）
   EEPROM.get(112, pwmMaxLimited);                            // 加载保存的pwmMaxLimited设置（地址112）
-  EEPROM.get(120, batteryCapacity);                          // 加载保存的电池容量设置（地址120）
 
   // 加载基本设置
   enableFan          = EEPROM.read(13);                      // 加载保存的风扇启用设置
@@ -314,8 +300,6 @@ void saveSettings(){
   EEPROM.put(108, PWM_MaxDC);
   // 保存pwmMaxLimited设置（地址112）
   EEPROM.put(112, pwmMaxLimited);
-   // 保存电池容量设置（地址120）
-   EEPROM.put(120, batteryCapacity);
   
   EEPROM.commit();                     //将设置更改保存到闪存
 }

@@ -72,7 +72,6 @@ void Wireless_Telemetry(){
     Blynk.virtualWrite(29,output_Mode);//输出模式
     Blynk.virtualWrite(30,Sending_Interval/1000); //发送间隔（秒）- 读写
     Blynk.virtualWrite(31,enableFan); //风扇自动控制开关
-    Blynk.virtualWrite(33,batteryCapacity); //电池容量
     Blynk.virtualWrite(34,pwm); //PWM
     Blynk.virtualWrite(35,pwmMinLimited); //预测PWM
   }
@@ -254,18 +253,4 @@ BLYNK_WRITE(32) {
   if(param.asInt() == 1) {  // 按钮按下时
     sendDebugInfoToBlynk();
   }
-}
-
-// Blynk电池容量设置回调函数
-BLYNK_WRITE(33) {
-  batteryCapacity = param.asFloat();
-  
-  // 限制电池容量在合理范围内 (1Ah - 200Ah)
-  batteryCapacity = constrain(batteryCapacity, 1.0, 100.0);
-  currentCutoff = batteryCapacity * currentCutoffRate;  // 0.05C
-
-  Serial.printf("Blynk电池容量设置: %.1f Ah,充电截止电流已设置为: %.2f A\n", batteryCapacity, currentCutoff);
-  Blynk.virtualWrite(V0, "电池容量已设置为: " + String(batteryCapacity) + " Ah,充电截止电流已设置为: " + String(currentCutoff) + " A");
-  saveSettings(); // 保存设置到EEPROM
-
 }

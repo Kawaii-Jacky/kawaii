@@ -94,14 +94,10 @@ float
   voltageBatteryMax = 14.600,  //   USER PARAMETER - 充电终止电压（电池充满时的目标电压 V）
   voltageBatteryMin = 10.0000,  //   USER PARAMETER - 电池空电压（电池放电终止电压 V）
   currentCharging = 2.0000,    //   USER PARAMETER - 最大充电电流（A - 输出）
-  currentCutoffRate = 0.0500,      //   USER PARAMETER - 充电截止电流率（0.05C-0.1C）
-  batteryCapacity = 50.0,      //   USER PARAMETER - 电池容量（Ah）
   electricalPrice = 0.6500;   //   USER PARAMETER - 每千瓦时的输入电价（美元/千瓦时，欧元/千瓦时，比索/千瓦时）
   buckProtectVoltage = 0.5000;  //   USER PARAMETER - 输出保护电压（V）
   buckmaxfloatVoltage = 0.2500;  //   USER PARAMETER - 旁路控制Max浮动电压（V）
   buckminfloatVoltage = 0.5000;  //   USER PARAMETER - 旁路控制Min浮动电压（V）
-  buckfullrestructvoltage = 0.2000;  //   USER PARAMETER - 满电限制电压（V）
-  defaultbatteryCapacity = 50.0;  //   USER PARAMETER - 默认电池容量（Ah）
 
 //================================== 校准参数 =======================================//
 //可以调整以下参数以设计您自己的 MPPT 充电控制器。只修改 //
@@ -206,7 +202,6 @@ float
   buckEfficiency = 0.0000,    // SYSTEM PARAMETER - 测量降压转换器功率转换效率（仅适用于我的双电流传感器版本）
   floatTemp = 0.0000,
   vOutSystemMin = 0.0000;  //  CALIB PARAMETER -
-  currentCutoff = 0.0000;  // SYSTEM PARAMETER - 充电截止电流（A - 0.05C-0.1C）
 unsigned long
   currentErrorMillis = 0,    //SYSTEM PARAMETER -
   currentButtonMillis = 0,   //SYSTEM PARAMETER -

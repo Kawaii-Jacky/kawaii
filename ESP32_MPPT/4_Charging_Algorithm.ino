@@ -51,10 +51,6 @@ void Charging_Algorithm(){
         // 先计算pwmMinLimited
         predictivePWM();
         
-        if(buckCurrent<currentCutoff && buckVoltage>=voltageBatteryMax-buckfullrestructvoltage){
-          buck_Disable();             //电流低于截止电流且电压接近目标 → 停止充电
-          Serial.println("> Charging Complete - Current below cutoff threshold");
-        }
         else if(buckCurrent>currentCharging) {
           PWM--;
         }                            //电流高于 → 降低占空比
@@ -72,10 +68,6 @@ void Charging_Algorithm(){
         // 先计算pwmMinLimited
         predictivePWM();
         
-        if(buckCurrent<currentCutoff && buckVoltage>=voltageBatteryMax-buckfullrestructvoltage){
-          buck_Disable();                 //电流低于截止电流且电压接近目标 → 停止充电
-          Serial.println("> MPPT Charging Complete - Current below cutoff threshold");
-        }
         else if(buckCurrent>currentCharging){
           PWM--;
         }                                 //电流高于 → 降低占空比
