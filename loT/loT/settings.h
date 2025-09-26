@@ -219,7 +219,6 @@ unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 #define EEPROM_MAGIC_NUMBER 0         // EEPROM魔数
 #define EEPROM_MAGIC_NUMBER_ADDR 4    // EEPROM魔数地址
 #define IOT_AUTO_HEATER_ADDR   8      // 自动加热带开关地址
-#define IOT_HUMI_THRESHOLD_ADDR 12   // 湿度阈值地址
 #define FAN_TEMP_THRESHOLD_ADDR 16   // 风扇温度阈值地址
 #define ADDR_BUTTON_STATE 20         // 按钮状态地址
 #define ADDR_MOTOR_STATE 24          // 电机状态地址
@@ -233,7 +232,7 @@ unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 #define ADDR_HUMIDITY_THRESHOLD 56   // 湿度阈值地址
 #define MAC_ADDRESSES_ADDR 60        // MAC地址存储地址
 #define FAN_TEMP_THRESHOLD_ADDR 64   // 风扇温度阈值地址
-
+#define IOT_HUMI_THRESHOLD_ADDR 68   // 湿度阈值地址
 
 #endif
 

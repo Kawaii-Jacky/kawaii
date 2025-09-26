@@ -127,46 +127,29 @@ BLYNK_WRITE(MOSFET_DELAY_VPIN) {
   saveSettingsToEEPROM();
 }
 
-// MOSFET延时时间设置回调（HH:MM格式）
+// MOSFET延时时间设置回调（Time Input控件返回秒数）
 BLYNK_WRITE(MOSFET_DELAY_TIME_VPIN) {
-  String timeStr = param.asStr();
+  // Time Input控件返回秒数
+  long timeInSeconds = param[0].asLong();
   
-  // 解析HH:MM格式的时间字符串
-  int colonIndex = timeStr.indexOf(':');
-  if (colonIndex != -1) {
-    String hoursStr = timeStr.substring(0, colonIndex);
-    String minutesStr = timeStr.substring(colonIndex + 1);
-    
-    int hours = hoursStr.toInt();
-    int minutes = minutesStr.toInt();
-    
-    // 验证时间格式
-    if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-      // 计算延时时间（毫秒）
-      mosfetDelayTime = (hours * 3600000UL) + (minutes * 60000UL);
-      
-      Serial.printf("延时关闭时间设置: %02d:%02d (%d小时%d分钟)\n", hours, minutes, hours, minutes);
-      Blynk.virtualWrite(TERMINAL_VPIN, String("延时关闭时间设置: ") + String(hours) + "小时" + String(minutes) + "分钟");
-      
-      // 立即保存设置到EEPROM
-      saveSettingsToEEPROM();
-      
-      // 如果延时功能已启用，显示剩余时间
-      if (mosfetDelayEnabled && mosfetState) {
-        unsigned long remainingMs = mosfetDelayTime - (millis() - mosfetDelayStartTime);
-        if (remainingMs > 0) {
-          unsigned long remainingHours = remainingMs / 3600000UL;
-          unsigned long remainingMinutes = (remainingMs % 3600000UL) / 60000UL;
-          Serial.printf("剩余延时时间: %lu小时%lu分钟\n", remainingHours, remainingMinutes);
-        }
-      }
-    } else {
-      Serial.println("延时时间格式错误，请使用HH:MM格式（如01:30）");
-      Blynk.virtualWrite(TERMINAL_VPIN, String("延时时间格式错误，请使用HH:MM格式（如01:30）"));
-    }
-  } else {
-    Serial.println("延时时间格式错误，请使用HH:MM格式（如01:30）");
-    Blynk.virtualWrite(TERMINAL_VPIN, String("延时时间格式错误，请使用HH:MM格式（如01:30）"));
+  // 调试：打印原始输入
+  Serial.print("收到延时输入（秒）: ");
+  Serial.println(timeInSeconds);
+  Blynk.virtualWrite(TERMINAL_VPIN, String("收到延时输入（秒）: ") + String(timeInSeconds));
+
+  // 直接使用秒数作为延时时间（转换为毫秒）
+  mosfetDelayTime = timeInSeconds * 1000UL;
+
+  // 显示设置的时间
+  int hours = timeInSeconds / 3600;
+  int minutes = (timeInSeconds % 3600) / 60;
+  Serial.printf("延时关闭时间设置: %02d:%02d (%d小时%d分钟)\n", hours, minutes, hours, minutes);
+  Blynk.virtualWrite(TERMINAL_VPIN, String("延时关闭时间设置: ") + String(hours) + "小时" + String(minutes) + "分钟");
+
+  // 如果延时功能已启用且MOSFET已开启，重新开始计时
+  if (mosfetDelayEnabled && mosfetState) {
+    mosfetDelayStartTime = millis();
+    Serial.println("延时时间已更新，重新开始计时");
+    Blynk.virtualWrite(TERMINAL_VPIN, String("延时时间已更新，重新开始计时"));
   }
-  saveSettingsToEEPROM();
-} 
+}

@@ -11,7 +11,6 @@ void Onboard_Telemetry(){
     prevSerialMillis = currentSerialMillis;                         //存储上次时间
 
     if(serialTelemMode==0){}
-//  else if(chargingPause==1){Serial.println("充电暂停");}   // 充电暂停消息
     else if(serialTelemMode==1){                                    // 1 - 显示全部数据                           
       Serial.print(" ERR:");   Serial.print(ERR);//错误计数
       Serial.print(" FLV:");   Serial.print(FLV);//系统电压过低
@@ -33,7 +32,7 @@ void Onboard_Telemetry(){
       Serial.print(" ");  
       Serial.print(" PI:");    Serial.print(powerInput,3);//输入功率
       Serial.print(" PWM:");   Serial.print(PWM);//PWM
-      Serial.print(" PPWM:");  Serial.print(PPWM);//预测PWM
+      Serial.print(" pwmMinLimited:");  Serial.print(pwmMinLimited);//预测PWM
       Serial.print(" MaxDC:"); Serial.print(PWM_MaxDC,1);//最大占空比
       Serial.print(" MaxLim:");Serial.print(pwmMaxLimited);//PWM最大限制
       Serial.print(" VI:");    Serial.print(voltageInput,3);//输入电压
@@ -61,7 +60,7 @@ void Onboard_Telemetry(){
     else if(serialTelemMode==2){ // 2 - 显示关键数据
       Serial.print(" PI:");    Serial.print(powerInput,3); 
       Serial.print(" PWM:");   Serial.print(PWM); 
-      Serial.print(" PPWM:");  Serial.print(PPWM); 
+      Serial.print(" pwmMinLimited:");  Serial.print(pwmMinLimited); 
       Serial.print(" VI:");    Serial.print(voltageInput,3); 
       Serial.print(" BV:");    Serial.print(buckVoltage,3); 
       Serial.print(" CI:");    Serial.print(currentInput,3); 
@@ -129,7 +128,7 @@ void sendDebugInfoToBlynk() {
     debugInfo += " ";  
     debugInfo += " PI:" + String(powerInput,3);    //输入功率
     debugInfo += " PWM:" + String(PWM);   //PWM
-    debugInfo += " PPWM:" + String(PPWM);  //预测PWM
+    debugInfo += " pwmMinLimited:" + String(pwmMinLimited);  //预测PWM
     debugInfo += " MaxDC:" + String(PWM_MaxDC,1); //最大占空比
     debugInfo += " MaxLim:" + String(pwmMaxLimited); //PWM最大限制
     debugInfo += " VI:" + String(voltageInput,3);    //输入电压
@@ -149,7 +148,6 @@ void sendDebugInfoToBlynk() {
     debugInfo += " LoopT:" + String(loopTime,3) + "ms";
     debugInfo += " Daily:" + String(dailyEnergy/1000,3) + "kWh";
     debugInfo += " Total:" + String(totalEnergy/1000,3) + "kWh";
-    
     Blynk.virtualWrite(V0, debugInfo);
   }
 }
