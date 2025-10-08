@@ -2,35 +2,18 @@
 
 void setupWiFi(){
   if(enableWiFi==1){
-     // 连接WiFi网络
-    WiFi.begin(ssid, pass); 
-
-    if (WiFi.status() == WL_CONNECTED) {
-    } 
-
-    Blynk.begin(auth, ssid, pass, blynkServer, blynkPort);
-
-    if (Blynk.connect()) {
-
-      // 打印本机MAC地址
-      uint8_t mac[6];
-      WiFi.macAddress(mac);
-      String macStr = String("MPPT板子MAC地址: ") + 
-                      String(mac[0], HEX) + ":" + String(mac[1], HEX) + ":" + 
-                      String(mac[2], HEX) + ":" + String(mac[3], HEX) + ":" + 
-                      String(mac[4], HEX) + ":" + String(mac[5], HEX);
-      Serial.println("> " + macStr);
-      Blynk.virtualWrite(V0, macStr);
-      
-      WIFI = 1;
-    }
-    }
-
+    // 非阻塞WiFi初始化
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, pass);
+    Serial.println("> WiFi开始连接...");
+    
+    // 注意：Blynk连接将在CORE0中非阻塞处理
+    WIFI = 0;  // 初始状态为未连接
+  }
   else {
     Serial.println("> WiFi功能已禁用");
     WIFI = 0;
   }
-  
 }
 
 void Wireless_Telemetry(){

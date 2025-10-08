@@ -14,6 +14,8 @@
 #include <WiFiClient.h>        //系统参数 - WiFi 库（作者：Arduino）
 #include <BlynkSimpleEsp32.h>  //系统参数 - 手机应用程序的 Blynk WiFi 库
 #include <INA226.h>            //系统参数 - INA226 电流/电压传感器库 (peterus版本)
+#include <esp_task_wdt.h>      //系统参数 - ESP32看门狗库
+#include <time.h>              //系统参数 - 时间库
 TaskHandle_t Core2;            //系统参数 - 用于 ESP32 双核操作
 INA226 ina1;                   //系统参数 - INA226 输入电流/电压传感器
 INA226 ina2;                   //系统参数 - INA226 输出电流/电压传感器
@@ -50,6 +52,18 @@ char
   blynkServer[] = BLYNK_SERVER;  //   Blynk 服务器地址（默认：blynk.cloud）
 
 uint16_t blynkPort = BLYNK_PORT;  //   Blynk 服务器端口（默认：80，自定义服务器：7070）
+
+//========================================= NTP时间同步配置 ==============================================//
+const char* ntpServers[] = {
+  "pool.ntp.org",           // 主要NTP服务器
+  "time.nist.gov",          // 备用NTP服务器1
+  "time.windows.com",       // 备用NTP服务器2
+  "cn.pool.ntp.org",        // 中国NTP服务器
+  "ntp.aliyun.com"          // 阿里云NTP服务器
+};
+const int ntpServerCount = 5;                  // NTP服务器数量
+const long gmtOffset_sec = 8 * 3600;           // 东八区时间偏移（8小时 * 3600秒）
+const int daylightOffset_sec = 0;              // 夏令时偏移（中国不使用夏令时）
 
 
 //========================================= MPPT数据结构体 ==============================================//
@@ -220,7 +234,9 @@ unsigned long
   loopTimeEnd = 0,           //SYSTEM PARAMETER - 用于循环循环秒表，记录循环结束时间
   secondsElapsed = 0,        //SYSTEM PARAMETER -
   lastDayReset = 0,          //SYSTEM PARAMETER - 上次日发电重置时间戳
-  lastBackflowCheck = 0;     //SYSTEM PARAMETER - 旁路控制上次检查时间
+  lastBackflowCheck = 0,     //SYSTEM PARAMETER - 旁路控制上次检查时间
+  lastCore0Heartbeat = 0,    //SYSTEM PARAMETER - CORE0心跳时间
+  lastCore1Heartbeat = 0;    //SYSTEM PARAMETER - CORE1心跳时间
 
 //====================================== 主程序 =============================================//
 // The codes below contain all the system processes for the MPPT firmware. Most of them are called //
@@ -233,42 +249,91 @@ unsigned long
 
 //================= CORE0: SETUP (DUAL CORE MODE) =====================//
 void coreTwo(void* pvParameters) {
-
-  setupWiFi();  //TAB#7 - WiFi Initialization
-
+  
+  // 初始化CORE0看门狗
+  esp_task_wdt_add(NULL);  // 将当前任务添加到看门狗
+  
+  // 非阻塞WiFi初始化
+  if(enableWiFi == 1) {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, pass);
+    Serial.println("> CORE0: WiFi开始连接...");
+    
+    // 等待WiFi连接成功后初始化时间同步
+    int wifiRetryCount = 0;
+    while (WiFi.status() != WL_CONNECTED && wifiRetryCount < 20) {
+      delay(500);
+      wifiRetryCount++;
+    }
+    
+    if (WiFi.status() == WL_CONNECTED) {
+      // 尝试多个NTP服务器进行时间同步
+      bool timeSyncSuccess = false;
+      for (int i = 0; i < ntpServerCount && !timeSyncSuccess; i++) {
+        Serial.println("> CORE0: 尝试连接NTP服务器: " + String(ntpServers[i]));
+        configTime(gmtOffset_sec, daylightOffset_sec, ntpServers[i]);
+        
+        // 等待时间同步完成
+        int syncRetryCount = 0;
+        while (syncRetryCount < 10) {
+          struct tm timeinfo;
+          if (getLocalTime(&timeinfo)) {
+            timeSyncSuccess = true;
+            Serial.println("> CORE0: NTP时间同步成功 - " + String(ntpServers[i]));
+            break;
+          }
+          delay(1000);
+          syncRetryCount++;
+        }
+      }
+      
+      if (!timeSyncSuccess) {
+        Serial.println("> CORE0: 所有NTP服务器连接失败");
+      }
+    }
+  }
 
   //================= CORE0: LOOP (DUAL CORE MODE) ======================//
   while (1) {
+    // 喂看门狗
+    esp_task_wdt_reset();
+    
+    // 更新CORE0心跳
+    lastCore0Heartbeat = millis();
+    
     // 频繁调用Blynk.run()以确保输入响应及时
     if (WIFI == 1) {
       Blynk.run();
     }
     
-    
-    
-    // WiFi与Blynk断线重连机制
-    static unsigned long lastReconnectTime = 0;
-    if (millis() - lastReconnectTime > Sending_Interval) { // 每5秒检测一次
-      // WiFi重连
+    // 非阻塞WiFi连接检查
+    if(enableWiFi == 1) {
       if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("[WiFi] 断开，尝试重连...");
-        WiFi.disconnect();
-        WiFi.begin(ssid, pass);
-      } else {
-     
+        // WiFi未连接，尝试重连（非阻塞）
+        if (WiFi.status() == WL_DISCONNECTED) {
+          WiFi.begin(ssid, pass);
+        }
+      } else if (WIFI == 0) {
+        // WiFi已连接但Blynk未初始化
+        Blynk.begin(auth, ssid, pass, blynkServer, blynkPort);
+        if (Blynk.connect()) {
+          WIFI = 1;
+          Serial.println("> CORE0: Blynk连接成功");
+        }
       }
-      // Blynk重连
-      if (!Blynk.connected()) {
-        Serial.println("[Blynk] 断开，尝试重连...");
-        Blynk.connect();
-      } else {
+    }
+    
+    // 定期发送遥测数据
+    static unsigned long lastTelemetryTime = 0;
+    if (millis() - lastTelemetryTime > Sending_Interval) {
+      if (WIFI == 1 && Blynk.connected()) {
         Wireless_Telemetry();
       }
-      lastReconnectTime = millis();
+      lastTelemetryTime = millis();
     }
 
     // 添加小延迟避免占用过多CPU
-    delay(50);  // 减少延迟，提高响应速度
+    delay(50);
   }
 }
 
@@ -278,6 +343,10 @@ void setup() {
   //串行初始化
   Serial.begin(baudRate);                  //Set serial baud rate
   Serial.println("> Serial Initialized");  //Startup message
+  
+  // 初始化看门狗定时器（30秒超时）
+  esp_task_wdt_init(30, true);
+  Serial.println("> Watchdog Initialized (30s timeout)");
 
   // GPIO 引脚初始化
   pinMode(backflow_MOSFET, OUTPUT);
@@ -327,12 +396,16 @@ void setup() {
 }
 //================== CORE1: LOOP (DUAL CORE MODE) ======================//
 void loop() {
+  // 喂看门狗
+  esp_task_wdt_reset();
+  
+  // 更新CORE1心跳
+  lastCore1Heartbeat = millis();
 
-Read_Sensors();        //读取传感器
-Device_Protection();   //故障检测算法
-System_Processes();    //系统进程
-Charging_Algorithm();  //电池充电算法
-Onboard_Telemetry();   //板载遥测（USB & 串行遥测）
-
+  Read_Sensors();        //读取传感器
+  Device_Protection();   //故障检测算法
+  System_Processes();    //系统进程
+  Charging_Algorithm();  //电池充电算法
+  Onboard_Telemetry();   //板载遥测（USB & 串行遥测）
 
 }

@@ -108,6 +108,18 @@ void Onboard_Telemetry(){
 void sendDebugInfoToBlynk() {
   if(WIFI == 1 && Blynk.connected()) {
     String debugInfo = "";
+    
+    // 添加当前东八区时间戳
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo)) {
+      char timeString[20];
+      strftime(timeString, sizeof(timeString), "[%H:%M:%S]", &timeinfo);
+      debugInfo += String(timeString) + " ";
+    } else {
+      // 时间获取失败
+      debugInfo += "[时间获取失败] ";
+    }
+    
     debugInfo += " ERR:" + String(ERR);   //错误计数
     debugInfo += " FLV:" + String(FLV);   //系统电压过低
     debugInfo += " BNC:" + String(BNC);   //电池未连接

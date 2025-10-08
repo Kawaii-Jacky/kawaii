@@ -75,29 +75,23 @@ void Charging_Algorithm(){
           PWM--;
         }                         //电压高于 → 降低占空比  
         else{                                                                          //MPPT 算法
-          // 定义阈值，避免抖动
-          float powerThreshold = 0.1;    // 功率阈值 0.1W
-          float voltageThreshold = 0.1;  // 电压阈值 0.1V
-          
           float powerDiff = powerInput - powerInputPrev;
           float voltageDiff = voltageInput - voltageInputPrev;
           
-          // 只有当变化超过阈值时才进行调整
-          if(abs(powerDiff) >= powerThreshold || abs(voltageDiff) >= voltageThreshold) {
-            if(powerDiff > powerThreshold && voltageDiff > voltageThreshold) {
-              PWM--;
-            } //  ↑P ↑V ; →MPP //D--
-            else if(powerDiff > powerThreshold && voltageDiff < -voltageThreshold){
-              PWM++;
-            } //  ↑P ↓V ; MPP← //D++ 
-            else if(powerDiff < -powerThreshold && voltageDiff > voltageThreshold){
-              PWM++;
-            } //  ↓P ↑V ; MPP→ //D++ 
-            else if(powerDiff < -powerThreshold && voltageDiff < -voltageThreshold){
-              PWM--;
-            } //  ↓P ↓V ; ←MPP  //D--
-            else{ }// 如果变化在阈值内，保持PWM不变
-          }
+          // 直接MPPT算法，无阈值限制
+          if(powerDiff > 0 && voltageDiff > 0) {
+            PWM--;
+          } //  ↑P ↑V ; →MPP //D--
+          else if(powerDiff > 0 && voltageDiff < 0){
+            PWM++;
+          } //  ↑P ↓V ; MPP← //D++ 
+          else if(powerDiff < 0 && voltageDiff > 0){
+            PWM++;
+          } //  ↓P ↑V ; MPP→ //D++ 
+          else if(powerDiff < 0 && voltageDiff < 0){
+            PWM--;
+          } //  ↓P ↓V ; ←MPP  //D--
+          else{ }// 如果功率和电压都没有变化，保持PWM不变
           
           powerInputPrev   = powerInput;                                               //  存储以前记录的功率
           voltageInputPrev = voltageInput;                                             //存储先前记录的电压        
