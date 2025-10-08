@@ -33,7 +33,6 @@ void Onboard_Telemetry(){
       Serial.print(" ");  
       Serial.print(" PI:");    Serial.print(powerInput,3);//输入功率
       Serial.print(" PWM:");   Serial.print(PWM);//PWM
-      Serial.print(" PPWM:");  Serial.print(PPWM);//预测PWM
       Serial.print(" MaxDC:"); Serial.print(PWM_MaxDC,1);//最大占空比
       Serial.print(" MaxLim:");Serial.print(pwmMaxLimited);//PWM最大限制
       Serial.print(" VI:");    Serial.print(voltageInput,3);//输入电压
@@ -61,7 +60,6 @@ void Onboard_Telemetry(){
     else if(serialTelemMode==2){ // 2 - 显示关键数据
       Serial.print(" PI:");    Serial.print(powerInput,3); 
       Serial.print(" PWM:");   Serial.print(PWM); 
-      Serial.print(" PPWM:");  Serial.print(PPWM); 
       Serial.print(" VI:");    Serial.print(voltageInput,3); 
       Serial.print(" BV:");    Serial.print(buckVoltage,3); 
       Serial.print(" CI:");    Serial.print(currentInput,3); 
@@ -129,9 +127,9 @@ void sendDebugInfoToBlynk() {
     debugInfo += " ";  
     debugInfo += " PI:" + String(powerInput,3);    //输入功率
     debugInfo += " PWM:" + String(PWM);   //PWM
-    debugInfo += " PPWM:" + String(PPWM);  //预测PWM
     debugInfo += " MaxDC:" + String(PWM_MaxDC,1); //最大占空比
     debugInfo += " MaxLim:" + String(pwmMaxLimited); //PWM最大限制
+    debugInfo += " MinLim:" + String(pwmMinLimited); //PWM最小限制
     debugInfo += " VI:" + String(voltageInput,3);    //输入电压
     debugInfo += " BV:" + String(buckVoltage,3);    //降压电压
     debugInfo += " CI:" + String(currentInput,3);    //输入电流

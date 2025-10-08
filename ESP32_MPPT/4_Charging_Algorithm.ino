@@ -51,7 +51,7 @@ void Charging_Algorithm(){
         // 先计算pwmMinLimited
         predictivePWM();
         
-        else if(buckCurrent>currentCharging) {
+        if(buckCurrent>currentCharging) {
           PWM--;
         }                            //电流高于 → 降低占空比
         else if(buckVoltage>voltageBatteryMax){
@@ -68,7 +68,7 @@ void Charging_Algorithm(){
         // 先计算pwmMinLimited
         predictivePWM();
         
-        else if(buckCurrent>currentCharging){
+        if(buckCurrent>currentCharging){
           PWM--;
         }                                 //电流高于 → 降低占空比
         else if(buckVoltage>voltageBatteryMax){

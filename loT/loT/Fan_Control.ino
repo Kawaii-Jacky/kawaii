@@ -23,8 +23,6 @@ void initFanControl() {
   
   Serial.println("风扇控制模块初始化完成");
   Serial.println("风扇温度阈值: " + String(fanTempThreshold) + "°C");
-  Blynk.virtualWrite(TERMINAL_VPIN, "风扇控制模块初始化完成");
-  Blynk.virtualWrite(TERMINAL_VPIN, "风扇温度阈值: " + String(fanTempThreshold) + "°C");
 }
 
 // 控制风扇开关
@@ -89,16 +87,6 @@ void setFanTempThreshold(uint8_t threshold) {
   Blynk.virtualWrite(FAN_TEMP_THRESHOLD_VPIN, fanTempThreshold);
 }
 
-// 获取风扇状态信息
-String getFanStatusInfo() {
-  String status = "风扇状态: ";
-  status += fanState ? "开启" : "关闭";
-  status += " | 模式: ";
-  status += fanAutoMode ? "自动" : "手动";
-  status += " | 温度阈值: ";
-  status += String(fanTempThreshold) + "°C";
-  return status;
-}
 
 // ========================================== Blynk虚拟引脚处理函数 ==========================================
 

@@ -236,10 +236,7 @@ void checkSettings() {
   } else {
     Serial.println("> EEPROM数据检查通过，所有参数有效");
   }
-  
-
-  
-
+}
 
 void loadSettings(){ 
   MPPT_Mode          = EEPROM.read(0);                       // 加载保存的充电模式设置
@@ -268,8 +265,6 @@ void loadSettings(){
   // 调用检查函数验证所有加载的数据
   checkSettings();
   
-
-
 }
 
 void saveSettings(){
@@ -314,3 +309,16 @@ void initializeFlashAutoload(){
   } 
 }
 
+void recalculateAndSavePWM_MaxDC(){
+  // 重新计算PWM_MaxDC
+  PWM_MaxDC = (voltageBatteryMax / (voltageBatteryMax + voltageDropout)) * 100.0;
+  PWM_MaxDC = constrain(PWM_MaxDC, 85.0, 97.0); // 限制在85-97%范围内
+  
+  // 重新计算pwmMaxLimited
+  pwmMaxLimited = (PWM_MaxDC * pwmMax) / 100.0;
+  
+  // 保存到EEPROM
+  EEPROM.put(108, PWM_MaxDC);
+  EEPROM.put(112, pwmMaxLimited);
+  EEPROM.commit();
+}

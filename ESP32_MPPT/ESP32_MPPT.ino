@@ -65,7 +65,6 @@ bool
   output_Mode = 1,           //   USER PARAMETER - 0 = PSU 模式, 1 = 充电器模式
   MPPT_Mode = 1,             //   USER PARAMETER - 启用 MPPT 算法，当禁用充电器时使用 CC-CV 算法
   disableFlashAutoLoad = 0,  //   USER PARAMETER - 强制 MPPT 不使用闪存保存的设置，启用此"1"默认为已编程的固件设置
-  // enablePPWM = 1,            //   USER PARAMETER - 启用预测 PWM，这加快了调节速度（仅适用于电池充电应用）
   enableWiFi = 1,            //   USER PARAMETER - 启用 WiFi 连接
   enableFan = 1,             //   USER PARAMETER - 启用冷却风扇
   enableBluetooth = 1,       //   USER PARAMETER - 启用蓝牙连
@@ -86,7 +85,7 @@ int
   // millisWiFiInterval = 1000,    //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
   backflowTriggerLimit = 5,     //  USER PARAMETER - 旁路控制连续触发次数限制
   backflowcheckInterval = 100,  //  USER PARAMETER - 旁路检查间隔(ms) - 100ms
-  backflowresetInterval = 1000;  //  USER PARAMETER - 旁路重置检查间隔(ms) - 1秒重置
+  backflowresetInterval = 1000,  //  USER PARAMETER - 旁路重置检查间隔(ms) - 1秒重置
   baudRate = 115200,            //  用户参数 - USB 串行波特率 (bps)
   resetbutton = 0,
   newResetMode = 0;
@@ -94,10 +93,11 @@ float
   voltageBatteryMax = 14.600,  //   USER PARAMETER - 充电终止电压（电池充满时的目标电压 V）
   voltageBatteryMin = 10.0000,  //   USER PARAMETER - 电池空电压（电池放电终止电压 V）
   currentCharging = 2.0000,    //   USER PARAMETER - 最大充电电流（A - 输出）
-  electricalPrice = 0.6500;   //   USER PARAMETER - 每千瓦时的输入电价（美元/千瓦时，欧元/千瓦时，比索/千瓦时）
-  buckProtectVoltage = 0.5000;  //   USER PARAMETER - 输出保护电压（V）
-  buckmaxfloatVoltage = 0.2500;  //   USER PARAMETER - 旁路控制Max浮动电压（V）
-  buckminfloatVoltage = 0.5000;  //   USER PARAMETER - 旁路控制Min浮动电压（V）
+  electricalPrice = 0.6500,   //   USER PARAMETER - 每千瓦时的输入电价（美元/千瓦时，欧元/千瓦时，比索/千瓦时）
+  buckProtectVoltage = 0.5000,  //   USER PARAMETER - 输出保护电压（V）
+  buckmaxfloatVoltage = 0.2500,  //   USER PARAMETER - 旁路控制Max浮动电压（V）
+  buckminfloatVoltage = 0.5000,  //   USER PARAMETER - 旁路控制Min浮动电压（V）
+  buckfloatVoltage = 0.5000;     //   USER PARAMETER - 旁路控制浮动电压（V）
 
 //================================== 校准参数 =======================================//
 //可以调整以下参数以设计您自己的 MPPT 充电控制器。只修改 //
@@ -121,8 +121,8 @@ float
   currentOutAbsolute = 50.0000,   //  校准参数 - 系统可以处理的最大输出电流（A - 输入）
   pwmMinLimited_margin = 99.5000;          //  校准参数 - 预测 PWM 的最小工作占空比 (%)
 float
-  PWM_MaxDC = 0.0000;             //  系统参数 - 最大工作占空比 (%) 通过公式动态计算
-  PWM_MinDC = 0.0000;             //  系统参数 - 最小工作占空比 (%) 通过公式动态计算
+  PWM_MaxDC = 0.0000,             //  系统参数 - 最大工作占空比 (%) 通过公式动态计算
+  PWM_MinDC = 0.0000,             //  系统参数 - 最小工作占空比 (%) 通过公式动态计算
   efficiencyRate = 1.0000,        //  校准参数 - 理论降压效率（十进制百分比）
   currentMidPoint = 0.0000,       //  校准参数 - 电流传感器中点 (V) - INA226自动处理
   currentSens = 0.0000,           //  校准参数 - 电流传感器灵敏度 (V/A) - INA226自动处理
@@ -164,11 +164,12 @@ int
   pwmMinLimited = 0,            // SYSTEM PARAMETER -
   pwmChannel = 0,      // SYSTEM PARAMETER -
   batteryPercent = 0,  // SYSTEM PARAMETER -
+  PPWM = 0,            // SYSTEM PARAMETER - 预测PWM值
   errorCount = 0,      // SYSTEM PARAMETER -
   menuPage = 0,        // SYSTEM PARAMETER -
   subMenuPage = 0,     // SYSTEM PARAMETER -
   ERR = 0,             // SYSTEM PARAMETER -
-  backflowTriggerCount = 0;  // SYSTEM PARAMETER - 旁路控制防误触发计数器
+  backflowTriggerCount = 0,  // SYSTEM PARAMETER - 旁路控制防误触发计数器
   conv1 = 0,           // SYSTEM PARAMETER -
   conv2 = 0,           // SYSTEM PARAMETER -
   intTemp = 0;         // SYSTEM PARAMETER -
