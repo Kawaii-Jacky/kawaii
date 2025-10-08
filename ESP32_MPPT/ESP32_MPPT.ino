@@ -90,7 +90,7 @@ int
   resetbutton = 0,
   newResetMode = 0;
 float
-  voltageBatteryMax = 14.600,  //   USER PARAMETER - 充电终止电压（电池充满时的目标电压 V）
+  voltageBatteryMax = 14.400,  //   USER PARAMETER - 充电终止电压（电池充满时的目标电压 V）
   voltageBatteryMin = 10.0000,  //   USER PARAMETER - 电池空电压（电池放电终止电压 V）
   currentCharging = 2.0000,    //   USER PARAMETER - 最大充电电流（A - 输出）
   electricalPrice = 0.6500,   //   USER PARAMETER - 每千瓦时的输入电价（美元/千瓦时，欧元/千瓦时，比索/千瓦时）
