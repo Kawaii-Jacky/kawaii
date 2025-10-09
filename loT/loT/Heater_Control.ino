@@ -5,7 +5,7 @@ void initHeater() {
   pinMode(HEATER_PIN_0, OUTPUT);
   digitalWrite(HEATER_PIN_1, LOW);  // 初始化关闭状态
   digitalWrite(HEATER_PIN_0, LOW);  // 初始化关闭状态
-  Serial.println("加热片控制模块初始化完成");
+  heaterState = false;  // 确保状态变量为关闭
 }
 
 // ==================== 全局变量 ====================
@@ -16,21 +16,29 @@ void setHeaterState(bool state) {
       if (state) {
         digitalWrite(HEATER_PIN_1, HIGH);  // 正极拉高
         digitalWrite(HEATER_PIN_0, LOW);   // 负极拉低
+        // 加热片打开时发送通知到Blynk
+        if (Blynk.connected()) {
+          Blynk.virtualWrite(TERMINAL_VPIN, "加热片已打开");
+        }
       } else {
         digitalWrite(HEATER_PIN_1, LOW);   // 正极拉低
         digitalWrite(HEATER_PIN_0, LOW);   // 负极保持低电平
+        // 加热片关闭时发送通知到Blynk
+        if (Blynk.connected()) {
+          Blynk.virtualWrite(TERMINAL_VPIN, "加热片已关闭");
+        }
       }
       heaterState = state;//加热片状态
-      
-      // 调试输出到串口
-      Serial.printf("加热片状态: %s\n", state ? "开启" : "关闭");
-      Blynk.virtualWrite(TERMINAL_VPIN, String("加热片状态: ") + (state ? "开启" : "关闭"));
-    
   }
 }
 
 //加热片控制逻辑
 void updateHeaterControl(float currentTemp, float dhtTemp, float humidity) {
+  // 检查自动控制开关是否开启
+  if (!heaterAutoMode) {
+    return; // 自动控制关闭时，不执行自动控制逻辑
+  }
+  
   // 自动控制逻辑
   bool shouldHeat = false;
   
@@ -62,4 +70,12 @@ BLYNK_WRITE(HEATER_TEMP_DIFF_SET_VPIN) {//温度差值设置
   // 调试输出到串口
   Serial.printf("加热片温度差值: %d°C\n", tempDiffThreshold);
   Blynk.virtualWrite(TERMINAL_VPIN, String("加热片温度差值: ") + String(tempDiffThreshold) + "°C");
+}
+
+BLYNK_WRITE(HEATER_CONTROL_VPIN) {//自动控制开关 (0=手动, 1=自动)
+  heaterAutoMode = param.asInt() == 1;
+  saveSettingsToEEPROM();
+  Serial.printf("加热片自动控制: %s\n", heaterAutoMode ? "开启" : "关闭");
+  Blynk.virtualWrite(TERMINAL_VPIN, String("加热片自动控制: ") + (heaterAutoMode ? "开启" : "关闭"));
+
 }

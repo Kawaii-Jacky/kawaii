@@ -88,7 +88,7 @@ void Wireless_Telemetry(){
     Blynk.virtualWrite(29,output_Mode);//输出模式
     Blynk.virtualWrite(30,Sending_Interval/1000); //发送间隔（秒）- 读写
     Blynk.virtualWrite(31,enableFan); //风扇自动控制开关
-    Blynk.virtualWrite(34,pwm); //PWM
+    Blynk.virtualWrite(34,PWM); //PWM
     Blynk.virtualWrite(35,pwmMinLimited); //预测PWM
   }
 
@@ -107,8 +107,8 @@ BLYNK_WRITE(10) {
     Serial.printf("Blynk最大电池电压: voltageBatteryMax = %.2f\n", voltageBatteryMax);
     Blynk.virtualWrite(V0, "最大电池电压: " + String(voltageBatteryMax, 2) + "V");
     
-    // 重新计算并保存PWM_MaxDC
-    recalculateAndSavePWM_MaxDC();
+   // 重新计算并保存PWM_MaxDC
+   recalculateAndSavePWM_MaxDC();
     
     saveSettings(); // 保存设置到EEPROM
   } else {
@@ -236,6 +236,10 @@ BLYNK_WRITE(26) {
 }
 
 BLYNK_WRITE(29) {
+  // 模式转换时先禁用buck转换器
+  buck_Disable();
+  delay(100); // 短暂延迟确保buck完全关闭
+  
   output_Mode = param.asInt();
   Serial.printf("输出模式：%d\n", output_Mode);
   Blynk.virtualWrite(V0, "输出模式：" + String(output_Mode == 1 ? "充电器模式" : "负载模式"));

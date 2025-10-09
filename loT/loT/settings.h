@@ -98,7 +98,7 @@ String rtspUrl = "rtsp://admin:Czh040731@10.168.1.102:554/Streaming/Channels/101
 #define QUEUE_STATUS_INTERVAL 10000  // 队列状态报告间隔(ms)
 
 // 控制参数 - 在settings.h中定义
-uint8_t humidityThreshold = 70;   // 湿度阈值
+uint8_t humidityThreshold = 80;   // 湿度阈值
 uint8_t tempDiffThreshold = 5;    // 温度差值阈值
 unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 
@@ -194,6 +194,9 @@ unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 // 恢复默认设置虚拟引脚
 #define RESTORE_DEFAULT_VPIN V66    // 恢复默认设置按钮 (0/1 bool)
 
+// 调试输出按钮虚拟引脚
+#define DEBUG_OUTPUT_VPIN V67       // 调试输出按钮 (0/1 bool)
+
 // ESP-NOW发送间隔设置虚拟引脚
 #define ESPNOW_SEND_INTERVAL_VPIN V80      // ESP-NOW数据发送间隔设置 (1-60秒)
 
@@ -213,7 +216,7 @@ unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 #define FAN_MANUAL_VPIN V84      // 手动模式开关 (0=关闭, 1=开启)
 #define FAN_TEMP_THRESHOLD_VPIN V85  // 温度阈值设置 (20-60度)
 #define FAN_STATUS_VPIN V86      // 风扇状态显示
-
+#define FAN_SPEED_VPIN V87  // 风扇状态显示
 // ========================================== EEPROM地址定义 ==========================================
 #define EEPROM_SIZE 512                // EEPROM大小
 #define EEPROM_MAGIC_NUMBER 0         // EEPROM魔数
@@ -231,7 +234,6 @@ unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 #define ADDR_MOSFET_DELAY_TIME 52    // MOSFET延时关闭时间地址
 #define ADDR_HUMIDITY_THRESHOLD 56   // 湿度阈值地址
 #define MAC_ADDRESSES_ADDR 60        // MAC地址存储地址
-#define FAN_TEMP_THRESHOLD_ADDR 64   // 风扇温度阈值地址
 #define IOT_HUMI_THRESHOLD_ADDR 68   // 湿度阈值地址
 
 #endif

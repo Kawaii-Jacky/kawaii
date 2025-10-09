@@ -140,9 +140,7 @@ void sendDateTimeToOnStep() {
 
 // 初始化蓝牙模块
 void initBluetooth() {
-  Serial.println("初始化蓝牙模块...");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("初始化蓝牙模块..."));
-  
+
   // 注册认证回调
   BT.onConfirmRequest(BTConfirmRequestCallback);
   BT.onAuthComplete(BTAuthCompleteCallback);
@@ -150,7 +148,7 @@ void initBluetooth() {
   // 初始化蓝牙串口（主机模式）
   if (BT.begin("ESP32_OnStep", true)) {
     Serial.println("蓝牙初始化成功");
-    Blynk.virtualWrite(TERMINAL_VPIN, String("蓝牙初始化成功"));
+
   } else {
     Serial.println("蓝牙初始化失败");
     Blynk.virtualWrite(TERMINAL_VPIN, String("蓝牙初始化失败"));

@@ -16,9 +16,6 @@ bool shouldReportData() {
 void sendDataToBlynk() {
     if (shouldReportData()) {
         
-        // 更新加热片控制（调用Scripts.ino中的函数）
-        updateHeaterControl(utcTemperature, dhtTemperature, dhtHumidity);
-        
         // 发送传感器数据到Blynk
         sendUTCTemperatureToBlynk();  // 使用UTC模块的专用发送函数
         Blynk.virtualWrite(DHT_TEMPERATURE_VPIN, String(dhtTemperature, 1));
@@ -76,6 +73,15 @@ BLYNK_WRITE(REPORT_INTERVAL_VPIN) {
     }
 }
 
+// 调试输出按钮回调
+BLYNK_WRITE(DEBUG_OUTPUT_VPIN) {
+    if (param.asInt() == 1) {  // 按钮按下时
+        sendAllDebugInfo();
+        Serial.println("调试信息已发送");
+        Blynk.virtualWrite(TERMINAL_VPIN, "调试信息已发送");
+    }
+}
+
 // ==================== 调试输出函数 ====================
 
 void printDataToSerial() {        // 调试输出到串口
@@ -102,5 +108,46 @@ void printDataToSerial() {        // 调试输出到串口
         Serial.printf("上报间隔: %lu 秒 (%lu ms)\n", reportInterval / 1000, reportInterval);
         Serial.printf("摄像头状态: %s\n", cameraPowerState ? "开启" : "关闭");
         Serial.println("=================");
+}
+
+// 发送所有调试信息到串口和Blynk
+void sendAllDebugInfo() {
+    String debugInfo = "";
+    
+    // 系统设置信息
+    debugInfo += "上报时间设置：" + String(reportInterval / 1000) + "s；";
+    debugInfo += "加热片自动控制：" + String(heaterAutoMode ? "开启" : "关闭") + "；";
+    debugInfo += "加热片湿度阈值：" + String(humidityThreshold) + "%；";
+    debugInfo += "加热片温度差值：" + String(tempDiffThreshold) + "°C；";
+    debugInfo += "风扇自动控制：" + String(fanAutoMode ? "开启" : "关闭") + "；";
+    debugInfo += "风扇温度阈值：" + String(fanTempThreshold) + "°C；";
+    debugInfo += "自动关顶开关：" + String(autoclose_motor ? "开启" : "关闭") + "；";
+    
+    // 当前状态信息
+    debugInfo += "加热片状态：" + String(heaterState ? "开启" : "关闭") + "；";
+    debugInfo += "风扇状态：" + String(fanState ? "开启" : "关闭") + "；";
+    debugInfo += "MOSFET状态：" + String(mosfetState ? "开启" : "关闭") + "；";
+    debugInfo += "摄像头状态：" + String(cameraPowerState ? "开启" : "关闭") + "；";
+    debugInfo += "蓝牙状态：" + String(btConnected ? "连接" : "断开") + "；";
+    debugInfo += "雨水检测：" + String(rainDetected ? "有水" : "无水") + "；";
+    
+    // 传感器数据
+    debugInfo += "UTC温度：" + String(utcTemperature, 1) + "°C；";
+    debugInfo += "DHT温度：" + String(dhtTemperature, 1) + "°C；";
+    debugInfo += "DHT湿度：" + String(dhtHumidity, 1) + "%；";
+    debugInfo += "输出电压：" + String(outputVoltage, 2) + "V；";
+    debugInfo += "输出电流：" + String(outputCurrent, 2) + "A；";
+    debugInfo += "输出功率：" + String(powerOutput, 2) + "W；";
+    
+    // 发送到串口
+    Serial.println("=== 系统调试信息 ===");
+    Serial.println(debugInfo);
+    Serial.println("==================");
+    
+    // 发送到Blynk终端
+    if (Blynk.connected()) {
+        Blynk.virtualWrite(TERMINAL_VPIN, "=== 系统调试信息 ===");
+        Blynk.virtualWrite(TERMINAL_VPIN, debugInfo);
+    }
 }
 

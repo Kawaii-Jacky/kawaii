@@ -1,11 +1,4 @@
 
-// EEPROM地址定义
-#define IOT_AUTO_HEATER_ADDR   0   // 自动加热带开关EEPROM地址
-#define IOT_HUMI_THRESHOLD_ADDR 4  // 湿度阈值EEPROM地址
-
-// 加热带控制引脚
-#define HEATER_PIN 5
-
 // 初始化DHT11
 void initDHT11() {
   // DHT11实例已在全局变量中创建
@@ -14,9 +7,9 @@ void initDHT11() {
   
   // 初始化EEPROM并加载配置
   EEPROM.begin(32);
-  heaterAutoMode = EEPROM.read(IOT_AUTO_HEATER_ADDR);
-  humidityThreshold = EEPROM.readInt(IOT_HUMI_THRESHOLD_ADDR);
-  if (humidityThreshold < 0 || humidityThreshold > 100) humidityThreshold = 70;
+  heaterAutoMode = EEPROM.read(ADDR_HEATER_AUTO_MODE);
+  humidityThreshold = EEPROM.readInt(ADDR_HUMIDITY_THRESHOLD);
+  if (humidityThreshold < 0 || humidityThreshold > 100) humidityThreshold = 80;
   
   Serial.printf("DHT11 自动加热带: %s, 湿度阈值: %d%%\n", 
                 heaterAutoMode ? "开启" : "关闭", humidityThreshold);
@@ -61,12 +54,12 @@ void sendDHT11DataToBlynk() {
 
 // ==================== EEPROM保存函数 ====================
 void saveAutoHeaterToEEPROM(bool value) {
-  EEPROM.write(IOT_AUTO_HEATER_ADDR, value);
+  EEPROM.write(ADDR_HEATER_AUTO_MODE, value);
   EEPROM.commit();
 }
 
 void saveHumiThresholdToEEPROM(int value) {
-  EEPROM.writeInt(IOT_HUMI_THRESHOLD_ADDR, value);
+  EEPROM.writeInt(ADDR_HUMIDITY_THRESHOLD, value);
   EEPROM.commit();
 }
 

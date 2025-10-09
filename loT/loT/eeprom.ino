@@ -84,7 +84,7 @@ void restoreDefaultSettings() {
   buttonState = 0;//mosfet按钮状态
   motorState = false;//电机状态
   autoclose_motor = false;//自动开关顶开关
-  humidityThreshold = 70;//湿度阈值
+  humidityThreshold = 80;//湿度阈值
   tempDiffThreshold = 5;//温度差值阈值
   heaterAutoMode = false;//加热片自动模式状态
   reportInterval = 60000;//上报间隔

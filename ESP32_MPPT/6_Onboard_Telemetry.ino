@@ -60,7 +60,7 @@ void Onboard_Telemetry(){
     else if(serialTelemMode==2){ // 2 - 显示关键数据
       Serial.print(" PI:");    Serial.print(powerInput,3); 
       Serial.print(" PWM:");   Serial.print(PWM); 
-      Serial.print(" pwmMinLimited:");  Serial.print(pwmMinLimited); 
+      Serial.print(" pwmMinLimited:");  Serial.print(pwmMinLimited);
       Serial.print(" VI:");    Serial.print(voltageInput,3); 
       Serial.print(" BV:");    Serial.print(buckVoltage,3); 
       Serial.print(" CI:");    Serial.print(currentInput,3); 
@@ -108,6 +108,18 @@ void Onboard_Telemetry(){
 void sendDebugInfoToBlynk() {
   if(WIFI == 1 && Blynk.connected()) {
     String debugInfo = "";
+    
+    // 添加当前东八区时间戳
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo)) {
+      char timeString[20];
+      strftime(timeString, sizeof(timeString), "[%H:%M:%S]", &timeinfo);
+      debugInfo += String(timeString) + " ";
+    } else {
+      // 时间获取失败
+      debugInfo += "[时间获取失败] ";
+    }
+    
     debugInfo += " ERR:" + String(ERR);   //错误计数
     debugInfo += " FLV:" + String(FLV);   //系统电压过低
     debugInfo += " BNC:" + String(BNC);   //电池未连接
@@ -131,6 +143,7 @@ void sendDebugInfoToBlynk() {
     debugInfo += " pwmMinLimited:" + String(pwmMinLimited);  //预测PWM
     debugInfo += " MaxDC:" + String(PWM_MaxDC,1); //最大占空比
     debugInfo += " MaxLim:" + String(pwmMaxLimited); //PWM最大限制
+    debugInfo += " MinLim:" + String(pwmMinLimited); //PWM最小限制
     debugInfo += " VI:" + String(voltageInput,3);    //输入电压
     debugInfo += " BV:" + String(buckVoltage,3);    //降压电压
     debugInfo += " CI:" + String(currentInput,3);    //输入电流

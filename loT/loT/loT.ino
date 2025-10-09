@@ -46,14 +46,14 @@ bool rainDigitalState = false;  // 雨水传感器数字状态
 bool rainDetected = false;  // 雨水检测状态
 bool rainActionNeeded = false;  // 需要处理雨水的标志位
 
-// 系统状态变量
-bool motorState = false;      // 电机状态
-bool mosfetState = false;     // MOSFET状态
-bool heaterState = false;     // 加热片状态
-bool cameraState = false;     // 摄像头状态
-bool heaterAutoMode = true;   // 加热片自动模式
-bool autoclose_motor = false; // 自动关顶开关
-int buttonState = 0;          // MOSFET按钮状态
+// ==================== 系统状态变量 ====================
+bool motorState = false;                 // 电机状态
+bool mosfetState = false;                // MOSFET状态
+bool heaterState = false;                // 加热片状态
+bool cameraState = false;                // 摄像头状态
+bool heaterAutoMode = true;              // 加热片自动模式（使用远程的默认值true）
+bool autoclose_motor = false;            // 自动关顶开关
+int buttonState = 0;                     // MOSFET按钮状态
 
 // 定时器相关变量
 bool timerEnabled = false;    // 定时器总开关
@@ -185,11 +185,7 @@ void setup() {
   
   // 初始化Blynk连接
   Blynk.begin(BLYNK_AUTH_TOKEN, WIFI_SSID, WIFI_PASS, BLYNK_SERVER, BLYNK_PORT);
-  
-  Serial.println("=== 远程天文台控制系统启动 ===");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("=== 远程天文台控制系统启动 ==="));
-  // sendMessageToEmail("=== 远程天文台控制系统启动 ===");
-  
+
   // 配置时间同步
   configTime(8 * 3600, 0, "pool.ntp.org", "time.nist.gov");
   // Serial.println("时间同步已配置");
@@ -209,6 +205,10 @@ void setup() {
   initFanControl();  // 初始化风扇控制
   initEspNow();  // 初始化ESP-NOW通讯
   initMACConfig();  // 初始化MAC地址配置模块
+  
+  // 发送初始调试信息
+  delay(1000);  // 等待1秒确保所有模块初始化完成
+  sendAllDebugInfo();
 
 }
 
