@@ -85,8 +85,8 @@ void Read_Sensors(){//读取传感器
   else if(voltageInput<buckVoltage)    {inputSource=2;}  //系统由电池作为电源
   
   //功率计算 - 使用 INA226 功率读数
-  powerInput      = ina1.readBusPower(); //输入功率
-  buckPower     = ina2.readBusPower(); //降压功率
+  powerInput      = currentInput*voltageInput; //输入功率
+  buckPower     = buckCurrent*buckVoltage; //降压功率
   outputDeviation = (buckVoltage/voltageBatteryMax)*100.000; //降压偏差
 
   //电池状态 - 电池百分比

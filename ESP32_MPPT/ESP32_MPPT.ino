@@ -14,6 +14,7 @@
 #include <WiFiClient.h>        //系统参数 - WiFi 库（作者：Arduino）
 #include <BlynkSimpleEsp32.h>  //系统参数 - 手机应用程序的 Blynk WiFi 库
 #include <INA226.h>            //系统参数 - INA226 电流/电压传感器库 (peterus版本)
+#include "esp_task_wdt.h"      //系统参数 - ESP32看门狗库
 TaskHandle_t Core2;            //系统参数 - 用于 ESP32 双核操作
 INA226 ina1;                   //系统参数 - INA226 输入电流/电压传感器
 INA226 ina2;                   //系统参数 - INA226 输出电流/电压传感器
@@ -50,6 +51,12 @@ char
   blynkServer[] = BLYNK_SERVER;  //   Blynk 服务器地址（默认：blynk.cloud）
 
 uint16_t blynkPort = BLYNK_PORT;  //   Blynk 服务器端口（默认：80，自定义服务器：7070）
+
+//========================================= 看门狗参数 ==============================================//
+const unsigned long
+  WATCHDOG_TIMEOUT = 30,        // 看门狗超时时间（30秒）
+  WIFI_TIMEOUT = 10000,         // WiFi连接超时时间（10秒）
+  BLYNK_TIMEOUT = 8000;        // Blynk连接超时时间（8秒）
 
 
 //========================================= MPPT数据结构体 ==============================================//
@@ -232,42 +239,36 @@ unsigned long
 
 //================= CORE0: SETUP (DUAL CORE MODE) =====================//
 void coreTwo(void* pvParameters) {
+  // 在Core0中初始化看门狗
+  esp_task_wdt_init(WATCHDOG_TIMEOUT, true);  // 30秒超时，启用恐慌处理
+  esp_task_wdt_add(NULL);                      // 添加当前任务到看门狗
+  Serial.println("> Core0 Watchdog Initialized");
 
   setupWiFi();  //TAB#7 - WiFi Initialization
 
-
   //================= CORE0: LOOP (DUAL CORE MODE) ======================//
   while (1) {
-    // 频繁调用Blynk.run()以确保输入响应及时
+    // 定期重置看门狗
+    static unsigned long lastCore0WatchdogReset = 0;
+    if (millis() - lastCore0WatchdogReset > 5000) {  // 每5秒重置一次看门狗
+      esp_task_wdt_reset();
+      lastCore0WatchdogReset = millis();
+    }
+    
+    // 调用Blynk.run()处理网络通信
     if (WIFI == 1) {
       Blynk.run();
     }
     
-    
-    
-    // WiFi与Blynk断线重连机制
-    static unsigned long lastReconnectTime = 0;
-    if (millis() - lastReconnectTime > Sending_Interval) { // 每5秒检测一次
-      // WiFi重连
-      if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("[WiFi] 断开，尝试重连...");
-        WiFi.disconnect();
-        WiFi.begin(ssid, pass);
-      } else {
-     
-      }
-      // Blynk重连
-      if (!Blynk.connected()) {
-        Serial.println("[Blynk] 断开，尝试重连...");
-        Blynk.connect();
-      } else {
-        Wireless_Telemetry();
-      }
-      lastReconnectTime = millis();
+    // 发送遥测数据
+    static unsigned long lastTelemetryTime = 0;
+    if (millis() - lastTelemetryTime > Sending_Interval) {
+      Wireless_Telemetry();
+      lastTelemetryTime = millis();
     }
 
     // 添加小延迟避免占用过多CPU
-    delay(50);  // 减少延迟，提高响应速度
+    delay(50);
   }
 }
 
@@ -332,6 +333,5 @@ Device_Protection();   //故障检测算法
 System_Processes();    //系统进程
 Charging_Algorithm();  //电池充电算法
 Onboard_Telemetry();   //板载遥测（USB & 串行遥测）
-
 
 }
