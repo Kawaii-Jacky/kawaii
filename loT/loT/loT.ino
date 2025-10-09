@@ -236,27 +236,14 @@ BLYNK_CONNECTED() {
 
 
 void loop() {
-  Blynk.run();  // 运行Blynk主循环 
+  Blynk.run();
   processEmailSending();
   handleBluetoothControl();
   handleRainAction();
   handleCameraControl();
-  unsigned long currentTime = millis();  
-  if (currentTime - lastDHT11ReadTime >= READ_DHT11_INTERVAL) {
-    readDHT11Data();//读取DHT11数据
-    lastDHT11ReadTime = currentTime;
-  }
-  if (currentTime - lastReadTime >= SENSORS_READ_INTERVAL) {
-    // 读取传感器数据
-    readRainSensor();//读取雨水传感器数据
-    readOutputVoltageCurrent();//读取输出电压和电流
-    readUTCTemperature();//读取UTC温度 
-    // printDataToSerial();//打印数据到串口
-    sendCameraStatusToBlynk();//发送摄像头状态到Blynk
-    lastReadTime = currentTime;
-  }
-  updateHeaterControl(utcTemperature, dhtTemperature, dhtHumidity);//更新加热片控制
-  updateFanControl(dhtTemperature);//更新风扇控制
+  ReadDataFromSensors();
+  updateHeaterControl(utcTemperature, dhtTemperature, dhtHumidity);
+  updateFanControl(dhtTemperature);
   reportMosfetRuntime(); 
   checkMosfetDelay();
   sendDataToBlynk();
