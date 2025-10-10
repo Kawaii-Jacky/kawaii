@@ -245,7 +245,7 @@ void coreTwo(void* pvParameters) {
   // 在Core0中初始化看门狗
   esp_task_wdt_init(WATCHDOG_TIMEOUT, true);  // 30秒超时，启用恐慌处理
   esp_task_wdt_add(NULL);                      // 添加当前任务到看门狗
-  Serial.println("> Core0 Watchdog Initialized");
+  Serial.println("> Core0 Watchdog Initialized (30s timeout)");
 
   setupWiFi();  //TAB#7 - WiFi Initialization
 
@@ -277,8 +277,7 @@ void coreTwo(void* pvParameters) {
       lastTelemetryTime = millis();
     }
 
-    // 添加小延迟避免占用过多CPU
-    delay(50);
+
     delay(50);
   }
 }
@@ -290,9 +289,7 @@ void setup() {
   Serial.begin(baudRate);                  //Set serial baud rate
   Serial.println("> Serial Initialized");  //Startup message
   
-  // 初始化看门狗定时器（30秒超时）
-  esp_task_wdt_init(30, true);
-  Serial.println("> Watchdog Initialized (30s timeout)");
+  // 看门狗在Core0中初始化，这里不需要重复初始化
 
   // GPIO 引脚初始化
   pinMode(backflow_MOSFET, OUTPUT);
@@ -342,11 +339,6 @@ void setup() {
 }
 //================== CORE1: LOOP (DUAL CORE MODE) ======================//
 void loop() {
-  // 喂看门狗
-  esp_task_wdt_reset();
-  
-  // 更新CORE1心跳
-  lastCore1Heartbeat = millis();
 
 Read_Sensors();        //读取传感器
 Device_Protection();   //故障检测算法
