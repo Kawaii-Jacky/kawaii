@@ -257,14 +257,6 @@ void coreTwo(void* pvParameters) {
     // 更新CORE0心跳
     lastCore0Heartbeat = millis();
     
-    // 频繁调用Blynk.run()以确保输入响应及时
-    // 定期重置看门狗
-    static unsigned long lastCore0WatchdogReset = 0;
-    if (millis() - lastCore0WatchdogReset > 5000) {  // 每5秒重置一次看门狗
-      esp_task_wdt_reset();
-      lastCore0WatchdogReset = millis();
-    }
-    
     // 调用Blynk.run()处理网络通信
     if (WIFI == 1) {
       Blynk.run();
