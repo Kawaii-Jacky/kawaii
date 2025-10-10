@@ -251,12 +251,7 @@ void coreTwo(void* pvParameters) {
 
   //================= CORE0: LOOP (DUAL CORE MODE) ======================//
   while (1) {
-    // 喂看门狗
-    esp_task_wdt_reset();
-    
-    // 更新CORE0心跳
-    lastCore0Heartbeat = millis();
-    
+
     // 调用Blynk.run()处理网络通信
     if (WIFI == 1) {
       Blynk.run();
@@ -268,7 +263,12 @@ void coreTwo(void* pvParameters) {
       Wireless_Telemetry();
       lastTelemetryTime = millis();
     }
-
+    // 喂看门狗
+    esp_task_wdt_reset();
+    
+    // 更新CORE0心跳
+    lastCore0Heartbeat = millis();
+    
 
     delay(50);
   }
