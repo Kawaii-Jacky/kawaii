@@ -1,0 +1,39 @@
+﻿/*
+  Disable mouse clicking on hyperlinks inside notes and PDFs only.
+  This keeps Obsidian's other UI clickable: file explorer, panes, buttons, search results, etc.
+*/
+
+/* Reading view / rendered Markdown note content: internal + external note links */
+.markdown-preview-view a.internal-link,
+.markdown-preview-view a.external-link,
+.markdown-rendered a.internal-link,
+.markdown-rendered a.external-link {
+  pointer-events: none !important;
+  cursor: text !important;
+}
+
+/* Live Preview / editor note content links */
+.markdown-source-view.mod-cm6 .cm-hmd-internal-link,
+.markdown-source-view.mod-cm6 .cm-hmd-external-link,
+.markdown-source-view.mod-cm6 .cm-link,
+.markdown-source-view.mod-cm6 .cm-url {
+  pointer-events: none !important;
+  cursor: text !important;
+}
+
+/* PDF viewer hyperlinks / annotations inside PDF pages */
+.pdf-viewer .annotationLayer a,
+.pdf-viewer .annotationLayer .linkAnnotation,
+.pdf-viewer .annotationLayer .linkAnnotation > a,
+.pdf-container .annotationLayer a,
+.pdf-container .annotationLayer .linkAnnotation,
+.pdf-container .annotationLayer .linkAnnotation > a,
+.pdf-embed .annotationLayer a,
+.pdf-embed .annotationLayer .linkAnnotation,
+.pdf-embed .annotationLayer .linkAnnotation > a,
+.mod-pdf .annotationLayer a,
+.mod-pdf .annotationLayer .linkAnnotation,
+.mod-pdf .annotationLayer .linkAnnotation > a {
+  pointer-events: none !important;
+  cursor: text !important;
+}

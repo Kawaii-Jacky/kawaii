@@ -1,0 +1,1139 @@
+/* =====================================================================
+ *  Feynman — plugin stylesheet.
+ *
+ *  Translated from docs/mockups/plugin-pane.html. Uses Obsidian's built-in
+ *  CSS variables so the plugin inherits the host theme.
+ *
+ *  Classes match what src/views/workflows-view.ts emits + the existing
+ *  chat-view classes from src/views/chat-view.ts.
+ * =================================================================== */
+
+/* ---- Settings · onboarding --------------------------------------- */
+
+.feynman-onboarding {
+  padding: 18px 0 24px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 18px;
+}
+.feynman-onboarding-title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.feynman-onboarding-blurb {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.feynman-onboarding-card {
+  padding: 14px 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background: var(--background-secondary);
+}
+.feynman-onboarding-card-active {
+  border-color: var(--interactive-accent);
+}
+.feynman-onboarding-card-disabled {
+  opacity: 0.55;
+}
+.feynman-onboarding-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+  margin-bottom: 4px;
+}
+.feynman-onboarding-card-body {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.feynman-onboarding-card-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+.feynman-onboarding-footer {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Loud disclosure copy under API-key inputs and onboarding card. Muted
+ * warning color rather than error red — we want it noticed, not panic. */
+.feynman-warning {
+  color: var(--text-warning);
+  font-size: 0.85em;
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+/* Inline validation error for self-hosted base-URL field. Painted under
+ * the input via `descEl` so it inherits Obsidian's description styling. */
+.feynman-error {
+  color: var(--text-error);
+  font-size: 0.85em;
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+/* ---- Workflows pane ---------------------------------------------- */
+
+.feynman-pane {
+  padding: 0;
+  font-size: 14px;
+  color: var(--text-normal);
+}
+
+.feynman-pane-head {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.feynman-pane-head-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feynman-pane-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: 0.02em;
+}
+.feynman-pane-spacer { flex: 1; }
+
+.feynman-pane-gear {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.feynman-pane-gear:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+.feynman-pane-gear .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.feynman-pane-status {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.feynman-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.feynman-status-dot.is-ok    { background: var(--color-green); }
+.feynman-status-dot.is-down  { background: var(--text-error); }
+
+.feynman-pane-body {
+  padding: 12px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Not-connected banner — appears above the (disabled) buttons. */
+.feynman-pane-banner {
+  padding: 12px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-left: 2px solid var(--interactive-accent);
+  border-radius: 0 4px 4px 0;
+  background: var(--background-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.feynman-pane-banner-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+  letter-spacing: 0.02em;
+}
+.feynman-pane-banner-body {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.feynman-pane-banner-action {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  border-radius: 3px;
+  border: 1px solid var(--interactive-accent);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  cursor: pointer;
+}
+.feynman-pane-banner-action:hover {
+  background: var(--interactive-accent-hover);
+  border-color: var(--interactive-accent-hover);
+}
+
+/* Empty state (rare — only when manifest exists but has no featured prompts) */
+.feynman-pane-empty {
+  padding: 14px 12px;
+  border: 1px dashed var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feynman-pane-empty-title {
+  font-weight: 500;
+  color: var(--text-normal);
+}
+.feynman-pane-empty-action {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.feynman-pane-empty-action:hover {
+  color: var(--text-normal);
+  border-color: var(--text-faint);
+}
+
+/* ---- Workflow button + inline prompt ------------------------------ */
+
+.feynman-wf { display: flex; flex-direction: column; }
+
+.feynman-wf-btn {
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-normal);
+  transition: border-color 0.12s ease, background 0.12s ease;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+}
+.feynman-wf-btn:hover {
+  border-color: var(--text-faint);
+  background: var(--background-modifier-hover);
+}
+.feynman-wf-slash {
+  font-family: var(--font-monospace);
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.feynman-wf-title {
+  font-size: 13.5px;
+  color: var(--text-normal);
+}
+.feynman-wf-arrow {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-faint);
+  transition: transform 0.15s ease;
+  display: inline-block;
+}
+
+.feynman-wf.is-expanded .feynman-wf-btn {
+  border-color: var(--interactive-accent);
+  background: var(--background-modifier-active);
+}
+.feynman-wf.is-expanded .feynman-wf-slash { color: var(--interactive-accent); }
+.feynman-wf.is-expanded .feynman-wf-arrow {
+  transform: rotate(90deg);
+  color: var(--interactive-accent);
+}
+
+/* Disabled stub buttons — shown when the server isn't reachable so the
+   user sees what's coming, but can't fire a run. */
+.feynman-wf.is-disabled .feynman-wf-btn {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.feynman-wf.is-disabled .feynman-wf-btn:hover {
+  border-color: var(--background-modifier-border);
+  background: transparent;
+}
+
+/* Inline prompt form */
+.feynman-wf-prompt {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-left: 2px solid var(--interactive-accent);
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.feynman-wf-desc {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.feynman-wf-ctx {
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.02em;
+}
+.feynman-wf-ctx strong { color: var(--text-muted); font-weight: 500; }
+
+.feynman-wf-field { display: flex; flex-direction: column; gap: 4px; }
+.feynman-wf-field label {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.feynman-wf-help {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.feynman-wf-field input[type="text"],
+.feynman-wf-field input[type="number"],
+.feynman-wf-field select,
+.feynman-wf-field textarea {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-normal);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  padding: 6px 8px;
+  outline: none;
+  width: 100%;
+}
+.feynman-wf-field input[type="text"]:focus,
+.feynman-wf-field input[type="number"]:focus,
+.feynman-wf-field select:focus,
+.feynman-wf-field textarea:focus {
+  border-color: var(--interactive-accent);
+}
+.feynman-wf-field textarea {
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.5;
+}
+.feynman-wf-toggle { display: flex; align-items: center; gap: 6px; }
+
+.feynman-wf-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.feynman-wf-actions-spacer { flex: 1; }
+.feynman-wf-actions button {
+  font-family: inherit;
+  font-size: 11.5px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+}
+.feynman-wf-actions button:hover {
+  color: var(--text-normal);
+  border-color: var(--text-faint);
+}
+.feynman-wf-actions button.mod-cta,
+.feynman-wf-run.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.feynman-wf-actions button.mod-cta:hover,
+.feynman-wf-run.mod-cta:hover {
+  background: var(--interactive-accent-hover);
+  border-color: var(--interactive-accent-hover);
+}
+.feynman-wf-actions button[disabled] {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.feynman-pane-foot {
+  margin-top: auto;
+  padding: 10px 14px;
+  border-top: 1px solid var(--background-modifier-border);
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- Chat view (existing classes from src/views/chat-view.ts) ----- */
+
+.feynman-chat-view { padding: 0; font-size: 14px; color: var(--text-normal); }
+
+.feynman-chat-log {
+  padding: 16px 14px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feynman-message-role,
+.feynman-thinking .feynman-message-role,
+.feynman-tool-call .feynman-message-role {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.feynman-thinking-body {
+  font-family: var(--font-text, inherit);
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.feynman-message-body {
+  font-family: var(--font-text, inherit);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-normal);
+}
+.feynman-message-body p { margin: 0 0 0.7em; }
+.feynman-message-body p:last-child { margin-bottom: 0; }
+.feynman-message-body em { color: var(--text-muted); }
+.feynman-message-body code {
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  background: var(--background-secondary);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+.feynman-message-stream pre {
+  font-family: var(--font-monospace);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Tool call */
+.feynman-tool-call details {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.feynman-tool-call summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feynman-tool-call summary::-webkit-details-marker { display: none; }
+/* Tool-call disclosure arrow lives in an inline `<span aria-hidden>` now —
+   see chat-view's handleToolCall. The pseudo-content rule was screen-reader
+   hostile and broke when Obsidian themes overrode `--text-faint`. */
+.feynman-tool-call .feynman-tool-arrow {
+  color: var(--text-faint);
+  transition: transform 0.15s ease;
+  display: inline-block;
+  margin-right: 6px;
+}
+.feynman-tool-call details[open] .feynman-tool-arrow { transform: rotate(90deg); }
+.feynman-tool-args {
+  margin: 6px 0 0 12px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border-radius: 2px;
+  white-space: pre-wrap;
+}
+.feynman-tool-preview {
+  margin: 4px 0 0 12px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+/* Status glyphs are inlined via `<span aria-hidden>` in chat-view; the
+   pseudo-element rules would otherwise duplicate visible content for screen
+   readers. */
+.feynman-tool-result-ok .feynman-tool-glyph  { color: var(--color-green); margin-right: 5px; }
+.feynman-tool-result-err .feynman-tool-glyph { color: var(--text-error);  margin-right: 5px; }
+
+/* Artifact */
+.feynman-artifact a {
+  font-size: 12.5px;
+  color: var(--interactive-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.feynman-artifact a:hover { border-bottom-color: var(--interactive-accent); }
+
+/* Question callout */
+.feynman-question {
+  padding: 12px 14px;
+  border-left: 2px solid var(--interactive-accent);
+  background: var(--background-modifier-active);
+  border-radius: 0 3px 3px 0;
+}
+.feynman-question .label {
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--interactive-accent);
+  margin-bottom: 6px;
+  display: block;
+}
+.feynman-question-prompt {
+  font-family: var(--font-text, inherit);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-normal);
+  margin-bottom: 10px;
+}
+.feynman-question-form { display: flex; flex-direction: column; gap: 8px; }
+.feynman-question-input {
+  width: 100%;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  padding: 8px 10px;
+  font-family: var(--font-text, inherit);
+  font-size: 13.5px;
+  color: var(--text-normal);
+  resize: vertical;
+  min-height: 56px;
+  border-radius: 2px;
+}
+.feynman-question-input:focus { outline: none; border-color: var(--interactive-accent); }
+.feynman-question-sent {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* Terminal callouts */
+.feynman-callout {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 10px 0 18px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+/* Bullet glyph is now an inline aria-hidden span (chat-view); only the color
+   tokens remain so themes can override per-callout. */
+.feynman-callout .feynman-callout-glyph { color: var(--text-faint); }
+.feynman-callout-done .feynman-callout-glyph { color: var(--color-green); }
+.feynman-callout-error                        { color: var(--text-error); }
+.feynman-callout-error .feynman-callout-glyph { color: var(--text-error); }
+
+/* Tool-approval modal */
+.feynman-tool-approval-modal { max-width: 320px; }
+.feynman-tool-approval-modal h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+.feynman-tool-approval-id {
+  font-family: var(--font-monospace);
+  font-size: 10.5px;
+  color: var(--text-faint);
+  margin: 0 0 12px;
+}
+.feynman-tool-approval-args-label {
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 4px;
+}
+.feynman-tool-approval-args {
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  background: var(--background-secondary);
+  padding: 6px 8px;
+  margin: 0 0 14px;
+  white-space: pre-wrap;
+  color: var(--text-muted);
+  border-radius: 2px;
+  border-left: 2px solid var(--background-modifier-border);
+}
+.feynman-tool-approval-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.feynman-tool-approval-buttons button {
+  font-size: 11px;
+  padding: 5px 10px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+}
+.feynman-tool-approval-buttons button.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.feynman-tool-approval-buttons button.mod-warning {
+  color: var(--text-error);
+}
+
+/* Waitlist modal */
+.feynman-waitlist-modal { max-width: 380px; }
+.feynman-waitlist-modal h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+.feynman-waitlist-blurb {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+}
+.feynman-waitlist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.feynman-waitlist-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.feynman-waitlist-field label {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.feynman-waitlist-input {
+  width: 100%;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  padding: 7px 9px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-normal);
+  border-radius: 3px;
+}
+.feynman-waitlist-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+.feynman-waitlist-input:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.feynman-waitlist-status {
+  font-size: 11.5px;
+  line-height: 1.4;
+  min-height: 1em;
+  margin-bottom: 8px;
+}
+.feynman-waitlist-status.is-info    { color: var(--text-muted); }
+.feynman-waitlist-status.is-error   { color: var(--text-error); }
+.feynman-waitlist-status.is-success { color: var(--color-green); }
+.feynman-waitlist-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.feynman-waitlist-buttons button {
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: inherit;
+}
+.feynman-waitlist-buttons button.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.feynman-waitlist-buttons button.mod-cta:hover {
+  background: var(--interactive-accent-hover);
+  border-color: var(--interactive-accent-hover);
+}
+.feynman-waitlist-buttons button[disabled] {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* ----- Docker status panel ---------------------------------------------- */
+
+.feynman-docker-status-panel {
+  margin: 1em 0 1.5em;
+}
+.feynman-docker-status-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75em;
+  padding: 0.85em 1em;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+.feynman-docker-status-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  min-width: 0;
+  flex: 1;
+}
+.feynman-docker-status-detail {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  font-family: var(--font-monospace);
+  word-break: break-all;
+}
+.feynman-docker-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  align-items: center;
+}
+
+/* Status pill with a colored dot. */
+.feynman-docker-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+.feynman-docker-pill-dot {
+  display: inline-block;
+  width: 0.65em;
+  height: 0.65em;
+  border-radius: 50%;
+  background: var(--text-muted);
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent);
+}
+.feynman-docker-pill-running .feynman-docker-pill-dot {
+  background: var(--color-green, #3fb950);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-green, #3fb950) 25%, transparent);
+}
+.feynman-docker-pill-stopped .feynman-docker-pill-dot {
+  background: var(--color-yellow, #d4a72c);
+}
+.feynman-docker-pill-not-installed .feynman-docker-pill-dot {
+  background: var(--text-error, #d04848);
+}
+.feynman-docker-pill-checking .feynman-docker-pill-dot {
+  background: var(--text-muted);
+  animation: feynman-pulse 1.2s ease-in-out infinite;
+}
+@keyframes feynman-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+
+/* ----- Feynman Cloud (waitlist) promo card ----------------------------- */
+
+.feynman-cloud-card {
+  margin: 1em 0 1.75em;
+  padding: 1.15em 1.25em 0.35em;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, #8b5cf6 12%, transparent);
+  background: color-mix(in srgb, #8b5cf6 4%, var(--background-secondary));
+}
+.feynman-cloud-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: 0;
+}
+.feynman-cloud-card-heading h3 {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+.feynman-cloud-badge {
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15em 0.55em;
+  border-radius: 999px;
+  background: color-mix(in srgb, #8b5cf6 18%, transparent);
+  color: color-mix(in srgb, #8b5cf6 80%, var(--text-normal));
+  border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent);
+}
+.feynman-cloud-card-body {
+  color: var(--text-muted);
+  margin: 0.45em 0 0.5em;
+  font-size: 0.92em;
+  line-height: 1.4;
+}
+/* Flatten Obsidian's card-styled `.setting-item` inside our card so the
+   inner rows don't render as nested boxes. Each row blends with the card
+   background, separated by a single thin purple-tinted rule, and aligns
+   flush with the heading + body text above. */
+/* Doubled-class selector (.feynman-cloud-card.feynman-cloud-card) bumps
+   specificity to (0,0,3,0) so it beats theme-supplied `.setting-item`
+   overrides without resorting to !important. */
+.feynman-cloud-card.feynman-cloud-card .setting-item {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, #8b5cf6 22%, transparent);
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 0.85em 0;
+}
+.feynman-cloud-card .setting-item-info,
+.feynman-cloud-card .setting-item-control {
+  padding-left: 0;
+  padding-right: 0;
+}
+.feynman-cloud-card .setting-item-name {
+  font-weight: 500;
+}
+
+/* ----- "Settings changed — restart to apply" banner -------------------- */
+
+.feynman-restart-banner {
+  margin: 0.75em 0 1em;
+  padding: 0.7em 0.9em;
+  border-radius: 6px;
+  border: 1px solid var(--color-yellow, #d4a72c);
+  background: color-mix(in srgb, var(--color-yellow, #d4a72c) 10%, var(--background-secondary));
+}
+.feynman-restart-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.feynman-restart-banner-text {
+  color: var(--text-normal);
+  font-size: 0.92em;
+  flex: 1;
+  min-width: 220px;
+}
+
+/* ----- OAuth sign-in section ----------------------------------------- */
+
+.feynman-oauth-section {
+  margin: 0.75em 0 1em;
+}
+.feynman-oauth-desc {
+  color: var(--text-muted);
+  font-size: 0.92em;
+  margin-bottom: 0.4em;
+}
+.feynman-oauth-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  margin-top: 0.55em;
+}
+.feynman-oauth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  padding: 0.55em 0.75em;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-secondary);
+}
+.feynman-oauth-row-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+.feynman-oauth-row-name {
+  font-weight: 500;
+  color: var(--text-normal);
+}
+.feynman-oauth-row-state {
+  font-size: 0.82em;
+  color: var(--text-muted);
+}
+.feynman-oauth-row-state.feynman-oauth-signed-in {
+  color: var(--color-green, #2ea043);
+}
+.feynman-oauth-row-actions {
+  display: flex;
+  gap: 0.5em;
+  flex-shrink: 0;
+}
+.feynman-oauth-status-line {
+  margin-top: 0.55em;
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+.feynman-oauth-retry {
+  margin-left: 0.6em;
+}
+
+/* ----- OAuth login modal --------------------------------------------- */
+
+.feynman-oauth-modal {
+  max-width: 540px;
+}
+.feynman-oauth-auth-box {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 0.7em 0.85em;
+  margin: 0.8em 0;
+  background: var(--background-secondary);
+}
+.feynman-oauth-instructions {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  margin-bottom: 0.5em;
+}
+.feynman-oauth-url-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6em;
+  overflow-wrap: anywhere;
+}
+.feynman-oauth-url {
+  font-size: 0.82em;
+  word-break: break-all;
+  user-select: all;
+}
+.feynman-oauth-url-actions {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+.feynman-oauth-progress-log {
+  margin: 0.6em 0;
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+.feynman-oauth-progress-log ul {
+  margin: 0.2em 0 0;
+  padding-left: 1.2em;
+}
+.feynman-oauth-prompt,
+.feynman-oauth-select {
+  margin: 0.8em 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.feynman-oauth-prompt-message {
+  color: var(--text-normal);
+  font-size: 0.92em;
+}
+.feynman-oauth-input {
+  width: 100%;
+  padding: 0.45em 0.6em;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+.feynman-oauth-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+.feynman-oauth-select-option {
+  text-align: left;
+}
+.feynman-oauth-status {
+  margin: 0.6em 0;
+  color: var(--text-muted);
+  font-size: 0.92em;
+}
+.feynman-oauth-status.feynman-oauth-success {
+  color: var(--color-green, #2ea043);
+}
+.feynman-oauth-status.feynman-oauth-error {
+  color: var(--text-error, #b3261e);
+}
+.feynman-oauth-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5em;
+  margin-top: 0.8em;
+}
+
+/* ----- Chat-view live status banner ---------------------------------- */
+
+.feynman-chat-status {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  font-size: 13px;
+}
+.feynman-chat-status-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+}
+.feynman-chat-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+.feynman-chat-status.is-running .feynman-chat-status-dot {
+  background: var(--interactive-accent, #5b8def);
+  animation: feynman-chat-status-pulse 1.2s ease-in-out infinite;
+}
+.feynman-chat-status.is-done .feynman-chat-status-dot {
+  background: var(--color-green, #2ea043);
+  animation: none;
+}
+.feynman-chat-status.is-error .feynman-chat-status-dot {
+  background: var(--text-error, #b3261e);
+  animation: none;
+}
+.feynman-chat-status-label-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  flex: 1;
+  min-width: 0;
+}
+.feynman-chat-status-label {
+  font-weight: 500;
+  color: var(--text-normal);
+}
+.feynman-chat-status-detail {
+  color: var(--text-muted);
+  font-size: 0.92em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.feynman-chat-status-timer {
+  color: var(--text-faint);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+@keyframes feynman-chat-status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ----- Run-complete callout artifact list ---------------------------- */
+
+.feynman-done-artifacts {
+  margin: 0.4em 0 0.6em;
+}
+.feynman-done-artifacts-title {
+  font-weight: 500;
+  margin-bottom: 0.3em;
+}
+.feynman-done-artifacts-list {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.feynman-done-artifacts-list li {
+  margin: 0.15em 0;
+}
+.feynman-done-summary {
+  margin-top: 0.55em;
+  padding-top: 0.55em;
+  border-top: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+}
+
+/* ----- Auto-accept breadcrumb ---------------------------------------- */
+
+.feynman-auto-accept {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  padding: 0.3em 0;
+  border-left: 2px solid var(--color-green, #2ea043);
+  padding-left: 0.6em;
+  margin: 0.3em 0;
+}
+.feynman-auto-accept-glyph {
+  color: var(--color-green, #2ea043);
+}
+
+/* ----- Chat-view "Clear" button -------------------------------------- */
+
+.feynman-chat-clear-btn {
+  margin-left: 0.5em;
+  padding: 2px 8px;
+  font-size: 0.78em;
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.feynman-chat-clear-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}

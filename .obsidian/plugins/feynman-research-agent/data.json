@@ -1,0 +1,30 @@
+{
+  "backend": "docker",
+  "docker": {
+    "imageTag": "icariansystems/feynman-server:v1.0.0",
+    "hostPort": 0,
+    "vaultMountPath": "",
+    "authToken": "",
+    "apiKeys": {}
+  },
+  "providerKeys": {},
+  "selfHosted": {
+    "baseUrl": "",
+    "bearerToken": ""
+  },
+  "modal": {
+    "licenseKey": ""
+  },
+  "model": "",
+  "workspaceFolder": "Feynman/",
+  "autoOpenArtifacts": "last",
+  "autoApproveAgentPrompts": true,
+  "onboardingCompleted": false,
+  "onboardingSkippedAt": null,
+  "features": {
+    "waitlist": {
+      "enabled": true
+    }
+  },
+  "persistedRuns": {}
+}

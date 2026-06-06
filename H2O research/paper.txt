@@ -1,0 +1,614 @@
+                                                                                                                                                       This is an open access article published under an ACS AuthorChoice License, which permits
+                                                                                                                                                       copying and redistribution of the article or any adaptations for non-commercial purposes.
+
+                                                                                                            http://pubs.acs.org/journal/acsodf                                                                                                    Article
+
+                                                                                                            Cells in New Light: Ion Concentration, Voltage, and Pressure
+                                                                                                            Gradients across a Hydrogel Membrane
+
+                                                                                                            Magdalena Kowacz* and Gerald H. Pollack
+
+                                                                                                            Cite This: ACS Omega 2020, 5, 21024-21031                                             Read Online
+
+                                                                                                            ACCESS                              Metrics & More                                                 Article Recommendations
+
+Downloaded via 65.75.223.49 on May 31, 2026 at 12:34:22 (UTC).                                              ABSTRACT: The ionic compositions of the intra- and extrac-
+   See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.  ellular environments are distinct from one another, with K+ being
+                                                                                                            the main cation in the cytosol and Na+ being the most abundant
+                                                                                                            cation outside of the cell. Specific ions can permeate into and out
+                                                                                                            of the cell at different rates, bringing about uneven distribution of
+
+                                                                                                            charges and development of negative electric potential inside the
+                                                                                                            cell. Each healthy cell must maintain a specific ion concentration
+
+                                                                                                            gradient and voltage. To account for these functions, various ionic
+
+                                                                                                            pumps and channels located within the cell membrane have been
+
+                                                                                                            invoked. In this work, we use a porous alginate hydrogel as a model
+
+                                                                                                            gelatinous network representing the plant cell wall or cytoskeleton
+
+                                                                                                            of the animal cell. We show that the gel barrier is able to maintain a
+                                                                                                            stable separation of ionic solutions of different ionic strengths and chemical compositions without any pumping activity. For the
+                                                                                                            Na+/K+ concentration gradient sustained across the barrier, a negative electric potential develops within the K+-rich side. The
+                                                                                                            situation is reminiscent of that in the cell. Furthermore, also the advective flow of water molecules across the gel barrier is restricted,
+                                                                                                            despite the gel's large pores and the osmotic or hydrostatic pressure gradients across it. This feature has important implications for
+                                                                                                            osmoregulation. We propose a mechanism in which charge separation and electric fields developing across the permselective (gel)
+                                                                                                            membrane prevent ion and bulk fluid flows ordinarily driven by chemical and pressure gradients.
+
+                                                                                                             INTRODUCTION                                                                         those earlier results, a recent study has in fact shown that the
+                                                                                                                                                                                                  bare cytoskeleton of membrane-permeabilized neurons can
+                                                                                                            Two general features characterize a healthy cell: its ability to                      generate voltage oscillations underlying action potentials.5 This
+                                                                                                                                                                                                  feature is commonly thought to result solely from the
+                                                                                                            maintain an ion concentration gradient across the cell                                performance of membrane pumps and channels. Yet, this
+                                                                                                                                                                                                  electrical activity was shown to be due to microtubule bundles
+                                                                                                            membrane and its ability to generate an electric potential                            acting as ion-selective barriers, thanks to the negative charges
+                                                                                                            difference between the cytosol and the extracellular fluid.1                          and porosity of their cytoskeleton-building network.5
+                                                                                                            Inside a cell, the concentration of potassium ions (K+) is much
+                                                                                                            higher than that of sodium ions (Na+), while the situation is                           The cytoskeleton, able to induce intracellular electric
+                                                                                                            reversed outside of the cell. It is recognized that the difference                    fields,5,6 was also demonstrated to transmit information
+                                                                                                            in ion concentrations is maintained by adenosine 5-                                   between cell's organelles via electric signals.6 Therefore,
+                                                                                                                                                                                                  some electrical properties manifested in a cell could result
+                                                                                                            triphosphate (ATP)-driven (i.e., energy-consuming) pumps                              from features of the cytoskeleton, even without the pumping
+                                                                                                            located in the cell's membrane. An associated theory is that of                       and channeling activity of membranous components. Other
+                                                                                                                                                                                                  works have shown that some synthetic hydrogels (porous,
+                                                                                                            membrane channels, which allow ions to move through the                               negatively charged networks) can be a good experimental
+                                                                                                            membrane down their concentration gradients, but at different                         approximation of the cell's cytoskeleton in terms of its
+                                                                                                            rates. Because K+ ions move out of the cell at a faster rate than
+                                                                                                            Na+ ions that penetrate inward, a difference in voltage across                        Received: June 1, 2020
+                                                                                                                                                                                                  Accepted: July 27, 2020
+                                                                                                            the cell membrane is created. This results in a negative voltage                      Published: August 11, 2020
+
+                                                                                                            inside of a cell with respect to the outside. Both membrane
+                                                                                                            pumps and channels are highly specific biological entities
+
+                                                                                                            permeable to only particular types of ions.
+                                                                                                              Some concern has been expressed that the cell's own
+
+                                                                                                            metabolic energy may not suffice for supporting the
+                                                                                                            functioning of all ionic pumps.2,3 Experiments in which ion
+
+                                                                                                            concentration gradients could be sustained even without the
+                                                                                                            intact cell membrane4 have implied that other mechanisms
+
+                                                                                                            might contribute to this phenomenon. In accordance with
+
+                                                                                                                                                © 2020 American Chemical Society                               https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                                                                                                                                                            ACS Omega 2020, 5, 21024-21031
+                                                                                                                                                                                           21024
+ACS Omega  http://pubs.acs.org/journal/acsodf                               Article
+
+Figure 1. Conductivity measured over time in the interconnected-by-alginate-bridge solutions of (a) the left panel, from top to bottom: seawater,
+
+200 mM KCl, 200 mM NaCl, 100 mM KCl, 100 mM NaCl, and DI water (right panel); (b) KCl (left, from top to bottom: 100 and 50 mM) and
+NaCl (right, from top to bottom: 100 and 50 mM). Note the 3-orders-of-magnitude difference in scale values for salt and DI water containers. The
+average values of the electric potential difference (mV) registered for (a) ionic solutions with respect to DI water and (b) KCl with respect to NaCl
+solution are depicted and yield (a) -180, -150, and -120 mV for 100 mM (KCl, NaCl, and seawater, respectively) and (b) -50 mV for
+interconnected solutions of KCl and NaCl of different ionic strengths, and -100 mV for equimolar solutions.
+
+mechanical and electrical properties.7-10 Furthermore, the                  water molecules could be exchanged across the alginate gel
+cytoplasm of mammalian cells has been shown to resemble a                   between the two aqueous reservoirs, as implied by conductivity
+hydrogel.11                                                                 measurements and observations on the effect of pressure
+                                                                            gradients (see the Results and Discussion section). Thus, in
+  In this work, we use an alginate gel to examine the role of               our case, alginate creates a virtually impermeable barrier, so
+gelatinous components of a cell in sustaining its main                      that interconnected solutions do not mix. Below, we present
+electrochemical properties. Alginate is a naturally occurring               details of the experimental results, as well as specific conditions
+polysaccharide derived from brown algae, where it constitutes               that need to be fulfilled to prevent ion and water penetrations
+the main structural component of the algal cell wall.12 Due to              across the gel. The underlying phenomena of charge separation
+its many carboxyl functional groups, just as those present                  at the gel/water interface, manifested in the measured electric
+within a cytoskeleton, the alginate hydrogel forms a negatively             potential difference across the gel, are also discussed.
+charged porous network within a cell. We explore the ability of
+the alginate hydrogel to support a Na+/K+ ion concentration                   Conductivity changes are directly correlated to ion
+gradient across the gel membrane, generate an electric                      concentrations (for ionic solutions of low concentration). In
+potential difference, and respond to osmotic or hydrostatic                 the two ionic solutions used in our experiments, these changes
+pressure gradients.                                                         allow us to monitor the extent of solution mixing through the
+                                                                            interconnecting bridge. We found that the conductivity of the
+ RESULTS AND DISCUSSION                                                     salt solutions of different ionic strengths, separated by the gel,
+                                                                            did not change over a time scale of a few days (Figure 1). This
+The calcium-alginate hydrogel, as used in our study, consists               implies that there is no net migration of ions across the barrier
+of a highly porous three-dimensional network with reported                  between the solutions.
+pore sizes ranging from few nanometers to micrometers
+(depending on the technique used to determine pore                            Although ions are expected to move down their concen-
+diameter).13 Such pores are large enough to allow for diffusion             tration gradients to reach a uniform concentration in the two
+of ions and water molecules throughout the network, unless                  communicating vessels, such mixing does not occur. On the
+specific interactions are present. Indeed, it is recognized that            contrary, a stable ion concentration gradient is maintained
+ions and larger solutes diffuse through the gel at rates sufficient         across the gel barrier, as confirmed by conductivity measure-
+to support the metabolism of gel-encapsulated cells (alginate is            ments. In fact, a very slight increase in the conductivity of the
+commonly used for cell immobilization). Motions of those                    DI water reservoir can be observed with time. Yet, that
+solutes are restricted to different degrees, mainly due to steric           conductivity remains 3 orders of magnitude lower than in the
+obstructions created by the gel framework.14,15 Nonetheless,                interconnected salt solution. Therefore, although a very limited
+the supply of solutes, from the bathing solution, through the               number of ions may possibly penetrate the gel barrier, no
+gel, to the embedded cell, is assured. Yet, in the particular               substantial mixing occurs between the two reservoirs that
+arrangement of our experimental system, neither ions nor                    would lead to concentration equilibration.
+
+                                                                     21025  https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                         ACS Omega 2020, 5, 21024-21031
+ACS Omega  http://pubs.acs.org/journal/acsodf                                  Article
+
+  Moreover, the imposed difference between the liquid
+column heights of the salt solutions and DI water across the
+gel barrier is also stably maintained. This indicates no variation
+of the hydrostatic pressure gradient over time (see Figure 2).
+
+Figure 2. Changes in solution levels (liquid column heights) in the            Figure 3. (a) FTIR-attenuated total reflection (ATR) spectra of a
+two vessels interconnected by the alginate gel bridge (G) and                  0.05 M K2SO4 solution and (b) a difference spectrum of the K2SO4
+containing DI water and 100 mM KCl solution. The light blue                    solution before and after a piece of alginate gel was soaked and
+columns represent the liquid level at the beginning of the experiment,         swelled in it. Note an increase in an absorption band of SO42-
+while the dark blue dotted columns show a steady liquid level at the           (highlighted in yellow), expressed as the positive peak in difference
+end of the experiment.                                                         spectra, after the solution contacts with a gel.
+
+The gradient is sustained, despite the porosity of the bridge                  combinations: KCl/water, NaCl/water, or seawater/water
+interconnecting the two reservoirs. The pores, as already                      (Figure 1a). This result is in agreement with the inferred
+stated, should be large enough to allow for diffusion of water                 mechanism, where only cations permeate within and/or across
+molecules. Indeed, if the gel separates two columns of different               the gel barrier, making their parent solution negatively charged
+heights containing only water, these columns do eventually                     with respect to the DI water reservoir. The magnitude of the
+equilibrate to attain the same level, according to the principle               registered negative voltage can be understood by considering
+of communicating vessels. Yet, if the interconnected solutions                 differences in ion affinity toward alginate. K+ ions, which form
+have different ionic strengths (DI water as the salt solution),                the weakest ion pairs with carboxylate groups of alginate, can
+no net water flow tending to equilibrate the pressure difference               penetrate the gel network to a greater extent than Na+ ions
+could be registered. Even when the osmotic force and                           with their stronger affinity toward COO-.17-19 The ease of
+hydrostatic pressure act in the same direction, the liquid levels              penetration translates into a greater separation of charges,
+in the reservoirs remain unchanged. That situation is illustrated              provided by cations infiltrating the gel and leaving their
+in the case when a KCl solution is adjoined to a column of DI                  counterions behind in solution. This consideration is in
+water of greater height (right-hand side, Figure 2). Thus, in                  agreement with the measured voltage, being the highest (most
+these cases, the presence of a gel barrier cancels the effect of               negative) across the gel in contact with the KCl solution and
+hydrostatic and osmotic forces.                                                the lowest (least negative) in the case of the gel exposed to
+                                                                               seawater. In the latter scenario, minor components of seawater,
+  The reason for the latter effects originates from the intrinsic              like Ca2+ or Mg2+, form strong complexes with alginate.
+properties of the uniformly charged porous alginate hydrogel,                  Therefore, these ions are trapped in the gel's pores and
+further in the study termed also "gel membrane" due to its                     effectively screen fixed negative charges of alginate that are
+function to separate the solutions.                                            responsible for the gel's selective permeability and voltage-
+                                                                               generating capacity. For the KCl/NaCl system, a negative
+   Alginate Hydrogel as a Permselective Membrane.                              potential develops always on the KCl side (Figure 1b). Such an
+                                                                               outcome can be explained by the fact that K+ ions penetrate
+The alginate hydrogel is a negatively charged porous matrix                    the gel more readily than do Na+ ions;17-19 hence, the K+ ions
+that allows only cations (but not their counterions) to                        migrate away from their solution at a faster rate than do the
+penetrate through.18 Mobile ions from the bathing solution                     Na+ ions. Therefore, the KCl side becomes negatively charged
+may migrate into the gel interior, driven by an attraction                     with respect to the interconnected NaCl solution.
+exerted by the fixed gel matrix charges.18 Many anionic
+polyelectrolyte gels are known to exhibit permselectivity                        The question, then, is why the cross-migration of ions stops
+similar to that of alginate, being largely impermeable to                      altogether, so that there is no net mixing between the
+anionic species.16 Such behavior of the alginate gel is                        solutions, but the concentration gradient, as well as the electric
+supported also by our spectroscopic measurements. In these                     potential difference, is stably maintained across the barrier
+experiments, water imbibition by the gel (swelling) results in                 (Figure 1). This can be understood by considering how the
+an increased anion absorption band (thus concentration) in                     gel's permselectivity affects ion distribution in the gel vicinity.
+the bathing solution (Figure 3). This means that only water
+and/or cations can infiltrate the gel, while the anion                            Ion Exclusion Zone. After some of the cations penetrate
+concentration in the solution effectively increases due to                     the alginate gel, the excess anions left in the solution are now
+reduced solvent volume, now partially accommodated within                      electrostatically repelled from the negatively charged gel
+the gel matrix.                                                                surface and cannot approach it closely without their counter-
+                                                                               ions. As a consequence, a zone depleted in ions (cations and
+  When only cations selectively penetrate into the alginate gel,               anions) is formed next to the gel interface. This phenomenon
+their parent solution is left with excess negative charges.                    has been already widely exploited in designing water
+Separated chargespositive ions migrating into the gel and
+negative ions repelled from the gelcreate an electric
+potential difference. In our experiments, a negative voltage is
+always registered at the ionic side for the following solution
+
+                                                                        21026  https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                            ACS Omega 2020, 5, 21024-21031
+ACS Omega  http://pubs.acs.org/journal/acsodf                              Article
+
+Figure 4. Optical microscope images of the ion-depleted exclusion zone (EZ) water, expressed as a zone devoid of the crystals (black dots in the
+
+image) formed in the solution next to the alginate gel surface. The ion-depleted EZ could be observed under the microscope only for gels prone to
+swelling (after shorter dialysis time). The scale bar is 200 m.
+
+desalination and separation/preconcentration devices.20-28                 Figure 5. Schematic illustration showing the mechanism of formation
+Water that is free of ions and other charged species could be              of the ion-depleted EZ layer next to the negatively charged gel. Salt
+collected in the immediate vicinity of the permselective                   ions migrate according to the concentration gradient from the KCl
+membrane. At the same time, the solutes tended to                          solution to water. Due to the negative charge of the gel matrix, only
+preconcentrate at the ion-free/bulk solution boundary. The                 cations can pass, and the KCl solution is left with excess negative
+existence of such solute-free water layers has been observed               charges. These negative charges are now repelled from the negatively
+next to many hydrophilic surfaces and, thanks to its properties,           charged gel body, thus creating an ion-depleted exclusion zone of
+was given a generic name of exclusion zone (EZ).29-33 We                   water. The initially ion-free water reservoir (right side) gains some
+were able to confirm the presence of an ion-depleted EZ water              extra positive charges. The resulting electric force (cations attracted
+layer adjacent to the alginate hydrogel in experiments in which            back by their counterions) opposes the chemical force due to the
+crystal precipitation was induced in situ in a solution                    concentration gradient of ions between the two solutions.
+containing the alginate gel. Crystals formed from dissolved
+ions do not appear close to the gel surface (Figure 4). This               Figure 6. Schematic illustration of the mechanism of development of
+implies that the region in the immediate vicinity of the gel is            electric potential difference between two ionic solutions separated by
+free of any ions that could serve to build crystals.                       a permselective gel. K+ migrates within the gel at higher rates than
+                                                                           does Na+. As their Cl- counterions are left behind (cannot penetrate
+  Due to the charge separation across the EZ layer (positive               negatively charged pores), those anions are repelled by a charged gel
+ions within the gel and their negative counterions at the EZ/              creating an ion-depleted EZ at both sides of the gel membrane. Due
+bulk solution boundary), an electric force is created that                 to the faster migration of K+, the KCl solution is left with more excess
+opposes the chemical force driven by the concentration                     negative charges than the NaCl solution. This relative difference is
+gradient. Thus, cations migrating away from the solution and               expressed in the measured negative electric potential of the KCl
+within the gel are attracted back to their negatively charged              solution.
+counterions. After the equilibrium between these forces has
+been established, a stable concentration gradient and voltage
+are maintained (Figure 5), as seen in our experiments.
+
+  Very notably, this is the situation analogous to that existing
+in a cell, where different ionic compositions between inside
+and outside, with the electric potential difference, are expressed
+across the cell membrane. The intrinsic properties of a
+permselective hydrogel are thus sufficient prerequisites to
+express these features, without the energy expenditure required
+in the case of membrane pumps.
+
+  In fact, the ion-depleted EZ, sustaining charge separation
+(by balanced chemical and electric forces), should develop on
+both sides of a gel membrane, but more extensively on the side
+exposed to K+-containing solutionthe larger EZ being due to
+K+ migrating toward/within the gel faster than does Na+.
+Therefore, the electric potential difference between solutions
+separated by the gel membrane is determined by the relative
+partitioning of mobile ions from solution within the gel matrix
+(Figure 6).
+
+  Yet, it is interesting to note that if the potential difference
+was measured between the gel and its adjacent solution on
+either side, the gel matrix should exhibit a negative voltage
+
+                                                                    21027  https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                        ACS Omega 2020, 5, 21024-21031
+ACS Omega  http://pubs.acs.org/journal/acsodf                              Article
+
+relative to the solution due to gel excess fixed negative charges.         water molecules in the porous network of the gel more
+This is a known property of anionic polyelectrolyte gels. In               ordered. Such water may resist the transfer of pressure
+principle, the presented mechanism of voltage generation                   information between the two communicating vessels in our
+across the gelatinous barrier is consistent with the ideas put             study. Osmotic flow is also driven by pressure gradients, just as
+forward in Ling's association-induction theory.2-4,34,35 Ling              is hydrostatic flow.38 Therefore, water molecules confined
+suggested that the electric potential of a cell results from the           within alginate gel pores and/or adjacent to the gel-water
+selective association of particular ions with components of the            interface could create an effective barrier, attenuating the
+cytoplasm. If, rather than cross-migration of ions, we assume              impact of both osmotic and hydrostatic forces and effectively
+preferential accommodation of K+ ions within the alginate gel,             restricting flow.
+then our experimental results could be interpreted in the view
+of Ling's theory. K+ ions infiltrating the gel membrane, even                 Cell-Like Features of Gels. The alginate hydrogel is
+without crossing it, to a greater extent than Na+ ions, leave              generally considered mainly as the structural component of the
+behind a larger number of unbalanced anions in their parent                algal cell wall.12 Our study shows it to be able to sustain a Na+/
+solution. Therefore, the solution in the K+-rich side of the               K+ concentration gradient, support the development of an
+barrier becomes more negative in relation to the Na+-rich side.            electric potential difference, and attenuate osmotic pressure.
+                                                                           These features in fact closely resemble the characteristics of
+  The reason behind the apparent impermeability of the gel                 each healthy cell: the ability to maintain a specific chemical
+barrier toward ions can now be understood by considering the               identity of the intracellular environment, generate voltage, and
+development of an ion-depleted EZ supporting sustained                     maintain constant volume.
+charge separation.
+                                                                             We have observed that the size of the gel-induced EZ
+   Interfacial Water Ordering and Pressure Gradients.                      increases on gel swelling. This can be understood by the
+                                                                           advective water influx carrying ions to the gel matrix and has
+Apart from the migration of ions, there are still forces, both             been confirmed by our microscopy observations (Figure 4)
+osmotic and hydrostatic, that should drive the flow of water               and indirectly by Fourier transform infrared (FTIR) measure-
+molecules between the interconnected solutions. Nevertheless,              ments (Figure 3). The increase of ion exclusion on gel swelling
+as shown in our experiments with different solution levels                 is also in agreement with previous findings.22 The size of the
+(Figure 2), there is no net water flow across the gel.                     ion-depleted EZ is indicative of the extent of charge separation,
+                                                                           and the greater the separation, the higher should be the
+  Generally, the liquid in communicating vessels tends to                  resulting voltage. We did not perform systematic experiments
+equilibrate the pressure felt at any point within the liquid's             on the latter relationship, but our individual observations on
+entire volume by adjusting the liquid level in each compart-               the effect of gel swelling on the registered voltage support such
+ment to the same height. This is because the pressure at any               a notion. Then, the voltage affects water structuring in small
+point in the homogeneous liquid depends only on the depth of               pores, manifested as resistance to (osmotic) pressure. For
+the point in the liquid. In our case, however, the solution levels         marine algae living in tidal areas and experiencing periodic
+remain unequal regardless of the hydrostatic and osmotic                   desiccation, an increase of EZ on rehydration (Figure 7) may
+pressure gradients.
+                                                                           Figure 7. Optical microscopy image showing the EZ water layer,
+  The law of communicating vessels applies only to liquids,                expressed as a zone devoid of microspheres, developing next to a
+where intermolecular forces cannot counteract any pressure-                rehydrating algal blade. Note the solute enrichment (dark region) at
+driven displacements. In our system, it seems that forces acting           the boundary between the EZ and bulk solutions, a feature consistent
+between water molecules within the gel are strong enough to                with the formation of an ion-depletion zone.20-27 The scale bar is 4
+counteract any such pressure-induced translational motions. It             mm.
+is important to remember that this resistance to hydrostatic (as
+well as osmotic) pressure could be observed only in the                    support these organisms in maintaining critical cellular
+presence of ions. Any physical pore clogging by the ions should            homeostasis in salty environments. Especially, large EZ
+not be possible. In fact, the alginate gel swells in the presence          developing next to the swelling algae can help to prevent
+of a low concentration of monovalent salts, so pore volume                 osmotically driven water outflux from the cells. This is because
+increases.16,17 Then, both Na+ and K+ ions form fully soluble              cells are not in contact with salty water anymore, but are
+complexes with alginate.17 The observed resistance to a                    separated from it by the surrounding ion-depleted EZ. The
+pressure-gradient-driven advective flow of water, as illustrated           negative electric potential of a gel, mimicking the cytoskeletal
+in experiments with different liquid columns' heights, can be              componentsa porous, negatively charged networkalso
+explained by considering the invoked charge separation and                 becomes more negative after gel swelling.7 This observation
+electric potential development, as described in the next                   is in agreement with our considerations on the correlation
+paragraph.                                                                 between swelling, EZ size, and voltage, and because swelling
+                                                                           can be induced by preceding mechanical contraction, it has
+  In our experiments, voltage emerges across the porous gel
+network separating the two solutions. It has been previously
+shown that an electric field applied to a nanochannel can
+enhance the alignment of water molecules inside the channel,
+forming a liquid-crystalline phase.36 Weak electric fields, of the
+strength comparable to that acting across the cell membrane,
+have been demonstrated to restrict water flow within a
+nanochannel due to this increased water structuring.36 Water
+structure, resembling the liquid-crystalline state, has been
+previously suggested to exist next to many hydrophilic surfaces,
+termed the EZ water layer.29-31 The voltage that develops in
+our experimental system (comparable in magnitude to that of
+the cell resting potential)37 can therefore be expected to make
+
+                                                                    21028  https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                        ACS Omega 2020, 5, 21024-21031
+ACS Omega  http://pubs.acs.org/journal/acsodf                                                                            Article
+
+been suggested that the intrinsic properties of the gel-like               remove any nonspecifically bound ions. The capillaries were
+cytoskeleton could be mainly responsible for the mechano-
+electric response of cells.7                                               then stored in DI water until the time of the experiment.
+
+  Notably, it is recognized that in the immediate vicinity of                The preparatory method for alginate gels used for
+almost every cell there is a layer of unstirred water, within
+which flow is highly restricted.39,40 This layer is also known as          microscopic observations and spectroscopic measurements
+a layer of stagnant solutes. The largest of the known unstirred
+layers develops next to the intestinal membranes within their              varied slightly from that used for the gel bridge, above. Instead
+highly mucous (gelatinous) environments.41 Our results imply               of a capillary, a small Petri dish (35 mm × 10 mm, Falcon) was
+that electric fields acting next to permselective membranes may            filled with sodium alginate solution so as to just cover the dish
+well contribute to the establishment of unstirred water layers
+(UWLs). This is because he advective flow of water and                     bottom. The CaCl2 solution was then gently poured over it.
+solutes (ions) is restricted across/next to the gel, just as it is         Before experiments, the formed gel was cut with a stainless
+within UWL.                                                                steel blade to pieces of the desired size, usually about (5 mm ×
+
+ CONCLUSIONS                                                               5 mm).
+
+Our results show that a permselective, porous, and uniformly                 For those experiments examining gel swelling, the gel
+charged gel such as alginate can effectively constitute a
+membrane across which an ion concentration gradient and an                 substrate was dried in air and then fully rehydrated in water
+electric potential difference can be stably sustained. The latter          before use. During dehydration, some unspecific linkages are
+features are the fundamental characteristics of healthy cells and
+are now commonly ascribed exclusively to the activity of                   formed between those gel compartments that are not cross-
+channels and energy-consuming pumps embedded within the                    linked.45,46 On immersion in a solution of monovalent salts of
+cell membrane. Our results thus imply that the plant cell wall
+and/or the animal cytoskeleton, being charged gelatinous                   low ionic strength, water-rehydrated gels swell additionally due
+networks, can potentially contribute to maintaining those                  to substitution of nonspecifically bound divalent cations by
+essential physicochemical properties of living cells.                      monovalent ones.45 Shorter dialysis times, resulting in
+                                                                           noncomplete removal of free Ca2+ entrapped within the gel
+  We propose a mechanism allowing the gel barrier to restrict
+the net flux of ions or water molecules despite concentration or           network, were also used in our work to permit increased
+pressure gradients imposed across the gel. The underlying
+cause for this apparent impermeability may be the presence of              swelling when the gel was in contact with monovalent salts.
+an ion-depleted EZ water layer developing next to a                           Experimental Setup. The alginate gel bridge was used to
+permselective barrier. Charge separation across the EZ layer
+generates a potential difference. The electric force acting in the         interconnect two reservoirs containing either NaCl or KCl at
+direction opposite to the chemical drive creates a steady state,           different concentrations relevant to the cell environment.
+in which no net ion flow is observed. Furthermore, the                     Solutions included artificial seawater or DI water in different
+potential difference acts on water molecules, making them
+more ordered within the gel pores so that a pressure gradient              combinations: salt/salt, salt/DI water, and seawater/DI water
+cannot be easily transmitted across the gel. Therefore, any
+pressure-driven water advection is highly attenuated. It seems             (see Table 1). We used 2 mL Eppendorf microcentrifuge tubes
+plausible that homeostasis of a cell in terms of its ionic
+composition, electric potential, and volume (resistance to                 Table 1. Composition of Solutions Interconnected by the
+osmotic stress) can be supported by the cell's gelatinous                  Gel Bridge
+components without the need for energy expenditure.
+                                                                           compound conc. (mM)         conc. (mM)        compound (mM)
+ EXPERIMENTAL SECTION                                                                                                         DI water
+                                                                           KCl       200          gel
+Stock solutions of NaCl, KCl, CaCl2, BaCl2, Na2SO4, K2SO4,                                                                    NaCl
+and sodium alginate (all chemicals from Sigma-Aldrich) were                NaCl
+prepared with deionized (DI) water from a Barnstead D3750
+Nanopure Diamond purification system and diluted to the                    KCl       100
+desired experimental concentration. Artificial seawater was
+prepared according to the recipe by Cold Spring Harbor                     NaCl      600 (NaCl)a
+Protocols.42                                                               seawater
+
+   Alginate Gel Preparation. To make an alginate gel                                 100               100
+bridge, a glass capillary (internal diameter 1.12 mm, World
+Precision Instruments, Inc.), cut to a length of 2 cm, was filled          KCl                         50
+with 2% solution of sodium alginate and immersed in a bath of
+0.2 M CaCl2 solution for a minimum of 24 h for complete                              50                100
+gelation to occur. Ca2+ ions, as well as other divalent cations,
+act as cross-linking agents and transform soluble sodium                   aMolarity of the main component of seawater.
+alginate into a hydrogel.43,44 Gel-filled capillaries were then
+dialyzed against deionized water for a minimum of 48 h to                  as reservoirs. Holes were drilled at the 1 mL level mark of each
+                                                                           tube, and the ends of the capillary were inserted through the
+                                                                           holes. The reservoirs were filled to the top with the respective
+                                                                           solutions. Solutions fully covered the capillary entries.
+
+                                                                              Conductivity. To quantify ion permeability through the
+                                                                           gel, we followed conductivity changes of the reservoir
+                                                                           solutions. Conductivity results from the presence of mobile
+                                                                           ions in solution, so changes of conductivity therefore directly
+                                                                           relate to the permeability of the gel. Conductivity was
+                                                                           measured with the use of a conductivity meter (OAKTON,
+                                                                           CON 100 Series).
+
+                                                                              Electric Potential Difference. To check for permeability
+                                                                           of the barrier to specific ions, we measured the development of
+                                                                           a potential difference between the two reservoirs. For voltage
+                                                                           measurement, a digital multimeter (TENMA 72-7750) was
+                                                                           used with either steel or gold probes. The electric potential
+                                                                           difference (voltage) between the two containers can develop in
+                                                                           a situation when one solution becomes positively/negatively
+                                                                           charged with respect to the other. Solutions of salts have no
+                                                                           net charge, as each cation is counterbalanced by an anion.
+
+                                                                    21029                              https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                                                    ACS Omega 2020, 5, 21024-21031
+ACS Omega                          http://pubs.acs.org/journal/acsodf                                                         Article
+
+When only one type of ion, either positively or negatively                   After collecting the spectra of 0.05 M K2SO4, a piece of
+                                                                           alginate hydrogel (of a volume comprising about 1/3 of a
+charged, can selectively pass through the barrier, charges on
+
+both sides of the bridge may no longer remain balanced.                    K2SO4 solution volume) was immersed        in the  solution. As the
+                                                                           gel swelled, changes in the height of the  SO42-   absorption band
+Conductivity and voltage changes were followed for the course
+
+of at least 48 h and up to 120 h.                                          were monitored in the solution. To assure swelling (solution
+
+Pressure Gradient. To check for the effect of hydrostatic                  infiltration), previously dehydrated gels (as described in the
+
+and/or osmotic pressure differences, the solution levels in the            Alginate Gel Preparation section) were used in the experi-
+
+two reservoirs were made uneven (1 mL vs 2 mL) for salt/                   ments. Due to the negative charges of gel pores provided by
+
+water and water/water interconnected systems: 1 mL 100 mM                  fixed carboxyl groups, the alginate gel is expected to be
+                                                                           selectively permeable to cations but impermeable to anions.47
+KCl/2 mL DI water; 2 mL 100 mM KCl/1 mL DI water; and                      Therefore, an increased concentration of SO42- anions in
+                                                                           solution (expressed as the height of the absorption band) can
+1 mL DI water/2 mL DI water. For these experiments, the
+
+alginate bridge was inserted closer to the bottom of the
+
+reservoirs to assure full coverage of capillary entries by the             be expected when only water molecules (and cations), but not
+
+solutions. Changes in the solution levels were tracked over the            anions, penetrate into the gel.
+
+course of the experiment (120 h). In communicating vessels,                 AUTHOR INFORMATION
+
+pressure is expected to equilibrate by adjusting the liquid level
+
+to the same height in each compartment. This is due to the fact            Corresponding Author
+
+that pressure (P) exerted at any point in the static fluid                    Magdalena Kowacz - Department of Bioengineering, University
+                                                                                of Washington, Seattle, Washington 98195, United States;
+depends only upon the depth of the fluid (h), the density of                      orcid.org/0000-0001-5729-6816; Email: mkowacz@
+                                                                                uw.edu
+the fluid ( ), and the acceleration of gravity (g), P = h g.
+
+Because g is constant and density ( ) of the DI water and of
+
+100 mM KCl is identical up to the third decimal place, the
+
+pressure felt at any point in the liquid in our communicating              Author
+                                                                              Gerald H. Pollack - Department of Bioengineering, University
+vessels should depend only on the liquid column height.                          of Washington, Seattle, Washington 98195, United States
+
+Crystallization Experiments. For microscopic evaluation                    Complete contact information is available at:
+                                                                           https://pubs.acs.org/10.1021/acsomega.0c02595
+of ion-depletion-zone development next to the alginate gel,
+
+crystallization experiments were employed. The gel specimen
+
+(approx. 5 mm× 5 mm × 2 mm) was immersed in 0.01 M
+
+Na2SO4 or 0.01 M K2SO4, covered with a glass slide, and left to            Author Contributions
+equilibrate for 15 min. A cover slide was supported on gel
+                                                                           The manuscript was written through the contributions of all
+pieces, so that a solution-filled clearance of about 2 mm                  authors. All authors have given approval to the final version of
+                                                                           the manuscript.
+persisted between the cover and the bottom of the setup.
+                                                                           Funding
+Then, with the use of an automatic pipette, a solution of 0.01
+                                                                           The Software AG Foundation (SAGST) and Anonymous.
+M BaCl2 was added to  the equimolar bathing solution of  either
+Na2SO4 or K2SO. The   Ba2+ and SO42- combine to form     a very            Notes
+                                                                           The authors declare no competing financial interest.
+insoluble BaSO4 precipitate that is observed immediately after
+                                                                            ACKNOWLEDGMENTS
+mixing of the solutions.
+                                                                           The authors thank Arazi Pinhas and Zheng Li for editing
+We inspected our samples in situ for the presence of                       suggestions on early versions of this manuscript.
+
+crystallization-free zones next to the alginate surface. The layer          REFERENCES
+
+void of crystals means that there are no ions from which                    (1) Lodish, H.; Berk, A.; Zipursky, S. L.; Matsudaira, P.; Baltimore,
+                                                                           D.; Darnell, J. Molecular Cell Biology, 4th ed.; Freeman, W. H.: New
+crystals could form. Both fully swollen and prone to swelling              York, 2000. Section 15.4, Intracellular Ion Environment and
+                                                                           Membrane Electric Potential. Available from: https://www.ncbi.nlm.
+(rehydrated or with shorter dialysis time) gels were used in               nih.gov/books/NBK21627/.
+                                                                            (2) Ling, G. N. The Physical State of Water and Ions in Living Cells
+these experiments.                                                         and a New Theory of the Energization of Biological Work
+                                                                           Performance by ATP. Mol. Cell. Biochem. 1977, 15, 159-172.
+Behavior of Natural Algae. To visualize the solute-free                     (3) Thoke, H. S.; Bagatolli, L.; Olsen, L. Effect of Macromolecular
+                                                                           Crowding on the Kinetics of Glycolytic Enzymes and the Behaviour of
+zone forming next to the alginate-containing natural seaweed,              Glycolysis in Yeast. Integr. Biol. 2018, 10, 587-597.
+                                                                            (4) Ling, G. N. Maintenance of Low Sodium and High Potassium
+we used a dried Wakame (Undaria pinnatifida) blade and                     Levels in Resting Muscle Cells. J. Physiol. 1978, 280, 105-123.
+                                                                            (5) Cantero, M.; Villa Etchegoyen, C.; Perez, P.; Scarinci, N.;
+immersed it in a suspension of 1 m polystyrene microspheres                Cantiello, H. Bundles of Brain Microtubules Generate Electrical
+                                                                           Oscillations. Sci. Rep. 2018, 8, No. 11899.
+with carboxyl functional groups (Polysciences Inc., 08226).                 (6) Frieden, B. R.; Gatenby, R. Signal Transmission through
+                                                                           Elements of the Cytoskeleton Form an Optimized Information
+The ratio of the aqueous microsphere suspension to DI water                Network in Eukaryotic Cells. Sci. Rep. 2019, 9, No. 6110.
+                                                                            (7) Shklyar, T. F.; Safronov, A.; Klyuzhin, I.; Pollack, G.; Blyakhman,
+was 45 L (1 drop) to 15 mL. The formation of a zone void of                F. A Correlation Between Mechanical and Electrical Properties of the
+
+microsphere solutes was observed on blade rehydration and
+
+swelling.
+
+Spectroscopic Experiments. We performed Fourier
+
+transform infrared (FTIR) spectroscopy measurements using
+
+an attenuated total reflectance (ATR) sampling technique to
+
+analyze the ion-selective permeability of the alginate gel by
+
+following the procedure described further in this section. A
+
+Thermo Scientific Nicolet Nexus 670 Spectrophotometer was
+
+employed. Spectra were recorded using 256 infrared-beam
+scans and a wavenumber resolution of 4 cm-1. OMNIC
+
+software was used to perform the analysis. We used the K2SO4
+solution as a gauge for gel permeability due to a characteristic
+infrared absorption feature of aqueous SO42- at 1104 cm-1.
+
+                                                                    21030  https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                        ACS Omega 2020, 5, 21024-21031
+ACS Omega  http://pubs.acs.org/journal/acsodf                                  Article
+
+Synthetic Hydrogel Chosen as an Experimental Model of                           (27) Lee, D.; Lee, J.; Lee, H.; Kim, S. Spontaneous Selective
+Cytoskeleton. Biophysics 2008, 53, 544-549.                                    Preconcentration Leveraged by Ion Exchange and Imbibition
+ (8) Shklyar, T.; Safronov, A.; Toropova, O.; Pollack, G.; Blyakhman,          Through Nanoporous Medium. Sci. Rep. 2019, 9, No. 2336.
+F. Mechanoelectric Potentials in Synthetic Hydrogels: Possible                  (28) Lee, J.; Lee, D.; Park, S.; Lee, H.; Kim, S. Non-Negligible
+Relation to Cytoskeleton. Biophysics 2010, 55, 931-936.                        Water-Permeance Through Nanoporous Ion Exchange Medium. Sci.
+ (9) Blyakhman, F.; Safronov, A.; Shklyar, T. Biomimetic Sensors of            Rep. 2018, 8, No. 12842.
+the Mechanoelectrical Transduction Based on the Polyelectrolyte                 (29) Zheng, J.-m.; Chin, W.; Khijniak, E.; Khijniak, E.; Pollack, G.
+Gels. Key Eng. Mater. 2015, 644, 4-7.                                          Surfaces and Interfacial Water: Evidence That Hydrophilic Surfaces
+ (10) Blyakhman, F.; Safronov, A.; Zubarev, A.; Shklyar, T.;                   Have Long-Range Impact. Adv. Colloid Interface Sci. 2006, 127, 19-
+Dinislamova, O.; Lopez-Lopez, M. Mechanoelectrical Transduction                27.
+in the Hydrogel-Based Biomimetic Sensors. Sens. Actuators, A 2016,              (30) Zheng, J.-m.; Pollack, G. H. Long-Range Forces Extending from
+248, 54-61.                                                                    Polymer-Gel Surfaces. Phys. Rev. E 2003, 68 DOI: 10.1103/
+ (11) Fels, J.; Orlov, S.; Grygorczyk, R. The Hydrogel Nature of               physreve.68.031408.
+Mammalian Cytoplasm Contributes to Osmosensing and Extracellular                (31) Chai, B.; Pollack, G. H. Solute-Free Interfacial Zones in Polar
+pH Sensing. Biophys. J. 2009, 96, 4276-4285.                                   Liquids. J. Phys. Chem. B 2010, 114, 5371-5375.
+ (12) Michel, G.; Tonon, T.; Scornet, D.; Cock, J.; Kloareg, B. The             (32) Florea, D.; Musa, S.; Huyghe, J.; Wyss, H. Long-Range
+Cell Wall Polysaccharide Metabolism of the Brown Alga Ectocarpus               Repulsion of Colloids Driven by Ion Exchange and Diffusiophoresis.
+Siliculosus. Insights into the Evolution of Extracellular Matrix               Proc. Natl. Acad. Sci. U.S.A. 2014, 111, 6554-6559.
+Polysaccharides in Eukaryotes. New Phytol. 2010, 188, 82-97.                    (33) Huszar , I.; Mar tonfalvi, Z.; Laki, A.; Ivan , K.; Kellermayer, M.
+ (13) Simpliciano, C.; Clark, L.; Asi, B.; Chu, N.; Mercado, M.; Diaz,         Exclusion-Zone Dynamics Explored with Microfluidics and Optical
+S.; Goedert, M.; Mobed-Miremadi, M. Cross-Linked Alginate Film                 Tweezers. Entropy 2014, 16, 4322-4337.
+Pore Size Determination Using Atomic Force Microscopy and                       (34) Tamagawa, H.; Ikeda, K. Another Interpretation of the
+Validation Using Diffusivity Determinations. J. Surf. Eng. Mater.              Goldman-Hodgkin-Katz Equation Based on Ling's Adsorption
+Adv. Technol. 2013, 3, 1-12.                                                   Theory. Eur. Biophys. J. 2018, 47, 869-879.
+ (14) Golmohamadi, M.; Wilkinson, K. Diffusion of Ions in a                     (35) Tamagawa, H. Mathematical Expression of Membrane
+Calcium Alginate Hydrogel-Structure is the Primary Factor                      Potential Based on Ling's Adsorption Theory is Approximately the
+Controlling Diffusion. Carbohydr. Polym. 2013, 94, 82-87.                      Same as the Goldman-Hodgkin-Katz Equation. J. Biol. Phys. 2018,
+ (15) Lundberg, P.; Kuchel, P. Diffusion of Solutes in Agarose and             45, 13-30.
+Alginate Gels:1H and 23Na PFGSE and 23Na TQF NMR Studies.                       (36) Ritos, K.; Borg, M. K.; Mottram, N. J.; Reese, J. M. Electric
+Magn. Reson. Med. 1997, 37, 44-52.                                             Fields Can Control the Transport of Water in Carbon Nanotubes.
+ (16) Guo, H.; Kurokawa, T.; Takahata, M.; Hong, W.; Katsuyama,                Philos. Trans. R. Soc., A 2016, 374, No. 20150025.
+Y.; Luo, F.; Ahmed, J.; Nakajima, T.; Nonoyama, T.; Gong, J.                    (37) Abdul Kadir, L.; Stacey, M.; Barrett-Jolley, R. Emerging Roles
+Quantitative Observation of Electric Potential Distribution of Brittle         of the Membrane Potential: Action Beyond the Action Potential.
+Polyelectrolyte Hydrogels Using Microelectrode Technique. Macro-               Front. Physiol. 2018, 9 DOI: 10.3389/fphys.2018.01661.
+molecules 2016, 49, 3100-3108.                                                  (38) Marbach, S.; Bocquet, L. Osmosis, From Molecular Insights to
+ (17) Podlas, T.; Ander, P. Interactions of Sodium and Potassium               Large-Scale Applications. Chem. Soc. Rev. 2019, 48, 3102-3144.
+Ions with Sodium and Potassium Alginate in Aqueous Solution with                (39) Hibino, H.; Takai, M.; Noguchi, H.; Sawamura, S.; Takahashi,
+and without Added Salt. Macromolecules 1970, 3, 154-157.                       Y.; Sakai, H.; Shiku, H. An Approach to the Research on Ion and
+ (18) Aziz, E.; Ottosson, N.; Eisebitt, S.; Eberhardt, W.; Jagoda-             Water Properties in the Interphase Between the Plasma Membrane
+Cwiklik, B.; Vac ha, R.; Jungwirth, P.; Winter, B. Cation-Specific             and Bulk Extracellular Solution. J. Physiol. Sci. 2017, 67, 439-445.
+Interactions with Carboxylate in Amino Acid and Acetate Aqueous                 (40) Endeward, V.; Gros, G. Extra- and Intracellular Unstirred Layer
+Solutions: X-Ray Absorption and ab initio calculations. J. Phys. Chem.         Effects in Measurements of CO2 diffusion Across Membranes - A
+B 2008, 112, 12567-12570.                                                      Novel Approach Applied to the Mass Spectrometric 18O Technique
+ (19) Okur, H. I.; Hladílkova, J.; Rembert, K.; Cho, Y.; Heyda, J.;            for Red Blood Cells. J. Physiol. 2009, 587, 1153-1167.
+Dzubiella, J.; Cremer, P.; Jungwirth, P. Beyond The Hofmeister                  (41) Wilson, F. A.; Dietschy, J. M. The Intestinal Unstirred Layer:
+Series: Ion-Specific Effects on Proteins and Their Biological                  Its Surface Area and Effect on Active Transport Kinetics. Biochim.
+Functions. J. Phys. Chem. B 2017, 121, 1997-2014.                              Biophys. Acta 1974, 363, 112-126.
+ (20) Lee, S. J.; Lee, J.; Kim, K. Pressure-Driven Spontaneous Ion              (42) Artificial Seawater. Cold Spring Harbor Protocols; 2012
+Concentration Polarization Using an Ion-Selective Membrane. Anal.              DOI: 10.1101/pdb.rec068270.
+Biochem. 2018, 557, 13-17.                                                      (43) Mørch, Y . A.; Donati, I.; Strand, B. L.; Skjåk-Bræk, G. Effect of
+ (21) Kim, S. J.; Ko, S. H.; Kang, K. H.; Han, J. Direct Seawater              Ca2+, Ba2+, And Sr2+ on Alginate Microbeads. Biomacromolecules 2006,
+Desalination by Ion Concentration Polarization. Nat. Nanotechnol.              7, 1471-1480.
+2010, 5, 297-301.                                                               (44) Topuz, F.; Henke, A.; Richtering, W.; Groll, J. Magnesium Ions
+ (22) Park, S.; Jung, Y.; Son, S.; Cho, I.; Cho, Y.; Lee, H.; Kim, H.;         and Alginate do Form Hydrogels: A Rheological Study. Soft Matter
+Kim, S. Capillarity Ion Concentration Polarization as Spontaneous              2012, 8, 4877.
+Desalting Mechanism. Nat. Commun. 2016, 7, No. 11223.                           (45) Vreeker, R.; Li, L.; Fang, Y.; Appelqvist, I.; Mendes, E. Drying
+ (23) Mogi, K. A Visualization Technique of a Unique pH                        and Rehydration of Calcium Alginate Gels. Food Sci. 2008, 3, 361-
+Distribution Around an Ion Depletion Zone in a Microchannel by                 369.
+Using a Dual-Excitation Ratiometric Method. Micromachines 2018, 9,              (46) Fang, Y.; Li, L.; Vreeker, R.; Yao, X.; Wang, J.; Ma, Q.; Jiang, F.;
+No. 167.                                                                       Phillips, G. Rehydration of Dried Alginate Gel Beads: Effect of the
+ (24) Mogi, K.; Hayashida, K.; Yamamoto, T. Damage-Less Handling               Presence of Gelatin and Gum Arabic. Carbohydr. Polym. 2011, 86,
+of Exosomes Using an Ion-Depletion Zone in a Microchannel. Anal.               1145-1150.
+Sci. 2018, 34, 875-880.                                                         (47) Oh, Y.; Lee, H.; Son, S.; Kim, S.; Kim, P. Capillarity Ion
+ (25) Huicochea, A.; Siqueiros, J.; Romero, R. Portable Water                  Concentration Polarization for Spontaneous Biomolecular Preconcen-
+Purification System Integrated to a Heat Transformer. Desalination             tration Mechanism. Biomicrofluidics 2016, 10, No. 014102.
+2004, 165, 385-391.
+ (26) Ma, B.; Chi, J.; Liu, H. Fabric-Based Ion Concentration
+Polarization for Pump-Free Water Desalination. ACS Sustainable
+Chem. Eng. 2017, 6, 99-103.
+
+                                                                        21031  https://dx.doi.org/10.1021/acsomega.0c02595
+                                                                                            ACS Omega 2020, 5, 21024-21031
+
