@@ -1,0 +1,12 @@
+{
+	"nodes":[
+		{"id":"2e44402fe39421c0","type":"file","file":"生物学/attachments/01.jpeg","x":-300,"y":19,"width":400,"height":328},
+		{"id":"82acb337ff5f393a","type":"file","file":"生物学/attachments/04.jpeg","x":-300,"y":493,"width":400,"height":207},
+		{"id":"52e4afe81d6f4c91","type":"file","file":"生物学/attachments/05.jpeg","x":240,"y":304,"width":389,"height":400},
+		{"id":"91b4d1add7c84f1a","type":"file","file":"生物学/attachments/02.jpeg","x":240,"y":19,"width":400,"height":179},
+		{"id":"394341fa33a640e0","type":"file","file":"生物学/attachments/03.jpeg","x":760,"y":19,"width":400,"height":274},
+		{"id":"000db7f36e72602f","type":"file","file":"生物学/attachments/06.jpeg","x":760,"y":496,"width":400,"height":201},
+		{"id":"0fd64b417e1cf4d5","type":"file","file":"生物学/attachments/07.jpeg","x":-300,"y":840,"width":400,"height":298}
+	],
+	"edges":[]
+}
