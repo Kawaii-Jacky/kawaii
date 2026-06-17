@@ -4,5 +4,6 @@
   "attachmentFolderPath": "./attachments",
   "alwaysUpdateLinks": true,
   "newFileLocation": "current",
-  "strictLineBreaks": false
+  "strictLineBreaks": false,
+  "tabSize": 3
 }

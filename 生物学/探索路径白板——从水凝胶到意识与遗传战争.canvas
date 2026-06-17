@@ -1,0 +1,111 @@
+{
+	"nodes":[
+		{"id":"title","type":"text","text":"# 提问路径白板\n## 从一篇水凝胶膜论文 → 一路追问到意识起源与遗传战争\n*主线：一个反直觉的物理现象，如何牵引出物理、化学、细胞、病毒、生命起源、演化、哲学的连锁追问*","x":-200,"y":-740,"width":640,"height":400,"color":"1"},
+		{"id":"n1","type":"text","text":"### ① 水凝胶膜论文（图1-7）\n海藻酸凝胶维持离子/电压/压力梯度，不耗能","x":0,"y":-280,"width":300,"height":130,"color":"3"},
+		{"id":"n2","type":"text","text":"### ② 凝胶选择透过性\n只放阳离子、挡阴离子（非完全不透）","x":0,"y":-60,"width":300,"height":120,"color":"3"},
+		{"id":"n3","type":"text","text":"### ③ 稳定电势 → Donnan电位\n瞬时建立、界面分配、非横穿","x":0,"y":140,"width":300,"height":120,"color":"3"},
+		{"id":"n4","type":"text","text":"### ④ 凝胶作为电位参考点\n两侧溶液差=两个Donnan电位之差","x":0,"y":340,"width":300,"height":120,"color":"3"},
+		{"id":"n5","type":"text","text":"### ⑤ EZ排斥区是否独特\n结构水 还是 平凡界面？","x":0,"y":560,"width":300,"height":120,"color":"3"},
+		{"id":"n6","type":"text","text":"### 扩散泳（平凡解释）\nµm级排斥带、瞬态、推中性粒子\n→ EZ未能排除此解释","x":430,"y":560,"width":290,"height":340,"color":"3"},
+		{"id":"nmr2","type":"text","text":"**T₁/T₂ · 自旋回波 · CPMG**\nMz恢复/Mxy衰减/echo测T₂","x":800,"y":740,"width":310,"height":205,"color":"2"},
+		{"id":"nmr4","type":"text","text":"**量子数 n,l,m,mₛ**\n能量/形状/取向/自旋","x":1150,"y":660,"width":280,"height":160,"color":"2"},
+		{"id":"nmr5","type":"text","text":"**MRI/DWI/DTI/PFG-NMR**\n梯度编码 · 扩散张量 · 测扩散系数","x":1150,"y":880,"width":280,"height":220,"color":"2"},
+		{"id":"n8","type":"text","text":"### ⑥ Ling假说 vs 膜泵理论\n强版本被证伪(脂质体重构/换胞质)\n弱版本(固定电荷被动贡献)相容","x":0,"y":770,"width":300,"height":160,"color":"4"},
+		{"id":"n9","type":"text","text":"### ⑦ 蛋白质跨膜选择性\n通用信号序列+大小筛+膜泡，非全靠受体","x":0,"y":1030,"width":300,"height":140,"color":"5"},
+		{"id":"n10","type":"text","text":"### ⑧ 病毒入侵/军备竞赛\n伪造标签骗过放行系统，但有多层反制","x":0,"y":1270,"width":300,"height":140,"color":"5"},
+		{"id":"n10a","type":"text","text":"**新冠S蛋白/ACE2**\n结合→蛋白酶剪切→弹簧式膜融合","x":430,"y":1170,"width":290,"height":160,"color":"5"},
+		{"id":"n10b","type":"text","text":"**受体真实性？→ 证据硬**\n冷冻电镜/纯化/敲除因果（对比EZ）","x":430,"y":1370,"width":290,"height":205,"color":"5"},
+		{"id":"n11","type":"text","text":"### ⑨ 生命起源\n四难题：隔离/能量/复制/化学","x":0,"y":1440,"width":300,"height":200,"color":"4"},
+		{"id":"n12","type":"text","text":"### ⑩ 最初形态可能完全不同\n逆向推理盲区：被彻底替换=无痕","x":0,"y":1740,"width":300,"height":130,"color":"4"},
+		{"id":"n13","type":"text","text":"### ⑪ 道金斯：自私的基因/复制子\n个体=基因的生存机器","x":0,"y":1970,"width":300,"height":120,"color":"6"},
+		{"id":"n13a","type":"text","text":"**模因（文化复制子）**\n传播广≠真实","x":-520,"y":1700,"width":380,"height":110,"color":"6"},
+		{"id":"n13b","type":"text","text":"**盲眼钟表匠**\n累积选择，主动性是涌现","x":-520,"y":1830,"width":380,"height":120,"color":"6"},
+		{"id":"n13c","type":"text","text":"**延伸表现型**\n基因影响延伸到体外/他者","x":-520,"y":1970,"width":380,"height":120,"color":"6"},
+		{"id":"n15","type":"text","text":"### ⑫ 意识起源\n物理主义 · 困难问题未解\nERV/Arc：记忆机制来自驯化病毒","x":0,"y":2190,"width":300,"height":290,"color":"6"},
+		{"id":"closing","type":"text","text":"## 闭环洞察\n\n自私的基因 → 有性生殖 → 基因组内部利益分裂 → 印记战争 → 大脑复杂化 → 意识与模因\n\n**自私的基因，用内部战争，演化出了能质疑自私基因理论的大脑。**","x":-520,"y":2520,"width":380,"height":500,"color":"1"},
+		{"id":"n13d","type":"text","text":"**表观遗传/性选择**\n反新拉马克 · 性选择利益≠基因利益(四裂缝)","x":-520,"y":2130,"width":380,"height":190,"color":"6"},
+		{"id":"nmr","type":"text","text":"### NMR——验证EZ水的独立手段\n直接探测水分子本身\n但受快质子交换+分辨率限制","x":800,"y":180,"width":310,"height":300,"color":"2"},
+		{"id":"nmr1","type":"text","text":"**进动/拉莫尔频率** ν₀=γB₀/2π\n共振+化学位移的根本","x":800,"y":530,"width":310,"height":190,"color":"2"},
+		{"id":"nmr3","type":"text","text":"**四极弛豫增宽 · 电场梯度EFG**\nI≥1椭球核 · 离子受限→T₂暴跌→不可见","x":800,"y":960,"width":310,"height":220,"color":"2"},
+		{"id":"n14","type":"text","text":"### 分子马达（旁支）\n肌球蛋白power stroke=构象弹簧\n失速力·光镊·布朗棘轮\n→ 同\"耗能给随机运动施加方向\"主线","x":430,"y":2265,"width":290,"height":430,"color":"2"},
+		{"id":"n11b","type":"text","text":"**protocell + 复制子特质**\n自催化/模板/稳定性/最小信息容量","x":430,"y":1990,"width":290,"height":200,"color":"4"},
+		{"id":"n11a","type":"text","text":"**RNA世界 → DNA夺权**\n去2'-OH+U→T，保真度↑5-6数量级\n三角分工：DNA/RNA/蛋白","x":430,"y":1620,"width":290,"height":300,"color":"4"},
+		{"id":"meta","type":"text","text":"## 贯穿全程的思维主线\n\n**对不同主张施加不同的证据标准**\n\n- EZ独特性 → 质疑：没排除扩散泳\n- Ling假说 → 质疑：不能证伪≠正确\n- protocell\"复制\" → 质疑：修辞膨胀\n- RNA痕迹推起源 → 质疑：幸存者偏差\n- 受体真实性 → 确认：证据硬\n- 道金斯性选择=基因利益 → 质疑：四个裂缝\n\n→ **区分\"磐石\"与\"流沙\"**","x":-780,"y":100,"width":580,"height":720,"color":"1"},
+		{"id":"axis","type":"text","text":"## 两种解释语言的根本张力\n\n**信息/复制子中心（道金斯）**\nvs\n**物质/结构/能量中心（Ling/EZ/Mitchell）**\n\n| | 第一因 |\n|---|---|\n| 道金斯 | 复制子/信息 |\n| Ling/EZ | 物质结构/梯度 |\n\n→ 可能像波粒二象性，需两种语言同时描述，非二选一","x":900,"y":1220,"width":420,"height":700,"color":"1"},
+		{"id":"n16","type":"text","text":"### ⑬ 生殖演化\n分裂→无性→有性→卵生→胎生\n胎盘合胞素来自ERV","x":0,"y":2540,"width":300,"height":280,"color":"4"},
+		{"id":"n17","type":"text","text":"### ⑭ 印记基因/亲代遗传战争\n父方vs母方基因 · 甲基化为武器\n无永久赢家=动态纳什均衡","x":0,"y":2900,"width":300,"height":350,"color":"4"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"n1","fromSide":"bottom","toNode":"n2","toSide":"top","label":"机制是什么？"},
+		{"id":"e2","fromNode":"n2","fromSide":"bottom","toNode":"n3","toSide":"top","label":"电势从何来？"},
+		{"id":"e3","fromNode":"n3","fromSide":"bottom","toNode":"n4","toSide":"top","label":"参考点该选谁？"},
+		{"id":"e4","fromNode":"n4","fromSide":"bottom","toNode":"n5","toSide":"top","label":"EZ是真的吗？"},
+		{"id":"e5","fromNode":"n5","fromSide":"right","toNode":"n6","toSide":"left","label":"平凡解释？"},
+		{"id":"e7","fromNode":"nmr","fromSide":"bottom","toNode":"nmr1","toSide":"top"},
+		{"id":"e8","fromNode":"nmr1","fromSide":"bottom","toNode":"nmr2","toSide":"top"},
+		{"id":"e9","fromNode":"nmr2","fromSide":"bottom","toNode":"nmr3","toSide":"top"},
+		{"id":"e10","fromNode":"nmr1","fromSide":"right","toNode":"nmr4","toSide":"left"},
+		{"id":"e11","fromNode":"nmr","fromSide":"right","toNode":"nmr5","toSide":"left"},
+		{"id":"e12","fromNode":"n5","fromSide":"bottom","toNode":"n8","toSide":"top","label":"谁对：结构水还是泵？"},
+		{"id":"e13","fromNode":"n8","fromSide":"bottom","toNode":"n9","toSide":"top","label":"蛋白也靠选择透过？"},
+		{"id":"e14","fromNode":"n9","fromSide":"bottom","toNode":"n10","toSide":"top","label":"那病毒为何不随便进？"},
+		{"id":"e15","fromNode":"n10","fromSide":"right","toNode":"n10a","toSide":"left","label":"具体劫持什么？"},
+		{"id":"e16","fromNode":"n10a","fromSide":"bottom","toNode":"n10b","toSide":"top","label":"受体是真的吗？"},
+		{"id":"e17","fromNode":"n10","fromSide":"left","toNode":"n11","toSide":"left","label":"细胞最初怎么来？"},
+		{"id":"e18","toFloating":false,"fromNode":"n11","fromSide":"right","toNode":"n11a","toSide":"left","label":"RNA还是DNA先？"},
+		{"id":"e20","fromNode":"n11","fromSide":"bottom","toNode":"n12","toSide":"top","label":"最初形态会完全不同吗？"},
+		{"id":"e21","fromNode":"n12","fromSide":"bottom","toNode":"n13","toSide":"top","label":"用复制子视角理解"},
+		{
+			"id":"e22",
+			"toFloating":false,
+			"styleAttributes":{
+				"pathfindingMethod":null
+			},
+			"fromFloating":false,
+			"fromNode":"n13",
+			"fromSide":"left",
+			"toNode":"n13a",
+			"toSide":"right"
+		},
+		{"id":"e23","fromNode":"n13","fromSide":"left","toNode":"n13b","toSide":"right"},
+		{"id":"e24","toFloating":false,"fromNode":"n13","fromSide":"left","toNode":"n13c","toSide":"right"},
+		{"id":"e25","fromNode":"n13","fromSide":"left","toNode":"n13d","toSide":"right"},
+		{"id":"e26","fromNode":"n13","fromSide":"bottom","toNode":"n15","toSide":"top","label":"意识如何产生？"},
+		{"id":"e27","fromNode":"n15","fromSide":"bottom","toNode":"n16","toSide":"top","label":"生殖如何演化？"},
+		{"id":"e28","fromNode":"n16","fromSide":"bottom","toNode":"n17","toSide":"top","label":"基因在其中的战争"},
+		{"id":"e29","fromFloating":false,"fromNode":"n13","fromSide":"right","toNode":"n14","toSide":"left","label":"分子马达旁支"},
+		{"id":"e31","fromNode":"n17","fromSide":"left","toNode":"closing","toSide":"right"},
+		{"id":"e32","fromNode":"n8","fromSide":"right","toNode":"axis","toSide":"left","label":"两种语言之争"},
+		{
+			"id":"e33",
+			"fromFloating":false,
+			"styleAttributes":{
+				"pathfindingMethod":null
+			},
+			"toFloating":false,
+			"fromNode":"n13",
+			"fromSide":"right",
+			"toNode":"axis",
+			"toSide":"bottom"
+		},
+		{"id":"e19","fromNode":"n11a","fromSide":"bottom","toNode":"n11b","toSide":"top","label":"复制子需什么特质？"},
+		{
+			"id":"e30",
+			"toFloating":false,
+			"styleAttributes":{
+				"path":null,
+				"pathfindingMethod":null
+			},
+			"fromNode":"n14",
+			"fromSide":"right",
+			"toNode":"n10b",
+			"toSide":"right",
+			"label":"同：构象弹簧机制"
+		},
+		{"id":"e6","fromFloating":false,"fromNode":"n6","fromSide":"top","toNode":"nmr","toSide":"left","label":"如何验证水本身？"}
+	],
+	"metadata":{
+		"version":"1.0-1.0",
+		"frontmatter":{}
+	}
+}

@@ -1,9 +1,7 @@
 {
-  "enabledCssSnippets": [
-    "disable-mouse-link-clicks"
-  ],
+  "enabledCssSnippets": [],
   "theme": "obsidian",
   "baseFontSizeAction": true,
-  "baseFontSize": 29,
+  "baseFontSize": 27,
   "cssTheme": "Minimal"
 }
