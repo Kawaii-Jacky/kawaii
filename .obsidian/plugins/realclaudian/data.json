@@ -6,7 +6,7 @@
         "conversationId": "conv-1782129602184-1l7ugshv9"
       },
       {
-        "draftModel": "opencode:qweapi/gpt-5.5",
+        "draftModel": "claude-sonnet-4-6",
         "tabId": "tab-1782139446568-u5tnoao",
         "conversationId": null
       }
