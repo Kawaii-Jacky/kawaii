@@ -2,15 +2,11 @@
   "tabManagerState": {
     "openTabs": [
       {
-        "tabId": "tab-1782108746357-51u89jg",
-        "conversationId": "conv-1782039909670-1dm1g2d9t"
-      },
-      {
         "tabId": "tab-1782109375787-slnr57y",
         "conversationId": "conv-1782108755849-6tfv1pv5b"
       },
       {
-        "draftModel": "gpt-5.4-mini",
+        "draftModel": "opencode:qweapi/gpt-5.5",
         "tabId": "tab-1782115796460-q0lnp3n",
         "conversationId": null
       }
