@@ -1,0 +1,62 @@
+{
+  "userName": "",
+  "permissionMode": "build",
+  "model": "mimo:xiaomi/mimo-v2.5-pro",
+  "thinkingBudget": "default",
+  "effortLevel": "default",
+  "serviceTier": "default",
+  "enableAutoTitleGeneration": true,
+  "titleGenerationModel": "",
+  "excludedTags": [],
+  "mediaFolder": "",
+  "systemPrompt": "",
+  "persistentExternalContextPaths": [],
+  "sharedEnvironmentVariables": "",
+  "envSnippets": [],
+  "customContextLimits": {},
+  "customModelAliases": {},
+  "keyboardNavigation": {
+    "scrollUpKey": "w",
+    "scrollDownKey": "s",
+    "focusInputKey": "i"
+  },
+  "requireCommandOrControlEnterToSend": false,
+  "locale": "zh-CN",
+  "providerConfigs": {
+    "mimo": {
+      "cliPath": "",
+      "cliPathsByHost": {},
+      "enabled": true,
+      "environmentHash": "",
+      "environmentVariables": "MIMOCODE_ENABLE_EXA=1",
+      "modelAliases": {},
+      "permissionRules": {},
+      "preferredThinkingByModel": {},
+      "selectedMode": "build",
+      "thinkingOptionsByModel": {},
+      "visibleModels": [
+        "xiaomi/mimo-v2.5-pro-ultraspeed",
+        "xiaomi/mimo-v2.5-pro"
+      ]
+    }
+  },
+  "settingsProvider": "mimo",
+  "savedProviderModel": {
+    "mimo": "mimo:xiaomi/mimo-v2.5-pro"
+  },
+  "savedProviderEffort": {
+    "mimo": "default"
+  },
+  "savedProviderServiceTier": {},
+  "savedProviderThinkingBudget": {
+    "mimo": "default"
+  },
+  "savedProviderPermissionMode": {},
+  "lastCustomModel": "",
+  "maxTabs": 3,
+  "enableAutoScroll": true,
+  "deferMathRenderingDuringStreaming": true,
+  "expandFileEditsByDefault": false,
+  "chatViewPlacement": "right-sidebar",
+  "hiddenProviderCommands": {}
+}

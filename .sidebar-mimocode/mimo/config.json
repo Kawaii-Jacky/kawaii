@@ -1,0 +1,11 @@
+{
+  "$schema": "https://mimo.ai/config.json",
+  "agent": {
+    "build": {
+      "prompt": "{file:C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.sidebar-mimocode\\mimo\\system.md}"
+    },
+    "plan": {
+      "prompt": "{file:C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.sidebar-mimocode\\mimo\\system.md}"
+    }
+  }
+}
