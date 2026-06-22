@@ -25,18 +25,35 @@
     ],
     "env": []
   },
-  "customAgents": [],
-  "defaultAgentId": "gemini-cli",
+  "customAgents": [
+    {
+      "id": "opencode-acp",
+      "displayName": "opencode",
+      "command": "C:\\Users\\Administrator\\scoop\\shims\\opencode.exe",
+      "args": [
+        "--acp"
+      ],
+      "env": []
+    },
+    {
+      "id": "custom-agent",
+      "displayName": "Custom agent",
+      "command": "",
+      "args": [],
+      "env": []
+    }
+  ],
+  "defaultAgentId": "opencode-acp",
   "autoAllowPermissions": false,
   "autoMentionActiveNote": true,
   "enableSystemNotifications": true,
   "debugMode": false,
-  "nodePath": "",
+  "nodePath": "C:\\Program Files\\nodejs\\node.exe",
   "exportSettings": {
     "defaultFolder": "Agent Client",
     "filenameTemplate": "agent_client_{date}_{time}",
-    "autoExportOnNewChat": false,
-    "autoExportOnCloseChat": false,
+    "autoExportOnNewChat": true,
+    "autoExportOnCloseChat": true,
     "openFileAfterExport": true,
     "includeImages": true,
     "imageLocation": "obsidian",
