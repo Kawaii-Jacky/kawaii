@@ -4,21 +4,21 @@
   "title": "Generate conversation title",
   "titleGenerationStatus": "success",
   "createdAt": 1782141757969,
-  "updatedAt": 1782143000636,
-  "lastResponseAt": 1782143000636,
+  "updatedAt": 1782146203685,
+  "lastResponseAt": 1782146203685,
   "sessionId": "ses_1101079efffejt2IPu9j642oeD",
   "providerState": {
     "databasePath": "C:\\Users\\Administrator\\AppData\\Roaming\\mimocode\\mimocode.db"
   },
-  "currentNote": "心理学/个人症状自我观察-社交焦虑与ADHD谱系.md",
+  "currentNote": "心理学/社交焦虑与ADHD谱系.md",
   "usage": {
     "cacheCreationInputTokens": 0,
-    "cacheReadInputTokens": 71360,
-    "contextTokens": 81503,
+    "cacheReadInputTokens": 111040,
+    "contextTokens": 115623,
     "contextWindow": 1048576,
     "contextWindowIsAuthoritative": true,
-    "inputTokens": 10143,
+    "inputTokens": 4583,
     "model": "mimo:xiaomi/mimo-v2.5-pro",
-    "percentage": 8
+    "percentage": 11
   }
 }
