@@ -6,11 +6,10 @@
         "conversationId": "conv-1782108755849-6tfv1pv5b"
       },
       {
-        "draftModel": "opencode:qweapi/gpt-5.5",
         "tabId": "tab-1782115796460-q0lnp3n",
-        "conversationId": null
+        "conversationId": "conv-1782129602184-1l7ugshv9"
       }
     ],
-    "activeTabId": "tab-1782109375787-slnr57y"
+    "activeTabId": "tab-1782115796460-q0lnp3n"
   }
 }
