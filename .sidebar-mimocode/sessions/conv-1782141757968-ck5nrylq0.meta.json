@@ -4,8 +4,8 @@
   "title": "Generate conversation title",
   "titleGenerationStatus": "success",
   "createdAt": 1782141757969,
-  "updatedAt": 1782184042238,
-  "lastResponseAt": 1782184042238,
+  "updatedAt": 1782189271464,
+  "lastResponseAt": 1782189271464,
   "sessionId": "ses_1101079efffejt2IPu9j642oeD",
   "providerState": {
     "databasePath": "C:\\Users\\Administrator\\AppData\\Roaming\\mimocode\\mimocode.db"
@@ -14,11 +14,11 @@
   "usage": {
     "cacheCreationInputTokens": 0,
     "cacheReadInputTokens": 0,
-    "contextTokens": 119775,
+    "contextTokens": 0,
     "contextWindow": 1048576,
     "contextWindowIsAuthoritative": true,
-    "inputTokens": 119775,
+    "inputTokens": 0,
     "model": "mimo:xiaomi/mimo-v2.5-pro",
-    "percentage": 11
+    "percentage": 0
   }
 }
