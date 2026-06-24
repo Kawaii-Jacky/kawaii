@@ -19,7 +19,7 @@
     "id": "gemini-cli",
     "displayName": "Gemini CLI",
     "apiKey": "",
-    "command": "gemini",
+    "command": "C:\\Users\\Administrator\\AppData\\Roaming\\npm\\gemini",
     "args": [
       "--experimental-acp"
     ],
