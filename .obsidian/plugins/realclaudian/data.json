@@ -10,15 +10,14 @@
         "conversationId": "conv-1782633740928-usomfvkgy"
       },
       {
-        "draftModel": "opus[1m]",
         "tabId": "tab-1782636350485-2kbwwoy",
-        "conversationId": null
+        "conversationId": "conv-1782637037691-p5unlakxj"
       },
       {
-        "tabId": "tab-1782636430963-jgqggxb",
-        "conversationId": "conv-1782636462606-ya6e2uycb"
+        "tabId": "tab-1782636961399-7uo03y6",
+        "conversationId": "conv-1782636999995-hruk8o7bw"
       }
     ],
-    "activeTabId": "tab-1782636430963-jgqggxb"
+    "activeTabId": "tab-1782628564976-34ausvz"
   }
 }
