@@ -6,10 +6,11 @@
         "conversationId": "conv-1782633740928-usomfvkgy"
       },
       {
-        "tabId": "tab-1782923498093-bmqvvb5",
-        "conversationId": "conv-1782923518222-81y93v1jw"
+        "draftModel": "sonnet[1m]",
+        "tabId": "tab-1782997780145-f9y9gd6",
+        "conversationId": null
       }
     ],
-    "activeTabId": "tab-1782628564976-34ausvz"
+    "activeTabId": "tab-1782997780145-f9y9gd6"
   }
 }
