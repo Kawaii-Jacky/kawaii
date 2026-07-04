@@ -1,28 +1,31 @@
 /*
-  增大代码块字体大小：在基础字号基础上 +5px
-  当前基础字号 30px → 代码块变为 35px
-  若在设置中调整基础字号，代码块字号会同步跟随
+  增大 AI 对话面板（Claudian / Sidebar-Mimocode）的代码块字体
+  原始大小：13px → 修改后：18px（+5px）
+  仅作用于 AI 聊天面板，不影响笔记文档的代码块
 */
 
-/* 覆盖 Obsidian 的代码字号 CSS 变量 */
-body {
-  --code-size: calc(var(--font-text-size, 30px) + 30px);
+/* ── Claudian 主面板（realclaudian 插件）── */
+
+/* 围栏代码块（pre > code） */
+.claudian-message-content code,
+.claudian-code-wrapper pre code {
+  font-size: 30px !important;
 }
 
-/* 阅读视图：围栏代码块 + 行内代码 */
-.markdown-preview-view pre,
-.markdown-preview-view pre code,
-.markdown-preview-view code {
-  font-size: var(--code-size) !important;
+/* 思考块内的代码 */
+.claudian-thinking-content code {
+  font-size: 17px !important;
 }
 
-/* 实时预览 / 编辑模式：围栏代码块行 */
-.markdown-source-view.mod-cm6 .HyperMD-codeblock,
-.markdown-source-view.mod-cm6 .cm-hmd-codeblock {
-  font-size: var(--code-size) !important;
+/* ── Sidebar-Mimocode 侧边栏面板 ── */
+
+/* 围栏代码块（pre > code） */
+.sidebar-mimocode-message-content code,
+.sidebar-mimocode-code-wrapper pre code {
+  font-size: 25px !important;
 }
 
-/* 实时预览 / 编辑模式：行内代码 */
-.markdown-source-view.mod-cm6 .cm-inline-code {
-  font-size: var(--code-size) !important;
+/* 思考块内的代码 */
+.sidebar-mimocode-thinking-content code {
+  font-size: 17px !important;
 }
