@@ -1,5 +1,7 @@
 {
-  "enabledCssSnippets": [],
+  "enabledCssSnippets": [
+    "larger-code-font"
+  ],
   "theme": "obsidian",
   "baseFontSizeAction": true,
   "baseFontSize": 30,

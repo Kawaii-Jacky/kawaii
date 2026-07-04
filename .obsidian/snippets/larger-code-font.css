@@ -1,0 +1,28 @@
+/*
+  增大代码块字体大小：在基础字号基础上 +5px
+  当前基础字号 30px → 代码块变为 35px
+  若在设置中调整基础字号，代码块字号会同步跟随
+*/
+
+/* 覆盖 Obsidian 的代码字号 CSS 变量 */
+body {
+  --code-size: calc(var(--font-text-size, 30px) + 30px);
+}
+
+/* 阅读视图：围栏代码块 + 行内代码 */
+.markdown-preview-view pre,
+.markdown-preview-view pre code,
+.markdown-preview-view code {
+  font-size: var(--code-size) !important;
+}
+
+/* 实时预览 / 编辑模式：围栏代码块行 */
+.markdown-source-view.mod-cm6 .HyperMD-codeblock,
+.markdown-source-view.mod-cm6 .cm-hmd-codeblock {
+  font-size: var(--code-size) !important;
+}
+
+/* 实时预览 / 编辑模式：行内代码 */
+.markdown-source-view.mod-cm6 .cm-inline-code {
+  font-size: var(--code-size) !important;
+}
