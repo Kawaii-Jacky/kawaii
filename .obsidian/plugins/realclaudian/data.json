@@ -10,10 +10,19 @@
         "conversationId": "conv-1783004525603-zp1traddg"
       },
       {
-        "tabId": "tab-1783307703388-g3nc1h0",
-        "conversationId": "conv-1783307753873-mpfdfq7pl"
+        "draftModel": "opus[1m]",
+        "tabId": "tab-1783398480536-4ryh6pd",
+        "conversationId": null
+      },
+      {
+        "tabId": "tab-1783398532348-85du8qe",
+        "conversationId": "conv-1783399474677-xzpaptesq"
+      },
+      {
+        "tabId": "tab-1783399214417-j0ioahh",
+        "conversationId": "conv-1783399286306-8yprem0ta"
       }
     ],
-    "activeTabId": "tab-1782997780145-f9y9gd6"
+    "activeTabId": "tab-1782628564976-34ausvz"
   }
 }
