@@ -1,0 +1,25 @@
+{
+  "python": "3.11.15",
+  "scanpy": "1.11.5",
+  "numpy": "2.4.6",
+  "pandas": "2.3.3",
+  "initial_cells": 2700,
+  "initial_genes": 32738,
+  "final_cells": 2638,
+  "final_genes": 1838,
+  "config": {
+    "random_seed": 0,
+    "min_genes_per_cell": 200,
+    "min_cells_per_gene": 3,
+    "max_genes_per_cell": 2500,
+    "max_mito_percent": 5.0,
+    "target_sum": 10000,
+    "hvg_min_mean": 0.0125,
+    "hvg_max_mean": 3.0,
+    "hvg_min_disp": 0.5,
+    "n_pcs": 40,
+    "n_neighbors": 10,
+    "clustering_pcs": 40,
+    "leiden_resolution": 0.5
+  }
+}

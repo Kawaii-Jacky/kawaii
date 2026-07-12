@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "运行 PBMC 3k 完整流程",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}\\analyze_pbmc3k.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true
+    },
+    {
+      "name": "Step 1 - 数据与 QC",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}\\step_01_data_qc.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Step 2 - 归一化与 HVG",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}\\step_02_normalization_hvg.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Step 3 - PCA 与聚类",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}\\step_03_pca_clustering.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Step 4 - Marker 与注释",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}\\step_04_markers_annotation.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[project]
+name = "pbmc3k-reproduction"
+version = "0.1.0"
+description = "Reproducible Scanpy analysis of the public 10x PBMC 3k dataset"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "scanpy>=1.11,<1.12",
+  "leidenalg>=0.10,<0.11",
+  "igraph>=0.11,<0.12",
+]
+
