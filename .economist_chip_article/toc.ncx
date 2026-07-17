@@ -1,0 +1,591 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="eng">
+  <head>
+    <meta name="dtb:uid" content="e5611294-09dd-4fae-8932-b92c62bf882a"/>
+    <meta name="dtb:depth" content="3"/>
+    <meta name="dtb:generator" content="calibre (9.11.0)"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>The Economist [July 11th 2026]</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="num_1" playOrder="1" class="chapter">
+      <navLabel>
+        <text>The world this week</text>
+      </navLabel>
+      <content src="feed_0/index.html"/>
+      <navPoint id="num_2" playOrder="2" class="chapter">
+        <navLabel>
+          <text>Politics</text>
+        </navLabel>
+        <content src="feed_0/article_0/index_u47.html"/>
+      </navPoint>
+      <navPoint id="num_3" playOrder="3" class="chapter">
+        <navLabel>
+          <text>Business</text>
+        </navLabel>
+        <content src="feed_0/article_1/index_u1.html"/>
+      </navPoint>
+      <navPoint id="num_4" playOrder="4" class="chapter">
+        <navLabel>
+          <text>Cartoon: The real threat to global growth</text>
+        </navLabel>
+        <content src="feed_0/article_2/index_u38.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_5" playOrder="5" class="chapter">
+      <navLabel>
+        <text>Leaders</text>
+      </navLabel>
+      <content src="feed_1/index_u12.html"/>
+      <navPoint id="num_6" playOrder="6" class="chapter">
+        <navLabel>
+          <text>The man who would change Russia</text>
+        </navLabel>
+        <content src="feed_1/article_0/index_u13.html"/>
+      </navPoint>
+      <navPoint id="num_7" playOrder="7" class="chapter">
+        <navLabel>
+          <text>Two cheers for Trump Accounts</text>
+        </navLabel>
+        <content src="feed_1/article_1/index_u48.html"/>
+      </navPoint>
+      <navPoint id="num_8" playOrder="8" class="chapter">
+        <navLabel>
+          <text>England needs fewer council homes, not more</text>
+        </navLabel>
+        <content src="feed_1/article_2/index_u73.html"/>
+      </navPoint>
+      <navPoint id="num_9" playOrder="9" class="chapter">
+        <navLabel>
+          <text>A no-brainer for protecting your brain</text>
+        </navLabel>
+        <content src="feed_1/article_3/index_u61.html"/>
+      </navPoint>
+      <navPoint id="num_10" playOrder="10" class="chapter">
+        <navLabel>
+          <text>Who is capable of evil?</text>
+        </navLabel>
+        <content src="feed_1/article_4/index_u67.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_11" playOrder="11" class="chapter">
+      <navLabel>
+        <text>Letters</text>
+      </navLabel>
+      <content src="feed_2/index_u82.html"/>
+      <navPoint id="num_12" playOrder="12" class="chapter">
+        <navLabel>
+          <text>Why are big AI labs hiring so many philosophers?</text>
+        </navLabel>
+        <content src="feed_2/article_0/index_u49.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_13" playOrder="13" class="chapter">
+      <navLabel>
+        <text>By Invitation</text>
+      </navLabel>
+      <content src="feed_3/index_u20.html"/>
+      <navPoint id="num_14" playOrder="14" class="chapter">
+        <navLabel>
+          <text>Prepare for a world of ad hoc coalitions</text>
+        </navLabel>
+        <content src="feed_3/article_0/index_u68.html"/>
+      </navPoint>
+      <navPoint id="num_15" playOrder="15" class="chapter">
+        <navLabel>
+          <text>Medicine can treat obesity, but can’t agree on what obesity is</text>
+        </navLabel>
+        <content src="feed_3/article_1/index_u33.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_16" playOrder="16" class="chapter">
+      <navLabel>
+        <text>Briefing</text>
+      </navLabel>
+      <content src="feed_4/index_u62.html"/>
+      <navPoint id="num_17" playOrder="17" class="chapter">
+        <navLabel>
+          <text>How dementia is being defeated</text>
+        </navLabel>
+        <content src="feed_4/article_0/index_u28.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_18" playOrder="18" class="chapter">
+      <navLabel>
+        <text>Britain</text>
+      </navLabel>
+      <content src="feed_5/index_u55.html"/>
+      <navPoint id="num_19" playOrder="19" class="chapter">
+        <navLabel>
+          <text>How realistic is Andy Burnham’s council-house building pledge?</text>
+        </navLabel>
+        <content src="feed_5/article_0/index_u23.html"/>
+      </navPoint>
+      <navPoint id="num_20" playOrder="20" class="chapter">
+        <navLabel>
+          <text>Britain’s social housing subsidises the wrong people</text>
+        </navLabel>
+        <content src="feed_5/article_1/index_u42.html"/>
+      </navPoint>
+      <navPoint id="num_21" playOrder="21" class="chapter">
+        <navLabel>
+          <text>Why Britons now trust weather forecasters</text>
+        </navLabel>
+        <content src="feed_5/article_2/index_u74.html"/>
+      </navPoint>
+      <navPoint id="num_22" playOrder="22" class="chapter">
+        <navLabel>
+          <text>Nigel Farage’s stunts made him a successful politician. They won’t make him PM</text>
+        </navLabel>
+        <content src="feed_5/article_3/index_u83.html"/>
+      </navPoint>
+      <navPoint id="num_23" playOrder="23" class="chapter">
+        <navLabel>
+          <text>Is AI writing taking over Westminster?</text>
+        </navLabel>
+        <content src="feed_5/article_4/index_u45.html"/>
+      </navPoint>
+      <navPoint id="num_24" playOrder="24" class="chapter">
+        <navLabel>
+          <text>Some Scottish wrens are a striking case of “island syndrome”</text>
+        </navLabel>
+        <content src="feed_5/article_5/index_u7.html"/>
+      </navPoint>
+      <navPoint id="num_25" playOrder="25" class="chapter">
+        <navLabel>
+          <text>Theresa May: Britain’s first—and last—woke prime minister</text>
+        </navLabel>
+        <content src="feed_5/article_6/index_u75.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_26" playOrder="26" class="chapter">
+      <navLabel>
+        <text>Europe</text>
+      </navLabel>
+      <content src="feed_6/index_u21.html"/>
+      <navPoint id="num_27" playOrder="27" class="chapter">
+        <navLabel>
+          <text>Europe has promised cash for defence. It’s failing to provide it</text>
+        </navLabel>
+        <content src="feed_6/article_0/index_u87.html"/>
+      </navPoint>
+      <navPoint id="num_28" playOrder="28" class="chapter">
+        <navLabel>
+          <text>Marine Le Pen is running for the French presidency</text>
+        </navLabel>
+        <content src="feed_6/article_1/index_u2.html"/>
+      </navPoint>
+      <navPoint id="num_29" playOrder="29" class="chapter">
+        <navLabel>
+          <text>NATO survives its bipolar summit</text>
+        </navLabel>
+        <content src="feed_6/article_2/index_u69.html"/>
+      </navPoint>
+      <navPoint id="num_30" playOrder="30" class="chapter">
+        <navLabel>
+          <text>Poland and Ukraine have fallen out over history</text>
+        </navLabel>
+        <content src="feed_6/article_3/index_u26.html"/>
+      </navPoint>
+      <navPoint id="num_31" playOrder="31" class="chapter">
+        <navLabel>
+          <text>Russians are growing anxious and angry</text>
+        </navLabel>
+        <content src="feed_6/article_4/index_u59.html"/>
+      </navPoint>
+      <navPoint id="num_32" playOrder="32" class="chapter">
+        <navLabel>
+          <text>Europe’s public broadcasters go from prime time to hard-to-find</text>
+        </navLabel>
+        <content src="feed_6/article_5/index_u89.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_33" playOrder="33" class="chapter">
+      <navLabel>
+        <text>United States</text>
+      </navLabel>
+      <content src="feed_7/index_u50.html"/>
+      <navPoint id="num_34" playOrder="34" class="chapter">
+        <navLabel>
+          <text>Texas is waging a battle to stop “Islamification”</text>
+        </navLabel>
+        <content src="feed_7/article_0/index_u63.html"/>
+      </navPoint>
+      <navPoint id="num_35" playOrder="35" class="chapter">
+        <navLabel>
+          <text>What Graham Platner’s collapse means for the Democrats</text>
+        </navLabel>
+        <content src="feed_7/article_1/index_u29.html"/>
+      </navPoint>
+      <navPoint id="num_36" playOrder="36" class="chapter">
+        <navLabel>
+          <text>Why Donald Trump won’t let a doomed bill die</text>
+        </navLabel>
+        <content src="feed_7/article_2/index_u52.html"/>
+      </navPoint>
+      <navPoint id="num_37" playOrder="37" class="chapter">
+        <navLabel>
+          <text>Rise of the Gen-Z Luddite</text>
+        </navLabel>
+        <content src="feed_7/article_3/index_u64.html"/>
+      </navPoint>
+      <navPoint id="num_38" playOrder="38" class="chapter">
+        <navLabel>
+          <text>Mehmet Oz, Donald Trump’s most effective TV star</text>
+        </navLabel>
+        <content src="feed_7/article_4/index_u43.html"/>
+      </navPoint>
+      <navPoint id="num_39" playOrder="39" class="chapter">
+        <navLabel>
+          <text>The left’s common-sense problem on crime</text>
+        </navLabel>
+        <content src="feed_7/article_5/index_u22.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_40" playOrder="40" class="chapter">
+      <navLabel>
+        <text>Middle East &amp; Africa</text>
+      </navLabel>
+      <content src="feed_8/index_u53.html"/>
+      <navPoint id="num_41" playOrder="41" class="chapter">
+        <navLabel>
+          <text>Is Donald Trump serious in declaring the ceasefire with Iran over?</text>
+        </navLabel>
+        <content src="feed_8/article_0/index_u90.html"/>
+      </navPoint>
+      <navPoint id="num_42" playOrder="42" class="chapter">
+        <navLabel>
+          <text>Rebuilding Syria will cost over $200bn. Bombs are not helping</text>
+        </navLabel>
+        <content src="feed_8/article_1/index_u56.html"/>
+      </navPoint>
+      <navPoint id="num_43" playOrder="43" class="chapter">
+        <navLabel>
+          <text>Ahmed al-Sharaa is quashing Syria’s vast captagon trade</text>
+        </navLabel>
+        <content src="feed_8/article_2/index_u30.html"/>
+      </navPoint>
+      <navPoint id="num_44" playOrder="44" class="chapter">
+        <navLabel>
+          <text>Can Africa take the Asian path to growth?</text>
+        </navLabel>
+        <content src="feed_8/article_3/index_u34.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_45" playOrder="45" class="chapter">
+      <navLabel>
+        <text>The Americas</text>
+      </navLabel>
+      <content src="feed_9/index_u3.html"/>
+      <navPoint id="num_46" playOrder="46" class="chapter">
+        <navLabel>
+          <text>Brazilian cities are building vast surveillance networks</text>
+        </navLabel>
+        <content src="feed_9/article_0/index_u70.html"/>
+      </navPoint>
+      <navPoint id="num_47" playOrder="47" class="chapter">
+        <navLabel>
+          <text>Mexico is placing an enormous bet on rail</text>
+        </navLabel>
+        <content src="feed_9/article_1/index_u4.html"/>
+      </navPoint>
+      <navPoint id="num_48" playOrder="48" class="chapter">
+        <navLabel>
+          <text>Americans and Canadians are squabbling over mines</text>
+        </navLabel>
+        <content src="feed_9/article_2/index_u39.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_49" playOrder="49" class="chapter">
+      <navLabel>
+        <text>Asia</text>
+      </navLabel>
+      <content src="feed_10/index_u36.html"/>
+      <navPoint id="num_50" playOrder="50" class="chapter">
+        <navLabel>
+          <text>Can cutting-edge semiconductors supercharge Japan?</text>
+        </navLabel>
+        <content src="feed_10/article_0/index_u71.html"/>
+      </navPoint>
+      <navPoint id="num_51" playOrder="51" class="chapter">
+        <navLabel>
+          <text>Laos has big dreams of exporting energy</text>
+        </navLabel>
+        <content src="feed_10/article_1/index_u76.html"/>
+      </navPoint>
+      <navPoint id="num_52" playOrder="52" class="chapter">
+        <navLabel>
+          <text>Indian mangoes have been banned from Japan</text>
+        </navLabel>
+        <content src="feed_10/article_2/index_u78.html"/>
+      </navPoint>
+      <navPoint id="num_53" playOrder="53" class="chapter">
+        <navLabel>
+          <text>How South Korean Buddhists are trying to stay relevant</text>
+        </navLabel>
+        <content src="feed_10/article_3/index_u54.html"/>
+      </navPoint>
+      <navPoint id="num_54" playOrder="54" class="chapter">
+        <navLabel>
+          <text>What Indians are reading, and what that reveals about the self</text>
+        </navLabel>
+        <content src="feed_10/article_4/index_u24.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_55" playOrder="55" class="chapter">
+      <navLabel>
+        <text>China</text>
+      </navLabel>
+      <content src="feed_11/index_u57.html"/>
+      <navPoint id="num_56" playOrder="56" class="chapter">
+        <navLabel>
+          <text>Has China obtained the world’s most important machine?</text>
+        </navLabel>
+        <content src="feed_11/article_0/index_u65.html"/>
+      </navPoint>
+      <navPoint id="num_57" playOrder="57" class="chapter">
+        <navLabel>
+          <text>China releases a prominent Christian pastor</text>
+        </navLabel>
+        <content src="feed_11/article_1/index_u96.html"/>
+      </navPoint>
+      <navPoint id="num_58" playOrder="58" class="chapter">
+        <navLabel>
+          <text>A rare Chinese missile test unnerves Asian neighbours</text>
+        </navLabel>
+        <content src="feed_11/article_2/index_u31.html"/>
+      </navPoint>
+      <navPoint id="num_59" playOrder="59" class="chapter">
+        <navLabel>
+          <text>China’s media gloat at Britain’s chaotic democracy</text>
+        </navLabel>
+        <content src="feed_11/article_3/index_u10.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_60" playOrder="60" class="chapter">
+      <navLabel>
+        <text>International</text>
+      </navLabel>
+      <content src="feed_12/index_u84.html"/>
+      <navPoint id="num_61" playOrder="61" class="chapter">
+        <navLabel>
+          <text>Child suspects are being prosecuted at younger ages</text>
+        </navLabel>
+        <content src="feed_12/article_0/index_u17.html"/>
+      </navPoint>
+      <navPoint id="num_62" playOrder="62" class="chapter">
+        <navLabel>
+          <text>If ludicrous Trump flattery can save NATO, bring it on</text>
+        </navLabel>
+        <content src="feed_12/article_1/index_u80.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_63" playOrder="63" class="chapter">
+      <navLabel>
+        <text>1843</text>
+      </navLabel>
+      <content src="feed_13/index_u14.html"/>
+      <navPoint id="num_64" playOrder="64" class="chapter">
+        <navLabel>
+          <text>A top Russian oligarch breaks the silence</text>
+        </navLabel>
+        <content src="feed_13/article_0/index_u27.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_65" playOrder="65" class="chapter">
+      <navLabel>
+        <text>Business</text>
+      </navLabel>
+      <content src="feed_14/index_u44.html"/>
+      <navPoint id="num_66" playOrder="66" class="chapter">
+        <navLabel>
+          <text>Beware the top-heavy economy</text>
+        </navLabel>
+        <content src="feed_14/article_0/index_u60.html"/>
+      </navPoint>
+      <navPoint id="num_67" playOrder="67" class="chapter">
+        <navLabel>
+          <text>Microsoft’s gaming strategy has misfired badly</text>
+        </navLabel>
+        <content src="feed_14/article_1/index_u8.html"/>
+      </navPoint>
+      <navPoint id="num_68" playOrder="68" class="chapter">
+        <navLabel>
+          <text>Could a Chinese bike win the Tour de France?</text>
+        </navLabel>
+        <content src="feed_14/article_2/index_u5.html"/>
+      </navPoint>
+      <navPoint id="num_69" playOrder="69" class="chapter">
+        <navLabel>
+          <text>China’s semiconductor industry is racing to catch the West’s</text>
+        </navLabel>
+        <content src="feed_14/article_3/index_u35.html"/>
+      </navPoint>
+      <navPoint id="num_70" playOrder="70" class="chapter">
+        <navLabel>
+          <text>The secret to good questions</text>
+        </navLabel>
+        <content src="feed_14/article_4/index_u32.html"/>
+      </navPoint>
+      <navPoint id="num_71" playOrder="71" class="chapter">
+        <navLabel>
+          <text>Elon Musk and the age of the corporate leviathan</text>
+        </navLabel>
+        <content src="feed_14/article_5/index_u25.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_72" playOrder="72" class="chapter">
+      <navLabel>
+        <text>Finance &amp; economics</text>
+      </navLabel>
+      <content src="feed_15/index_u91.html"/>
+      <navPoint id="num_73" playOrder="73" class="chapter">
+        <navLabel>
+          <text>China may struggle to fund Xi Jinping’s tech dreams</text>
+        </navLabel>
+        <content src="feed_15/article_0/index_u40.html"/>
+      </navPoint>
+      <navPoint id="num_74" playOrder="74" class="chapter">
+        <navLabel>
+          <text>AI has taken over the stock market. The bond market is next</text>
+        </navLabel>
+        <content src="feed_15/article_1/index_u88.html"/>
+      </navPoint>
+      <navPoint id="num_75" playOrder="75" class="chapter">
+        <navLabel>
+          <text>The World Bank has ditched its climate targets</text>
+        </navLabel>
+        <content src="feed_15/article_2/index_u15.html"/>
+      </navPoint>
+      <navPoint id="num_76" playOrder="76" class="chapter">
+        <navLabel>
+          <text>Women’s progress at work is stalling</text>
+        </navLabel>
+        <content src="feed_15/article_3/index_u92.html"/>
+      </navPoint>
+      <navPoint id="num_77" playOrder="77" class="chapter">
+        <navLabel>
+          <text>Three ways the LNG market could crack before winter</text>
+        </navLabel>
+        <content src="feed_15/article_4/index_u18.html"/>
+      </navPoint>
+      <navPoint id="num_78" playOrder="78" class="chapter">
+        <navLabel>
+          <text>Europe’s economy is a mess. Its stock markets are a steal</text>
+        </navLabel>
+        <content src="feed_15/article_5/index_u58.html"/>
+      </navPoint>
+      <navPoint id="num_79" playOrder="79" class="chapter">
+        <navLabel>
+          <text>An ageing society might not cost too much</text>
+        </navLabel>
+        <content src="feed_15/article_6/index_u77.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_80" playOrder="80" class="chapter">
+      <navLabel>
+        <text>Science &amp; technology</text>
+      </navLabel>
+      <content src="feed_16/index_u94.html"/>
+      <navPoint id="num_81" playOrder="81" class="chapter">
+        <navLabel>
+          <text>The future of chipmaking looks more like Manhattan than Silicon Valley</text>
+        </navLabel>
+        <content src="feed_16/article_0/index_u66.html"/>
+      </navPoint>
+      <navPoint id="num_82" playOrder="82" class="chapter">
+        <navLabel>
+          <text>How to hide from killer drones</text>
+        </navLabel>
+        <content src="feed_16/article_1/index_u72.html"/>
+      </navPoint>
+      <navPoint id="num_83" playOrder="83" class="chapter">
+        <navLabel>
+          <text>A statistician’s guide to Wimbledon</text>
+        </navLabel>
+        <content src="feed_16/article_2/index_u37.html"/>
+      </navPoint>
+      <navPoint id="num_84" playOrder="84" class="chapter">
+        <navLabel>
+          <text>How the biggest trees survive droughts</text>
+        </navLabel>
+        <content src="feed_16/article_3/index_u9.html"/>
+      </navPoint>
+      <navPoint id="num_85" playOrder="85" class="chapter">
+        <navLabel>
+          <text>How little exercise can you get away with?</text>
+        </navLabel>
+        <content src="feed_16/article_4/index_u41.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_86" playOrder="86" class="chapter">
+      <navLabel>
+        <text>Culture</text>
+      </navLabel>
+      <content src="feed_17/index_u79.html"/>
+      <navPoint id="num_87" playOrder="87" class="chapter">
+        <navLabel>
+          <text>Inside the fantasy world of Donald Trump</text>
+        </navLabel>
+        <content src="feed_17/article_0/index_u11.html"/>
+      </navPoint>
+      <navPoint id="num_88" playOrder="88" class="chapter">
+        <navLabel>
+          <text>A century on, Pilates flexes its muscles</text>
+        </navLabel>
+        <content src="feed_17/article_1/index_u81.html"/>
+      </navPoint>
+      <navPoint id="num_89" playOrder="89" class="chapter">
+        <navLabel>
+          <text>Why Old Master paintings are back in vogue</text>
+        </navLabel>
+        <content src="feed_17/article_2/index_u85.html"/>
+      </navPoint>
+      <navPoint id="num_90" playOrder="90" class="chapter">
+        <navLabel>
+          <text>The history of the human face is more than skin deep</text>
+        </navLabel>
+        <content src="feed_17/article_3/index_u6.html"/>
+      </navPoint>
+      <navPoint id="num_91" playOrder="91" class="chapter">
+        <navLabel>
+          <text>The brightest tourism trend can be found in the darkest places</text>
+        </navLabel>
+        <content src="feed_17/article_4/index_u95.html"/>
+      </navPoint>
+      <navPoint id="num_92" playOrder="92" class="chapter">
+        <navLabel>
+          <text>The real value of the Bayeux tapestry</text>
+        </navLabel>
+        <content src="feed_17/article_5/index_u51.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_93" playOrder="93" class="chapter">
+      <navLabel>
+        <text>Economic &amp; financial indicators</text>
+      </navLabel>
+      <content src="feed_18/index_u16.html"/>
+      <navPoint id="num_94" playOrder="94" class="chapter">
+        <navLabel>
+          <text>Economic data, commodities and markets</text>
+        </navLabel>
+        <content src="feed_18/article_0/index_u46.html"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_95" playOrder="95" class="chapter">
+      <navLabel>
+        <text>Obituary</text>
+      </navLabel>
+      <content src="feed_19/index_u93.html"/>
+      <navPoint id="num_96" playOrder="96" class="chapter">
+        <navLabel>
+          <text>Mona Khalil defied danger to protect her “family”</text>
+        </navLabel>
+        <content src="feed_19/article_0/index_u19.html"/>
+      </navPoint>
+    </navPoint>
+  </navMap>
+</ncx>
