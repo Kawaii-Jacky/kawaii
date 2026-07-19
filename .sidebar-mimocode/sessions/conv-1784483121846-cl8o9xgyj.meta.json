@@ -1,0 +1,23 @@
+{
+  "id": "conv-1784483121846-cl8o9xgyj",
+  "providerId": "mimo",
+  "title": "使用笔记规则总结艺术文章到艺术学习文件夹",
+  "titleGenerationStatus": "success",
+  "createdAt": 1784483121847,
+  "updatedAt": 1784483313925,
+  "lastResponseAt": 1784483313925,
+  "sessionId": "ses_0848461c7ffeK3eujFO4rt3fgv",
+  "providerState": {
+    "databasePath": "C:\\Users\\Administrator\\AppData\\Roaming\\mimocode\\mimocode.db"
+  },
+  "usage": {
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 38336,
+    "contextTokens": 42327,
+    "contextWindow": 1048576,
+    "contextWindowIsAuthoritative": true,
+    "inputTokens": 3991,
+    "model": "mimo:xiaomi/mimo-v2.5-pro",
+    "percentage": 4
+  }
+}
