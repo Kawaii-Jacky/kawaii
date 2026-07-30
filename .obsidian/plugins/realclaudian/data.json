@@ -10,19 +10,11 @@
         "conversationId": "conv-1784693497484-31gwx8r4y"
       },
       {
-        "tabId": "tab-1785075343596-uv4666j",
-        "conversationId": "conv-1785075447863-0e34hu5di"
-      },
-      {
-        "tabId": "tab-1785234047082-vb49f9b",
-        "conversationId": "conv-1785234065202-56xoyykd7"
-      },
-      {
-        "draftModel": "gpt-5.5",
-        "tabId": "tab-1785316592366-cn5xnxk",
+        "draftModel": "claude-sonnet-5",
+        "tabId": "tab-1785394201852-aqx6dne",
         "conversationId": null
       }
     ],
-    "activeTabId": "tab-1785316592366-cn5xnxk"
+    "activeTabId": "tab-1785394201852-aqx6dne"
   }
 }
