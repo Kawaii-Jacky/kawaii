@@ -2,12 +2,13 @@
   "runId": "philosophy-gacha-ds-v1-20260802",
   "fileKey": "8BiOsaeJNiVwCBwWbpqrqj",
   "phase": "phase3",
-  "step": "3-nav-item-awaiting-approval",
+  "step": "3-nav-item-collage-awaiting-approval",
   "entities": {
     "collections": {
       "primitives": "VariableCollectionId:24:2",
       "color": "VariableCollectionId:24:3",
       "spacingShape": "VariableCollectionId:24:4"
+      ,"characterTheme": "VariableCollectionId:41:2"
     },
     "variables": {
       "white/1000": "VariableID:25:2",
@@ -44,6 +45,23 @@
       "radius/48": "VariableID:25:33",
       "radius/64": "VariableID:25:34",
       "radius/full": "VariableID:25:35"
+      ,"paper/000": "VariableID:40:2"
+      ,"paper/100": "VariableID:40:3"
+      ,"graphite/950": "VariableID:40:4"
+      ,"graphite/800": "VariableID:40:5"
+      ,"accent/marx": "VariableID:40:6"
+      ,"accent/kant": "VariableID:40:7"
+      ,"accent/nietzsche": "VariableID:40:8"
+      ,"accent/smith": "VariableID:40:9"
+      ,"radius/0": "VariableID:40:10"
+      ,"radius/2": "VariableID:40:11"
+      ,"radius/6": "VariableID:40:12"
+      ,"color/collage/paper": "VariableID:41:3"
+      ,"color/collage/paper-muted": "VariableID:41:4"
+      ,"color/collage/ink": "VariableID:41:5"
+      ,"color/collage/ink-soft": "VariableID:41:6"
+      ,"color/text/on-dark": "VariableID:41:7"
+      ,"theme/accent/primary": "VariableID:41:8"
     },
     "styles": {
       "Surface/Pearl": "S:89357f50f5c72150cbdf9925fb3dcd26c0670da2,",
@@ -58,6 +76,15 @@
       "Body/Medium": "S:f23cff5dc6a1e4965803e98bcd84d66f8ef17c7d,",
       "Label/Medium": "S:b950abbba8373192c9a9c37bc907d329763120c4,",
       "Micro/Caption": "S:12d46f11248c615cb3efc98d0a043490b3b9d1ce,"
+      ,"Collage/Paper": "S:0fdad6c5290cd73b22db7099f779286163341c5e,"
+      ,"Collage/Paper Muted": "S:b2a6af2aa5958631e22e402a82b2953e15b918bd,"
+      ,"Collage/Ink": "S:62d7254adb065a0d6b6983a8f156d9003b02987f,"
+      ,"Collage/Hard Offset": "S:fba037513e23b2bbd112ca5f4ef30f8cdb798dba,"
+      ,"Collage/Paper Lift": "S:5d236e2488624bbe881f7658fcd3430a45b3bc8f,"
+      ,"Collage/Pressed": "S:ac7ffd3e981be92f0d09a0a47f0ba3dff058adb7,"
+      ,"Display/Poster": "S:5840a1117954ba633b282c7f4d9621d9384f4377,"
+      ,"Label/Poster": "S:0242f905145d4250b05d817e0dcb5ca726694f12,"
+      ,"Micro/Index": "S:1c2be28f668861dde7a78ef3a8bb6bc6193fd09d,"
     },
     "pages": {
       "Cover": "27:2",
