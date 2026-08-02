@@ -1,8 +1,8 @@
 {
   "runId": "philosophy-gacha-ds-v1-20260802",
   "fileKey": "8BiOsaeJNiVwCBwWbpqrqj",
-  "phase": "phase2",
-  "step": "2a-page-skeleton",
+  "phase": "phase3",
+  "step": "3-nav-item-awaiting-approval",
   "entities": {
     "collections": {
       "primitives": "VariableCollectionId:24:2",
@@ -59,11 +59,24 @@
       "Label/Medium": "S:b950abbba8373192c9a9c37bc907d329763120c4,",
       "Micro/Caption": "S:12d46f11248c615cb3efc98d0a043490b3b9d1ce,"
     },
-    "pages": {},
-    "components": {}
+    "pages": {
+      "Cover": "27:2",
+      "Getting Started": "27:3",
+      "Foundations": "27:4",
+      "--- Components ---": "27:5",
+      "Components": "27:6",
+      "--- Utilities ---": "27:7",
+      "Utilities": "27:8",
+      "Reference Screen": "0:1",
+      "NavItem": "37:2"
+    },
+    "components": {
+      "NavItem": "38:10"
+    }
   },
   "pendingValidations": [
-    "phase2:page-screenshots"
+    "phase3:nav-item-approval",
+    "phase3:components"
   ],
   "completedSteps": [
     "phase0",
@@ -73,6 +86,10 @@
     "phase1d",
     "phase1e",
     "phase1f",
-    "phase1"
+    "phase1",
+    "phase2a",
+    "phase2b",
+    "phase2c",
+    "phase2"
   ]
 }
