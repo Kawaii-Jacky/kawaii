@@ -8,8 +8,18 @@
       {
         "tabId": "tab-1784605782995-itxeae0",
         "conversationId": "conv-1784693497484-31gwx8r4y"
+      },
+      {
+        "draftModel": "sonnet[1m]",
+        "tabId": "tab-1785694287700-q38f3me",
+        "conversationId": null
+      },
+      {
+        "draftModel": "claude-sonnet-5",
+        "tabId": "tab-1785694407031-dv2s76j",
+        "conversationId": null
       }
     ],
-    "activeTabId": "tab-1784605782995-itxeae0"
+    "activeTabId": "tab-1785694407031-dv2s76j"
   }
 }
