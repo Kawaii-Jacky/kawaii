@@ -15,9 +15,8 @@
         "conversationId": null
       },
       {
-        "draftModel": "claude-sonnet-5",
         "tabId": "tab-1785694407031-dv2s76j",
-        "conversationId": null
+        "conversationId": "conv-1785694419920-q4m37nx9c"
       }
     ],
     "activeTabId": "tab-1785694407031-dv2s76j"
