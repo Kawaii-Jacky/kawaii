@@ -2,7 +2,7 @@
   "runId": "philosophy-gacha-ds-v1-20260802",
   "fileKey": "8BiOsaeJNiVwCBwWbpqrqj",
   "phase": "phase4",
-  "step": "generic-character-system-complete",
+  "step": "marx-demo-complete",
   "entities": {
     "collections": {
       "primitives": "VariableCollectionId:24:2",
@@ -60,16 +60,20 @@
       "PityPanel": "91:26",
       "GachaNavbar": "94:2",
       "__CharacterArtworkSlot": "97:2",
+      "CharacterArtwork / Marx Demo": "114:717",
       "GachaScreen Template": "98:2"
     },
     "previews": {
       "FloatingArchiveCard Motion": "74:34",
-      "GachaScreen Theme Modes": "101:141"
+      "GachaScreen Theme Modes": "101:141",
+      "Marx Gacha Demo": "115:717"
     }
   },
   "artifacts": {
     "screenPreview": "C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.codex-artifacts\\gacha-screen-template-final.png",
     "themePreview": "C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.codex-artifacts\\gacha-screen-theme-previews.png",
+    "marxDemoPreview": "C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.codex-artifacts\\marx-gacha-demo-final.png",
+    "marxArtworkPreview": "C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.codex-artifacts\\marx-artwork-component.png",
     "motionVideo": "C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\.codex-artifacts\\floating-archive-card-motion.mp4",
     "makePrompt": "C:\\Users\\Administrator\\Desktop\\h2o\\obsidian\\figma-make-3d-flip-audio-prompt.md"
   },
@@ -93,6 +97,9 @@
     "phase4-binding-audit",
     "phase4-generic-content-audit",
     "phase4-theme-preview",
-    "make-handoff-prompt-updated"
+    "make-handoff-prompt-updated",
+    "character-title-single-name",
+    "marx-artwork-component",
+    "marx-gacha-demo-validated"
   ]
 }
