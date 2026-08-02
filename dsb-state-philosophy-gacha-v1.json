@@ -2,7 +2,7 @@
   "runId": "philosophy-gacha-ds-v1-20260802",
   "fileKey": "8BiOsaeJNiVwCBwWbpqrqj",
   "phase": "phase3",
-  "step": "3-nav-item-collage-awaiting-approval",
+  "step": "motion-pseudo-flip-complete",
   "entities": {
     "collections": {
       "primitives": "VariableCollectionId:24:2",
@@ -117,6 +117,9 @@
     "phase2a",
     "phase2b",
     "phase2c",
-    "phase2"
+    "phase2",
+    "motion-pseudo-flip-v1",
+    "motion-video-validated",
+    "make-handoff-prompt"
   ]
 }
