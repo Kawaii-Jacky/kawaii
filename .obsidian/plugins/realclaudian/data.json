@@ -10,15 +10,15 @@
         "conversationId": "conv-1784693497484-31gwx8r4y"
       },
       {
-        "draftModel": "sonnet[1m]",
+        "draftModel": "opencode:qweapi/gpt-5.5",
         "tabId": "tab-1785694287700-q38f3me",
         "conversationId": null
       },
       {
-        "tabId": "tab-1785694407031-dv2s76j",
-        "conversationId": "conv-1785694419920-q4m37nx9c"
+        "tabId": "tab-1785696837360-tuez19q",
+        "conversationId": "conv-1785696991164-tg93rw29x"
       }
     ],
-    "activeTabId": "tab-1785694407031-dv2s76j"
+    "activeTabId": "tab-1784605782995-itxeae0"
   }
 }
