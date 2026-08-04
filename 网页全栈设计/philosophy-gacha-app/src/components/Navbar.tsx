@@ -1,5 +1,16 @@
 import React from 'react';
-import { Sparkles, BookOpen, Swords, History, Volume2, VolumeX, PlusCircle, Award } from 'lucide-react';
+import {
+  ArrowLeft,
+  BookOpen,
+  Diamond,
+  History,
+  Home,
+  Plus,
+  Sparkles,
+  Swords,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 
 export type TabType = 'gacha' | 'codex' | 'arena' | 'history';
 
@@ -14,6 +25,13 @@ interface NavbarProps {
   totalCount: number;
 }
 
+const NAV_ITEMS = [
+  { id: 'gacha', label: '思想寻访', icon: Sparkles },
+  { id: 'codex', label: '哲学图鉴', icon: BookOpen },
+  { id: 'arena', label: '辩论擂台', icon: Swords },
+  { id: 'history', label: '寻访记录', icon: History },
+] as const;
+
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
@@ -22,78 +40,35 @@ export const Navbar: React.FC<NavbarProps> = ({
   soundEnabled,
   setSoundEnabled,
   unlockedCount,
-  totalCount
-}) => {
-  return (
-    <header className="gacha-navbar">
-      {/* Brand Logo */}
-      <div className="navbar-logo" onClick={() => setActiveTab('gacha')}>
-        <div className="logo-icon-wrapper">
-          <Sparkles className="logo-sparkle" size={24} />
-        </div>
-        <div className="logo-text">
-          <span className="title-cn">哲学殿堂 · 思想祈愿</span>
-          <span className="title-en">PHILOSOPHY GACHA & ARENA</span>
-        </div>
+  totalCount,
+}) => (
+  <header className={activeTab === 'gacha' ? 'gacha-navbar gacha-navbar-immersive' : 'gacha-navbar'}>
+    <button className="nav-square-button" aria-label="返回"><ArrowLeft size={19} /></button>
+    <button className="navbar-logo" onClick={() => setActiveTab('gacha')}>
+      <span className="logo-mark"><Home size={15} /></span>
+      <span className="logo-text"><b>思想寻访</b><small>PHILOSOPHY ARCHIVE</small></span>
+    </button>
+
+    <nav className="navbar-tabs" aria-label="主导航">
+      {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+        <button key={id} className={activeTab === id ? 'nav-tab active' : 'nav-tab'} onClick={() => setActiveTab(id)}>
+          <Icon size={16} />
+          <span>{label}</span>
+          {id === 'gacha' && <em>UP</em>}
+          {id === 'codex' && <small>{unlockedCount}/{totalCount}</small>}
+        </button>
+      ))}
+    </nav>
+
+    <div className="navbar-actions">
+      <div className="currency-box" title="思想棱镜">
+        <Diamond size={15} fill="currentColor" />
+        <strong>{currency.toLocaleString()}</strong>
+        <button onClick={addCurrency} aria-label="补充思想棱镜"><Plus size={15} /></button>
       </div>
-
-      {/* Navigation Tabs */}
-      <nav className="navbar-tabs">
-        <button
-          className={`nav-tab ${activeTab === 'gacha' ? 'active' : ''}`}
-          onClick={() => setActiveTab('gacha')}
-        >
-          <Sparkles size={18} />
-          <span>思想祈愿</span>
-          <span className="badge-glow">UP</span>
-        </button>
-
-        <button
-          className={`nav-tab ${activeTab === 'codex' ? 'active' : ''}`}
-          onClick={() => setActiveTab('codex')}
-        >
-          <BookOpen size={18} />
-          <span>哲学家图鉴</span>
-          <span className="count-pill">{unlockedCount}/{totalCount}</span>
-        </button>
-
-        <button
-          className={`nav-tab ${activeTab === 'arena' ? 'active' : ''}`}
-          onClick={() => setActiveTab('arena')}
-        >
-          <Swords size={18} />
-          <span>辩论擂台</span>
-        </button>
-
-        <button
-          className={`nav-tab ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => setActiveTab('history')}
-        >
-          <History size={18} />
-          <span>祈愿记录</span>
-        </button>
-      </nav>
-
-      {/* Right Controls: Currency & Sound */}
-      <div className="navbar-actions">
-        {/* Wisdom Currency Box */}
-        <div className="currency-box" title="智慧原石 - 用于进行思想祈愿">
-          <Award className="currency-icon" size={18} />
-          <span className="currency-amount">{currency.toLocaleString()}</span>
-          <button className="add-currency-btn" onClick={addCurrency} title="补充 1600 智慧原石">
-            <PlusCircle size={16} />
-          </button>
-        </div>
-
-        {/* Mute/Sound Toggle */}
-        <button
-          className="sound-toggle-btn"
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          title={soundEnabled ? '音效已开启' : '音效已关闭'}
-        >
-          {soundEnabled ? <Volume2 size={20} className="sound-icon active" /> : <VolumeX size={20} className="sound-icon" />}
-        </button>
-      </div>
-    </header>
-  );
-};
+      <button className="sound-toggle-btn" onClick={() => setSoundEnabled(!soundEnabled)} aria-label={soundEnabled ? '关闭声音' : '开启声音'}>
+        {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+      </button>
+    </div>
+  </header>
+);

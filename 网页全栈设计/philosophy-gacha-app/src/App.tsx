@@ -132,7 +132,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Body */}
-      <main className="app-main-content">
+      <main className={`app-main-content ${activeTab === 'gacha' ? 'gacha-mode' : ''}`}>
         {activeTab === 'gacha' && (
           <GachaBanner
             selectedBannerId={selectedBannerId}
