@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>小红书 - 发现真实、美好、多元的世界</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Floating View Mode Selector for Desktop -->
+  <div class="desktop-controls">
+    <button id="btnToggleDevice" class="ctrl-btn">
+      <i class="fa-solid fa-mobile-screen"></i> 切换手机/全屏模式
+    </button>
+    <button id="btnOpenCreate" class="ctrl-btn primary">
+      <i class="fa-solid fa-plus"></i> 发布新笔记
+    </button>
+  </div>
+
+  <!-- App Wrapper (Can be mobile framed or responsive full width) -->
+  <div class="app-viewport mobile-frame" id="appViewport">
+
+    <!-- 1. Top Status Bar (Real Mobile Feel) -->
+    <header class="status-bar">
+      <div class="status-left">
+        <span class="time">21:09</span>
+        <span class="status-icon"><i class="fa-solid fa-comment-dots"></i></span>
+        <span class="status-icon"><i class="fa-solid fa-ellipsis"></i></span>
+      </div>
+      <div class="status-right">
+        <span class="status-badge">VPN</span>
+        <i class="fa-solid fa-bluetooth"></i>
+        <i class="fa-solid fa-wifi"></i>
+        <span class="hd-badge">HD</span>
+        <i class="fa-solid fa-signal"></i>
+        <span class="battery"><i class="fa-solid fa-battery-three-quarters"></i> 56</span>
+      </div>
+    </header>
+
+    <!-- 2. Main Header Bar -->
+    <nav class="main-header">
+      <button class="header-icon-btn" id="btnHeaderLive" title="直播/电视">
+        <i class="fa-solid fa-tv"></i>
+      </button>
+      
+      <div class="header-tabs">
+        <div class="nav-tab" data-tab="following">
+          <span>关注</span>
+          <span class="tab-badge">10</span>
+        </div>
+        <div class="nav-tab active" data-tab="discover">
+          <span>发现</span>
+          <div class="active-indicator"></div>
+        </div>
+        <div class="nav-tab" data-tab="local">
+          <span>厦门</span>
+        </div>
+      </div>
+
+      <button class="header-icon-btn" id="btnHeaderSearch" title="搜索">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </nav>
+
+    <!-- 3. Sub Horizontal Category Bar -->
+    <div class="category-scroll-container">
+      <div class="category-track" id="categoryTrack">
+        <button class="cat-pill active" data-cat="推荐">推荐</button>
+        <button class="cat-pill" data-cat="RED">RED</button>
+        <button class="cat-pill" data-cat="直播">直播</button>
+        <button class="cat-pill" data-cat="世界杯">世界杯</button>
+        <button class="cat-pill" data-cat="短剧">短剧</button>
+        <button class="cat-pill" data-cat="求助">求助</button>
+        <button class="cat-pill" data-cat="搞笑">搞笑</button>
+        <button class="cat-pill" data-cat="美妆">美妆</button>
+        <button class="cat-pill" data-cat="穿搭">穿搭</button>
+        <button class="cat-pill" data-cat="数码">数码</button>
+      </div>
+      <button class="cat-more-btn" id="btnCatDropdown">
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+    </div>
+
+    <!-- 4. Main Feed Content (2-Column Waterfall Masonry) -->
+    <main class="feed-container">
+      <div class="waterfall-grid" id="waterfallGrid">
+        <!-- Masonry Column 1 -->
+        <div class="waterfall-col" id="colLeft"></div>
+        <!-- Masonry Column 2 -->
+        <div class="waterfall-col" id="colRight"></div>
+      </div>
+    </main>
+
+    <!-- 5. Bottom Navigation Bar -->
+    <footer class="bottom-nav">
+      <div class="bottom-tab active" data-bnav="home">
+        <span class="nav-label bold">首页</span>
+      </div>
+      <div class="bottom-tab" data-bnav="market">
+        <span class="nav-label">市集</span>
+      </div>
+      <div class="bottom-tab create-btn-wrapper" id="btnBottomCreate">
+        <div class="red-plus-btn">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+      </div>
+      <div class="bottom-tab" data-bnav="message">
+        <span class="nav-label">消息</span>
+        <span class="red-dot"></span>
+      </div>
+      <div class="bottom-tab" data-bnav="me">
+        <span class="nav-label">我</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- MODAL: Post Detail View Drawer -->
+  <div class="modal-overlay" id="postModal">
+    <div class="modal-card post-detail-card">
+      <button class="modal-close-btn" id="btnClosePostModal">&times;</button>
+      <div class="detail-body">
+        <div class="detail-img-container">
+          <img src="" id="detailImage" alt="Post detail image">
+        </div>
+        <div class="detail-content-area">
+          <div class="author-row">
+            <img src="" id="detailAvatar" class="avatar-img" alt="avatar">
+            <div class="author-info">
+              <span id="detailAuthor" class="author-name"></span>
+              <span id="detailLocation" class="author-location"></span>
+            </div>
+            <button class="follow-btn">+ 关注</button>
+          </div>
+          
+          <h2 id="detailTitle" class="detail-title"></h2>
+          <p id="detailContent" class="detail-desc"></p>
+          <div id="detailTags" class="detail-tags-row"></div>
+          
+          <div class="detail-meta-row">
+            <span id="detailTime" class="detail-time"></span>
+          </div>
+
+          <hr class="divider">
+
+          <div class="comments-section">
+            <h3>全部评论 (<span id="commentCount">0</span>)</h3>
+            <div class="add-comment-box">
+              <input type="text" id="inputComment" placeholder="爱说说话的人，运不会太差..." />
+              <button id="btnSendComment">发送</button>
+            </div>
+            <div id="commentsList" class="comments-list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-footer">
+        <div class="comment-fake-input" id="btnFocusComment">
+          <i class="fa-regular fa-comment"></i> 说点什么...
+        </div>
+        <div class="action-icons">
+          <button class="action-btn" id="btnModalLike">
+            <i class="fa-regular fa-heart" id="iconModalLike"></i>
+            <span id="txtModalLikes">0</span>
+          </button>
+          <button class="action-btn">
+            <i class="fa-regular fa-star"></i>
+            <span>收藏</span>
+          </button>
+          <button class="action-btn">
+            <i class="fa-regular fa-share-from-square"></i>
+            <span>分享</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Create New Note -->
+  <div class="modal-overlay" id="createModal">
+    <div class="modal-card create-card">
+      <div class="modal-header">
+        <h3>发布笔记</h3>
+        <button class="modal-close-btn" id="btnCloseCreateModal">&times;</button>
+      </div>
+      <form id="createForm" class="create-form">
+        <div class="form-group">
+          <label>笔记标题</label>
+          <input type="text" id="createTitle" placeholder="填写吸引人的标题吧~" required>
+        </div>
+        <div class="form-group">
+          <label>正文内容</label>
+          <textarea id="createContent" rows="4" placeholder="添加正文，分享你的真实体验和思考..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>选择图片</label>
+          <select id="createImage">
+            <option value="/images/card_fable5.png">Fable5 像素游戏画风</option>
+            <option value="/images/card_vibecoding.png">Vibe Coding 毕业弹窗</option>
+            <option value="/images/card_laptop_ai.png">Laptop UI AI设计</option>
+            <option value="/images/card_travel_girl.png">旅行随拍古风少女</option>
+            <option value="/images/card_moor_otter.png">Moor AI 治愈水獭</option>
+            <option value="/images/card_pomodoro.png">番茄钟App出海数据</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>分类频道</label>
+          <select id="createCategory">
+            <option value="推荐">推荐</option>
+            <option value="RED">RED</option>
+            <option value="直播">直播</option>
+            <option value="短剧">短剧</option>
+            <option value="求助">求助</option>
+            <option value="搞笑">搞笑</option>
+          </select>
+        </div>
+        <button type="submit" class="submit-publish-btn">立即发布</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Search Popup -->
+  <div class="modal-overlay" id="searchModal">
+    <div class="modal-card search-card">
+      <div class="search-bar-input">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" placeholder="搜索笔记、用户或话题..." autofocus>
+        <button class="search-cancel-btn" id="btnCloseSearchModal">取消</button>
+      </div>
+      <div class="hot-search-section">
+        <h4><i class="fa-solid fa-fire red-icon"></i> 热搜榜</h4>
+        <div class="hot-tags-grid">
+          <span class="hot-tag"><span class="rank rank-1">1</span> AI干翻前端开发</span>
+          <span class="hot-tag"><span class="rank rank-2">2</span> Vibe Coding 趋势</span>
+          <span class="hot-tag"><span class="rank rank-3">3</span> 厦门隐秘美食地图</span>
+          <span class="hot-tag"><span class="rank">4</span> Fable5 像素独立游戏</span>
+          <span class="hot-tag"><span class="rank">5</span> Moor AI 情绪工具</span>
+          <span class="hot-tag"><span class="rank">6</span> 番茄钟App出海月入万刀</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

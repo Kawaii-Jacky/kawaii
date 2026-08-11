@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鸣潮 - 唤取界面纯 DOM 程序化重构版面</title>
+  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/gacha-modal.css">
+</head>
+<body>
+  <div id="app-container">
+    <!-- 动态 WebGL / Canvas 浮动气动与气场粒子 layer -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- 侧边栏 (Left Sidebar Controls) -->
+    <aside class="sidebar">
+      <div class="banner-tabs-list">
+        <!-- Tab 1: 马克思 -->
+        <div class="banner-tab-item active" data-banner="jiyan" title="角色活动唤取: 马克思">
+          <span class="tab-badge">活动</span>
+          <img src="/public/images/tab_jiyan.png" class="tab-bg-thumb" alt="马克思卡池">
+        </div>
+        <!-- Tab 2: 武器 -->
+        <div class="banner-tab-item" data-banner="weapon" title="武器活动唤取: 重霄苍鳞刀">
+          <span class="tab-badge">活动</span>
+          <img src="/public/images/tab_weapon.png" class="tab-bg-thumb" alt="武器卡池">
+        </div>
+        <!-- Tab 3: 常驻角色 (海上共潮生) -->
+        <div class="banner-tab-item" data-banner="std-char" title="角色常驻唤取: 海上共潮生">
+          <img src="/public/images/tab_std_char.png" class="tab-bg-thumb" alt="常驻角色卡池">
+        </div>
+        <!-- Tab 4: 常驻武器 -->
+        <div class="banner-tab-item" data-banner="std-weapon" title="常驻武器唤取">
+          <img src="/public/images/tab_std_weapon.png" class="tab-bg-thumb" alt="常驻武器卡池">
+        </div>
+      </div>
+
+      <!-- 历史卡池按钮 -->
+      <button class="history-banner-btn" id="btn-history-banners">
+        » 历史卡池 «
+      </button>
+
+      <!-- 底部免责声明 -->
+      <div class="sidebar-bottom-action">
+        <button class="btn-disclaimer" id="btn-disclaimer">
+          📋 免责声明
+        </button>
+      </div>
+    </aside>
+
+    <!-- 顶部全局状态栏 (Top Right Controls) -->
+    <header class="top-bar">
+      <!-- 跳过动画 Switch -->
+      <div class="skip-toggle-container" id="skip-toggle">
+        <div class="custom-checkbox">
+          <div class="custom-checkbox-dot"></div>
+        </div>
+        <span>跳过动画</span>
+      </div>
+
+      <!-- 1:1 货币胶囊与 [ + ] 方框充值按键 -->
+      <div class="currency-capsule">
+        <img src="/public/images/ticket_icon.png" class="currency-icon-img" id="currency-icon-img" alt="唤取道具">
+        <span class="currency-amount" id="currency-amount">999</span>
+        <button class="currency-add-btn" id="add-currency-btn" title="充值 10 抽">+</button>
+      </div>
+    </header>
+
+    <!-- 主展示画布区 (Main View Area) -->
+    <main class="main-content">
+      <!-- 角色 Standalone 独立立绘展示区 -->
+      <div class="character-spotlight-area">
+        <img src="/public/images/marx_banner.jpg" class="banner-character-img" id="spotlight-img" alt="马克思立绘">
+      </div>
+
+      <!-- 左上卡池标题 Block -->
+      <div class="banner-header-block">
+        <span class="banner-subtitle" id="banner-subtitle">角色活动唤取</span>
+        <h1 class="banner-main-title" id="banner-main-title">夜将寒色去</h1>
+      </div>
+
+      <!-- 角色 Emblem Badges 悬浮框层 -->
+      <div class="char-badges-container" id="char-badges-container">
+        <!-- 动态生成 -->
+      </div>
+
+      <!-- 4星概率提升展示区组件 -->
+      <div class="rateup-4star-container" id="rateup-container">
+        <div class="rateup-label">以下 4 星角色出现概率提升</div>
+        <div class="rateup-list">
+          <div class="rateup-card" title="莫特斐">
+            <img src="/public/images/mortefi_clean.png" class="rateup-card-img" alt="莫特斐">
+          </div>
+          <div class="rateup-card" title="散华">
+            <img src="/public/images/sanhua_clean.png" class="rateup-card-img" alt="散华">
+          </div>
+          <div class="rateup-card" title="丹瑾">
+            <img src="/public/images/danjin_clean.png" class="rateup-card-img" alt="丹瑾">
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部 1:1 六边切角按钮控制栏 -->
+      <footer class="bottom-bar">
+        <div class="bottom-left-controls">
+          <!-- 唤取记录 (八角/六边切角白色按键) -->
+          <button class="history-hex-btn" id="btn-history">
+            <span style="font-size: 16px;">📋</span>
+            <span>唤取记录</span>
+          </button>
+        </div>
+
+        <!-- 唤取按键组 -->
+        <div class="pull-buttons-group">
+          <!-- 单抽按钮 -->
+          <button class="pull-hex-btn" id="btn-pull-one">
+            <div class="pull-btn-inner">
+              <div class="pull-cost-part">
+                <img src="/public/images/ticket_icon.png" class="pull-cost-icon" id="cost-icon-one" alt="道具">
+                <span>×1</span>
+              </div>
+              <span class="pull-label-part">唤取 1 次</span>
+            </div>
+          </button>
+
+          <!-- 十连按钮 -->
+          <button class="pull-hex-btn" id="btn-pull-ten">
+            <div class="pull-btn-inner">
+              <div class="pull-cost-part">
+                <img src="/public/images/ticket_icon.png" class="pull-cost-icon" id="cost-icon-ten" alt="道具">
+                <span>×10</span>
+              </div>
+              <span class="pull-label-part">唤取 10 次</span>
+            </div>
+          </button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- 抽卡全屏流星动画 Portal -->
+  <div id="gacha-animation-portal">
+    <button class="gacha-anim-skip-btn" id="anim-skip-btn">跳过</button>
+    <div class="gacha-meteor-beam" id="anim-meteor-beam"></div>
+  </div>
+
+  <!-- 抽卡结果结算弹窗 -->
+  <div id="gacha-result-modal">
+    <div class="gacha-result-header">唤取结果</div>
+
+    <!-- 单抽大卡片结果 -->
+    <div class="single-result-container" id="result-single-container"></div>
+
+    <!-- 十连抽卡网格 -->
+    <div class="ten-pull-grid" id="result-ten-grid"></div>
+
+    <!-- 底部确认操作按纽 -->
+    <div class="gacha-result-actions">
+      <button class="btn-confirm" id="btn-pull-again-ten">再唤取 10 次</button>
+      <button class="btn-confirm" id="btn-confirm-result">确 定</button>
+    </div>
+  </div>
+
+  <!-- 唤取记录弹窗 Modal -->
+  <div class="modal-overlay" id="history-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">📋 唤取历史记录</span>
+        <button class="modal-close-btn" id="history-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="pity-stats-bar">
+          <div class="pity-stat-item">
+            <span class="pity-stat-label">5星保底已抽数</span>
+            <span class="pity-stat-value" id="pity-stat-5">0 / 80</span>
+          </div>
+          <div class="pity-stat-item">
+            <span class="pity-stat-label">4星保底已抽数</span>
+            <span class="pity-stat-value" id="pity-stat-4">0 / 10</span>
+          </div>
+          <div class="pity-stat-item">
+            <span class="pity-stat-label">当前保底状态</span>
+            <span class="pity-stat-value" id="pity-stat-guaranteed">小保底 (50%UP)</span>
+          </div>
+        </div>
+
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>获取时间</th>
+              <th>物品名称</th>
+              <th>星级</th>
+              <th>类型</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body">
+            <!-- 动态生成 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 免责声明弹窗 Modal -->
+  <div class="modal-overlay" id="disclaimer-modal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <span class="modal-title">📄 免责声明</span>
+        <button class="modal-close-btn" id="disclaimer-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="color: #d1d5db; line-height: 1.6; font-size: 14px;">
+        <p>1. 本网页仅为前端 UI / Gacha 系统交互学习与视觉复刻演练演示，不涉及任何真实货币充值。</p>
+        <br>
+        <p>2. 所有游戏美术素材、商标版权均归《鸣潮》（Wuthering Waves / 库洛游戏 Kuro Games）官方所有。</p>
+        <br>
+        <p>3. 抽卡概率遵循官方公布规则：5星基础概率 0.8%，80 抽硬保底；4星基础概率 6.0%，10 抽硬保底。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS 脚本引用 -->
+  <script src="/src/scripts/audio.js"></script>
+  <script src="/src/scripts/gacha-system.js"></script>
+  <script src="/src/scripts/app.js"></script>
+</body>
+</html>
