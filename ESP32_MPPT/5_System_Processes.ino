@@ -1,6 +1,16 @@
 unsigned long prevSystemProcessesMillis = 0;
 
+static inline void sanitizeProcessConfig() {
+  if (avgCountBF < 1) avgCountBF = 1;
+  if (millisRoutineInterval < 1) millisRoutineInterval = 1;
+  if (!isfinite(voltageBatteryMin)) voltageBatteryMin = 10.0f;
+  if (!isfinite(voltageBatteryMax) || voltageBatteryMax <= voltageBatteryMin + 0.5f) {
+    voltageBatteryMax = voltageBatteryMin + 0.5f;
+  }
+}
+
 void System_Processes(){
+  sanitizeProcessConfig();
   unsigned long currentSystemProcessesMillis = millis();
  
   //时间计算
@@ -51,7 +61,9 @@ void System_Processes(){
     energySavings = kWh*electricalPrice;                                                                        //计算能源节约（法定货币）
     
     //电池百分比计算
-    batteryPercent = ((buckVoltage-voltageBatteryMin)/(voltageBatteryMax-voltageBatteryMin))*100.000;        //计算电池百分比
+    const float batterySpan = (voltageBatteryMax > voltageBatteryMin + 0.5f) ? (voltageBatteryMax - voltageBatteryMin) : 1.0f;
+    const float safeBatteryMax = (isfinite(voltageBatteryMax) && voltageBatteryMax > 0.1f) ? voltageBatteryMax : 1.0f;
+    batteryPercent = ((buckVoltage-voltageBatteryMin)/batterySpan)*100.000;
     batteryPercent = constrain(batteryPercent,0,100);                                                          //限制在0-100%范围内
 
     //运行天数计算
@@ -66,7 +78,7 @@ void System_Processes(){
     secondsElapsed = (millis()/1000.000);                                                                       //计算运行秒数
     
     //输出电压偏差计算
-    outputDeviation = ((buckVoltage-voltageBatteryMax)/voltageBatteryMax)*100.000;                           //计算降压电压偏差百分比
+    outputDeviation = ((buckVoltage-voltageBatteryMax)/safeBatteryMax)*100.000;
     
     //降压效率计算
     if(powerInput>0 && buckEnable==1)  // 只有在有输入功率且处于充电状态时才计算效率
@@ -79,7 +91,7 @@ void System_Processes(){
         float efficiency = (buckPower/powerInput)*100.000;
         BF = BF + efficiency;
      }
-     buckEfficiency  = BF/avgCountBF; //降压效率
+     buckEfficiency  = BF/(avgCountBF > 0 ? avgCountBF : 1); //降压效率
      buckEfficiency = constrain(buckEfficiency, 0.0, 100.0); //限制降压效率在0-100%范围内
 
      }
@@ -99,19 +111,15 @@ void System_Processes(){
       digitalWrite(FAN,HIGH);
       if(lastFanStatus != fanStatus) {
         Serial.println("> 风扇手动开启");
-        if(WIFI == 1 && Blynk.connected()) {
-          Blynk.virtualWrite(V0, "风扇状态: 手动开启");
-        }
+        
       }
     }
     else if(enableFan==1 && temperature>temperatureFan){
       fanStatus=1;
       digitalWrite(FAN,HIGH);
       if(lastFanStatus != fanStatus) {
-        Serial.println("> 风扇自动开启 - 温度: " + String(temperature,1) + "°C > " + String(temperatureFan) + "°C");
-        if(WIFI == 1 && Blynk.connected()) {
-          Blynk.virtualWrite(V0, "风扇状态: 自动开启 - 温度" + String(temperature,1) + "°C");
-        }
+        Serial.printf("> 风扇自动开启 - 温度: %.1f°C > %d°C\n", temperature, temperatureFan);
+        
       }
     }
     else{
@@ -120,14 +128,10 @@ void System_Processes(){
       if(lastFanStatus != fanStatus) {
         if(enableFan==0) {
           Serial.println("> 风扇已禁用");
-          if(WIFI == 1 && Blynk.connected()) {
-            Blynk.virtualWrite(V0, "风扇状态: 已禁用");
-          }
+          
         } else if(temperature<=temperatureFan) {
-          Serial.println("> 风扇自动关闭 - 温度: " + String(temperature,1) + "°C <= " + String(temperatureFan) + "°C");
-          if(WIFI == 1 && Blynk.connected()) {
-            Blynk.virtualWrite(V0, "风扇状态: 自动关闭 - 温度" + String(temperature,1) + "°C");
-          }
+          Serial.printf("> 风扇自动关闭 - 温度: %.1f°C <= %d°C\n", temperature, temperatureFan);
+          
         }
       }
     }
@@ -164,7 +168,8 @@ void factoryReset(){
   EEPROM.put(7, defaultVoltageMin);    // 存储最小电池电压（浮点数，地址7）
   EEPROM.put(30, defaultCurrent);      // 存储充电电流（浮点数，地址30）
   // 存储发送间隔默认值（5秒 = 5000毫秒）
-  EEPROM.put(20, 5000);                // 存储发送间隔（毫秒）
+  int defaultSendingInterval = 5000;
+  EEPROM.put(20, defaultSendingInterval);                // 存储发送间隔（毫秒）
   EEPROM.write(25,1); //存储: 启用自动加载（默认开启，新地址25）
   EEPROM.write(13,1); //存储: 风扇启用 (Bool)
   EEPROM.write(14,60); //存储: 风扇温度（整数）
@@ -192,6 +197,12 @@ void checkSettings() {
     voltageBatteryMin = 10.0;  // 默认值
     settingsValid = false;
     errorMsg += "voltageBatteryMin ";
+  }
+  if (voltageBatteryMax <= voltageBatteryMin + 0.5f) {
+    voltageBatteryMax = 14.6f;
+    voltageBatteryMin = 10.0f;
+    settingsValid = false;
+    errorMsg += "battery voltage range ";
   }
   
   // 检查currentCharging (0.1-20A)

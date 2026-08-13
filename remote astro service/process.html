@@ -1,0 +1,131 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="羊牌远程天文台外壳框架、平移顶、内部结构和控制箱的建模与实物搭建记录。">
+  <title>实物搭建｜羊牌自循环远程天文台</title>
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body data-page="process">
+  <a class="skip-link" href="#main">跳到主要内容</a><div class="scroll-progress" aria-hidden="true"></div>
+  <header class="site-header"><nav class="nav-shell" aria-label="主要导航"><a class="brand" href="index.html"><span class="brand-mark">YP</span><span>羊牌天文台<small>Kawaii Observatory</small></span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-label="打开导航"><span></span><span></span></button><ul class="nav-links"><li><a href="index.html" data-page="home">项目简介</a></li><li><a href="architecture.html" data-page="architecture">系统架构</a></li><li><a href="nodes.html" data-page="nodes">软硬件设计</a></li><li><a href="process.html" data-page="process">实物搭建</a></li><li><a href="outcome.html" data-page="outcome">成果总结</a></li><li><a href="future.html" data-page="future">未来计划</a></li></ul><span class="page-number">04 / 06</span></nav></header>
+
+  <main id="main">
+    <section class="hero" style="--hero-image: url('../images/web/cad-roof-overview.jpg'); --hero-position: center 42%;">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-content"><div class="hero-copy reveal"><span class="eyebrow">Physical Build · 04</span><h1>建模外壳框架和<br><span class="title-accent">内部结构</span></h1><p class="hero-lede">我在 CAD 中安排外壳、轨道、传动件和控制箱的位置，检查运动范围与部件干涉，再根据模型制作并装配实物。</p><div class="hero-meta"><span class="meta-pill">Enclosure Frame</span><span class="meta-pill">Internal Structure</span><span class="meta-pill">CAD → Assembly</span></div></div><div class="hero-index" aria-hidden="true"><span>Physical<br>Build<br>04</span></div></div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <header class="section-header reveal"><div><div class="section-number">01 — Development path</div><h2>五次逐步确认</h2></div><p class="section-intro">先确认空间和机械关系，再验证电路、接口与完整流程。前一步有结果后，我才进入下一步制作。</p></header>
+        <div class="timeline">
+          <article class="timeline-item reveal">
+            <div class="timeline-copy"><span class="timeline-step">Phase 01 / CAD design</span><h2>结构与空间预演</h2><p>用透明线框同时观察外壳、平移顶传动、望远镜运动包络与控制箱位置，在制造前发现空间冲突。</p></div>
+            <div class="timeline-media"><figure class="media-card"><a class="image-link" href="assets/images/original/cad-roof-overview.png" data-lightbox data-full="assets/images/original/cad-roof-overview.png" data-caption="平移顶轨道、望远镜与控制箱总体 CAD 布局"><img src="assets/images/web/cad-roof-overview.jpg" alt="透明显示内部设备与平移顶轨道的 CAD 视图" loading="lazy"><figcaption class="media-caption"><span><strong>总体布局</strong><small>Movement envelope</small></span><span class="expand">＋</span></figcaption></a></figure><figure class="media-card"><a class="image-link" href="assets/images/original/cad-roof-drive.png" data-lightbox data-full="assets/images/original/cad-roof-drive.png" data-caption="减速电机、齿轮齿条与平移顶轨道局部设计"><img src="assets/images/web/cad-roof-drive.jpg" alt="平移顶减速电机和齿条传动 CAD 局部" loading="lazy"><figcaption class="media-caption"><span><strong>平移顶传动</strong><small>Rack &amp; pinion</small></span><span class="expand">＋</span></figcaption></a></figure></div>
+          </article>
+
+          <article class="timeline-item reveal">
+            <div class="timeline-copy"><span class="timeline-step">Phase 02 / Circuit proof</span><h2>洞洞板联合验证</h2><p>以模块化方式连接 ESP32、功率计、传感器、驱动板与负载，先验证采样、控制、保护和通信，再进入紧凑装配。</p></div>
+            <div class="timeline-media single"><figure class="media-card"><a class="image-link" href="assets/images/original/prototype-perfboard.jpg" data-lightbox data-full="assets/images/original/prototype-perfboard.jpg" data-caption="洞洞板阶段的多模块联合功能验证"><img src="assets/images/web/prototype-perfboard.jpg" alt="包含 ESP32、传感器、电源和驱动模块的洞洞板验证平台" loading="lazy"><figcaption class="media-caption"><span><strong>功能验证平台</strong><small>Wiring / sensing / control</small></span><span class="expand">＋</span></figcaption></a></figure></div>
+          </article>
+
+          <article class="timeline-item reveal">
+            <div class="timeline-copy"><span class="timeline-step">Phase 03 / Integration</span><h2>控制箱集成</h2><p>把验证电路迁移到定制外壳，组织电源、天线、接口、散热与前面板标识，同时保留检修能力。</p></div>
+            <div class="timeline-media"><figure class="media-card"><a class="image-link" href="assets/images/original/control-box-open.jpg" data-lightbox data-full="assets/images/original/control-box-open.jpg" data-caption="控制箱内部装配与接口联调"><img src="assets/images/web/control-box-open.jpg" alt="打开上盖的中央控制箱内部线束与模块" loading="lazy"><figcaption class="media-caption"><span><strong>内部集成</strong><small>Wiring &amp; modules</small></span><span class="expand">＋</span></figcaption></a></figure><figure class="media-card"><a class="image-link" href="assets/images/original/control-box-final.jpg" data-lightbox data-full="assets/images/original/control-box-final.jpg" data-caption="控制箱完成装配后的外部接口和天线"><img src="assets/images/web/control-box-final.jpg" alt="完成装配的羊牌控制箱外观" loading="lazy"><figcaption class="media-caption"><span><strong>外部接口</strong><small>Final enclosure</small></span><span class="expand">＋</span></figcaption></a></figure></div>
+          </article>
+
+          <article class="timeline-item reveal">
+            <div class="timeline-copy"><span class="timeline-step">Phase 04 / Assembly</span><h2>整机装配</h2><p>太阳能板既承担供电，也成为箱体外部结构的一部分；望远镜、赤道仪和拍摄设备安装在平移顶覆盖的箱体内部。</p></div>
+            <div class="timeline-media"><figure class="media-card"><a class="image-link" href="assets/images/original/observatory-solar-real.jpg" data-lightbox data-full="assets/images/original/observatory-solar-real.jpg" data-caption="最终实物：天文台箱体与太阳能板"><img src="assets/images/web/observatory-solar-real.jpg" alt="阳台上的太阳能远程天文台实物" loading="lazy"><figcaption class="media-caption"><span><strong>外部整机</strong><small>Final physical system</small></span><span class="expand">＋</span></figcaption></a></figure><figure class="media-card"><a class="image-link" href="assets/images/original/observatory-telescope-real.jpg" data-lightbox data-full="assets/images/original/observatory-telescope-real.jpg" data-caption="最终实物：天文台内部望远镜与拍摄设备"><img src="assets/images/web/observatory-telescope-real.jpg" alt="天文台箱体内部的望远镜、相机与赤道仪" loading="lazy"><figcaption class="media-caption"><span><strong>内部设备</strong><small>Telescope / mount / camera</small></span><span class="expand">＋</span></figcaption></a></figure></div>
+          </article>
+
+          <article class="timeline-item reveal">
+            <div class="timeline-copy"><span class="timeline-step">Phase 05 / Scenario test</span><h2>流程闭环实测</h2><p>分别验证平移顶远程开合、雨水触发避险、拍摄设备供电与调度，以及平场板展开、发光、加热和归位流程。</p><div class="status-strip">验证目标是证明完整动作链条可执行；当前系统未部署为持续运行站点。</div></div>
+            <div class="timeline-media"><figure class="media-card"><a class="image-link" href="assets/images/original/blynk-flat-panel.jpg" data-lightbox data-full="assets/images/original/blynk-flat-panel.jpg" data-caption="电动平场板联动测试界面"><img src="assets/images/web/blynk-flat-panel.jpg" alt="电动平场板的 Blynk 联动测试界面" loading="lazy"><figcaption class="media-caption"><span><strong>平场循环</strong><small>Deploy / expose / park</small></span><span class="expand">＋</span></figcaption></a></figure><figure class="media-card"><a class="image-link" href="assets/images/original/blynk-energy-history.jpg" data-lightbox data-full="assets/images/original/blynk-energy-history.jpg" data-caption="光伏电流、输出电流与 SOC 的历史记录"><img src="assets/images/web/blynk-energy-history.jpg" alt="能源节点历史遥测曲线" loading="lazy"><figcaption class="media-caption"><span><strong>能源记录</strong><small>History / terminal</small></span><span class="expand">＋</span></figcaption></a></figure></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="optimizations">
+      <div class="section-shell">
+        <header class="section-header reveal">
+          <div><div class="section-number">02 — Targeted optimization</div><h2>针对现场使用做的优化</h2></div>
+          <p class="section-intro">结构、供电、防水、移动和监控都围绕实际使用调整。目标是缩短搭建时间，并让设备在户外环境中更容易维护和收纳。</p>
+        </header>
+
+        <div class="metrics reveal" aria-label="实物配置摘要">
+          <div class="metric"><span class="metric-value">300W</span><span class="metric-label">太阳能板总功率</span><small>3 × 100 W panels</small></div>
+          <div class="metric"><span class="metric-value">50Ah</span><span class="metric-label">磷酸铁锂电池</span><small>LiFePO4 battery</small></div>
+          <div class="metric"><span class="metric-value">4</span><span class="metric-label">带刹车万向轮</span><small>Lockable casters</small></div>
+          <div class="metric"><span class="metric-value">2</span><span class="metric-label">内外监控视角</span><small>Exterior + interior</small></div>
+        </div>
+
+        <div class="feature-grid" style="margin-top:32px">
+          <article class="feature-card reveal">
+            <div class="feature-icon">01</div>
+            <h3>快速搭建框架</h3>
+            <p>主体使用铝合金型材和铝塑板，框架便于切割、连接和拆装，后续增加接口或调整内部布局时也更方便。</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon">02</div>
+            <h3>可收纳太阳能平移顶</h3>
+            <p>三块太阳能板单块 100W。顶板保留小角度倾斜，便于雨水排出；左右两块可调角度，也能折叠收纳。</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon">03</div>
+            <h3>整机可移动</h3>
+            <p>底部安装四个带刹车万向轮。移动时可调整天文台位置，观测时锁止轮组，减少意外滑动。</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon">04</div>
+            <h3>大容量电池与密封防护</h3>
+            <p>使用 50Ah 磷酸铁锂电池。泡沫箱负责隔热与缓冲，电池舱按防火、防水需求加强密封，降低温度变化和进水带来的风险。</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon">05</div>
+            <h3>雨水触发关顶</h3>
+            <p>雨水传感器检测到水后，系统自动执行关顶动作，并把雨水状态和关顶结果上报到远程端。</p>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon">06</div>
+            <h3>内外双监控</h3>
+            <p>外部摄像头用于查看云量、降水和现场天气，内部摄像头用于确认望远镜姿态、赤道仪位置和舱内状态。</p>
+          </article>
+        </div>
+
+        <div class="status-strip reveal">这些优化已经落实到实物结构和控制流程中；长期户外耐候性、防火等级与密封寿命仍需要继续测试。</div>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="gallery">
+      <div class="section-shell">
+        <header class="section-header reveal"><div><div class="section-number">03 — Evidence archive</div><h2>项目图像档案</h2></div><p class="section-intro">可按类别查看结构设计、制作过程、界面记录与最终实物。点击任意图片可打开保留在附件目录中的高清原图。</p></header>
+        <div class="gallery-filter reveal" aria-label="图像分类筛选"><button class="filter-button is-active" type="button" data-filter="all">全部</button><button class="filter-button" type="button" data-filter="cad">CAD 设计</button><button class="filter-button" type="button" data-filter="build">制作过程</button><button class="filter-button" type="button" data-filter="ui">界面记录</button><button class="filter-button" type="button" data-filter="real">最终实物</button></div>
+        <div class="gallery reveal">
+          <article class="gallery-item wide" data-category="cad"><figure class="media-card"><a class="image-link" href="assets/images/original/cad-control-box.png" data-lightbox data-full="assets/images/original/cad-control-box.png" data-caption="控制箱与内部组件 CAD 透明视图"><img src="assets/images/web/cad-control-box.jpg" alt="控制箱透明 CAD 视图" loading="lazy"><figcaption class="media-caption"><span><strong>控制箱线框</strong><small>CAD</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item tall" data-category="ui"><figure class="media-card"><a class="image-link" href="assets/images/original/blynk-energy.jpg" data-lightbox data-full="assets/images/original/blynk-energy.jpg" data-caption="MPPT 能源节点实时遥测"><img src="assets/images/web/blynk-energy.jpg" alt="MPPT Blynk 能源页面" loading="lazy"><figcaption class="media-caption"><span><strong>MPPT 遥测</strong><small>UI record</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item" data-category="build"><figure class="media-card"><a class="image-link" href="assets/images/original/control-box-open.jpg" data-lightbox data-full="assets/images/original/control-box-open.jpg" data-caption="控制箱内部集成过程"><img src="assets/images/web/control-box-open.jpg" alt="控制箱内部集成" loading="lazy"><figcaption class="media-caption"><span><strong>箱体装配</strong><small>Build</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item wide" data-category="cad"><figure class="media-card"><a class="image-link" href="assets/images/original/observatory-render.png" data-lightbox data-full="assets/images/original/observatory-render.png" data-caption="太阳能天文台整机三维渲染"><img src="assets/images/web/observatory-render.jpg" alt="太阳能天文台三维模型" loading="lazy"><figcaption class="media-caption"><span><strong>整机模型</strong><small>CAD render</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item" data-category="real"><figure class="media-card"><a class="image-link" href="assets/images/original/observatory-solar-real.jpg" data-lightbox data-full="assets/images/original/observatory-solar-real.jpg" data-caption="最终实物外部太阳能结构"><img src="assets/images/web/observatory-solar-real.jpg" alt="最终天文台太阳能结构" loading="lazy"><figcaption class="media-caption"><span><strong>最终外观</strong><small>Real system</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item" data-category="cad"><figure class="media-card"><a class="image-link" href="assets/images/original/flat-panel-front.png" data-lightbox data-full="assets/images/original/flat-panel-front.png" data-caption="电动平场板正视图"><img src="assets/images/web/flat-panel-front.jpg" alt="电动平场板正视三维图" loading="lazy"><figcaption class="media-caption"><span><strong>平场板正视图</strong><small>CAD</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item" data-category="cad"><figure class="media-card"><a class="image-link" href="assets/images/original/flat-panel-side.png" data-lightbox data-full="assets/images/original/flat-panel-side.png" data-caption="电动平场板侧视图"><img src="assets/images/web/flat-panel-side.jpg" alt="电动平场板侧视三维图" loading="lazy"><figcaption class="media-caption"><span><strong>平场板侧视图</strong><small>CAD</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+          <article class="gallery-item tall" data-category="ui"><figure class="media-card"><a class="image-link" href="assets/images/original/blynk-environment.jpg" data-lightbox data-full="assets/images/original/blynk-environment.jpg" data-caption="中央网关环境、平移顶与 OnStep 控制界面"><img src="assets/images/web/blynk-environment.jpg" alt="Blynk 环境与平移顶控制页面" loading="lazy"><figcaption class="media-caption"><span><strong>主控界面</strong><small>UI record</small></span><span class="expand">＋</span></figcaption></a></figure></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section"><div class="section-shell"><div class="boundary reveal"><span class="eyebrow eyebrow-red">Validation status</span><h2>完成主要流程的阶段性实测</h2><p>三个节点、机械动作、环境避险、拍摄调度和平场循环都做过功能验证。当前成果为可运行样机，长期在线运行仍需要继续测试。</p><div class="button-row" style="margin-top:28px"><a class="button button-primary" href="outcome.html">查看成果总结 <span class="arrow">→</span></a></div></div></div></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div><div class="footer-title">羊牌 · 实物搭建</div><p class="footer-note">Enclosure frame, internal structure and control box.</p></div><div class="footer-code">PAGE 04 / 06<br><a href="outcome.html">NEXT: OUTCOME →</a></div></div></footer>
+  <div class="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="图片预览"><button class="lightbox-close" type="button" aria-label="关闭图片">×</button><figure class="lightbox-figure"><img src="assets/images/web/observatory-solar-real.jpg" alt="图片预览"><figcaption></figcaption></figure></div>
+</body>
+</html>
+
+
+
+

@@ -1,104 +1,83 @@
-void buck_Enable(){                                                                  //启用 MPPT 降压转换器
-  buckEnable = 1;
-  digitalWrite(buck_EN,HIGH);
-  digitalWrite(LED,HIGH);
+// Closed-loop buck/MPPT controller.  Measurements are filtered and the
+// perturbation step is adaptive so noise cannot drive PWM to a rail.
+static unsigned long lastControlUpdate = 0;
+static bool mpptSampleValid = false;
+static float mpptPrevPower = 0.0f;
+static float mpptPrevPanelVoltage = 0.0f;
+static float mpptFilteredPower = 0.0f;
+static float mpptFilteredVoltage = 0.0f;
+static float mpptFilteredCurrent = 0.0f;
+
+static void resetMPPT() {
+  mpptSampleValid = false;
+  mpptPrevPower = mpptPrevPanelVoltage = 0.0f;
+  mpptFilteredPower = mpptFilteredVoltage = mpptFilteredCurrent = 0.0f;
 }
-void buck_Disable(){                                                                 //禁用 MPPT 降压转换器
-  buckEnable = 0; 
-  digitalWrite(buck_EN,LOW);
-  digitalWrite(LED,LOW);
-  PWM = 0;
-}   
-void predictivePWM(){                                                                //预测PWM 算法 
-  if(voltageInput<=0){pwmMinLimited=0;}                                                       ///当电压输入为零时防止不确定答案
-  else{
-    PWM_MinDC = voltageInput + voltageDropout;
-    
-    pwmMinLimited =(pwmMinLimited_margin*pwmMax*(buckVoltage + buckminfloatVoltage))/(100.00*PWM_MinDC);}              //计算预测 PWM 下限 并存储在变量中：buckVoltage must >= 实际电池电压，而初始化的时候buckvoltage = 实际电池电压； 所以保持了下限，防止当pwm减小的时候，pwmMinLimited随之下降而可能出现循环，使得pwm无线减小；
 
-  pwmMinLimited = constrain(pwmMinLimited,0,pwmMaxLimited);
-}   
+void buck_Enable(){ buckEnable = 1; digitalWrite(buck_EN,HIGH); digitalWrite(LED,HIGH); }
+void buck_Disable(){ buckEnable = 0; digitalWrite(buck_EN,LOW); digitalWrite(LED,LOW); PWM = 0; ledcWrite(pwmChannel,0); resetMPPT(); }
 
-void PWM_Modulation(){
-  if(output_Mode==0){PWM = constrain(PWM,0,pwmMaxLimited);}                          //PSU MODE PWM = PWM OVERFLOW PROTECTION（将下限限制为 0%，上限限制为最大允许占空比）
-  else{
-    predictivePWM();                                                                 //运行和计算预测 pwm 下限
-    PWM = constrain(PWM,pwmMinLimited,pwmMaxLimited);                                         //CHARGER MODE PWM - 将下限限制为 pwmMinLimited，上限限制为最大允许占空比）                                     
-  } 
-  ledcWrite(pwmChannel,PWM);                                                         //设置 PWM 占空比并在启用降压时写入 GPIO
-  buck_Enable();                                                                     //开启 MPPT 降压 (IR2104)
+void predictivePWM(){
+  if (!isfinite(voltageInput) || !isfinite(buckVoltage) || voltageInput <= 0.1f) { pwmMinLimited=0; return; }
+  PWM_MinDC = voltageInput + voltageDropout;
+  if (PWM_MinDC <= 0.1f || !isfinite(PWM_MinDC)) { pwmMinLimited=0; return; }
+  float predicted = (pwmMinLimited_margin * pwmMax * (buckVoltage + buckminfloatVoltage)) /
+                   (100.0f * PWM_MinDC);
+  if (!isfinite(predicted)) predicted=0;
+  pwmMinLimited=constrain((int)predicted,0,pwmMaxLimited);
 }
-     
 
-
-void Charging_Algorithm(){
-  if(ERR>0||chargingPause==1){buck_Disable();}                                       //当出现错误或充电暂停用于暂停覆盖时关闭 MPPT 降压
-  else{
-    if(REC==1){                                                                      // IUV RECOVERY - (仅对充电模式有效)
-      REC=0;                                                                         //重置 IUV 恢复布尔标识符
-      buck_Disable();                                                                //在 pwmMinLimited 初始化之前禁用降压
-      Serial.println("> Solar Panel Detected");                                      //显示串口信息
-      Serial.print("> Computing For Predictive PWM ");                               //显示串口信息
-      for(int i = 0; i<40; i++){Serial.print(".");delay(30);}                        //For loop "loading... 效果
-      Serial.println("");                                                            //在串行上显示下一行的换行符  
-      Read_Sensors();
-      predictivePWM();
-      PWM = pwmMinLimited; 
-    }  
-    else{                                                                            //NO ERROR PRESENT - 继续电源转换
-      /////////////////////// CC-CV BUCK PSU ALGORITHM ////////////////////////////// 
-      if(MPPT_Mode==0){                                                              // CC-CV PSU 模式
-        // 先计算pwmMinLimited
-        predictivePWM();
-        
-        if(buckCurrent>currentCharging) {
-          PWM--;
-        }                            //电流高于 → 降低占空比
-        else if(buckVoltage>voltageBatteryMax){
-          PWM--;
-        }                             //电压高于 → 降低占空比
-        else if(buckVoltage<voltageBatteryMax){
-          PWM++;
-        }                             //当降压电压低于充电电压时增加占空比（pwmMinLimited自动限制上限）
-        else{}                                                                       //当达到设定的输出电压时什么都不做 
-        PWM_Modulation();                                                            //将 PWM 信号设置为 Buck PWM GPIO       
-      }     
-        ///////////////////////  MPPT & CC-CV 充电算法 ///////////////////////  
-      else{                                                                                                                                                         
-        // 先计算pwmMinLimited
-        predictivePWM();
-        
-        if(buckCurrent>currentCharging){
-          PWM--;
-        }                                 //电流高于 → 降低占空比
-        else if(buckVoltage>voltageBatteryMax){
-          PWM--;
-        }                         //电压高于 → 降低占空比  
-        else{                                                                          //MPPT 算法
-          float powerDiff = powerInput - powerInputPrev;
-          float voltageDiff = voltageInput - voltageInputPrev;
-          
-          // 直接MPPT算法，无阈值限制
-          if(powerDiff > 0 && voltageDiff > 0) {
-            PWM--;
-          } //  ↑P ↑V ; →MPP //D--
-          else if(powerDiff > 0 && voltageDiff < 0){
-            PWM++;
-          } //  ↑P ↓V ; MPP← //D++ 
-          else if(powerDiff < 0 && voltageDiff > 0){
-            PWM++;
-          } //  ↓P ↑V ; MPP→ //D++ 
-          else if(powerDiff < 0 && voltageDiff < 0){
-            PWM--;
-          } //  ↓P ↓V ; ←MPP  //D--
-          else{ }// 如果功率和电压都没有变化，保持PWM不变
-          
-          powerInputPrev   = powerInput;                                               //  存储以前记录的功率
-          voltageInputPrev = voltageInput;                                             //存储先前记录的电压        
-        }   
-        PWM_Modulation();                                                              //将 PWM 信号设置为 Buck PWM GPIO                                                                     
-      }  
-    }
+static void applyPWM(){
+  predictivePWM();
+  const int floorPwm = (output_Mode==0) ? 0 : pwmMinLimited;
+  PWM = constrain(PWM,floorPwm,pwmMaxLimited);
+  ledcWrite(pwmChannel,PWM);
+  buck_Enable();
+}
+static bool measurementsValid(){
+  return isfinite(powerInput)&&isfinite(voltageInput)&&isfinite(buckVoltage)&&isfinite(currentInput)&&isfinite(buckCurrent)&&
+         voltageInput>=0.0f&&voltageInput<=MPPT_MAX_INPUT_VOLTAGE&&buckVoltage>=0.0f&&buckVoltage<=MPPT_MAX_OUTPUT_VOLTAGE;
+}
+static void stepToward(int delta){
+  const int maxStep = (MPPT_MAX_PWM_STEP_PER_UPDATE>0)?MPPT_MAX_PWM_STEP_PER_UPDATE:1;
+  delta=constrain(delta,-maxStep,maxStep);
+  PWM=constrain(PWM+delta,0,pwmMaxLimited);
+}
+static void runCCCV(){
+  if (buckCurrent>currentCharging+0.05f) stepToward(-MPPT_PWM_STEP);
+  else if (buckVoltage>voltageBatteryMax+MPPT_BATTERY_CV_DEADBAND_V) stepToward(-MPPT_PWM_STEP);
+  else if (buckVoltage<voltageBatteryMax-MPPT_BATTERY_CV_DEADBAND_V) stepToward(MPPT_PWM_STEP);
+}
+static void runMPPT(){
+  if (buckCurrent>currentCharging+0.05f || buckVoltage>=voltageBatteryMax+MPPT_BATTERY_CV_DEADBAND_V) { stepToward(-MPPT_PWM_STEP); return; }
+  // First-order low-pass (alpha=0.25) suppresses INA226 conversion noise.
+  if (!mpptSampleValid) {
+    mpptFilteredPower=powerInput; mpptFilteredVoltage=voltageInput; mpptFilteredCurrent=currentInput;
+    mpptPrevPower=powerInput; mpptPrevPanelVoltage=voltageInput; mpptSampleValid=true; return;
   }
+  mpptFilteredPower += 0.25f*(powerInput-mpptFilteredPower);
+  mpptFilteredVoltage += 0.25f*(voltageInput-mpptFilteredVoltage);
+  mpptFilteredCurrent += 0.25f*(currentInput-mpptFilteredCurrent);
+  const float dP=mpptFilteredPower-mpptPrevPower;
+  const float dV=mpptFilteredVoltage-mpptPrevPanelVoltage;
+  mpptPrevPower=mpptFilteredPower; mpptPrevPanelVoltage=mpptFilteredVoltage;
+  // Irradiance/load transients invalidate the previous slope.
+  if (fabsf(dP)>fmaxf(2.0f,0.35f*fmaxf(1.0f,mpptFilteredPower))) { resetMPPT(); return; }
+  if (fabsf(dP)<MPPT_POWER_DEADBAND_W || fabsf(dV)<MPPT_PANEL_VOLTAGE_DEADBAND_V) return;
+  // Large slope => coarse move; near the vertex => one-count trim.
+  const int step=(fabsf(dP)>2.0f)?4:1;
+  const bool powerImproved=dP>0.0f;
+  const bool panelVoltageRose=dV>0.0f;
+  const int direction=(powerImproved==panelVoltageRose)?-1:1;
+  stepToward(direction*step);
 }
-
+void Charging_Algorithm(){
+  const unsigned long now=millis();
+  if (now-lastControlUpdate<MPPT_CONTROL_INTERVAL_MS) return;
+  lastControlUpdate=now;
+  if (ERR>0||chargingPause==1||!measurementsValid()) { buck_Disable(); return; }
+  if (voltageInput<vInSystemMin+MPPT_MIN_INPUT_MARGIN_V||buckVoltage<vInSystemMin) { buck_Disable(); return; }
+  if (REC==1) { REC=0; predictivePWM(); PWM=pwmMinLimited; resetMPPT(); }
+  if (MPPT_Mode==0) runCCCV(); else runMPPT();
+  applyPWM();
+}

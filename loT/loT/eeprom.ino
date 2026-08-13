@@ -10,15 +10,13 @@ void initEEPROM() {
   EEPROM.begin(EEPROM_SIZE);
   
   // 检查EEPROM是否已初始化
-  int magicNumber;
+  uint32_t magicNumber = 0;
   EEPROM.get(EEPROM_MAGIC_NUMBER_ADDR, magicNumber);
   if (magicNumber != EEPROM_MAGIC_NUMBER) {
     Serial.println("EEPROM未初始化，恢复默认设置");
-    Blynk.virtualWrite(TERMINAL_VPIN, String("EEPROM未初始化，恢复默认设置"));
     restoreDefaultSettings();
   } else {
     Serial.println("EEPROM已初始化，读取设置");
-    Blynk.virtualWrite(TERMINAL_VPIN, String("EEPROM已初始化，读取设置"));
     loadSettingsFromEEPROM();
   }
 }
@@ -55,7 +53,6 @@ void saveSettingsToEEPROM() {
  */
 void loadSettingsFromEEPROM() {
   Serial.println("从EEPROM读取设置...");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("从EEPROM读取设置..."));
   // 读取设置参数
   EEPROM.get(ADDR_BUTTON_STATE, buttonState);
   EEPROM.get(ADDR_MOTOR_STATE, motorState);
@@ -67,9 +64,15 @@ void loadSettingsFromEEPROM() {
   EEPROM.get(ADDR_TIMER_ENABLED, timerEnabled);
   EEPROM.get(ADDR_MOSFET_DELAY_ENABLED, mosfetDelayEnabled);
   EEPROM.get(ADDR_MOSFET_DELAY_TIME, mosfetDelayTime);
+
+  // Reject corrupt/out-of-range values before modules use them.
+  if (buttonState < 0 || buttonState > 1) buttonState = 0;
+  if (humidityThreshold > 100) humidityThreshold = 80;
+  if (tempDiffThreshold > 60) tempDiffThreshold = 5;
+  if (reportInterval < 1000UL || reportInterval > 86400000UL) reportInterval = DEVICE_MQTT_REPORT_INTERVAL_MS;
+  if (mosfetDelayTime > 7UL * 24UL * 3600000UL) mosfetDelayTime = 0;
   
   Serial.println("设置已从EEPROM读取");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("设置已从EEPROM读取"));
   printCurrentSettings();
 }
 
@@ -78,7 +81,6 @@ void loadSettingsFromEEPROM() {
  */
 void restoreDefaultSettings() {
   Serial.println("恢复默认设置...");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("恢复默认设置..."));
   
   // 设置默认值
   buttonState = 0;//mosfet按钮状态
@@ -94,17 +96,9 @@ void restoreDefaultSettings() {
   // 保存到EEPROM
   saveSettingsToEEPROM();
   Serial.println("默认设置已恢复并保存");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("默认设置已恢复并保存"));
 }
 
   // 恢复默认设置按钮回调
- BLYNK_WRITE(RESTORE_DEFAULT_VPIN) {
-  if (param.asInt() == 1) {
-    restoreDefaultSettings();
-    Blynk.virtualWrite(TERMINAL_VPIN, String("已恢复默认设置"));
-    printCurrentSettings();
-  }
- }
 
 
 /*
@@ -118,7 +112,7 @@ void printCurrentSettings() {
   Serial.printf("湿度阈值: %d%%\n", humidityThreshold);
   Serial.printf("温度差值阈值: %d°C\n", tempDiffThreshold);
   Serial.printf("加热片自动模式: %s\n", heaterAutoMode ? "开启" : "关闭");
-  Serial.printf("上报间隔: %d秒\n", reportInterval / 1000);
+  Serial.printf("上报间隔: %lu秒\n", reportInterval / 1000);
   Serial.printf("定时器总开关: %s\n", timerEnabled ? "开启" : "关闭");
   Serial.printf("MOSFET延时关闭功能: %s\n", mosfetDelayEnabled ? "开启" : "关闭");
   Serial.printf("MOSFET延时关闭时间: %lu毫秒\n", mosfetDelayTime);

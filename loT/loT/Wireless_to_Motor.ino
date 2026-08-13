@@ -25,39 +25,10 @@ void motorReverse() {
     }
 
 
-// ==================== Blynk回调函数 ====================
 
 // 电机控制按钮0：正转自锁
-BLYNK_WRITE(MOTOR_BUTTON0_VPIN) {
-    if (param.asInt() == 1) {
-        // 开启正转自锁
-        motorForward();
-        Blynk.virtualWrite(TERMINAL_VPIN, "电机正转");
-    } else {
-        // 关闭正转自锁
-        digitalWrite(MOTOR_FORWARD_PIN, LOW);
-        digitalWrite(MOTOR_REVERSE_PIN, LOW);
-        motorForwardState = false;
-        motorReverseState = false;
-     
-    }
-}
 
 // 电机控制按钮1：反转自锁
-BLYNK_WRITE(MOTOR_BUTTON1_VPIN) {
-    if (param.asInt() == 1) {
-        // 开启反转自锁
-        motorReverse();
-        Blynk.virtualWrite(TERMINAL_VPIN, "电机反转");
-    } else {
-        // 关闭反转自锁
-        digitalWrite(MOTOR_FORWARD_PIN, LOW);
-        digitalWrite(MOTOR_REVERSE_PIN, LOW);
-        motorForwardState = false;
-        motorReverseState = false;
-
-    }
-}
 
 
 // ==================== 状态查询函数 ====================

@@ -1,14 +1,24 @@
 unsigned long prevReadSensorsMillis = 0;
+static inline void sanitizeSensorConfig() {
+  if (avgCountVS < 1) avgCountVS = 1;
+  if (avgCountCS < 1) avgCountCS = 1;
+  if (avgCountTS < 1) avgCountTS = 1;
+  if (millisRoutineInterval < 1) millisRoutineInterval = 1;
+  if (!isfinite(voltageBatteryMin)) voltageBatteryMin = 10.0f;
+  if (!isfinite(voltageBatteryMax) || voltageBatteryMax <= voltageBatteryMin + 0.5f) voltageBatteryMax = voltageBatteryMin + 0.5f;
+}
 
 
 void Read_Sensors(){//读取传感器  
 
+  sanitizeSensorConfig();
   /////////// TEMPERATURE SENSOR /////////////
   if(sampleStoreTS<=avgCountTS){                               //TEMPERATURE SENSOR - Lite Averaging
     TS = TS + analogRead(TempSensor);
     sampleStoreTS++;   
   }
   else{
+    if (sampleStoreTS <= 0) { TS = 0; return; }
     TS = TS/sampleStoreTS;
     
     // 将ADC值转换为电压 (ESP32的ADC是12位的，所以是4095)
@@ -18,6 +28,11 @@ void Read_Sensors(){//读取传感器
     // 实际连接方式：3.3V ----[10K NTC]----+----[10K固定电阻]----GND
     // 电压 = 3.3 * (10K固定电阻) / (NTC电阻 + 10K固定电阻)
     // 所以 NTC电阻 = 10K * (3.3 - voltage) / voltage
+    if (voltage < 0.01f || voltage > 3.29f) {
+      temperature = NAN;
+      sampleStoreTS = 0;
+      TS = 0;
+    } else {
     float ntcResistance = 10000.0 * (3.3 - voltage) / voltage;
     
     // 使用B值方程计算温度
@@ -43,6 +58,7 @@ void Read_Sensors(){//读取传感器
 
     sampleStoreTS = 0;
     TS = 0;
+    }
   }
   
   /////////// VOLTAGE & CURRENT SENSORS /////////////
@@ -56,8 +72,8 @@ void Read_Sensors(){//读取传感器
     VSI = VSI + ina1.readBusVoltage();
     VSO = VSO + ina2.readBusVoltage();
   }
-  voltageInput  = (VSI/avgCountVS) * inVoltageDivRatio; //输入电压；inVoltageDivRatio 输入电压分压比
-  buckVoltage = (VSO/avgCountVS) * outVoltageDivRatio; //降压电压；outVoltageDivRatio 降压电压分压比
+  voltageInput  = (VSI/(avgCountVS > 0 ? avgCountVS : 1)) * inVoltageDivRatio;
+  buckVoltage = (VSO/(avgCountVS > 0 ? avgCountVS : 1)) * outVoltageDivRatio; //降压电压
   
   // 限制电压为0和正值
   voltageInput = constrain(voltageInput, 0.0, 100.0);  // 输入电压限制在0-100V
@@ -68,8 +84,8 @@ void Read_Sensors(){//读取传感器
     CSI = CSI + ina1.readShuntCurrent();
     CSO = CSO + ina2.readShuntCurrent();
   }
-  currentInput  = -CSI/avgCountCS; //输入电流（反向）
-  buckCurrent = CSO/avgCountCS; //降压电流
+  currentInput  = -CSI/(avgCountCS > 0 ? avgCountCS : 1);
+  buckCurrent = CSO/(avgCountCS > 0 ? avgCountCS : 1); //降压电流
   
   // 限制电流为0和正值
   currentInput = constrain(currentInput, 0.0, 50.0);   // 输入电流限制在0-50A
@@ -87,10 +103,12 @@ void Read_Sensors(){//读取传感器
   //功率计算 - 使用 INA226 功率读数
   powerInput      = currentInput*voltageInput; //输入功率
   buckPower     = buckCurrent*buckVoltage; //降压功率
-  outputDeviation = (buckVoltage/voltageBatteryMax)*100.000; //降压偏差
+  const float safeBatteryMax = (isfinite(voltageBatteryMax) && voltageBatteryMax > 0.1f) ? voltageBatteryMax : 1.0f;
+  const float batterySpan = (voltageBatteryMax > voltageBatteryMin + 0.5f) ? (voltageBatteryMax - voltageBatteryMin) : 1.0f;
+  outputDeviation = (buckVoltage/safeBatteryMax)*100.000;
 
   //电池状态 - 电池百分比
-  batteryPercent  = ((buckVoltage-voltageBatteryMin)/(voltageBatteryMax-voltageBatteryMin))*101; //电池百分比
+  batteryPercent  = ((buckVoltage-voltageBatteryMin)/batterySpan)*100.0f;
   batteryPercent  = constrain(batteryPercent,0,100); //约束电池百分比
 
   //时间依赖传感器数据计算

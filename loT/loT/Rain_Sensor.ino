@@ -22,9 +22,6 @@ void readRainSensor() {
     // 更新雨水检测状态
     rainDetected = rainDigitalState;
     
-    // 发送数据到Blynk
-    Blynk.virtualWrite(RAIN_ANALOG_VPIN, rainAnalogValue);
-    Blynk.virtualWrite(RAIN_DIGITAL_VPIN, rainDetected ? 1 : 0);
 }
 
 // 获取雨水传感器状态

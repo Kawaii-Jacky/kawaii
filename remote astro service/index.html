@@ -1,0 +1,169 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="羊牌自循环远程天文台作品集，记录三个 ESP32 节点、机械结构、离网能源和远程控制样机的设计与验证。">
+  <title>羊牌自循环远程天文台｜项目简介</title>
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body data-page="home">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="主要导航">
+      <a class="brand" href="index.html" aria-label="羊牌项目首页">
+        <span class="brand-mark">YP</span>
+        <span>羊牌天文台<small>Kawaii Observatory</small></span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-label="打开导航"><span></span><span></span></button>
+      <ul class="nav-links">
+        <li><a href="index.html" data-page="home">项目简介</a></li>
+        <li><a href="architecture.html" data-page="architecture">系统架构</a></li>
+        <li><a href="nodes.html" data-page="nodes">软硬件设计</a></li>
+        <li><a href="process.html" data-page="process">实物搭建</a></li>
+        <li><a href="outcome.html" data-page="outcome">成果总结</a></li>
+        <li><a href="future.html" data-page="future">未来计划</a></li>
+      </ul>
+      <span class="page-number">01 / 06</span>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero hero-home" style="--hero-image: url('../images/web/concept-snow-ai.jpg'); --hero-position: center 56%;">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="hero-copy reveal">
+          <span class="eyebrow">Project Introduction · 01</span>
+          <h1>基于 ESP32 的<br><span class="title-accent">“羊牌”自循环</span><br>远程天文台软硬件系统</h1>
+          <p class="hero-lede">这是我个人独立开发的远程天文台项目，经过系统架构设计、嵌入式程序开发、结构建模和样机装配，三个节点和主要控制流程已经过实测。</p>
+          <div class="hero-meta">
+            <span class="meta-pill">独立设计与开发</span>
+            <span class="meta-pill">样机与功能验证完成</span>
+          </div>
+          <div class="button-row">
+            <a class="button button-primary" href="architecture.html">进入系统架构 <span class="arrow">↗</span></a>
+            <a class="button" href="outcome.html#real-system">查看实物成果 <span class="arrow">→</span></a>
+          </div>
+        </div>
+        <div class="hero-index" aria-hidden="true"><span>Mission<br>YP–ESP32<br>01</span></div>
+      </div>
+    </section>
+
+    <section class="section section-compact" aria-label="项目数字摘要">
+      <div class="section-shell reveal">
+        <div class="metrics">
+          <div class="metric"><span class="metric-value" data-count="1">0</span><span class="metric-label">个人完成系统集成</span><small>Individual integration</small></div>
+          <div class="metric"><span class="metric-value" data-count="3">0</span><span class="metric-label">ESP32 功能节点</span><small>Distributed nodes</small></div>
+          <div class="metric"><span class="metric-value" data-count="4">0</span><span class="metric-label">已验证自动化流程</span><small>Verified workflows</small></div>
+          <div class="metric"><span class="metric-value">24/7</span><span class="metric-label">离网自治设计目标</span><small>Off-grid design intent</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <header class="section-header reveal">
+          <div><div class="section-number">01 — Motivation</div><h2>为什么做这套系统</h2></div>
+          <p class="section-intro">远郊观测要带设备、守整夜，还要随时处理天气变化。我希望把供电、环境检测、屋顶、赤道仪和拍摄流程放进同一套可远程管理的系统。</p>
+        </header>
+        <div class="editorial-grid">
+          <article class="card quote-card reveal">
+            <div class="card-kicker">Design question / 设计命题</div>
+            <blockquote>我的目标很具体：人在城市里，也能查看现场状态、启动观测，并在下雨或设备异常时让系统安全停机。</blockquote>
+            <footer>羊牌 · Independent engineering practice</footer>
+          </article>
+          <figure class="media-card reveal">
+            <a class="image-link" href="assets/images/original/observatory-solar-real.jpg" data-lightbox data-full="assets/images/original/observatory-solar-real.jpg" data-caption="最终实物：太阳能板与可移动式天文台结构">
+              <img src="assets/images/web/observatory-solar-real.jpg" alt="太阳能板覆盖的可移动式天文台实物" loading="lazy">
+              <figcaption class="media-caption"><span><strong>最终实物结构</strong><small>Solar-powered enclosure · 实拍</small></span><span class="expand" aria-hidden="true">＋</span></figcaption>
+            </a>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark">
+      <div class="section-shell">
+        <header class="section-header reveal">
+          <div><div class="section-number">02 — System idea</div><h2>三个节点，一条闭环</h2></div>
+          <p class="section-intro">中央主控负责传感器、平移顶和设备调度，MPPT 节点管理太阳能与电池，平场节点处理拍摄校准。三个节点通过现场网络交换状态和指令。</p>
+        </header>
+        <div class="feature-grid">
+          <article class="feature-card reveal"><div class="feature-icon">N1</div><h3>中央 IoT 主控</h3><p>雨水避险、平移顶驱动、OnStep 蓝牙指令、分路供电、风扇与负载功率监测。</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">N2</div><h3>MPPT 能源管理</h3><p>硬件设计和核心算法采用开源方案。我根据光伏与电池规格完成参数适配、系统接入和样机验证。</p></article>
+          <article class="feature-card reveal"><div class="feature-icon">N3</div><h3>电动平场系统</h3><p>舵机部署、恒流 PWM 发光、EEPROM 参数与 ESP-NOW 湿度联动加热。</p></article>
+        </div>
+        <div class="status-strip reveal">三个 ESP32 节点均已完成实物；平移顶自动开合、雨水避险、远程拍摄和平场循环均完成阶段性实测。</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <header class="section-header reveal">
+          <div><div class="section-number">03 — Evidence</div><h2>我保留了这些过程证据</h2></div>
+          <p class="section-intro">页面收录了控制界面、洞洞板、CAD 和最终实物。概念图单独标注，只用于说明设想中的使用场景。</p>
+        </header>
+        <div class="editorial-grid reverse">
+          <figure class="media-card reveal">
+            <a class="image-link" href="assets/images/original/project-collage.jpg" data-lightbox data-full="assets/images/original/project-collage.jpg" data-caption="早期项目总览拼图：监控、Blynk、ZWO 与历史数据">
+              <img src="assets/images/web/project-collage.jpg" alt="羊牌太阳能可移动式天文台项目总览拼图" loading="lazy">
+              <figcaption class="media-caption"><span><strong>系统证据总览</strong><small>Interface / telemetry / imaging</small></span><span class="expand" aria-hidden="true">＋</span></figcaption>
+            </a>
+          </figure>
+          <article class="card card-red reveal">
+            <div class="card-kicker">Personal role / 个人职责</div>
+            <h3>我负责系统集成和样机实现</h3>
+            <p>我负责架构规划、嵌入式开发、结构建模、器件选型、洞洞板验证、装配集成、Blynk 界面和场景测试。MPPT 节点在开源硬件与算法基础上完成参数适配、遥测接入和验证。</p>
+            <ul class="chip-list">
+              <li class="tag">ESP32</li><li class="tag">Embedded C++</li><li class="tag">Power Electronics</li><li class="tag">CAD</li><li class="tag">Blynk</li><li class="tag">OnStep</li><li class="tag">ESP-NOW</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <div class="editorial-grid">
+          <article class="card card-red reveal">
+            <div class="card-kicker">Next iteration / 下一阶段</div>
+            <h3 data-od-id="future-plan-heading">下一步：停用 Blynk，搭建自己的服务</h3>
+            <p>我计划申请云服务器，部署 MQTT Broker 和数据库，再开发管理后台、网页端与移动客户端。新平台通过稳定性测试后，现有 ESP32 节点会逐步退出 Blynk 并切换到 MQTT。</p>
+            <ul class="chip-list"><li class="tag">MQTT Broker</li><li class="tag">Database</li><li class="tag">Admin Console</li><li class="tag">Web Client</li><li class="tag">Mobile Client</li></ul>
+          </article>
+          <a class="page-link reveal" href="future.html"><small>06 / Future Roadmap</small><strong>查看自建物联网平台的迁移计划</strong><span class="arrow">↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark">
+      <div class="section-shell">
+        <header class="section-header reveal">
+          <div><div class="section-number">Explore the case</div><h2>继续阅读</h2></div>
+          <p class="section-intro">下面几页分别记录系统连接、软硬件、实物搭建、成果总结和下一阶段计划。</p>
+        </header>
+        <div class="page-links">
+          <a class="page-link reveal" href="architecture.html"><small>02 / System Architecture</small><strong>私有云、局域网与分布式节点如何连接</strong><span class="arrow">↗</span></a>
+          <a class="page-link reveal" href="nodes.html"><small>03 / Hardware &amp; Firmware</small><strong>基于 ESP32 的分布式控制系统设计</strong><span class="arrow">↗</span></a>
+          <a class="page-link reveal" href="process.html"><small>04 / Physical Build</small><strong>外壳框架与内部结构搭建</strong><span class="arrow">↗</span></a>
+          <a class="page-link reveal" href="outcome.html"><small>05 / Outcome</small><strong>实物成果、已验证能力与项目边界</strong><span class="arrow">↗</span></a>
+          <a class="page-link page-link-wide reveal" href="future.html"><small>06 / Future Roadmap</small><strong>移除 Blynk 依赖，建设 MQTT、数据库、管理后台、网页端和移动客户端</strong><span class="arrow">↗</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-shell"><div><div class="footer-title">羊牌 · 自循环远程天文台</div><p class="footer-note">厦门大学基础医学大四学生的跨学科独立工程实践。</p></div><div class="footer-code">YP / ESP32 / OBSERVATORY<br>PORTFOLIO <span data-year></span></div></div>
+  </footer>
+
+  <div class="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="图片预览"><button class="lightbox-close" type="button" aria-label="关闭图片">×</button><figure class="lightbox-figure"><img src="assets/images/web/observatory-solar-real.jpg" alt="图片预览"><figcaption></figcaption></figure></div>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,110 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="羊牌远程天文台三个 ESP32 节点的硬件、算法和状态机设计。">
+  <title>软硬件设计｜羊牌自循环远程天文台</title>
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body data-page="nodes">
+  <a class="skip-link" href="#main">跳到主要内容</a><div class="scroll-progress" aria-hidden="true"></div>
+  <header class="site-header"><nav class="nav-shell" aria-label="主要导航"><a class="brand" href="index.html"><span class="brand-mark">YP</span><span>羊牌天文台<small>Kawaii Observatory</small></span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-label="打开导航"><span></span><span></span></button><ul class="nav-links"><li><a href="index.html" data-page="home">项目简介</a></li><li><a href="architecture.html" data-page="architecture">系统架构</a></li><li><a href="nodes.html" data-page="nodes">软硬件设计</a></li><li><a href="process.html" data-page="process">实物搭建</a></li><li><a href="outcome.html" data-page="outcome">成果总结</a></li><li><a href="future.html" data-page="future">未来计划</a></li></ul><span class="page-number">03 / 06</span></nav></header>
+
+  <main id="main">
+    <section class="hero" style="--hero-image: url('../images/web/flat-panel-perspective.jpg'); --hero-position: center 46%;">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-content"><div class="hero-copy reveal"><span class="eyebrow">Hardware &amp; Firmware · 03</span><h1>基于 ESP32 的<br><span class="title-accent">分布式控制系统设计</span></h1><p class="hero-lede">中央主控处理现场设备，MPPT 节点管理离网供电，平场节点负责拍摄校准。每块控制板都能单独调试，也能按完整拍摄流程协同工作。</p><div class="hero-meta"><span class="meta-pill">3 × ESP32</span><span class="meta-pill">Hardware + Firmware</span><span class="meta-pill">Stage-tested prototypes</span></div></div><div class="hero-index" aria-hidden="true"><span>Hardware<br>Firmware<br>03</span></div></div>
+    </section>
+
+    <section class="section section-compact">
+      <div class="section-shell">
+        <div class="metrics reveal"><div class="metric"><span class="metric-value">N1</span><span class="metric-label">中央 IoT 主控</span><small>Master gateway</small></div><div class="metric"><span class="metric-value">N2</span><span class="metric-label">MPPT 能源节点</span><small>Energy manager</small></div><div class="metric"><span class="metric-value">N3</span><span class="metric-label">电动平场节点</span><small>Optical calibration</small></div><div class="metric"><span class="metric-value">OK</span><span class="metric-label">三节点实物完成</span><small>Prototype verified</small></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <article class="node-section">
+          <div class="node-copy reveal">
+            <div class="node-label"><b>01</b> Master IoT Gateway</div>
+            <h2>环境、机械与设备调度中枢</h2>
+            <p>主控网关读取雨水和温湿度，直接控制平移顶、电源分路与风扇，并通过蓝牙 SPP 向 OnStep 赤道仪发送指令。</p>
+            <ul class="spec-list">
+              <li><strong>环境避险</strong><span>DHT11、雨淋传感器及专属 PTC/PWM 防结露加热</span></li>
+              <li><strong>平移顶驱动</strong><span>12V 减速电机、齿轮齿条、机械上下限位与到位检测</span></li>
+              <li><strong>赤道仪网关</strong><span>HOME、PARK、UNPARK、SET PARK 等 OnStep 指令</span></li>
+              <li><strong>电源调度</strong><span>监控、ASIAIR、赤道仪与路由器的独立供电管理</span></li>
+              <li><strong>负载监测</strong><span>INA226 采集总电压、电流与实时功耗</span></li>
+            </ul>
+          </div>
+          <div class="node-media reveal">
+            <figure class="media-card"><a class="image-link" href="assets/images/original/control-box-final.jpg" data-lightbox data-full="assets/images/original/control-box-final.jpg" data-caption="完成装配的中央主控与路由器控制箱"><img src="assets/images/web/control-box-final.jpg" alt="带有天线和接口的羊牌中央控制箱实物" loading="lazy"><figcaption class="media-caption"><span><strong>中央控制箱</strong><small>Final enclosure · 实拍</small></span><span class="expand">＋</span></figcaption></a></figure>
+            <figure class="media-card portrait"><a class="image-link" href="assets/images/original/blynk-environment.jpg" data-lightbox data-full="assets/images/original/blynk-environment.jpg" data-caption="中央主控 Blynk 环境与设备管理页面"><img src="assets/images/web/blynk-environment.jpg" alt="中央主控 Blynk 环境管理页面" loading="lazy"><figcaption class="media-caption"><span><strong>控制界面</strong><small>Blynk · UI record</small></span><span class="expand">＋</span></figcaption></a></figure>
+          </div>
+        </article>
+
+        <article class="node-section">
+          <div class="node-copy reveal">
+            <div class="node-label"><b>02</b> MPPT Buck Charger</div>
+            <h2>独立运行的光伏与电池管理</h2>
+            <p>这一节点采用开源硬件设计和开源充电算法。我根据天文台使用的光伏组件、4S LiFePO4 电池和遥测需求完成参数适配与系统接入。同步 Buck 将最高 36V 光伏输入转换为充电输出，控制循环协调 P&amp;O MPPT 与 CC-CV 策略。</p>
+            <ul class="spec-list">
+              <li><strong>方案来源</strong><span>开源硬件设计与开源 MPPT / 充电算法</span></li>
+              <li><strong>功率拓扑</strong><span>同步 Buck，高压光伏输入至 4S LiFePO4 电池</span></li>
+              <li><strong>跟踪算法</strong><span>P&amp;O 最大功率点跟踪与 predictivePWM 限制</span></li>
+              <li><strong>充电管理</strong><span>恒流 / 恒压多阶段控制，可配置满电限制</span></li>
+              <li><strong>保护恢复</strong><span>输入/输出过压过流、反接与 IUV 欠压恢复</span></li>
+              <li><strong>独立遥测</strong><span>板载 Wi‑Fi 直接连接私有 Blynk 服务器</span></li>
+              <li><strong>项目工作</strong><span>参数适配、遥测接入、整机集成与样机验证</span></li>
+            </ul>
+          </div>
+          <div class="node-media reveal">
+            <figure class="media-card portrait"><a class="image-link" href="assets/images/original/blynk-energy.jpg" data-lightbox data-full="assets/images/original/blynk-energy.jpg" data-caption="MPPT 实时电压、电流、SOC、模式与累计发电遥测"><img src="assets/images/web/blynk-energy.jpg" alt="MPPT 节点 Blynk 能源管理页面" loading="lazy"><figcaption class="media-caption"><span><strong>能源遥测</strong><small>Wi‑Fi / Blynk</small></span><span class="expand">＋</span></figcaption></a></figure>
+            <div class="node-media-stack">
+              <figure class="media-card"><a class="image-link" href="assets/images/original/prototype-perfboard.jpg" data-lightbox data-full="assets/images/original/prototype-perfboard.jpg" data-caption="洞洞板阶段的能源与控制模块联合验证"><img src="assets/images/web/prototype-perfboard.jpg" alt="洞洞板和多种电子模块组成的功能验证平台" loading="lazy"><figcaption class="media-caption"><span><strong>电路验证</strong><small>Perfboard prototype</small></span><span class="expand">＋</span></figcaption></a></figure>
+              <figure class="media-card"><a class="image-link" href="assets/images/original/blynk-energy-history.jpg" data-lightbox data-full="assets/images/original/blynk-energy-history.jpg" data-caption="MPPT 历史电流、SOC 与终端调试数据"><img src="assets/images/web/blynk-energy-history.jpg" alt="Blynk 中的光伏历史曲线和电池电量记录" loading="lazy"><figcaption class="media-caption"><span><strong>历史曲线</strong><small>Telemetry record</small></span><span class="expand">＋</span></figcaption></a></figure>
+            </div>
+          </div>
+        </article>
+
+        <article class="node-section">
+          <div class="node-copy reveal">
+            <div class="node-label"><b>03</b> Motorized Flat Panel</div>
+            <h2>与拍摄序列联动的光学校准</h2>
+            <p>平场节点以有限状态机完成展开、恒流发光、加热和安全归位。角度、亮度与湿度阈值保存于 EEPROM；5 kHz、8-bit PWM 用于减少相机滚动快门条纹。</p>
+            <ul class="spec-list">
+              <li><strong>机械展开</strong><span>16 位硬件 PWM 驱动舵机平滑到达记忆角度</span></li>
+              <li><strong>平场发光</strong><span>5 kHz、8-bit PWM 亮度调节，范围 0–100%</span></li>
+              <li><strong>环境联动</strong><span>ESP-NOW 接收主控湿度并自动启动防结露加热</span></li>
+              <li><strong>参数保持</strong><span>EEPROM 保存角度、亮度、加热功率与湿度阈值</span></li>
+              <li><strong>安全收束</strong><span>曝光完成后先关闭光源，再撤离并释放观测光路</span></li>
+            </ul>
+          </div>
+          <div class="node-media reveal">
+            <figure class="media-card"><a class="image-link" href="assets/images/original/flat-panel-perspective.png" data-lightbox data-full="assets/images/original/flat-panel-perspective.png" data-caption="电动平场板三维设计透视图"><img src="assets/images/web/flat-panel-perspective.jpg" alt="红黑配色的电动平场板三维模型" loading="lazy"><figcaption class="media-caption"><span><strong>机构设计</strong><small>3D perspective</small></span><span class="expand">＋</span></figcaption></a></figure>
+            <figure class="media-card portrait"><a class="image-link" href="assets/images/original/blynk-flat-panel.jpg" data-lightbox data-full="assets/images/original/blynk-flat-panel.jpg" data-caption="平场板角度、亮度、加热与湿度设置界面"><img src="assets/images/web/blynk-flat-panel.jpg" alt="Blynk 电动平场板控制界面" loading="lazy"><figcaption class="media-caption"><span><strong>平场控制</strong><small>Angle / light / heater</small></span><span class="expand">＋</span></figcaption></a></figure>
+          </div>
+          <div class="fsm reveal" style="grid-column:1/-1" aria-label="电动平场板三阶段状态机">
+            <article class="fsm-state"><span>STATE 01 / DEPLOY</span><h3>机械定点展开</h3><p>舵机由安全位平滑移动至 EEPROM 预设角度，覆盖镜筒前端。</p></article>
+            <article class="fsm-state"><span>STATE 02 / EXPOSE</span><h3>发光与曝光</h3><p>读取记忆亮度，开启平场光源；根据湿度阈值联动加热。</p></article>
+            <article class="fsm-state"><span>STATE 03 / PARK</span><h3>关闭与归位</h3><p>光源缓灭，舵机返回 0° 安全位，保存状态并回到待机。</p></article>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section-dark">
+      <div class="section-shell"><div class="boundary reveal"><span class="eyebrow eyebrow-red">Engineering note</span><h2>每个节点都能单独观察和调试</h2><p>节点拆分便于功能组织和验证。能源节点可独立观察输入输出与保护状态；主控可单独执行避险和 OnStep 指令；平场节点可直接校准角度与亮度。</p><div class="button-row" style="margin-top:28px"><a class="button button-primary" href="process.html">查看制作与验证 <span class="arrow">→</span></a></div></div></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div><div class="footer-title">羊牌 · 软硬件设计</div><p class="footer-note">Three physical ESP32 nodes, independently testable.</p></div><div class="footer-code">PAGE 03 / 06<br><a href="process.html">NEXT: PHYSICAL BUILD →</a></div></div></footer>
+  <div class="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="图片预览"><button class="lightbox-close" type="button" aria-label="关闭图片">×</button><figure class="lightbox-figure"><img src="assets/images/web/observatory-solar-real.jpg" alt="图片预览"><figcaption></figcaption></figure></div>
+</body>
+</html>
+
+
+
+

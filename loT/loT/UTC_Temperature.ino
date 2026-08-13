@@ -1,4 +1,4 @@
-
+﻿
 // ==================== 功能函数 ====================
 // 初始化UTC温度模块
 void initUTCTemperature() {
@@ -36,20 +36,24 @@ void readUTCTemperature() {
 }
 
 float calculateTemperature(float analogValue) {
+  if (!isfinite(analogValue) || UTC_ADC_RESOLUTION <= 0 || UTC_VCC <= 0.0f || UTC_R1 <= 0.0f || UTC_R0 <= 0.0f || UTC_B == 0.0f || UTC_T0 <= 0.0f) return NAN;
   // 将模拟值转换为电压 (ESP32的ADC是12位的，所以是4095)
   float voltage = (analogValue * UTC_VCC) / UTC_ADC_RESOLUTION;
   
   // 应用电压校正（补偿3.3V输入的影响）
   voltage = voltage * UTC_VOLTAGE_CORRECTION;
+  if (!isfinite(voltage) || voltage <= 0.001f || voltage >= UTC_VCC - 0.001f) return NAN;
   
   // 计算热敏电阻阻值 (使用分压公式)
   float resistance = UTC_R1 * voltage / (UTC_VCC - voltage);
+  if (!isfinite(resistance) || resistance <= 0.0f) return NAN;
 
   // 使用Steinhart-Hart方程计算温度
   // 1/T = 1/T0 + (1/B) * ln(R/R0)
   float steinhart = log(resistance / UTC_R0) / UTC_B;
   steinhart += 1.0 / UTC_T0;
   steinhart = 1.0 / steinhart;
+  if (!isfinite(steinhart)) return NAN;
   
   // 转换为摄氏度
   float temperature = steinhart - 273.15;
@@ -59,17 +63,17 @@ float calculateTemperature(float analogValue) {
   return temperature;
 }
 
-void sendUTCTemperatureToBlynk() {
+void sendUTCTemperatureToMQTT() {
   if (utcDataValid) {
     // 格式化为保留一位小数
     String tempStr = String(utcTemperature, 1);
-    Blynk.virtualWrite(UTC_TEMPERATURE_VPIN, tempStr);
   }
 }
 
 bool isUTCTemperatureValid() {
   return utcDataValid;
 }
+
 
 
 

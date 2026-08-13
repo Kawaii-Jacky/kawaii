@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv \"c:/Users/Administrator/Desktop/h2o/remote astro/kawaii/kawaii/.git\" \"c:/Users/Administrator/Desktop/h2o/remote astro/kawaii/.git\")",
+      "Bash(mv \"c:/Users/Administrator/Desktop/h2o/remote astro/kawaii/kawaii/.gitignore\" \"c:/Users/Administrator/Desktop/h2o/remote astro/kawaii/.gitignore\")",
+      "Bash(mv \"c:/Users/Administrator/Desktop/h2o/remote astro/kawaii/kawaii/.cursor\" \"c:/Users/Administrator/Desktop/h2o/remote astro/kawaii/.cursor\")"
+    ]
+  }
+}

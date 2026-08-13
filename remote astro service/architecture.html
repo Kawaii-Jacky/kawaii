@@ -1,0 +1,80 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="羊牌远程天文台的私有云、4G 局域网与三个 ESP32 节点系统架构。">
+  <title>系统架构｜羊牌自循环远程天文台</title>
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script src="assets/js/site.js" defer></script>
+</head>
+<body data-page="architecture">
+  <a class="skip-link" href="#main">跳到主要内容</a><div class="scroll-progress" aria-hidden="true"></div>
+  <header class="site-header"><nav class="nav-shell" aria-label="主要导航"><a class="brand" href="index.html"><span class="brand-mark">YP</span><span>羊牌天文台<small>Kawaii Observatory</small></span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-label="打开导航"><span></span><span></span></button><ul class="nav-links"><li><a href="index.html" data-page="home">项目简介</a></li><li><a href="architecture.html" data-page="architecture">系统架构</a></li><li><a href="nodes.html" data-page="nodes">软硬件设计</a></li><li><a href="process.html" data-page="process">实物搭建</a></li><li><a href="outcome.html" data-page="outcome">成果总结</a></li><li><a href="future.html" data-page="future">未来计划</a></li></ul><span class="page-number">02 / 06</span></nav></header>
+
+  <main id="main">
+    <section class="hero" style="--hero-image: url('../images/web/cad-control-box.jpg'); --hero-position: center 35%;">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-content"><div class="hero-copy reveal"><span class="eyebrow">System Architecture · 02</span><h1>云端、现场网络<br>和<span class="title-accent">三个节点</span></h1><p class="hero-lede">蒲公英 4G 路由器负责现场联网，三个 ESP32 分别处理中央控制、能源管理和光学校准。</p><div class="hero-meta"><span class="meta-pill">Blynk TCP · 8080</span><span class="meta-pill">Wi‑Fi / Bluetooth SPP</span><span class="meta-pill">ESP-NOW</span><span class="meta-pill">CAD 线框背景</span></div></div><div class="hero-index" aria-hidden="true"><span>System<br>Topology<br>02</span></div></div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <header class="section-header reveal"><div><div class="section-number">01 — Network map</div><h2>完整系统拓扑</h2></div><p class="section-intro">MPPT 节点使用板载 Wi‑Fi 直接连接私有 Blynk 云服务器。平场节点通过 ESP-NOW 接收主控广播的环境湿度。</p></header>
+        <div class="topology reveal" role="img" aria-label="Blynk 客户端连接私有服务器，经 4G 路由器连接中央主控与 MPPT 节点；主控再以 ESP-NOW 连接平场节点，并以蓝牙连接 OnStep 赤道仪">
+          <div class="topology-level single"><article class="topology-node accent"><div class="topology-id"><span>Cloud interface</span><span>01</span></div><h3>Blynk 移动端 / 云客户端</h3><p>远程控制、参数配置、状态显示与历史遥测入口</p></article></div>
+          <div class="topology-connector"></div>
+          <div class="topology-level single"><article class="topology-node"><div class="topology-id"><span>Private service</span><span>TCP 8080</span></div><h3>私有 Blynk 云服务器</h3><p>认证、虚拟引脚数据交换与远程穿透服务</p></article></div>
+          <div class="topology-connector"></div>
+          <div class="topology-level single"><article class="topology-node red"><div class="topology-id"><span>Local gateway</span><span>4G / Wi‑Fi</span></div><h3>蒲公英 4G 插卡路由器</h3><p>建立现场局域网、外网穿透并承载监控 RTSP 流</p></article></div>
+          <div class="topology-connector"></div>
+          <div class="topology-level">
+            <article class="topology-node accent"><div class="topology-id"><span>Node 01</span><span>Wi‑Fi</span></div><h3>ESP32 中央 IoT 主控</h3><p>环境、平移顶、OnStep、电源、风扇与负载调度中枢</p></article>
+            <article class="topology-node"><div class="topology-id"><span>Node 02</span><span>Wi‑Fi</span></div><h3>ESP32 MPPT 能源管理</h3><p>直接上报光伏、电池、SOC、功率及累计发电数据</p></article>
+            <article class="topology-node red"><div class="topology-id"><span>Node 03</span><span>ESP-NOW</span></div><h3>ESP32 电动平场板</h3><p>机械部署、恒流发光、拍摄循环与湿度联动加热</p></article>
+          </div>
+          <div class="topology-protocols"><div class="protocol">BLYNK / TCP 8080</div><div class="protocol">WI‑FI LAN</div><div class="protocol">BLUETOOTH SPP → ONSTEP</div><div class="protocol">ESP‑NOW → HUMIDITY</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark">
+      <div class="section-shell">
+        <header class="section-header reveal"><div><div class="section-number">02 — Distributed roles</div><h2>每个节点只管自己的任务</h2></div><p class="section-intro">平移顶、能源和光学校准分开运行。主控出现问题时，能源节点仍可继续采样和上传数据，单个任务也更容易单独排查。</p></header>
+        <div class="node-grid">
+          <article class="card reveal"><div class="card-kicker">Node 01 / Orchestration</div><h3>中央调度</h3><p>读取雨水、温湿度与总负载；控制平移顶、电源、风扇；通过蓝牙 SPP 向 OnStep 发送 HOME、PARK、UNPARK 与 SET PARK 指令。</p><ul class="chip-list"><li class="tag">DHT11</li><li class="tag">Rain Sensor</li><li class="tag">INA226</li><li class="tag">Bluetooth SPP</li></ul></article>
+          <article class="card reveal"><div class="card-kicker">Node 02 / Energy autonomy</div><h3>能源自治</h3><p>该节点基于开源硬件设计和开源算法，经参数适配后完成同步 Buck 调制、P&amp;O MPPT、CC-CV 充电、动态散热、异常保护和独立遥测。</p><ul class="chip-list"><li class="tag">Open-source base</li><li class="tag">P&amp;O</li><li class="tag">CC-CV</li><li class="tag">System integration</li></ul></article>
+          <article class="card card-red reveal"><div class="card-kicker">Node 03 / Optical calibration</div><h3>拍摄联动</h3><p>以有限状态机协调舵机、平场光源与防结露加热，让 Flat / Dark Flat 校准结束后自动恢复观测光路。</p><ul class="chip-list"><li class="tag">Servo</li><li class="tag">5 kHz PWM</li><li class="tag">EEPROM</li><li class="tag">ESP-NOW</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-shell">
+        <header class="section-header reveal"><div><div class="section-number">03 — System behavior</div><h2>三条关键闭环</h2></div><p class="section-intro">每条控制流程均包含感知、决策、动作和状态回传。</p></header>
+        <ol class="flow-list reveal">
+          <li><span>FLOW 01 / Weather safety</span><h3>天气避险</h3><p>雨水或异常环境触发 → 拍摄设备处理 → 赤道仪归位 → 平移顶关闭 → 状态回传。</p></li>
+          <li><span>FLOW 02 / Imaging</span><h3>远程拍摄</h3><p>Blynk 供电调度 → OnStep 解除归位 → 平移顶开启 → ZWO 拍摄 → 定时安全收束。</p></li>
+          <li><span>FLOW 03 / Energy</span><h3>能源自循环</h3><p>光伏输入采样 → MPPT 跟踪 → 4S LiFePO4 充电 → SOC / 能耗遥测 → 负载持续供电。</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section-dark">
+      <div class="section-shell">
+        <div class="editorial-grid">
+          <figure class="media-card reveal"><a class="image-link" href="assets/images/original/blynk-environment.jpg" data-lightbox data-full="assets/images/original/blynk-environment.jpg" data-caption="Blynk 环境管理界面：温湿度、雨水、平移顶、风扇与 OnStep 指令"><img src="assets/images/web/blynk-environment.jpg" alt="Blynk 环境管理与平移顶控制界面" loading="lazy"><figcaption class="media-caption"><span><strong>中央主控界面</strong><small>Environment / roof / mount</small></span><span class="expand">＋</span></figcaption></a></figure>
+          <article class="card reveal"><div class="card-kicker">Interface evidence</div><h3>一个界面，覆盖观测前后状态</h3><p>环境温湿度、雨水检测、拍摄系统供电、平移顶、加热、风扇模式和 OnStep 指令集中在同一 Blynk 工程中；能源节点使用独立通信与遥测页面。</p><div class="status-strip">界面截图用于证明控制和遥测能力，其中瞬时读数不作为系统额定性能指标。</div><div class="button-row" style="margin-top:24px"><a class="button button-primary" href="nodes.html">查看节点工程 <span class="arrow">→</span></a></div></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-shell"><div><div class="footer-title">羊牌 · 系统架构</div><p class="footer-note">Private cloud / local gateway / distributed nodes.</p></div><div class="footer-code">PAGE 02 / 06<br><a href="nodes.html">NEXT: NODE ENGINEERING →</a></div></div></footer>
+  <div class="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="图片预览"><button class="lightbox-close" type="button" aria-label="关闭图片">×</button><figure class="lightbox-figure"><img src="assets/images/web/observatory-solar-real.jpg" alt="图片预览"><figcaption></figcaption></figure></div>
+</body>
+</html>
+
+
+
+

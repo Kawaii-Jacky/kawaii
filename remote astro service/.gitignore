@@ -1,0 +1,13 @@
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and temporary files
+*.tmp
+*.log
+test_codex_write.txt
+
+# Local archives
+*.zip
+

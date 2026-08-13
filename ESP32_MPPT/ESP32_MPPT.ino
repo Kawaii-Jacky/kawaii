@@ -12,23 +12,18 @@
 #include <SPI.h>               //系统参数 - SPI 库（作者：Arduino）
 #include <WiFi.h>              //系统参数 - WiFi 库（作者：Arduino）
 #include <WiFiClient.h>        //系统参数 - WiFi 库（作者：Arduino）
-#include <BlynkSimpleEsp32.h>  //系统参数 - 手机应用程序的 Blynk WiFi 库
+#include <mqtt_client.h>
+#include <esp_crt_bundle.h>
+#include <esp_arduino_version.h>
+#include "mppt_config.h"
 #include <INA226.h>            //系统参数 - INA226 电流/电压传感器库 (peterus版本)
 #include "esp_task_wdt.h"      //系统参数 - ESP32看门狗库
-TaskHandle_t Core2;            //系统参数 - 用于 ESP32 双核操作
+TaskHandle_t Core2;
+SemaphoreHandle_t settingsMutex = nullptr;            //系统参数 - 用于 ESP32 双核操作
 INA226 ina1;                   //系统参数 - INA226 输入电流/电压传感器
 INA226 ina2;                   //系统参数 - INA226 输出电流/电压传感器
 
-//========================================= Blynk 服务器配置 ==============================================//
-
-//请根据自己的WIFI和Blynk服务器地址修改以下参数
-
-#define WIFI_SSID "Kawaii-Fatty"                    // WiFi 网络名称
-#define WIFI_PASSWORD "Czh040731"           // WiFi 密码
-#define BLYNK_AUTH_TOKEN "010g89Iz_cGYyWqVxjsO8kdHhHW08dea"    // Blynk 身份验证令牌
-#define BLYNK_SERVER "blynk.warmsake.top"                      // Blynk 服务器地址（默认：blynk.cloud）
-#define BLYNK_PORT 8080                                        // Blynk 服务器端口（默认：80，自定义服务器：8080）
-
+// MQTT configuration is stored in mppt_config.h.
 //========================================= GPIO 引脚定义 ==============================================//
 // 系统硬件引脚配置，请根据实际硬件连接修改 //
 #define backflow_MOSFET 27  //系统参数 -回流 MOSFET
@@ -41,22 +36,10 @@ INA226 ina2;                   //系统参数 - INA226 输出电流/电压传感
 #define TempSensor 39       //系统参数 - 温度传感器 GPIO 引脚
 
 
-//========================================= 系统联网参数 ==============================================//
-char
-  ssid[] = WIFI_SSID,      //   用户参数 - 输入您的 WiFi SSID
-  pass[] = WIFI_PASSWORD;  //   用户参数 - 输入您的 WiFi 密码
-
-char
-  auth[] = BLYNK_AUTH_TOKEN,     //   用户参数 - 输入 Blynk 身份验证令牌
-  blynkServer[] = BLYNK_SERVER;  //   Blynk 服务器地址（默认：blynk.cloud）
-
-uint16_t blynkPort = BLYNK_PORT;  //   Blynk 服务器端口（默认：80，自定义服务器：7070）
-
 //========================================= 看门狗参数 ==============================================//
 const unsigned long
   WATCHDOG_TIMEOUT = 30,        // 看门狗超时时间（30秒）
-  WIFI_TIMEOUT = 10000,         // WiFi连接超时时间（10秒）
-  BLYNK_TIMEOUT = 8000;        // Blynk连接超时时间（8秒）
+  WIFI_TIMEOUT = MPPT_WIFI_TIMEOUT_MS;         // WiFi连接超时时间
 
 
 //========================================= MPPT数据结构体 ==============================================//
@@ -252,9 +235,9 @@ void coreTwo(void* pvParameters) {
   //================= CORE0: LOOP (DUAL CORE MODE) ======================//
   while (1) {
 
-    // 调用Blynk.run()处理网络通信
+    // 调用MQTT.run()处理网络通信
     if (WIFI == 1) {
-      Blynk.run();
+      mqttLoop();
     }
     
     // 发送遥测数据
@@ -320,12 +303,14 @@ void setup() {
   //GPIO INITIALIZATION；初始化进行disable，进行输入开路电压检测保护IUV
   buck_Disable();
 
+  EEPROM.begin(512);
+  settingsMutex = xSemaphoreCreateMutex();
+
   //ENABLE DUAL CORE MULTITASKING
   xTaskCreatePinnedToCore(coreTwo, "coreTwo", 10000, NULL, 0, &Core2, 0);
 
   //INITIALIZE AND LIOAD FLASH MEMORY DATA
-  EEPROM.begin(512);
-
+  
   initializeFlashAutoload();                              //Load stored settings from flash memory
 
 }

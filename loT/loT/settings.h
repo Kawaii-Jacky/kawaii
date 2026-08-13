@@ -2,54 +2,28 @@
 #define SETTINGS_H
 
 #include <stdint.h>
+#include "device_config.h"
 /*---------------------------------请按照实际情况修改以下参数设置---------------------------------*/
-//esp_now:by Espressif Systems(1.0.6)
-//ina226:by Rob Tillaart  (0.6.4)
-//DHT sensor library by Adafruit（last version）
 
-
-
-// ========================================== Blynk 配置 ==========================================
-#define BLYNK_TEMPLATE_ID "ESP32-IoT"
-#define BLYNK_TEMPLATE_NAME "ESP32 Dev Board"
-#define BLYNK_AUTH_TOKEN "6DCsRK9DT4ZvuNypTn48hC6d1CFBviFe" //Blynk 令牌
-#define BLYNK_SERVER "blynk.warmsake.top"  // 使用自定义服务器 "blynk.warmsake.top"
-#define BLYNK_PORT 8080               // 使用自定义端口 8080
-
-// ========================================== WiFi 配置 ==========================================
-#define WIFI_SSID "Kawaii-Fatty" //WiFi 名称
-#define WIFI_PASS "Czh040731" //WiFi 密码
-
-//================================库文件设置========================================
-
-//INA226  by Rob Tillaart  (0.6.4)
-//DHT sensor library by Adafruit（last）
-
-
-// ========================================== 邮箱配置 ==========================================
-#define EMAIL_ADDRESS "418324305@qq.com"   // 收件人邮箱地址
-
-// ========================================== MAC地址 配置 ==========================================
-// 全局MAC地址变量定义（供其他模块使用）
-uint8_t onstepMac[6] = {0x78, 0x1C, 0x3C, 0xA2, 0xD0, 0x16};  // OnStep默认MAC地址
-uint8_t flatFieldMac[6] = {0x6C, 0xC8, 0x40, 0x56, 0xAF, 0x70};  // 平场板默认MAC地址
-uint8_t mpptMac[6] = {0x68, 0x25, 0xDD, 0x2E, 0xBA, 0x60};  // MPPT默认MAC地址
-
+// MQTT/Wi-Fi/camera credentials are stored in device_config.h.
+// ========================================== 蓝牙配置 ==========================================
+// OnStep的MAC地址
+uint8_t onstepMac[] = {0x78, 0x1C, 0x3C, 0xA2, 0xD0, 0x16};//OnStep的MAC地址
 // ========================================== 串口配置 ==========================================
 #define SERIAL_BAUD_RATE 115200//串口波特率
 // ======================================== 摄像头控制变量 ====================
 // 摄像头类型选择 - 请选择一种摄像头类型，注释掉另一种
-#define HIKVISION_CAMERA    // 海康摄像头 - 支持RTSP流传输到Blynk
+#define HIKVISION_CAMERA    // 海康摄像头 - RTSP 地址通过 device_config.h 配置
 // #define XIAOMI_CAMERA     // 小米摄像头 - 仅支持电源控制，不传输RTSP流
 
 bool cameraPowerState = false;              // 摄像头电源状态
 unsigned long cameraPowerStartTime = 0;     // 摄像头开启时间
-unsigned long cameraAutoOffTime = 600000;   // 自动关闭时间（10分钟 = 600000毫秒）
+unsigned long cameraAutoOffTime = DEVICE_CAMERA_AUTO_OFF_MS;
 bool cameraStartupComplete = false;         // 摄像头启动完成标志
-unsigned long cameraStartupDelay = 3000;    // 摄像头启动延迟时间（毫秒）
+unsigned long cameraStartupDelay = DEVICE_CAMERA_STARTUP_DELAY_MS;
 
 // 海康摄像头RTSP配置（仅在海康摄像头模式下使用）
-String rtspUrl = "rtsp://admin:Czh040731@10.168.1.102:554/Streaming/Channels/101?transportmode=unicast&profile=Profile_1";
+String rtspUrl = DEVICE_CAMERA_RTSP_URL;
 
 // 小米摄像头配置（仅在小米摄像头模式下使用）
 // 小米摄像头使用自己的平台，不需要RTSP配置
@@ -84,33 +58,25 @@ String rtspUrl = "rtsp://admin:Czh040731@10.168.1.102:554/Streaming/Channels/101
 #define MOTOR_FORWARD_PIN 12     // 电机正转控制引脚 (GPIO21)
 #define MOTOR_REVERSE_PIN 13     // 电机反转控制引脚 (GPIO22)
 
-// 风扇控制引脚配置
-#define FAN_POSITIVE_PIN 15      // 风扇正极控制引脚 (GPIO15)
-#define FAN_NEGATIVE_PIN 14      // 风扇负极控制引脚 (GPIO14)
+// Fan control pins
+#define FAN_POSITIVE_PIN 15
+#define FAN_NEGATIVE_PIN 14
 
 // ========================================== 模块参数配置 ==========================================
-
-// 邮件系统参数配置
-#define EMAIL_QUEUE_SIZE 10  // 邮件队列大小
-#define EMAIL_MAX_LENGTH 500  // 邮件最大长度
-#define EMAIL_SEND_TOTAL 3    // 邮件发送总次数
-#define EMAIL_SEND_INTERVAL 5000  // 邮件发送间隔(ms)
-#define QUEUE_STATUS_INTERVAL 10000  // 队列状态报告间隔(ms)
 
 // 控制参数 - 在settings.h中定义
 uint8_t humidityThreshold = 80;   // 湿度阈值
 uint8_t tempDiffThreshold = 5;    // 温度差值阈值
-unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
+unsigned long reportInterval = DEVICE_MQTT_REPORT_INTERVAL_MS;
 
 // 定时上报配置
 #define REPORT_INTERVAL 5000    // 上报间隔(ms)，1分钟 = 60000ms
 
-// ESP-NOW数据发送配置
-#define ESPNOW_SEND_INTERVAL 5000    // ESP-NOW数据发送间隔(ms)，5秒发送一次
-
 // 传感器读取间隔配置
 
 #define SENSORS_READ_INTERVAL 5000  // 传感器读取间隔(ms)，5秒读取一次
+#define RAIN_CHECK_INTERVAL 1000UL
+#define ESPNOW_SEND_INTERVAL 5000UL
 
 // 读取DHT11间隔配置
 #define READ_DHT11_INTERVAL 10000  // 读取DHT11间隔(ms)，10秒读取一次
@@ -139,102 +105,28 @@ unsigned long reportInterval = 5000;    // 上报间隔（毫秒）
 #define LONGITUDE 116.4074  // 经度（东经为正，北京坐标，可根据实际位置调整）
 #define TIMEZONE 8          // 时区（UTC+8）
 
-// ========================================== Blynk虚拟引脚配置 ==========================================
+// EEPROM layout (keep within EEPROM_SIZE)
+#define EEPROM_SIZE 512
+#define EEPROM_MAGIC_NUMBER 0x4C4F5431UL
+#define EEPROM_MAGIC_NUMBER_ADDR 4
+#define IOT_AUTO_HEATER_ADDR 8
+#define FAN_TEMP_THRESHOLD_ADDR 16
+#define ADDR_BUTTON_STATE 20
+#define ADDR_MOTOR_STATE 24
+#define ADDR_AUTOCLOSE_MOTOR 28
+#define ADDR_TEMP_DIFF_THRESHOLD 32
+#define ADDR_HEATER_AUTO_MODE 36
+#define ADDR_REPORT_INTERVAL 40
+#define ADDR_TIMER_ENABLED 44
+#define ADDR_MOSFET_DELAY_ENABLED 48
+#define ADDR_MOSFET_DELAY_TIME 52
+#define ADDR_HUMIDITY_THRESHOLD 56
+#define MAC_ADDRESSES_ADDR 60
+#define IOT_HUMI_THRESHOLD_ADDR 68
 
-// 终端输出虚拟引脚
-#define TERMINAL_VPIN V0        // Blynk终端输出 (用于状态信息显示)
-
-// Rain_Sensor_demo.ino 虚拟引脚
-#define RAIN_ANALOG_VPIN   V40    // 模拟量输出
-#define RAIN_DIGITAL_VPIN  V41    // 数字量输出（1=有水，0=无水）
-
-// Wireless_to_Motor.ino 虚拟引脚
-#define MOTOR_BUTTON0_VPIN V42    // 电机控制按钮0：正转自锁
-#define MOTOR_BUTTON1_VPIN V43    // 电机控制按钮1：反转自锁
-// #define MOTOR_BUTTON2_VPIN V44    // 电机控制按钮2：正转自锁（备用）
-// #define MOTOR_BUTTON3_VPIN V45    // 电机控制按钮3：反转自锁（备用）
-#define MOTOR_TIMER_VPIN V46      // 电机定时器时间输入控件
-#define MOTOR_TIMER_SWITCH_VPIN V47 // 电机定时器总开关 (0=关闭, 1=开启)
-
-// DHT11.ino 虚拟引脚
-#define DHT_TEMPERATURE_VPIN V48   // DHT11温度显示
-#define DHT_HUMIDITY_VPIN V49      // DHT11湿度显示
-#define DHT_TEMP_SET_VPIN V50      // DHT11温度设置值
-
-// INA226.ino 虚拟引脚
-#define OUTPUT_VOLTAGE_VPIN V51    // 输出电压显示
-#define OUTPUT_CURRENT_VPIN V52    // 输出电流显示
-#define OUTPUT_POWER_VPIN V53    // 输出功率显示
-
-// 充电相关虚拟引脚已移至MPPT处理
-
-#define BT_CONTROL_VPIN V72        // OnStep控制分段开关 (0,1-4)
-#define BT_CONNECT_VPIN V73        // 蓝牙连接开关
-#define BT_DISCONNECT_VPIN V74     // 蓝牙断开开关
-#define BT_POSITION_SET_VPIN V75   // 位置设置分段开关 (0,1-2)
-
-// IRF540 MOSFET控制虚拟引脚
-#define MOSFET_CONTROL_VPIN V55    // MOSFET控制按钮 (0/1 bool) - 同时用作状态显示
-#define MOSFET_RUNTIME_VPIN V56    // MOSFET运行时间显示 (整数，分钟)
-#define MOSFET_DELAY_VPIN V57      // MOSFET延时关闭开关 (0/1 bool)
-#define MOSFET_DELAY_TIME_VPIN V81 // MOSFET延时关闭时间设置 (HH:MM格式)
-
-// UTC电阻模块虚拟引脚
-#define UTC_TEMPERATURE_VPIN V58    // UTC温度显示
-
-// 加热片控制虚拟引脚
-#define HEATER_CONTROL_VPIN V60    // 加热片控制按钮 (0=手动, 1=自动)
-#define HEATER_MANUAL_VPIN V61     // 手动模式开关 (0=关闭, 1=开启)
-#define HEATER_HUMIDITY_SET_VPIN V62  // 湿度阈值设置 (0-100)
-#define HEATER_TEMP_DIFF_SET_VPIN V63 // 温度差值设置 (0-30)
-
-// 上报间隔设置虚拟引脚
-#define REPORT_INTERVAL_VPIN V65         // 上报间隔设置范围：1-300秒
-
-// 恢复默认设置虚拟引脚
-#define RESTORE_DEFAULT_VPIN V66    // 恢复默认设置按钮 (0/1 bool)
-
-// 调试输出按钮虚拟引脚
-#define DEBUG_OUTPUT_VPIN V67       // 调试输出按钮 (0/1 bool)
-
-// ESP-NOW发送间隔设置虚拟引脚
-#define ESPNOW_SEND_INTERVAL_VPIN V80      // ESP-NOW数据发送间隔设置 (1-60秒)
-
-// 摄像头控制虚拟引脚
-#define CAMERA_OUTPUT_VPIN V68    // 相机输出虚拟引脚
-#define CAMERA_POWER_VPIN V69    // 相机电源控制开关 (0=关闭, 1=开启)
-#define CAMERA_STATUS_VPIN V76   // 摄像头状态显示
-#define CAMERA_RUNTIME_VPIN V77  // 摄像头运行时间百分比显示（0-100%）
-#define CAMERA_AUTO_OFF_TIME_VPIN V82  // 摄像头自动关闭时间设置（分钟，1-120分钟）
-
-// 电机控制虚拟引脚
-#define MOTOR_STATUS_VPIN V78    // 电机状态显示
-#define MOTOR_RUNTIME_VPIN V79   // 电机运行时间显示
-
-// 风扇控制虚拟引脚
-#define FAN_CONTROL_VPIN V83     // 风扇控制按钮 (0=手动, 1=自动)
-#define FAN_MANUAL_VPIN V84      // 手动模式开关 (0=关闭, 1=开启)
-#define FAN_TEMP_THRESHOLD_VPIN V85  // 温度阈值设置 (20-60度)
-#define FAN_STATUS_VPIN V86      // 风扇状态显示
-#define FAN_SPEED_VPIN V87  // 风扇状态显示
-// ========================================== EEPROM地址定义 ==========================================
-#define EEPROM_SIZE 512                // EEPROM大小
-#define EEPROM_MAGIC_NUMBER 0         // EEPROM魔数
-#define EEPROM_MAGIC_NUMBER_ADDR 4    // EEPROM魔数地址
-#define IOT_AUTO_HEATER_ADDR   8      // 自动加热带开关地址
-#define FAN_TEMP_THRESHOLD_ADDR 16   // 风扇温度阈值地址
-#define ADDR_BUTTON_STATE 20         // 按钮状态地址
-#define ADDR_MOTOR_STATE 24          // 电机状态地址
-#define ADDR_AUTOCLOSE_MOTOR 28      // 自动开关顶开关地址
-#define ADDR_TEMP_DIFF_THRESHOLD 32  // 温度差值阈值地址
-#define ADDR_HEATER_AUTO_MODE 36     // 加热片自动模式地址
-#define ADDR_REPORT_INTERVAL 40      // 上报间隔地址
-#define ADDR_TIMER_ENABLED 44        // 定时器总开关地址
-#define ADDR_MOSFET_DELAY_ENABLED 48  // MOSFET延时关闭功能开关地址 
-#define ADDR_MOSFET_DELAY_TIME 52    // MOSFET延时关闭时间地址
-#define ADDR_HUMIDITY_THRESHOLD 56   // 湿度阈值地址
-#define MAC_ADDRESSES_ADDR 60        // MAC地址存储地址
-#define IOT_HUMI_THRESHOLD_ADDR 68   // 湿度阈值地址
+// Remote control is provided by MQTT topics in device_config.h.
+// ========================================== 类型定义 ==========================================
+#define uchar unsigned char
+#define uint unsigned int
 
 #endif
-

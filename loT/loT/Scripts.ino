@@ -18,7 +18,6 @@ void handleRainAction() {
       // 雨水停止，重置触发标志
       rainActionTriggered = false;
       Serial.println("雨水停止，重置雨水动作标志");
-      Blynk.virtualWrite(TERMINAL_VPIN, String("雨水停止，重置雨水动作标志"));
     }
   }
 }
@@ -29,7 +28,6 @@ void handleRainAction() {
  */
 void triggerRainCloseAction() {
   Serial.println("检测到雨水，自动触发关顶动作");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("检测到雨水，自动触发关顶动作"));
   
   // 发送正转点动命令（关顶）
   motorForward();
@@ -38,5 +36,4 @@ void triggerRainCloseAction() {
   rainActionTriggered = true;
   
   Serial.println("雨水关顶命令已发送");
-  Blynk.virtualWrite(TERMINAL_VPIN, String("雨水关顶命令已发送"));
 }

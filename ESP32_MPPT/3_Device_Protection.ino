@@ -42,13 +42,13 @@ void backflowControl(){                                                // PV 回
 void Device_Protection(){
   //错误计数器复位
   currentRoutineMillis = millis();
-  if(currentErrorMillis-prevErrorMillis>=errorTimeLimit){                                           //每 millisErrorInterval (ms) 运行例程
-    prevErrorMillis = currentErrorMillis;                                                           //存储上一次
-    if(errorCount<errorCountLimit){errorCount=0;}                                                   //如果在 x 毫秒前低于限制，则重置错误计数  
-    else{}                                                                                          //添加：如果仍然存在太多错误，则睡眠和充电暂停
+  currentErrorMillis = currentRoutineMillis;
+  if(currentErrorMillis-prevErrorMillis>=errorTimeLimit){
+    prevErrorMillis = currentErrorMillis;
+    if(errorCount < errorCountLimit) errorCount=0;
   } 
   //故障检测    
-  ERR = 0;                                                                                          //重置本地错误计数器
+  ERR = 0;
   backflowControl();                                                                                //运行回流电流保护协议   
   
   // 记录保护触发前的状态
@@ -84,7 +84,7 @@ if(voltageInput<vInSystemMin&&buckVoltage<vInSystemMin){FLV=1;ERR++;errorCount++
   // 检测保护触发并发送调试信息
   if((OTE && !lastOTE) || (IOC && !lastIOC) || (OOC && !lastOOC) || 
      (OOV && !lastOOV) || (FLV && !lastFLV) || (IUV && !lastIUV) || (BNC && !lastBNC)) {
-    sendDebugInfoToBlynk();
+    sendDebugInfoToMqtt();
   }
   
   // 更新上次状态

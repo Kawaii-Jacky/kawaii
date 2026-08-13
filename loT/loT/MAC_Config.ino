@@ -79,7 +79,6 @@ bool setOnStepMAC(const String& macStr) {
     saveMACAddressesToEEPROM();
     return true;
   } else {
-    Blynk.virtualWrite(TERMINAL_VPIN, "格式无效");
     return false;
   }
 }
@@ -92,7 +91,6 @@ bool setFlatFieldMAC(const String& macStr) {
     saveMACAddressesToEEPROM();
     return true;
   } else {
-    Blynk.virtualWrite(TERMINAL_VPIN, "格式无效");
     return false;
   }
 }
@@ -105,7 +103,6 @@ bool setMPPTMAC(const String& macStr) {
     saveMACAddressesToEEPROM();
     return true;
   } else {
-    Blynk.virtualWrite(TERMINAL_VPIN, "格式无效");
     return false;
   }
 }
@@ -118,12 +115,9 @@ void displayAllMACAddresses() {
   message += "E:" + macArrayToString(macAddresses.flatFieldMac) + "\n";
   message += "M:" + macArrayToString(macAddresses.mpptMac);
   
-  Blynk.virtualWrite(TERMINAL_VPIN, message);
 }
 
-// ==================== Blynk终端命令处理 ====================
 
-// 处理Blynk终端输入的命令
 void processTerminalCommand(const String& command) {
   String cmd = command;
   cmd.trim();
@@ -157,14 +151,12 @@ void processTerminalCommand(const String& command) {
     helpMsg += "SHOW - 显示所有MAC地址\n";
     helpMsg += "HELP - 显示此帮助信息";
     
-    Blynk.virtualWrite(TERMINAL_VPIN, helpMsg);
   }
   else {
     // 未知命令
     String errorMsg = "未知命令: " + command + "\n";
     errorMsg += "输入 'HELP' 查看可用命令";
     
-    Blynk.virtualWrite(TERMINAL_VPIN, errorMsg);
   }
 }
 
@@ -180,10 +172,6 @@ void initMACConfig() {
   memcpy(mpptMac, macAddresses.mpptMac, 6);
 }
 
-// ==================== Blynk终端输入回调 ====================
 
-// Blynk终端输入处理（需要在主程序中添加）
-// BLYNK_WRITE(TERMINAL_VPIN) {
 //   String input = param.asStr();
 //   processTerminalCommand(input);
-// }

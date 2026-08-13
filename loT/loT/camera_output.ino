@@ -1,4 +1,4 @@
-
+﻿
 // ==================== 摄像头控制功能函数 ====================
 
 // 初始化摄像头控制模块
@@ -21,8 +21,6 @@ void initCameraControl() {
   Serial.println("摄像头控制模块初始化完成");
   
   // 设置默认自动关闭时间显示（分钟）
-  unsigned long defaultAutoOffMinutes = cameraAutoOffTime / 60000;
-  Blynk.virtualWrite(CAMERA_AUTO_OFF_TIME_VPIN, defaultAutoOffMinutes);
 }
 
 // 设置摄像头电源状态
@@ -63,19 +61,13 @@ void setCameraPower(bool state) {
       Serial.println("小米摄像头已关闭");
     #endif
   }
-  
-  // 更新Blynk状态
-  Blynk.virtualWrite(CAMERA_POWER_VPIN, state ? 1 : 0);
+  mqttPublishState("camera", cameraPowerState ? 1 : 0);
 }
 
-// 设置RTSP流到Blynk（仅海康摄像头使用）
 #ifdef HIKVISION_CAMERA
 void setupRTSPStream() {
   Serial.println("设置RTSP流...");
-  // Blynk.virtualWrite(TERMINAL_VPIN, String("设置RTSP流..."));
   
-  // 设置RTSP URL到Blynk摄像头控件
-  Blynk.setProperty(CAMERA_OUTPUT_VPIN, "url", rtspUrl);
   
   Serial.println("RTSP流设置完成");
 }
@@ -83,10 +75,8 @@ void setupRTSPStream() {
 // 清除RTSP流（仅海康摄像头使用）
 void clearRTSPStream() {
   Serial.println("清除RTSP流...");
-  // Blynk.virtualWrite(TERMINAL_VPIN, String("清除RTSP流..."));
   
   // 清除RTSP URL
-  Blynk.setProperty(CAMERA_OUTPUT_VPIN, "url", "");
   
   Serial.println("RTSP流已清除");
 }
@@ -105,17 +95,17 @@ unsigned long getCameraRuntime() {
   return (millis() - cameraPowerStartTime) / 1000;
 }
 
-// 发送摄像头运行时间百分比到Blynk
-void sendCameraStatusToBlynk() {
+void sendCameraStatusToMQTT() {
   if (!cameraPowerState) {
     // 摄像头关闭时，发送0到运行时间引脚
-    Blynk.virtualWrite(CAMERA_RUNTIME_VPIN, 0);
     return;
   }
   
   unsigned long runtime = getCameraRuntime();
   // 计算运行时间占设定时间的百分比
   unsigned long maxRuntime = cameraAutoOffTime / 1000; // 转换为秒
+  if (maxRuntime == 0) return;
+  if (runtime > maxRuntime) runtime = maxRuntime;
   unsigned long percentage = (runtime * 100) / maxRuntime;
   
   // 确保百分比不超过100%
@@ -123,8 +113,7 @@ void sendCameraStatusToBlynk() {
     percentage = 100;
   }
   
-  // 发送运行时间百分比到CAMERA_RUNTIME_VPIN引脚
-  Blynk.virtualWrite(CAMERA_RUNTIME_VPIN, percentage);
+  mqttPublishState("camera_runtime_percent", percentage);
 }
 
 
@@ -147,7 +136,6 @@ void handleCameraControl() {
     if (currentRuntime >= cameraAutoOffTime) {
       unsigned long autoOffMinutes = cameraAutoOffTime / 60000;
       Serial.printf("摄像头运行时间已达%lu分钟，自动关闭\n", autoOffMinutes);
-      Blynk.virtualWrite(TERMINAL_VPIN, String("摄像头运行时间已达") + String(autoOffMinutes) + "分钟，自动关闭");
       setCameraPower(false);
       return;
     }
@@ -155,32 +143,10 @@ void handleCameraControl() {
 }
 
 
-// ==================== Blynk 回调函数 ====================
 
 // 摄像头电源控制按钮回调
-BLYNK_WRITE(CAMERA_POWER_VPIN) {
-  bool newState = (param.asInt() == 1);
-  Serial.print("摄像头电源控制: ");
-  Serial.println(newState ? "开启" : "关闭");
-
-  setCameraPower(newState);
-}
 
 // 摄像头自动关闭时间设置回调
-BLYNK_WRITE(CAMERA_AUTO_OFF_TIME_VPIN) {
-  unsigned long newTimeMinutes = param.asLong();
-  if (newTimeMinutes >= 1 && newTimeMinutes <= 120) {  // 限制在1-120分钟之间
-    cameraAutoOffTime = newTimeMinutes * 60000;  // 将分钟转换为毫秒
-    
-    Serial.printf("摄像头自动关闭时间已更新为: %lu 分钟 (%lu ms)\n", newTimeMinutes, cameraAutoOffTime);
-    Blynk.virtualWrite(TERMINAL_VPIN, String("摄像头自动关闭时间已更新为: ") + String(newTimeMinutes) + " 分钟");
-  } else {
-    Serial.println("摄像头自动关闭时间设置无效，必须在1-120分钟之间");
-    Blynk.virtualWrite(TERMINAL_VPIN, String("摄像头自动关闭时间设置无效，必须在1-120分钟之间"));
-    // 恢复当前值（显示分钟数）
-    Blynk.virtualWrite(CAMERA_AUTO_OFF_TIME_VPIN, cameraAutoOffTime / 60000);
-  }
-}
 
 // ==================== 辅助函数 ====================
 // 检查摄像头是否开启
@@ -195,4 +161,5 @@ unsigned long getCameraRunTime() {
   }
   return (millis() - cameraPowerStartTime) / 1000;
 }
+
 
