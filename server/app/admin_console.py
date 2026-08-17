@@ -200,6 +200,13 @@ def initialize() -> None:
           scope text not null, subject_hash text not null, window_started_at text not null,
           hits integer not null default 0, updated_at text not null,
           primary key(scope, subject_hash))""")
+        db.execute("""create table if not exists user_controller_access (
+          user_id text primary key references users(id) on delete cascade,
+          controller_id text not null references controllers(controller_id) on delete cascade,
+          created_at text not null,
+          created_by text)""")
+        db.execute("drop index if exists user_controller_access_controller")
+        db.execute("create unique index if not exists user_controller_access_single_owner on user_controller_access(controller_id)")
 
 
 @app.on_event("startup")
@@ -246,6 +253,10 @@ class AccountPatch(BaseModel):
 class PermissionPatch(BaseModel):
     role: Literal["user", "operator", "admin"]
     disabled: bool
+
+
+class ControllerAccessPatch(BaseModel):
+    controller_id: str | None = Field(default=None, max_length=32)
 
 
 def current_admin(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
@@ -737,6 +748,18 @@ def user_accounts(access: dict[str, Any] = Depends(read_access)) -> list[dict[st
         rows = db.execute("""
         select u.id,u.display_name,u.email,u.phone,u.email_verified,u.phone_verified,
           u.role,u.disabled,u.created_at,u.updated_at,
+          case when u.role='admin' then 3
+            when (select count(*) from user_controller_access a where a.user_id=u.id)>0 then 3
+            else 0 end as device_count,
+          coalesce((select a.controller_id from user_controller_access a where a.user_id=u.id),
+                   case when u.role='admin' then coalesce(
+                     (select controller_id from controllers where controller_id='default' and enabled=1),
+                     (select controller_id from controllers where enabled=1 order by controller_id limit 1)) else null end) as controller_id,
+          coalesce((select c.name from user_controller_access a join controllers c
+                    on c.controller_id=a.controller_id where a.user_id=u.id),
+                   case when u.role='admin' then coalesce(
+                     (select name from controllers where controller_id='default' and enabled=1),
+                     (select name from controllers where enabled=1 order by controller_id limit 1)) else null end) as controller_name,
           (select count(*) from auth_sessions s
              where s.user_id=u.id and s.revoked_at is null and s.expires_at>%s) as active_sessions,
           (select max(s.last_seen_at) from auth_sessions s where s.user_id=u.id) as last_seen_at
@@ -868,6 +891,91 @@ def update_permissions(
     return {"ok": True, "role": body.role, "disabled": body.disabled}
 
 
+@app.get("/admin-api/users/{user_id}/controller")
+def user_controller_access(
+    user_id: str,
+    _access: dict[str, Any] = Depends(read_access),
+) -> dict[str, Any]:
+    with db_connection() as db:
+        user = db.execute("select id,display_name,role from users where id=%s", (user_id,)).fetchone()
+        if not user:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
+        rows = db.execute(
+            """select c.controller_id,c.name,c.mqtt_host,c.mqtt_port,c.mqtt_username,c.enabled,
+               case when a.user_id is null then false else true end as granted
+               from controllers c left join user_controller_access a
+                 on a.controller_id=c.controller_id and a.user_id=%s
+               where c.enabled=1 order by c.controller_id""",
+            (user_id,),
+        ).fetchall()
+    implicit_controller = None
+    if user["role"] == "admin":
+        implicit_controller = next(
+            (row["controller_id"] for row in rows if row["controller_id"] == "default"),
+            rows[0]["controller_id"] if rows else None,
+        )
+    controllers = []
+    for row in rows:
+        item = dict(row)
+        item["enabled"] = bool(item["enabled"])
+        item["granted"] = bool(item["granted"]) or item["controller_id"] == implicit_controller
+        controllers.append(item)
+    return {
+        "user": {"id": user["id"], "display_name": user["display_name"], "role": user["role"]},
+        "implicit_controller": implicit_controller,
+        "controllers": controllers,
+    }
+
+
+@app.put("/admin-api/users/{user_id}/controller")
+def replace_user_controller_access(
+    user_id: str,
+    body: ControllerAccessPatch,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    requested = body.controller_id.strip().lower() if body.controller_id else None
+    if requested and not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", requested):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid controller id")
+    with db_connection() as db:
+        target = db.execute("select id,role from users where id=%s", (user_id,)).fetchone()
+        if not target:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
+        if target["role"] == "admin":
+            raise HTTPException(status.HTTP_409_CONFLICT, "Administrator uses the default controller")
+        if requested and not db.execute(
+            "select 1 from controllers where controller_id=%s and enabled=1",
+            (requested,),
+        ).fetchone():
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown controller id")
+        owner = db.execute(
+            "select user_id from user_controller_access where controller_id=%s and user_id<>%s",
+            (requested, user_id),
+        ).fetchone() if requested else None
+        if owner:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Controller is already assigned to another account")
+        previous_row = db.execute(
+            "select controller_id from user_controller_access where user_id=%s",
+            (user_id,),
+        ).fetchone()
+        previous = previous_row["controller_id"] if previous_row else None
+        if previous == requested:
+            return {"ok": True, "controller_id": requested, "sessions_revoked": False}
+        db.execute("delete from user_controller_access where user_id=%s", (user_id,))
+        created_at = utc_iso()
+        if requested:
+            db.execute(
+                "insert into user_controller_access(user_id,controller_id,created_at,created_by) values(%s,%s,%s,%s)",
+                (user_id, requested, created_at, admin["user_id"]),
+            )
+        db.execute(
+            "update auth_sessions set revoked_at=%s where user_id=%s and revoked_at is null",
+            (created_at, user_id),
+        )
+    audit(admin, "account.controller", user_id, {"previous": previous, "current": requested}, request)
+    return {"ok": True, "controller_id": requested, "sessions_revoked": True}
+
+
 @app.get("/admin-api/clients")
 def client_sessions(
     limit: int = Query(100, ge=1, le=500),
@@ -932,11 +1040,13 @@ def export_database(
                     created_at,updated_at from users order by created_at,id""",
         "auth_sessions": """select id,user_id,expires_at,created_at,last_seen_at,revoked_at,user_agent,ip_address
                            from auth_sessions order by created_at,id""",
+        "controllers": "select controller_id,name,mqtt_host,mqtt_port,mqtt_username,enabled,updated_at from controllers order by controller_id",
+        "user_controller_access": "select user_id,controller_id,created_at,created_by from user_controller_access order by user_id",
         "admin_audit": "select * from admin_audit order by id",
     }
     groups = {
         "operational": ["devices", "telemetry_latest", "telemetry_samples", "commands", "service_traffic_totals", "service_traffic_samples"],
-        "accounts": ["users", "auth_sessions"],
+        "accounts": ["users", "auth_sessions", "controllers", "user_controller_access"],
         "audit": ["admin_audit"],
         "all": list(table_queries),
     }
@@ -1116,8 +1226,9 @@ def create_device(
     try:
         with db_connection() as db:
             db.execute(
-                "insert into devices(device_id,device_type,name,enabled) values(%s,%s,%s,1)",
-                (device_id, body.device_type.strip(), body.name.strip()),
+                """insert into devices(device_id,device_type,name,enabled,controller_id,logical_device_id)
+                   values(%s,%s,%s,1,'default',%s)""",
+                (device_id, body.device_type.strip(), body.name.strip(), device_id),
             )
     except psycopg.IntegrityError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, "Device already exists") from exc

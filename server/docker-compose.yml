@@ -57,6 +57,7 @@ services:
       SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://sms-gateway:8090/send}
     volumes:
       - ./data:/app/data
+      - ./.secrets:/run/astra-secrets:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -137,6 +138,8 @@ services:
     ports:
       - "127.0.0.1:8100:8100"
     depends_on:
+      api:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       mosquitto:

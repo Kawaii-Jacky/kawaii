@@ -24,17 +24,23 @@ from pydantic import BaseModel, Field
 from app.auth import router as auth_router, init_auth_db, current_user, require_operator, session_is_active
 from app.alerts import notify_alert
 from app.db import connection as conn, database_label, db_lock, is_postgres
+from app.controller_access import (
+    LOGICAL_DEVICES,
+    controller_for_user,
+    init_controller_access_db,
+    load_controller_configs,
+    require_controller,
+    require_device_access,
+    storage_device_id,
+)
 
 try:
     import paho.mqtt.client as mqtt
 except Exception:  # optional for API-only development
     mqtt = None
 
-DEVICE_IDS = ("mppt-001", "esp32-001", "ef-001")
-MQTT_HOST = os.getenv("MQTT_HOST", "127.0.0.1")
-MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
-MQTT_USER = os.getenv("MQTT_USERNAME", "backend-controller")
-MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
+DEVICE_IDS = LOGICAL_DEVICES
+CONTROLLER_CONFIGS = load_controller_configs()
 DEVICE_OFFLINE_SECONDS = max(30, int(os.getenv("DEVICE_OFFLINE_SECONDS", "120")))
 DEVICE_MONITOR_INTERVAL_SECONDS = max(5, int(os.getenv("DEVICE_MONITOR_INTERVAL_SECONDS", "15")))
 COMMAND_RETRY_SECONDS = max(2, int(os.getenv("COMMAND_RETRY_SECONDS", "5")))
@@ -51,14 +57,14 @@ WEATHER_RATE_WINDOW_SECONDS = max(60, int(os.getenv("WEATHER_RATE_WINDOW_SECONDS
 async def lifespan(_app: FastAPI):
     init_db()
     init_auth_db()
-    worker.start()
+    init_controller_access_db(CONTROLLER_CONFIGS)
+    for mqtt_worker in workers.values():
+        mqtt_worker.start()
     try:
         yield
     finally:
-        worker.stop_event.set()
-        if worker.client:
-            worker.client.loop_stop()
-            worker.client.disconnect()
+        for mqtt_worker in workers.values():
+            mqtt_worker.stop()
 
 
 class APITrafficMiddleware:
@@ -106,13 +112,13 @@ class EventHub:
     def __init__(self, queue_size: int = 1000) -> None:
         self.queue_size = queue_size
         self.lock = threading.Lock()
-        self.subscribers: dict[str, queue.Queue[dict[str, Any]]] = {}
+        self.subscribers: dict[str, tuple[queue.Queue[dict[str, Any]], str, str, str]] = {}
 
-    def subscribe(self, session_id: str) -> tuple[str, queue.Queue[dict[str, Any]]]:
+    def subscribe(self, session_id: str, user_id: str, role: str, controller_id: str) -> tuple[str, queue.Queue[dict[str, Any]]]:
         subscription_id = f"{session_id}:{uuid.uuid4()}"
         subscriber: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=self.queue_size)
         with self.lock:
-            self.subscribers[subscription_id] = subscriber
+            self.subscribers[subscription_id] = (subscriber, user_id, role, controller_id)
         return subscription_id, subscriber
 
     def unsubscribe(self, subscription_id: str) -> None:
@@ -122,7 +128,10 @@ class EventHub:
     def publish(self, item: dict[str, Any]) -> None:
         with self.lock:
             subscribers = list(self.subscribers.values())
-        for subscriber in subscribers:
+        event_controller = str(item.get("controller_id", "default"))
+        for subscriber, _user_id, _role, controller_id in subscribers:
+            if controller_id != event_controller:
+                continue
             try:
                 subscriber.put_nowait(item)
             except queue.Full:
@@ -143,6 +152,7 @@ mqtt_rate: dict[str, deque[float]] = {}
 
 OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -221,10 +231,11 @@ def check_weather_rate(request: Request, scope: str) -> None:
             weather_rate.popitem(last=False)
 
 
-def mqtt_message_allowed(device_id: str) -> bool:
+def mqtt_message_allowed(controller_id: str, device_id: str) -> bool:
     now = time.monotonic()
+    rate_key = f"{controller_id}:{device_id}"
     with mqtt_rate_lock:
-        samples = mqtt_rate.setdefault(device_id, deque())
+        samples = mqtt_rate.setdefault(rate_key, deque())
         while samples and now - samples[0] >= 1.0:
             samples.popleft()
         if len(samples) >= MQTT_MAX_MESSAGES_PER_SECOND:
@@ -297,6 +308,17 @@ def publish_event(item: dict[str, Any]) -> None:
     events.publish(item)
 
 
+def device_identity(device_id: str) -> tuple[str, str]:
+    with conn() as c:
+        row = c.execute(
+            "select controller_id,logical_device_id from devices where device_id=?",
+            (device_id,),
+        ).fetchone()
+    if not row:
+        return "default", device_id
+    return str(row["controller_id"] or "default"), str(row["logical_device_id"] or device_id)
+
+
 def parse_iso(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
@@ -331,7 +353,8 @@ def open_device_alert(device_id: str, detail: dict[str, Any]) -> None:
             "insert into device_alerts(id,device_id,alert_type,status,opened_at,detail) values(?,?,?,'open',?,?)",
             (alert_id, device_id, "offline", opened, json.dumps(detail, separators=(",", ":"))),
         )
-    publish_event({"type": "device_alert", "alert": "offline", "device_id": device_id, "status": "open", "ts": opened})
+    controller_id, logical_id = device_identity(device_id)
+    publish_event({"type": "device_alert", "alert": "offline", "controller_id": controller_id, "device_id": logical_id, "status": "open", "ts": opened})
     notify_async("device-offline", f"设备 {device_id} 已离线", f"设备 {device_id} 超过 {DEVICE_OFFLINE_SECONDS} 秒没有遥测或状态心跳。\n时间：{opened}")
 
 
@@ -348,21 +371,29 @@ def resolve_device_alert(device_id: str) -> None:
             "update device_alerts set status='resolved',resolved_at=? where device_id=? and alert_type='offline' and status='open'",
             (resolved, device_id),
         )
-    publish_event({"type": "device_alert", "alert": "offline", "device_id": device_id, "status": "resolved", "ts": resolved})
+    controller_id, logical_id = device_identity(device_id)
+    publish_event({"type": "device_alert", "alert": "offline", "controller_id": controller_id, "device_id": logical_id, "status": "resolved", "ts": resolved})
 
 
 def command_failed_alert(command_id: str, device_id: str, reason: str) -> None:
     failed = now_iso()
-    publish_event({"type": "command_failed", "command_id": command_id, "device_id": device_id, "reason": reason, "ts": failed})
+    controller_id, logical_id = device_identity(device_id)
+    publish_event({"type": "command_failed", "command_id": command_id, "controller_id": controller_id, "device_id": logical_id, "reason": reason, "ts": failed})
     notify_async("command-failed", f"设备 {device_id} 命令失败", f"命令 {command_id} 在重试后仍未成功。\n原因：{reason}\n时间：{failed}")
 
-def ingest(topic: str, payload: str) -> None:
+def ingest(controller_id: str, topic: str | None = None, payload: str | None = None) -> None:
+    if payload is None:
+        controller_id, topic, payload = "default", controller_id, str(topic or "")
+    assert topic is not None
     if len(payload.encode("utf-8")) > MQTT_MAX_PAYLOAD_BYTES:
         return
     parts = topic.split("/")
     if len(parts) != 3 or parts[0] != "devices": return
-    did, kind = parts[1], parts[2]
-    if kind not in {"telemetry", "status", "reported"} or not mqtt_message_allowed(did):
+    logical_id, kind = parts[1], parts[2]
+    if logical_id not in DEVICE_IDS:
+        return
+    did = storage_device_id(controller_id, logical_id)
+    if kind not in {"telemetry", "status", "reported"} or not mqtt_message_allowed(controller_id, logical_id):
         return
     try: body = json.loads(payload)
     except json.JSONDecodeError: return
@@ -370,7 +401,7 @@ def ingest(topic: str, payload: str) -> None:
         return
     # Validate topic/device identity and basic protocol envelope. Legacy flat
     # payloads remain accepted for MQTTX and existing firmware simulation.
-    if body.get("device") and body["device"] != did:
+    if body.get("device") and body["device"] != logical_id:
         return
     if body.get("schema") not in (None, 1):
         return
@@ -420,20 +451,27 @@ def ingest(topic: str, payload: str) -> None:
         open_device_alert(did, {"source": "device-status", "last_seen": ts})
     if failed_command:
         command_failed_alert(failed_command[0], failed_command[1], "device returned a negative acknowledgement")
-    publish_event({"topic": topic, "payload": body})
+    publish_event({"topic": topic, "controller_id": controller_id, "device_id": logical_id, "payload": body})
 
 class CommandIn(BaseModel):
     command: str = Field(min_length=1, max_length=64)
     args: dict[str, Any] = Field(default_factory=dict)
 
 class MQTTWorker:
-    client = None
-    connected = False
-    subscribed = False
-    message_count = 0
-    last_error = ""
-    reliability_thread = None
-    stop_event = threading.Event()
+    def __init__(self, config: dict[str, Any]) -> None:
+        self.controller_id = str(config["id"])
+        self.name = str(config["name"])
+        self.host = str(config["host"])
+        self.port = int(config["port"])
+        self.username = str(config["username"])
+        self.password = str(config.get("password", ""))
+        self.client = None
+        self.connected = False
+        self.subscribed = False
+        self.message_count = 0
+        self.last_error = ""
+        self.reliability_thread = None
+        self.stop_event = threading.Event()
 
     def _on_connect(self, client, _userdata, _flags, reason_code, _properties) -> None:
         self.connected = reason_code == 0
@@ -456,7 +494,7 @@ class MQTTWorker:
             if len(message.payload) > MQTT_MAX_PAYLOAD_BYTES:
                 self.last_error = "MQTT payload exceeded configured limit"
                 return
-            ingest(message.topic, message.payload.decode("utf-8", "strict"))
+            ingest(self.controller_id, message.topic, message.payload.decode("utf-8", "strict"))
             self.message_count += 1
             self.last_error = ""
         except Exception as exc:
@@ -465,28 +503,36 @@ class MQTTWorker:
     def start(self) -> None:
         self.stop_event.clear()
         if mqtt is not None and os.getenv("MQTT_DISABLED", "0") != "1":
-            self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="astroy-api")
-            if MQTT_USER: self.client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+            client_id = f"astroy-api-{self.controller_id}"[:64]
+            self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
+            if self.username:
+                self.client.username_pw_set(self.username, self.password)
             self.client.on_connect = self._on_connect
             self.client.on_subscribe = self._on_subscribe
             self.client.on_disconnect = self._on_disconnect
             self.client.on_message = self._on_message
             try:
                 self.client.reconnect_delay_set(min_delay=1, max_delay=30)
-                self.client.connect_async(MQTT_HOST, MQTT_PORT, 60)
+                self.client.connect_async(self.host, self.port, 60)
                 self.client.loop_start()
             except Exception as exc:
                 self.last_error = f"connect {type(exc).__name__}: {exc}"
-        self.reliability_thread = threading.Thread(target=self._reliability_loop, name="mqtt-reliability", daemon=True)
+        self.reliability_thread = threading.Thread(target=self._reliability_loop, name=f"mqtt-reliability-{self.controller_id}", daemon=True)
         self.reliability_thread.start()
+
+    def stop(self) -> None:
+        self.stop_event.set()
+        if self.client:
+            self.client.loop_stop()
+            self.client.disconnect()
 
     def _reliability_loop(self) -> None:
         next_retention_run = 0.0
         while not self.stop_event.is_set():
             try:
-                monitor_offline_devices()
-                retry_due_commands(self)
-                if time.monotonic() >= next_retention_run:
+                monitor_offline_devices(self.controller_id)
+                retry_due_commands(self, self.controller_id)
+                if self.controller_id == next(iter(workers)) and time.monotonic() >= next_retention_run:
                     prune_telemetry()
                     next_retention_run = time.monotonic() + 3600
                 self.last_error = "" if self.connected else self.last_error
@@ -498,11 +544,17 @@ class MQTTWorker:
         return bool(self.client and self.connected and self.subscribed and self.client.publish(topic, payload, qos=1, retain=topic.endswith("/desired")).rc == 0)
 
 
-def monitor_offline_devices() -> None:
+def monitor_offline_devices(controller_id: str | None = None) -> None:
     now = datetime.now(timezone.utc)
     newly_offline: list[tuple[str, str, int]] = []
     with db_lock, conn() as c:
-        rows = c.execute("select device_id,last_seen,last_status from devices where enabled=1 and last_seen is not null").fetchall()
+        if controller_id:
+            rows = c.execute(
+                "select device_id,last_seen,last_status from devices where controller_id=? and enabled=1 and last_seen is not null",
+                (controller_id,),
+            ).fetchall()
+        else:
+            rows = c.execute("select device_id,last_seen,last_status from devices where enabled=1 and last_seen is not null").fetchall()
         for row in rows:
             try:
                 age = int((now - parse_iso(row["last_seen"])).total_seconds())
@@ -521,15 +573,19 @@ def prune_telemetry() -> int:
         return c.execute("delete from telemetry_samples where ts<?", (cutoff,)).rowcount
 
 
-def retry_due_commands(mqtt_worker: MQTTWorker) -> None:
+def retry_due_commands(mqtt_worker: MQTTWorker, controller_id: str | None = None) -> None:
     now = now_iso()
     with db_lock, conn() as c:
-        rows = c.execute(
-            """select id,device_id,mqtt_payload,payload,attempt_count,max_attempts
-               from commands where status in ('pending','sent','queued','retrying')
-               and next_retry_at is not null and next_retry_at<=? order by next_retry_at limit 50""",
-            (now,),
-        ).fetchall()
+        sql = """select c.id,c.device_id,d.logical_device_id,c.mqtt_payload,c.payload,c.attempt_count,c.max_attempts
+                 from commands c join devices d on d.device_id=c.device_id
+                 where c.status in ('pending','sent','queued','retrying')
+                 and c.next_retry_at is not null and c.next_retry_at<=?"""
+        params: tuple[Any, ...] = (now,)
+        if controller_id:
+            sql += " and d.controller_id=?"
+            params += (controller_id,)
+        sql += " order by c.next_retry_at limit 50"
+        rows = c.execute(sql, params).fetchall()
     for row in rows:
         attempts = int(row["attempt_count"] or 0)
         maximum = int(row["max_attempts"] or COMMAND_MAX_ATTEMPTS)
@@ -544,7 +600,7 @@ def retry_due_commands(mqtt_worker: MQTTWorker) -> None:
                 command_failed_alert(row["id"], row["device_id"], f"no ACK after {attempts} attempts")
             continue
         mqtt_payload = row["mqtt_payload"] or row["payload"]
-        sent = mqtt_worker.publish(f"devices/{row['device_id']}/command", mqtt_payload)
+        sent = mqtt_worker.publish(f"devices/{row['logical_device_id']}/command", mqtt_payload)
         attempted_at = now_iso()
         with db_lock, conn() as c:
             c.execute(
@@ -553,16 +609,24 @@ def retry_due_commands(mqtt_worker: MQTTWorker) -> None:
                 ("sent" if sent else "queued", attempts + 1, attempted_at, iso_after(COMMAND_RETRY_SECONDS), row["id"]),
             )
 
-worker = MQTTWorker()
+workers = {config["id"]: MQTTWorker(config) for config in CONTROLLER_CONFIGS}
+worker = workers[next(iter(workers))]
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    controller_health = {
+        controller_id: {
+            "connected": mqtt_worker.connected,
+            "subscribed": mqtt_worker.subscribed,
+            "messages": mqtt_worker.message_count,
+            "error": mqtt_worker.last_error or None,
+        }
+        for controller_id, mqtt_worker in workers.items()
+    }
     return {
         "ok": True,
-        "mqtt": worker.connected,
-        "mqtt_subscribed": worker.subscribed,
-        "mqtt_messages": worker.message_count,
-        "mqtt_error": worker.last_error or None,
+        "mqtt": all(item["connected"] for item in controller_health.values()),
+        "mqtt_controllers": controller_health,
         "database": database_label(),
         "device_offline_seconds": DEVICE_OFFLINE_SECONDS,
         "command_max_attempts": COMMAND_MAX_ATTEMPTS,
@@ -631,25 +695,39 @@ async def open_meteo_geocoding(
         raise HTTPException(502, f"Open-Meteo geocoding unavailable: {exc}") from exc
 
 @app.get("/api/v1/devices", tags=["Devices"])
-def devices(_user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
-    with conn() as c: return [dict(r) for r in c.execute("select * from devices order by device_id")]
+def devices(user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
+    controller_id = controller_for_user(user)
+    if not controller_id:
+        return []
+    with conn() as c:
+        rows = c.execute(
+            "select * from devices where controller_id=? order by logical_device_id",
+            (controller_id,),
+        ).fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        item["device_id"] = item.pop("logical_device_id")
+        item.pop("controller_id", None)
+        result.append(item)
+    return result
 
 @app.get("/api/v1/devices/{device_id}/latest", tags=["Devices"])
-def latest(device_id: str, _user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
-    with conn() as c: r = c.execute("select * from telemetry_latest where device_id=?", (device_id,)).fetchone()
+def latest(device_id: str, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    device = require_device_access(user, device_id)
+    with conn() as c: r = c.execute("select * from telemetry_latest where device_id=?", (device["device_id"],)).fetchone()
     if not r: raise HTTPException(404, "no telemetry")
     return {"device_id": device_id, "ts": r["ts"], "payload": json.loads(r["payload"])}
 
 @app.get("/api/v1/devices/{device_id}/telemetry", tags=["Devices"])
-def telemetry(device_id: str, limit: int = Query(100, ge=1, le=2000), _user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
-    with conn() as c: rows = c.execute("select ts,seq,payload from telemetry_samples where device_id=? order by ts desc limit ?", (device_id, limit)).fetchall()
+def telemetry(device_id: str, limit: int = Query(100, ge=1, le=2000), user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
+    device = require_device_access(user, device_id)
+    with conn() as c: rows = c.execute("select ts,seq,payload from telemetry_samples where device_id=? order by ts desc limit ?", (device["device_id"], limit)).fetchall()
     return [{"ts": r["ts"], "seq": r["seq"], "payload": json.loads(r["payload"])} for r in rows]
 
 @app.post("/api/v1/devices/{device_id}/commands", tags=["Commands"])
-def command(device_id: str, req: CommandIn, _user: dict[str, Any] = Depends(require_operator)) -> dict[str, Any]:
-    with conn() as c:
-        device = c.execute("select enabled from devices where device_id=?", (device_id,)).fetchone()
-    if not device: raise HTTPException(404, "unknown device")
+def command(device_id: str, req: CommandIn, user: dict[str, Any] = Depends(require_operator)) -> dict[str, Any]:
+    device = require_device_access(user, device_id)
     if not device["enabled"]: raise HTTPException(409, "device is disabled")
     cid = str(uuid.uuid4()); ts = now_iso(); payload = {"schema": 1, "id": cid, "device": device_id, "ts": ts, "command": req.command, **req.args}
     # The current MPPT firmware predates the common command envelope and uses
@@ -690,9 +768,10 @@ def command(device_id: str, req: CommandIn, _user: dict[str, Any] = Depends(requ
             """insert into commands
                (id,device_id,command,payload,status,created_at,mqtt_payload,attempt_count,max_attempts,last_attempt_at,next_retry_at)
                values(?,?,?,?,?,?,?,?,?,?,?)""",
-            (cid, device_id, req.command, raw, "pending", ts, mqtt_raw, 0, COMMAND_MAX_ATTEMPTS, None, ts),
+            (cid, device["device_id"], req.command, raw, "pending", ts, mqtt_raw, 0, COMMAND_MAX_ATTEMPTS, None, ts),
         )
-    sent = worker.publish(f"devices/{device_id}/command", mqtt_raw)
+    mqtt_worker = workers.get(str(device["controller_id"]))
+    sent = bool(mqtt_worker and mqtt_worker.publish(f"devices/{device_id}/command", mqtt_raw))
     command_state = "sent" if sent else "queued"
     with db_lock, conn() as c:
         c.execute(
@@ -703,10 +782,20 @@ def command(device_id: str, req: CommandIn, _user: dict[str, Any] = Depends(requ
     return {"id": cid, "status": "sent" if sent else "queued", "payload": payload}
 
 @app.get("/api/v1/commands/{command_id}", tags=["Commands"])
-def command_status(command_id: str, _user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
-    with conn() as c: r = c.execute("select * from commands where id=?", (command_id,)).fetchone()
+def command_status(command_id: str, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    with conn() as c:
+        r = c.execute(
+            """select c.*,d.controller_id,d.logical_device_id from commands c join devices d
+               on d.device_id=c.device_id where c.id=?""",
+            (command_id,),
+        ).fetchone()
     if not r: raise HTTPException(404, "unknown command")
+    allowed = require_device_access(user, r["logical_device_id"])
+    if allowed["device_id"] != r["device_id"]:
+        raise HTTPException(404, "unknown command")
     result = dict(r); result["payload"] = json.loads(result["payload"]); result["result"] = json.loads(result["result"]) if result["result"] else None
+    result["device_id"] = result.pop("logical_device_id")
+    result.pop("controller_id", None)
     result.pop("mqtt_payload", None)
     return result
 
@@ -715,13 +804,24 @@ def command_status(command_id: str, _user: dict[str, Any] = Depends(current_user
 def alerts(
     status_filter: str | None = Query(None, alias="status", pattern="^(open|resolved)$"),
     limit: int = Query(100, ge=1, le=500),
-    _user: dict[str, Any] = Depends(current_user),
+    user: dict[str, Any] = Depends(current_user),
 ) -> list[dict[str, Any]]:
     sql = "select * from device_alerts"
+    clauses: list[str] = []
     params: tuple[Any, ...] = ()
+    controller_id = controller_for_user(user)
+    if not controller_id:
+        return []
+    with conn() as c:
+        allowed_rows = c.execute("select device_id from devices where controller_id=?", (controller_id,)).fetchall()
+    allowed = [row["device_id"] for row in allowed_rows]
+    clauses.append("device_id in (" + ",".join("?" for _ in allowed) + ")")
+    params += tuple(allowed)
     if status_filter:
-        sql += " where status=?"
-        params = (status_filter,)
+        clauses.append("status=?")
+        params += (status_filter,)
+    if clauses:
+        sql += " where " + " and ".join(clauses)
     sql += " order by opened_at desc limit ?"
     params += (limit,)
     with conn() as c:
@@ -729,13 +829,16 @@ def alerts(
     result = []
     for row in rows:
         item = dict(row)
+        _, logical_id = device_identity(item["device_id"])
+        item["device_id"] = logical_id
         item["detail"] = json.loads(item["detail"] or "{}")
         result.append(item)
     return result
 
 @app.get("/api/v1/events/stream", tags=["Events"])
 def stream(user: dict[str, Any] = Depends(current_user)):
-    subscription_id, subscriber = events.subscribe(user["session_id"])
+    controller_id = require_controller(user)
+    subscription_id, subscriber = events.subscribe(user["session_id"], user["id"], user["role"], controller_id)
 
     def gen():
         try:

@@ -348,7 +348,7 @@
     try {
       const devices = await apiRequest("/api/v1/devices");
       const byId = Object.fromEntries((Array.isArray(devices) ? devices : []).map(device => [device.device_id, device]));
-      const latest = await Promise.all(deviceIds.map(async deviceId => {
+      const latest = await Promise.all(deviceIds.filter(deviceId => byId[deviceId]).map(async deviceId => {
         try { return [deviceId, await apiRequest(`/api/v1/devices/${deviceId}/latest`)]; }
         catch (error) { if (error.status !== 404) throw error; return [deviceId, null]; }
       }));
@@ -991,9 +991,11 @@
     if (!state.auth.user) return;
     buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();
     try {
+      const devices = await apiRequest("/api/v1/devices");
+      const accessible = new Set((Array.isArray(devices) ? devices : []).map(device => device.device_id));
       const [environmentRows, powerRows] = await Promise.all([
-        apiRequest("/api/v1/devices/esp32-001/telemetry?limit=2000"),
-        apiRequest("/api/v1/devices/mppt-001/telemetry?limit=2000")
+        accessible.has("esp32-001") ? apiRequest("/api/v1/devices/esp32-001/telemetry?limit=2000") : [],
+        accessible.has("mppt-001") ? apiRequest("/api/v1/devices/mppt-001/telemetry?limit=2000") : []
       ]);
       const events = [
         ...(Array.isArray(environmentRows) ? environmentRows : []).map(row => ({ ...row, device:"esp32-001" })),

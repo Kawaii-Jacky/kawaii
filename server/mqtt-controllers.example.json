@@ -1,0 +1,20 @@
+{
+  "controllers": [
+    {
+      "id": "observatory-a",
+      "name": "天文台 A",
+      "host": "127.0.0.1",
+      "port": 1883,
+      "username": "backend-controller-a",
+      "password": "CHANGE_ME_A"
+    },
+    {
+      "id": "observatory-b",
+      "name": "天文台 B",
+      "host": "127.0.0.1",
+      "port": 1884,
+      "username": "backend-controller-b",
+      "password": "CHANGE_ME_B"
+    }
+  ]
+}
