@@ -1,0 +1,52 @@
+# WSL development override for a daemon started without bridge/NAT support.
+# Production Linux should use docker-compose.yml without this override.
+services:
+  postgres:
+    network_mode: host
+    ports: []
+    command: postgres -c listen_addresses=127.0.0.1
+  mosquitto:
+    network_mode: host
+    ports: []
+    volumes:
+      - ./mosquitto/mosquitto-wsl.conf:/mosquitto/config/mosquitto.conf:ro
+  api:
+    network_mode: host
+    command: uvicorn app.main:app --host 127.0.0.1 --port 8080
+    environment:
+      MQTT_HOST: 127.0.0.1
+      MQTT_PORT: 1883
+      DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB:-astroy}
+      SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://127.0.0.1:8090/send}
+    ports: []
+  sms-gateway:
+    network_mode: host
+    ports: []
+    command: uvicorn app.sms_gateway:app --host 127.0.0.1 --port 8090
+  admin-console:
+    network_mode: host
+    ports: []
+    extra_hosts: !reset []
+    command: uvicorn app.admin_console:app --host 127.0.0.1 --port 8100
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB:-astroy}
+      MQTT_HOST: 127.0.0.1
+      CLOUDFLARED_METRICS_URL: http://127.0.0.1:20241/metrics
+  web:
+    network_mode: host
+    ports: []
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8000/health"]
+    volumes:
+      - ../remote-observatory-frontend:/usr/share/nginx/html:ro
+      - ./nginx-wsl.conf:/etc/nginx/conf.d/default.conf:ro
+  intro-web:
+    network_mode: host
+    ports: []
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8200/"]
+    volumes:
+      - ../remote-astro-service:/usr/share/nginx/html:ro
+      - ./intro-nginx-wsl.conf:/etc/nginx/conf.d/default.conf:ro
+  cloudflared:
+    network_mode: host

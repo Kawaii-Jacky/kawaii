@@ -1,0 +1,7 @@
+name = "astra-astro-proxy"
+main = "src/index.js"
+compatibility_date = "2026-08-16"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "*"

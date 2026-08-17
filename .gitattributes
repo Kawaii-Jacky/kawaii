@@ -1,0 +1,18 @@
+# Exclude local credentials and operator-only inventories from git archives.
+.env export-ignore
+**/.env export-ignore
+**/.secrets/** export-ignore
+**/*.secret export-ignore
+**/*.secrets export-ignore
+ASTRA-secrets-checklist.md export-ignore
+**/*secrets-checklist*.md export-ignore
+server/mosquitto/passwd* export-ignore
+server/backups/** export-ignore
+**/*.token export-ignore
+**/*.key export-ignore
+**/*.pem export-ignore
+# Firmware configuration headers contain deployment-specific Wi-Fi/MQTT values.
+ESP32_MPPT/mppt_config.h export-ignore
+loT/loT/device_config.h export-ignore
+EF/config.h export-ignore
+CameraWebServer/CameraWebServer/camera_config.h export-ignore

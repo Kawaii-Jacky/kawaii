@@ -1,0 +1,3 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 3 * * * "/mnt/d/h2o/remote astro/server/scripts/backup-cron.sh" >> /var/log/astroy-backup.log 2>&1

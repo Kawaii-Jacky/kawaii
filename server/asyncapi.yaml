@@ -1,0 +1,67 @@
+asyncapi: 3.0.0
+info:
+  title: ASTRA Observatory MQTT Protocol
+  version: 1.1.0
+  description: Device telemetry and command protocol for the ASTRA remote observatory.
+servers:
+  mqtt:
+    host: mqtt.astroy.example:443
+    protocol: wss
+    description: Authenticated MQTT over WebSocket endpoint.
+channels:
+  deviceTelemetry:
+    address: devices/{deviceId}/telemetry
+    parameters:
+      deviceId:
+        description: Registered device identifier.
+    messages:
+      telemetry:
+        payload:
+          type: object
+          properties:
+            schema: { type: integer, const: 1 }
+            device: { type: string }
+            ts: { type: string, format: date-time }
+            seq: { type: integer }
+          additionalProperties: true
+  deviceStatus:
+    address: devices/{deviceId}/status
+    parameters:
+      deviceId:
+        description: Registered device identifier.
+    messages:
+      status:
+        payload:
+          type: object
+          properties:
+            schema: { type: integer, const: 1 }
+            device: { type: string }
+            ts: { type: string, format: date-time }
+            status: { type: string, enum: [online, offline, unknown] }
+          required: [status]
+  deviceCommand:
+    address: devices/{deviceId}/command
+    parameters:
+      deviceId:
+        description: Target device identifier.
+    messages:
+      command:
+        payload:
+          type: object
+          properties:
+            schema: { type: integer, const: 1 }
+            id: { type: string, format: uuid }
+            device: { type: string }
+            ts: { type: string, format: date-time }
+            command: { type: string }
+          required: [id, device, ts, command]
+operations:
+  receiveTelemetry:
+    action: receive
+    channel: { $ref: '#/channels/deviceTelemetry' }
+  receiveStatus:
+    action: receive
+    channel: { $ref: '#/channels/deviceStatus' }
+  sendCommand:
+    action: send
+    channel: { $ref: '#/channels/deviceCommand' }

@@ -1,0 +1,224 @@
+services:
+  mosquitto-config-init:
+    image: eclipse-mosquitto:2
+    restart: "no"
+    user: "0:0"
+    command: >-
+      sh -c 'test -s /target/passwd || cp /seed/passwd /target/passwd;
+      test -s /target/acl.conf || cp /seed/acl.conf /target/acl.conf;
+      chown 1883:1883 /target/passwd /target/acl.conf;
+      chmod 0700 /target/passwd /target/acl.conf'
+    volumes:
+      - ./mosquitto/passwd:/seed/passwd:ro
+      - ./mosquitto/acl.conf:/seed/acl.conf:ro
+      - mosquitto-auth:/target
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-astroy}
+      POSTGRES_USER: ${POSTGRES_USER:-astra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-auth:/mosquitto/dynamic-config:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    ports:
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:9001:9001"
+    depends_on:
+      mosquitto-config-init:
+        condition: service_completed_successfully
+  api:
+    build:
+      context: .
+      network: host
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080
+    env_file: .env
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-astroy}
+      SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://sms-gateway:8090/send}
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+      sms-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  sms-gateway:
+    build:
+      context: .
+      network: host
+    restart: unless-stopped
+    command: uvicorn app.sms_gateway:app --host 0.0.0.0 --port 8090
+    environment:
+      SMS_WEBHOOK_TOKEN: ${SMS_WEBHOOK_TOKEN:?SMS_WEBHOOK_TOKEN is required}
+      SMS_GATEWAY_MODE: ${SMS_GATEWAY_MODE:-mock}
+      ALIYUN_SMS_ACCESS_KEY_ID: ${ALIYUN_SMS_ACCESS_KEY_ID:-}
+      ALIYUN_SMS_ACCESS_KEY_SECRET: ${ALIYUN_SMS_ACCESS_KEY_SECRET:-}
+      ALIYUN_SMS_SIGN_NAME: ${ALIYUN_SMS_SIGN_NAME:-}
+      ALIYUN_SMS_TEMPLATE_CODE: ${ALIYUN_SMS_TEMPLATE_CODE:-}
+      ALIYUN_SMS_TEMPLATE_CODE_REGISTER: ${ALIYUN_SMS_TEMPLATE_CODE_REGISTER:-}
+      ALIYUN_SMS_TEMPLATE_CODE_RECOVER: ${ALIYUN_SMS_TEMPLATE_CODE_RECOVER:-}
+      ALIYUN_SMS_REGION_ID: ${ALIYUN_SMS_REGION_ID:-cn-hangzhou}
+      ALIYUN_PNVS_ACCESS_KEY_ID: ${ALIYUN_PNVS_ACCESS_KEY_ID:-}
+      ALIYUN_PNVS_ACCESS_KEY_SECRET: ${ALIYUN_PNVS_ACCESS_KEY_SECRET:-}
+      ALIYUN_PNVS_SIGN_NAME: ${ALIYUN_PNVS_SIGN_NAME:-}
+      ALIYUN_PNVS_TEMPLATE_CODE: ${ALIYUN_PNVS_TEMPLATE_CODE:-}
+      ALIYUN_PNVS_SCHEME_NAME: ${ALIYUN_PNVS_SCHEME_NAME:-ASTRA}
+      ALIYUN_PNVS_VALID_MINUTES: ${ALIYUN_PNVS_VALID_MINUTES:-10}
+      ALIYUN_PNVS_INTERVAL_SECONDS: ${ALIYUN_PNVS_INTERVAL_SECONDS:-60}
+      SMS_SEND_LIMIT: ${SMS_SEND_LIMIT:-5}
+      SMS_SEND_WINDOW_SECONDS: ${SMS_SEND_WINDOW_SECONDS:-3600}
+    expose:
+      - "8090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  admin-console:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+      network: host
+    restart: unless-stopped
+    command: uvicorn app.admin_console:app --host 0.0.0.0 --port 8100
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-astroy}
+      MOSQUITTO_PASSWORD_FILE: /config/passwd
+      MOSQUITTO_ACL_FILE: /config/acl.conf
+      MPPT_CONFIG_PATH: /firmware/mppt_config.h
+      ESP32_CONFIG_PATH: /firmware/device_config.h
+      EF_CONFIG_PATH: /firmware/ef_config.h
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_USERNAME: ${MQTT_USERNAME:-backend-controller}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD is required}
+      CLOUDFLARED_METRICS_URL: http://host.docker.internal:20241/metrics
+      SERVICE_CONTROL_SOCKET: /run/service-control/control.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - mosquitto-auth:/config:rw
+      - ../ESP32_MPPT/mppt_config.h:/firmware/mppt_config.h:rw
+      - ../loT/loT/device_config.h:/firmware/device_config.h:rw
+      - ../EF/config.h:/firmware/ef_config.h:rw
+      - service-control-run:/run/service-control:rw
+    ports:
+      - "127.0.0.1:8100:8100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+      service-control:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/admin-health', timeout=3).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  service-control:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+      network: host
+    restart: unless-stopped
+    command: python -m app.service_control
+    network_mode: none
+    read_only: true
+    environment:
+      COMPOSE_PROJECT: ${COMPOSE_PROJECT_NAME:-server}
+      SERVICE_CONTROL_SOCKET: /run/service-control/control.sock
+      RESTART_COOLDOWN_SECONDS: 30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - service-control-run:/run/service-control:rw
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; assert os.path.exists('/run/service-control/control.sock')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ../remote-observatory-frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:8000:80"
+    depends_on:
+      api:
+        condition: service_healthy
+      admin-console:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  intro-web:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ../remote-astro-service:/usr/share/nginx/html:ro
+      - ./intro-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:8200:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    user: "0:0"
+    restart: unless-stopped
+    network_mode: host
+    command: tunnel --no-autoupdate --protocol http2 --metrics 127.0.0.1:20241 run --token-file /etc/cloudflared/home-iot.token
+    volumes:
+      - ${CLOUDFLARED_TOKEN_FILE:-/root/.cloudflared/home-iot.token}:/etc/cloudflared/home-iot.token:ro
+    depends_on:
+      - mosquitto
+volumes:
+  postgres-data:
+  mosquitto-data:
+  mosquitto-log:
+  service-control-run:
+  mosquitto-auth:

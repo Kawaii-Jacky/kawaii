@@ -1,0 +1,15 @@
+.env
+.secrets/
+data/
+backups/
+.venv/
+**/__pycache__/
+mosquitto/passwd*
+**/*secrets-checklist*.md
+**/*.secret
+**/*.secrets
+**/*.token
+**/*.key
+**/*.pem
+*.bak
+*.backup

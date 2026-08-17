@@ -32,6 +32,7 @@ build/
 *~
 .DS_Store
 Thumbs.db
+/settings.json
 
 # 日志文件
 *.log
@@ -42,3 +43,26 @@ Thumbs.db
 
 # 用户特定文件
 *.code-workspace
+# Local MQTT credentials and server secrets
+server/mosquitto/passwd*
+server/mosquitto/*.secret
+server/data/
+server/backups/
+server/.venv/
+server/app/__pycache__/
+**/__pycache__/
+*.pyc
+server/wsl-*.txt
+server/.env
+server/.secrets/
+server/cloudflared/*.token
+**/*.token
+**/*.key
+**/*.pem
+
+# Never commit or package local credential inventories.
+ASTRA-secrets-checklist.md
+*secrets-checklist*.md
+**/*secrets-checklist*.md
+*.secret
+*.secrets
