@@ -208,8 +208,13 @@ class ReliabilityTest(unittest.TestCase):
             self.main.command_status(command_id, operator)
         self.assertEqual(hidden.exception.status_code, 404)
 
-    def test_admin_has_implicit_access_to_all_devices(self):
+    def test_admin_cannot_bypass_controller_assignment(self):
         admin = self.create_user("admin")
+        self.assertEqual(self.main.devices(admin), [])
+        with self.assertRaises(HTTPException) as denied:
+            self.main.latest("esp32-001", admin)
+        self.assertEqual(denied.exception.status_code, 404)
+        self.grant(admin["id"])
         self.assertEqual({row["device_id"] for row in self.main.devices(admin)}, set(self.main.DEVICE_IDS))
 
     def test_controller_bundle_has_one_non_admin_owner(self):

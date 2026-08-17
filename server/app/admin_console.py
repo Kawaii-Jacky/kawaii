@@ -749,18 +749,11 @@ def user_accounts(access: dict[str, Any] = Depends(read_access)) -> list[dict[st
         rows = db.execute("""
         select u.id,u.display_name,u.email,u.phone,u.email_verified,u.phone_verified,
           u.role,u.disabled,u.created_at,u.updated_at,
-          case when u.role='admin' then 3
-            when (select count(*) from user_controller_access a where a.user_id=u.id)>0 then 3
+          case when (select count(*) from user_controller_access a where a.user_id=u.id)>0 then 3
             else 0 end as device_count,
-          coalesce((select a.controller_id from user_controller_access a where a.user_id=u.id),
-                   case when u.role='admin' then coalesce(
-                     (select controller_id from controllers where controller_id='default' and enabled=1),
-                     (select controller_id from controllers where enabled=1 order by controller_id limit 1)) else null end) as controller_id,
-          coalesce((select c.name from user_controller_access a join controllers c
-                    on c.controller_id=a.controller_id where a.user_id=u.id),
-                   case when u.role='admin' then coalesce(
-                     (select name from controllers where controller_id='default' and enabled=1),
-                     (select name from controllers where enabled=1 order by controller_id limit 1)) else null end) as controller_name,
+          (select a.controller_id from user_controller_access a where a.user_id=u.id) as controller_id,
+          (select c.name from user_controller_access a join controllers c
+             on c.controller_id=a.controller_id where a.user_id=u.id) as controller_name,
           (select count(*) from auth_sessions s
              where s.user_id=u.id and s.revoked_at is null and s.expires_at>%s) as active_sessions,
           (select max(s.last_seen_at) from auth_sessions s where s.user_id=u.id) as last_seen_at
@@ -909,21 +902,15 @@ def user_controller_access(
                where c.enabled=1 order by c.controller_id""",
             (user_id,),
         ).fetchall()
-    implicit_controller = None
-    if user["role"] == "admin":
-        implicit_controller = next(
-            (row["controller_id"] for row in rows if row["controller_id"] == "default"),
-            rows[0]["controller_id"] if rows else None,
-        )
     controllers = []
     for row in rows:
         item = dict(row)
         item["enabled"] = bool(item["enabled"])
-        item["granted"] = bool(item["granted"]) or item["controller_id"] == implicit_controller
+        item["granted"] = bool(item["granted"])
         controllers.append(item)
     return {
         "user": {"id": user["id"], "display_name": user["display_name"], "role": user["role"]},
-        "implicit_controller": implicit_controller,
+        "implicit_controller": None,
         "controllers": controllers,
     }
 
@@ -942,8 +929,6 @@ def replace_user_controller_access(
         target = db.execute("select id,role from users where id=%s", (user_id,)).fetchone()
         if not target:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
-        if target["role"] == "admin":
-            raise HTTPException(status.HTTP_409_CONFLICT, "Administrator uses the default controller")
         if requested and not db.execute(
             "select 1 from controllers where controller_id=%s and enabled=1",
             (requested,),

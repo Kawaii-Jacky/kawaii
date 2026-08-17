@@ -144,12 +144,6 @@ def controller_for_user(user: dict[str, Any]) -> str | None:
         ).fetchone()
         if row:
             return str(row["controller_id"])
-        if user.get("role") == "admin":
-            default = db.execute("select controller_id from controllers where controller_id='default' and enabled=1").fetchone()
-            if default:
-                return "default"
-            first = db.execute("select controller_id from controllers where enabled=1 order by controller_id limit 1").fetchone()
-            return str(first["controller_id"]) if first else None
     return None
 
 
