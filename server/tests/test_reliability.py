@@ -9,6 +9,7 @@ import unittest
 import uuid
 import queue
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from fastapi import HTTPException
 from starlette.requests import Request
@@ -210,6 +211,54 @@ class ReliabilityTest(unittest.TestCase):
     def test_admin_has_implicit_access_to_all_devices(self):
         admin = self.create_user("admin")
         self.assertEqual({row["device_id"] for row in self.main.devices(admin)}, set(self.main.DEVICE_IDS))
+
+    def test_controller_bundle_has_one_non_admin_owner(self):
+        first = self.create_user()
+        second = self.create_user()
+        self.grant(first["id"], "default")
+        with self.assertRaises(self.db.INTEGRITY_ERRORS):
+            self.grant(second["id"], "default")
+
+    def test_custom_database_device_is_not_exposed_to_bundle_user(self):
+        user = self.create_user()
+        self.grant(user["id"])
+        with self.db.connection() as connection:
+            connection.execute(
+                """insert into devices(device_id,device_type,name,controller_id,logical_device_id)
+                   values(?,?,?,?,?)""",
+                ("custom-001", "other", "Custom", "default", "custom-001"),
+            )
+        self.assertEqual({row["device_id"] for row in self.main.devices(user)}, set(self.main.DEVICE_IDS))
+        with self.assertRaises(HTTPException) as denied:
+            self.main.latest("custom-001", user)
+        self.assertEqual(denied.exception.status_code, 404)
+
+    def test_controller_secret_file_rejects_shared_endpoint_and_weak_password(self):
+        config_path = Path(self.temp.name) / "controllers.json"
+        previous = os.environ.get("MQTT_CONTROLLERS_FILE")
+        try:
+            os.environ["MQTT_CONTROLLERS_FILE"] = str(config_path)
+            config_path.write_text(json.dumps({"controllers": [
+                {"id": "a", "host": "mqtt.local", "port": 1883, "username": "backend-a", "password": "short"},
+            ]}), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "at least 12"):
+                self.main.load_controller_configs()
+            config_path.write_text(json.dumps({"controllers": [
+                {"id": "a", "host": "mqtt.local", "port": 1883, "username": "backend-a", "password": "long-password-a"},
+                {"id": "b", "host": "mqtt.local", "port": 1883, "username": "backend-b", "password": "long-password-b"},
+            ]}), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "more than one controller"):
+                self.main.load_controller_configs()
+        finally:
+            if previous is None:
+                os.environ.pop("MQTT_CONTROLLERS_FILE", None)
+            else:
+                os.environ["MQTT_CONTROLLERS_FILE"] = previous
+
+    def test_public_health_does_not_expose_controller_identifiers(self):
+        health = self.main.health()
+        self.assertNotIn("mqtt_controllers", health)
+        self.assertEqual(health["mqtt_controller_count"], 1)
 
     def test_same_logical_device_ids_are_isolated_between_controller_ports(self):
         first = self.create_user()

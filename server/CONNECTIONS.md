@@ -34,6 +34,11 @@
 `server/mqtt-controllers.example.json`。修改配置后重启 API，再在 `/admin` 为账户
 分配对应套组。
 
+每个配置项必须指向独立的 MQTT Broker 实例，而不只是同一个 Mosquitto 进程的
+不同 listener。因为各套设备内部沿用相同的三个 topic ID，共用 Broker topic 空间
+会造成串线。API 会拒绝重复的 `host + port`、重复的控制器用户名和不足 12 位的
+控制器密码；同一个控制器套组也不能同时分配给两个普通账户。
+
 | 用途 | 端口 | 暴露范围 |
 | --- | ---: | --- |
 | 网页、认证、REST、SSE | `443` | 公网 HTTPS（Cloudflare） |

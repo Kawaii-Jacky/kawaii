@@ -19,6 +19,7 @@ CONTROLLER_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 
 def load_controller_configs() -> list[dict[str, Any]]:
     path = os.getenv("MQTT_CONTROLLERS_FILE", "").strip()
+    from_secret_file = bool(path)
     if path:
         document = json.loads(Path(path).read_text(encoding="utf-8"))
         rows = document.get("controllers", document) if isinstance(document, dict) else document
@@ -35,6 +36,8 @@ def load_controller_configs() -> list[dict[str, Any]]:
         }]
     configs: list[dict[str, Any]] = []
     seen: set[str] = set()
+    endpoints: set[tuple[str, int]] = set()
+    usernames: set[str] = set()
     for raw in rows:
         if not isinstance(raw, dict):
             raise RuntimeError("Each MQTT controller entry must be an object")
@@ -46,17 +49,27 @@ def load_controller_configs() -> list[dict[str, Any]]:
             raise RuntimeError(f"Invalid MQTT port for controller {controller_id}")
         host = str(raw.get("host", "")).strip()
         username = str(raw.get("username", "")).strip()
+        password = str(raw.get("password", ""))
         if not host or not username:
             raise RuntimeError(f"MQTT host and username are required for controller {controller_id}")
+        endpoint = (host.lower(), port)
+        if endpoint in endpoints:
+            raise RuntimeError(f"MQTT endpoint {host}:{port} is assigned to more than one controller")
+        if username.lower() in usernames:
+            raise RuntimeError(f"MQTT username is assigned to more than one controller: {username}")
+        if from_secret_file and len(password) < 12:
+            raise RuntimeError(f"MQTT password must contain at least 12 characters for controller {controller_id}")
         configs.append({
             "id": controller_id,
             "name": str(raw.get("name") or controller_id).strip()[:80],
             "host": host,
             "port": port,
             "username": username,
-            "password": str(raw.get("password", "")),
+            "password": password,
         })
         seen.add(controller_id)
+        endpoints.add(endpoint)
+        usernames.add(username.lower())
     return configs
 
 
@@ -148,6 +161,8 @@ def require_controller(user: dict[str, Any]) -> str:
 
 
 def require_device_access(user: dict[str, Any], logical_device_id: str) -> dict[str, Any]:
+    if logical_device_id not in LOGICAL_DEVICES:
+        raise HTTPException(404, "unknown device")
     controller_id = require_controller(user)
     with connection() as db:
         row = db.execute(

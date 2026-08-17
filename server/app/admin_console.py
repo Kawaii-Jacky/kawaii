@@ -38,6 +38,7 @@ ACL_FILE = Path(os.getenv("MOSQUITTO_ACL_FILE", "/config/acl.conf"))
 HTML_FILE = Path(__file__).with_name("admin_console.html")
 COOKIE_NAME = "astra_admin_console"
 DEVICE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{2,47}$")
+BUNDLE_DEVICE_IDS = {"esp32-001", "mppt-001", "ef-001"}
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 password_hasher = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
 metrics_lock = threading.Lock()
@@ -1269,8 +1270,14 @@ def delete_device(
     admin: dict[str, Any] = Depends(current_admin),
 ) -> dict[str, Any]:
     with db_connection() as db:
-        if not db.execute("select 1 from devices where device_id=%s", (device_id,)).fetchone():
+        device = db.execute(
+            "select controller_id,logical_device_id from devices where device_id=%s",
+            (device_id,),
+        ).fetchone()
+        if not device:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Device not found")
+        if device["controller_id"] and device["logical_device_id"] in BUNDLE_DEVICE_IDS:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Controller bundle devices cannot be deleted")
         db.execute("delete from telemetry_latest where device_id=%s", (device_id,))
         if purge:
             db.execute("delete from telemetry_samples where device_id=%s", (device_id,))

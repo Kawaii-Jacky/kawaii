@@ -626,7 +626,8 @@ def health() -> dict[str, Any]:
     return {
         "ok": True,
         "mqtt": all(item["connected"] for item in controller_health.values()),
-        "mqtt_controllers": controller_health,
+        "mqtt_controller_count": len(controller_health),
+        "mqtt_connected_count": sum(1 for item in controller_health.values() if item["connected"]),
         "database": database_label(),
         "device_offline_seconds": DEVICE_OFFLINE_SECONDS,
         "command_max_attempts": COMMAND_MAX_ATTEMPTS,
@@ -701,8 +702,9 @@ def devices(user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]
         return []
     with conn() as c:
         rows = c.execute(
-            "select * from devices where controller_id=? order by logical_device_id",
-            (controller_id,),
+            """select * from devices where controller_id=? and logical_device_id in (?,?,?)
+               order by logical_device_id""",
+            (controller_id, *DEVICE_IDS),
         ).fetchall()
     result = []
     for row in rows:
@@ -813,7 +815,10 @@ def alerts(
     if not controller_id:
         return []
     with conn() as c:
-        allowed_rows = c.execute("select device_id from devices where controller_id=?", (controller_id,)).fetchall()
+        allowed_rows = c.execute(
+            "select device_id from devices where controller_id=? and logical_device_id in (?,?,?)",
+            (controller_id, *DEVICE_IDS),
+        ).fetchall()
     allowed = [row["device_id"] for row in allowed_rows]
     clauses.append("device_id in (" + ",".join("?" for _ in allowed) + ")")
     params += tuple(allowed)
