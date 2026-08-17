@@ -57,7 +57,8 @@ def load_controller_configs() -> list[dict[str, Any]]:
             raise RuntimeError(f"MQTT endpoint {host}:{port} is assigned to more than one controller")
         if username.lower() in usernames:
             raise RuntimeError(f"MQTT username is assigned to more than one controller: {username}")
-        if from_secret_file and len(password) < 12:
+        password_required = from_secret_file or os.getenv("MQTT_DISABLED", "0") != "1"
+        if password_required and len(password) < 12:
             raise RuntimeError(f"MQTT password must contain at least 12 characters for controller {controller_id}")
         configs.append({
             "id": controller_id,
