@@ -38,7 +38,7 @@ class ReliabilityTest(unittest.TestCase):
         cls.auth.init_auth_db()
         cls.main.init_controller_access_db([
             {"id": "default", "name": "Default", "host": "127.0.0.1", "port": 1883, "username": "backend-controller", "password": ""},
-            {"id": "remote-b", "name": "Remote B", "host": "127.0.0.1", "port": 1884, "username": "backend-controller-b", "password": ""},
+            {"id": "remote-b", "name": "Remote B", "host": "127.0.0.1", "port": 1883, "username": "backend-controller-b", "password": ""},
         ])
 
     @classmethod
@@ -238,7 +238,7 @@ class ReliabilityTest(unittest.TestCase):
             self.main.latest("custom-001", user)
         self.assertEqual(denied.exception.status_code, 404)
 
-    def test_controller_secret_file_rejects_shared_endpoint_and_weak_password(self):
+    def test_controller_secret_file_allows_shared_endpoint_with_isolated_accounts(self):
         config_path = Path(self.temp.name) / "controllers.json"
         previous = os.environ.get("MQTT_CONTROLLERS_FILE")
         try:
@@ -251,6 +251,12 @@ class ReliabilityTest(unittest.TestCase):
             config_path.write_text(json.dumps({"controllers": [
                 {"id": "a", "host": "mqtt.local", "port": 1883, "username": "backend-a", "password": "long-password-a"},
                 {"id": "b", "host": "mqtt.local", "port": 1883, "username": "backend-b", "password": "long-password-b"},
+            ]}), encoding="utf-8")
+            configs = self.main.load_controller_configs()
+            self.assertEqual([row["topic_prefix"] for row in configs], ["controllers/a", "controllers/b"])
+            config_path.write_text(json.dumps({"controllers": [
+                {"id": "a", "host": "mqtt.local", "port": 1883, "username": "backend-a", "password": "long-password-a"},
+                {"id": "b", "host": "mqtt.local", "port": 1883, "username": "backend-a", "password": "long-password-b"},
             ]}), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "more than one controller"):
                 self.main.load_controller_configs()
@@ -265,7 +271,7 @@ class ReliabilityTest(unittest.TestCase):
         self.assertNotIn("mqtt_controllers", health)
         self.assertEqual(health["mqtt_controller_count"], 1)
 
-    def test_same_logical_device_ids_are_isolated_between_controller_ports(self):
+    def test_same_logical_device_ids_are_isolated_between_controller_namespaces(self):
         first = self.create_user()
         second = self.create_user()
         self.grant(first["id"], "default")
@@ -279,6 +285,21 @@ class ReliabilityTest(unittest.TestCase):
         self.assertEqual(self.main.latest("esp32-001", second)["payload"]["dht_temperature"], 9.5)
         with self.assertRaises(HTTPException):
             self.main.latest("esp32-001", first)
+
+    def test_mqtt_worker_uses_controller_topic_namespace(self):
+        mqtt_worker = self.main.MQTTWorker({
+            "id": "remote-b",
+            "name": "Remote B",
+            "host": "127.0.0.1",
+            "port": 1883,
+            "username": "backend-controller-b",
+            "password": "",
+            "topic_prefix": "controllers/remote-b",
+        })
+        self.assertEqual(
+            mqtt_worker.topic("esp32-001", "telemetry"),
+            "controllers/remote-b/devices/esp32-001/telemetry",
+        )
 
     def test_unknown_and_disabled_devices_cannot_ingest(self):
         payload = json.dumps({"schema": 1, "device": "unknown-001", "ts": self.main.now_iso(), "value": 1})

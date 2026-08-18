@@ -3,17 +3,17 @@
     {
       "id": "observatory-a",
       "name": "天文台 A",
-      "host": "mqtt-a.internal",
+      "host": "mosquitto",
       "port": 1883,
-      "username": "backend-controller-a",
+      "username": "backend-observatory-a",
       "password": "CHANGE_ME_A_12_PLUS"
     },
     {
       "id": "observatory-b",
       "name": "天文台 B",
-      "host": "mqtt-b.internal",
-      "port": 1884,
-      "username": "backend-controller-b",
+      "host": "mosquitto",
+      "port": 1883,
+      "username": "backend-observatory-b",
       "password": "CHANGE_ME_B_12_PLUS"
     }
   ]

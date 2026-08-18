@@ -54,6 +54,7 @@ MQTT_HOST = os.getenv("MQTT_HOST", "127.0.0.1")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "backend-controller")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
+PUBLIC_MQTT_URI = os.getenv("PUBLIC_MQTT_URI", "wss://mqtt.astroy.xyz/mqtt")
 CONTROLLER_CONFIG_FILE = Path(os.getenv("MQTT_CONTROLLERS_FILE", "/run/astra-secrets/mqtt-controllers.json"))
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 CLOUDFLARED_METRICS_URL = os.getenv("CLOUDFLARED_METRICS_URL", "http://127.0.0.1:20241/metrics")
@@ -239,12 +240,7 @@ class DevicePatch(BaseModel):
 
 
 class ControllerGroupIn(BaseModel):
-    controller_id: str = Field(min_length=1, max_length=32)
     name: str = Field(min_length=1, max_length=80)
-    mqtt_host: str = Field(min_length=1, max_length=253)
-    mqtt_port: int = Field(ge=1, le=65535)
-    mqtt_username: str = Field(min_length=1, max_length=128)
-    mqtt_password: str = Field(min_length=12, max_length=128)
 
 
 class PasswordIn(BaseModel):
@@ -1105,6 +1101,149 @@ def bundle_storage_id(controller_id: str, logical_device_id: str) -> str:
     return logical_device_id if controller_id == "default" else f"{controller_id}:{logical_device_id}"
 
 
+def generated_controller_id(configs: list[dict[str, Any]]) -> str:
+    existing = {str(row.get("id", "")).lower() for row in configs}
+    for _attempt in range(32):
+        candidate = f"observatory-{secrets.token_hex(3)}"
+        if candidate not in existing:
+            return candidate
+    raise RuntimeError("Unable to allocate a unique controller id")
+
+
+def controller_mqtt_accounts(controller_id: str) -> tuple[str, dict[str, str]]:
+    backend_username = f"backend-{controller_id}"
+    device_usernames = {
+        logical_id: f"{controller_id}-{logical_id}"
+        for logical_id in BUNDLE_DEVICE_SPECS
+    }
+    return backend_username, device_usernames
+
+
+def controller_acl_block(controller_id: str, backend_username: str, device_usernames: dict[str, str]) -> str:
+    root = f"controllers/{controller_id}/devices"
+    lines = [
+        f"# ASTRA CONTROLLER BEGIN {controller_id}",
+        f"user {backend_username}",
+        f"topic read  {root}/+/telemetry",
+        f"topic read  {root}/+/status",
+        f"topic read  {root}/+/reported",
+        f"topic write {root}/+/command",
+        f"topic write {root}/+/desired",
+    ]
+    for logical_id, username in device_usernames.items():
+        device_root = f"{root}/{logical_id}"
+        lines.extend([
+            "",
+            f"user {username}",
+            f"topic write {device_root}/telemetry",
+            f"topic write {device_root}/status",
+            f"topic write {device_root}/reported",
+            f"topic read  {device_root}/command",
+            f"topic read  {device_root}/desired",
+        ])
+    lines.append(f"# ASTRA CONTROLLER END {controller_id}")
+    return "\n".join(lines)
+
+
+def add_controller_acl(controller_id: str, backend_username: str, device_usernames: dict[str, str]) -> None:
+    text = ACL_FILE.read_text(encoding="utf-8") if ACL_FILE.exists() else ""
+    marker = f"# ASTRA CONTROLLER BEGIN {controller_id}"
+    if marker in text:
+        raise RuntimeError("Controller ACL already exists")
+    ACL_FILE.write_text(text.rstrip() + "\n\n" + controller_acl_block(controller_id, backend_username, device_usernames) + "\n", encoding="utf-8")
+
+
+def remove_controller_acl(controller_id: str) -> bool:
+    if not ACL_FILE.exists():
+        return False
+    text = ACL_FILE.read_text(encoding="utf-8")
+    pattern = re.compile(
+        rf"\n?# ASTRA CONTROLLER BEGIN {re.escape(controller_id)}\n.*?# ASTRA CONTROLLER END {re.escape(controller_id)}\n?",
+        re.DOTALL,
+    )
+    updated, count = pattern.subn("\n", text)
+    if count:
+        ACL_FILE.write_text(updated.rstrip() + "\n", encoding="utf-8")
+    return bool(count)
+
+
+def hardware_config_content(
+    controller_id: str,
+    logical_id: str,
+    username: str,
+    password: str,
+) -> tuple[str, str]:
+    topic_root = f"controllers/{controller_id}/devices/{logical_id}"
+    client_id = username
+    values = {
+        "esp32-001": (
+            "device_config.mqtt.h",
+            [
+                ("DEVICE_MQTT_URI", PUBLIC_MQTT_URI),
+                ("DEVICE_MQTT_CLIENT_ID", client_id),
+                ("DEVICE_MQTT_USERNAME", username),
+                ("DEVICE_MQTT_PASSWORD", password),
+                ("DEVICE_MQTT_TOPIC_ROOT", topic_root),
+            ],
+        ),
+        "mppt-001": (
+            "mppt_config.mqtt.h",
+            [
+                ("MPPT_MQTT_URI", PUBLIC_MQTT_URI),
+                ("MPPT_MQTT_CLIENT_ID", client_id),
+                ("MPPT_MQTT_USERNAME", username),
+                ("MPPT_MQTT_PASSWORD", password),
+                ("MPPT_TOPIC_ROOT", topic_root),
+            ],
+        ),
+        "ef-001": (
+            "ef_config.mqtt.h",
+            [
+                ("MQTT_URI", PUBLIC_MQTT_URI),
+                ("MQTT_CLIENT_ID", client_id),
+                ("MQTT_USERNAME", username),
+                ("MQTT_PASSWORD", password),
+                ("MQTT_ROOT", topic_root),
+            ],
+        ),
+    }
+    filename, macros = values[logical_id]
+    content = "#pragma once\n" + "\n".join(f'#define {macro} "{value}"' for macro, value in macros) + "\n"
+    return filename, content
+
+
+def one_time_controller_credentials(
+    controller_id: str,
+    backend_username: str,
+    backend_password: str,
+    device_usernames: dict[str, str],
+    device_passwords: dict[str, str],
+) -> dict[str, Any]:
+    devices = []
+    for logical_id in BUNDLE_DEVICE_SPECS:
+        filename, content = hardware_config_content(
+            controller_id,
+            logical_id,
+            device_usernames[logical_id],
+            device_passwords[logical_id],
+        )
+        devices.append({
+            "device_id": logical_id,
+            "username": device_usernames[logical_id],
+            "password": device_passwords[logical_id],
+            "client_id": device_usernames[logical_id],
+            "topic_root": f"controllers/{controller_id}/devices/{logical_id}",
+            "filename": filename,
+            "content": content,
+        })
+    return {
+        "mqtt_uri": PUBLIC_MQTT_URI,
+        "topic_namespace": f"controllers/{controller_id}",
+        "backend_controller": {"username": backend_username, "password": backend_password},
+        "devices": devices,
+    }
+
+
 @app.get("/admin-api/controller-groups")
 def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dict[str, Any]]:
     with db_connection() as db:
@@ -1147,59 +1286,83 @@ def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dic
 def create_controller_group(
     body: ControllerGroupIn,
     request: Request,
+    response: Response,
     admin: dict[str, Any] = Depends(current_admin),
 ) -> dict[str, Any]:
-    controller_id = body.controller_id.strip().lower()
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
     name = body.name.strip()
-    host = body.mqtt_host.strip()
-    username = body.mqtt_username.strip()
-    if not CONTROLLER_ID_RE.fullmatch(controller_id):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid controller id")
-    if not name or not host or not username:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Controller name, host and username are required")
+    if not name:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Controller name is required")
     try:
         configs = controller_secret_configs()
     except (OSError, ValueError, RuntimeError) as exc:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Controller secret file is invalid: {exc}") from exc
-    if any(str(row.get("id", "")).lower() == controller_id for row in configs):
-        raise HTTPException(status.HTTP_409_CONFLICT, "Controller id already exists")
-    if any((str(row.get("host", "")).lower(), int(row.get("port", 1883))) == (host.lower(), body.mqtt_port) for row in configs):
-        raise HTTPException(status.HTTP_409_CONFLICT, "MQTT host and port are already used by another controller")
-    if any(str(row.get("username", "")).lower() == username.lower() for row in configs):
-        raise HTTPException(status.HTTP_409_CONFLICT, "MQTT username is already used by another controller")
-    with db_connection() as db:
-        if db.execute("select 1 from controllers where controller_id=%s", (controller_id,)).fetchone():
-            raise HTTPException(status.HTTP_409_CONFLICT, "Controller id already exists")
-        db.execute(
-            """insert into controllers(controller_id,name,mqtt_host,mqtt_port,mqtt_username,enabled,updated_at)
-               values(%s,%s,%s,%s,%s,1,%s)""",
-            (controller_id, name, host, body.mqtt_port, username, utc_iso()),
-        )
-        for logical_id, (device_type, device_name) in BUNDLE_DEVICE_SPECS.items():
-            db.execute(
-                """insert into devices(device_id,device_type,name,enabled,controller_id,logical_device_id)
-                   values(%s,%s,%s,1,%s,%s)""",
-                (bundle_storage_id(controller_id, logical_id), device_type, device_name, controller_id, logical_id),
-            )
-    configs.append({
+    controller_id = generated_controller_id(configs)
+    backend_username, device_usernames = controller_mqtt_accounts(controller_id)
+    backend_password = secrets.token_urlsafe(24)
+    device_passwords = {logical_id: secrets.token_urlsafe(24) for logical_id in BUNDLE_DEVICE_SPECS}
+    existing_accounts = set(mqtt_accounts())
+    generated_accounts = {backend_username, *device_usernames.values()}
+    if existing_accounts.intersection(generated_accounts):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Generated MQTT account already exists; retry creation")
+    original_passwords = PASSWORD_FILE.read_bytes() if PASSWORD_FILE.exists() else None
+    original_acl = ACL_FILE.read_bytes() if ACL_FILE.exists() else None
+    config_existed = CONTROLLER_CONFIG_FILE.exists()
+    original_configs = [dict(row) for row in configs]
+    new_config = {
         "id": controller_id,
         "name": name,
-        "host": host,
-        "port": body.mqtt_port,
-        "username": username,
-        "password": body.mqtt_password,
-    })
+        "host": MQTT_HOST,
+        "port": MQTT_PORT,
+        "username": backend_username,
+        "password": backend_password,
+    }
     try:
+        set_mqtt_password(backend_username, backend_password, reload=False)
+        for logical_id in BUNDLE_DEVICE_SPECS:
+            set_mqtt_password(device_usernames[logical_id], device_passwords[logical_id], reload=False)
+        add_controller_acl(controller_id, backend_username, device_usernames)
+        configs.append(new_config)
         write_controller_secret_configs(configs)
-    except OSError as exc:
+        with db_connection() as db:
+            db.execute(
+                """insert into controllers(controller_id,name,mqtt_host,mqtt_port,mqtt_username,enabled,updated_at)
+                   values(%s,%s,%s,%s,%s,1,%s)""",
+                (controller_id, name, MQTT_HOST, MQTT_PORT, backend_username, utc_iso()),
+            )
+            for logical_id, (device_type, device_name) in BUNDLE_DEVICE_SPECS.items():
+                db.execute(
+                    """insert into devices(device_id,device_type,name,enabled,controller_id,logical_device_id)
+                       values(%s,%s,%s,1,%s,%s)""",
+                    (bundle_storage_id(controller_id, logical_id), device_type, device_name, controller_id, logical_id),
+                )
+        reload_mosquitto()
+    except Exception as exc:
+        if original_passwords is None:
+            PASSWORD_FILE.unlink(missing_ok=True)
+        else:
+            PASSWORD_FILE.write_bytes(original_passwords)
+        if original_acl is None:
+            ACL_FILE.unlink(missing_ok=True)
+        else:
+            ACL_FILE.write_bytes(original_acl)
+        if config_existed:
+            write_controller_secret_configs(original_configs)
+        else:
+            CONTROLLER_CONFIG_FILE.unlink(missing_ok=True)
         with db_connection() as db:
             db.execute("delete from devices where controller_id=%s", (controller_id,))
             db.execute("delete from controllers where controller_id=%s", (controller_id,))
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to save controller credentials") from exc
+        try:
+            reload_mosquitto()
+        except Exception:
+            pass
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to provision controller MQTT access") from exc
     restart_ok = True
     restart_warning = None
     try:
-        response = service_control_request({"action": "restart", "service": "api"})
+        response = service_control_request({"action": "restart", "service": "api", "reason": "configuration-change"})
         restart_ok = bool(response.get("ok"))
         restart_warning = None if restart_ok else response.get("error", "API restart failed")
     except (OSError, RuntimeError, json.JSONDecodeError) as exc:
@@ -1209,7 +1372,7 @@ def create_controller_group(
         admin,
         "controller.create",
         controller_id,
-        {"name": name, "mqtt_host": host, "mqtt_port": body.mqtt_port, "mqtt_username": username, "api_restarted": restart_ok},
+        {"name": name, "mqtt_username": backend_username, "topic_namespace": f"controllers/{controller_id}", "api_restarted": restart_ok},
         request,
     )
     return {
@@ -1218,6 +1381,13 @@ def create_controller_group(
         "device_ids": list(BUNDLE_DEVICE_SPECS),
         "api_restarted": restart_ok,
         "warning": restart_warning,
+        "credentials": one_time_controller_credentials(
+            controller_id,
+            backend_username,
+            backend_password,
+            device_usernames,
+            device_passwords,
+        ),
     }
 
 
@@ -1267,8 +1437,25 @@ def delete_controller_group(
     updated_configs = [row for row in original_configs if str(row.get("id", "")).lower() != controller_id]
     if len(updated_configs) == len(original_configs):
         raise HTTPException(status.HTTP_409_CONFLICT, "Controller credentials are not present in the secret file")
+    backend_username, device_usernames = controller_mqtt_accounts(controller_id)
+    managed_acl = ACL_FILE.exists() and f"# ASTRA CONTROLLER BEGIN {controller_id}" in ACL_FILE.read_text(encoding="utf-8")
+    original_passwords = PASSWORD_FILE.read_bytes() if PASSWORD_FILE.exists() else None
+    original_acl = ACL_FILE.read_bytes() if ACL_FILE.exists() else None
     try:
+        if managed_acl:
+            remove_controller_acl(controller_id)
+            existing_accounts = set(mqtt_accounts())
+            for username in [backend_username, *device_usernames.values()]:
+                if username in existing_accounts:
+                    subprocess.run(
+                        ["mosquitto_passwd", "-D", str(PASSWORD_FILE), username],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
         write_controller_secret_configs(updated_configs)
+        if managed_acl:
+            reload_mosquitto()
         with db_connection() as db:
             storage_ids = [bundle_storage_id(controller_id, logical_id) for logical_id in BUNDLE_DEVICE_SPECS]
             db.execute("delete from telemetry_latest where device_id=any(%s)", (storage_ids,))
@@ -1279,14 +1466,24 @@ def delete_controller_group(
             db.execute("delete from devices where controller_id=%s", (controller_id,))
             db.execute("delete from controllers where controller_id=%s", (controller_id,))
     except Exception as exc:
+        if original_passwords is None:
+            PASSWORD_FILE.unlink(missing_ok=True)
+        else:
+            PASSWORD_FILE.write_bytes(original_passwords)
+        if original_acl is None:
+            ACL_FILE.unlink(missing_ok=True)
+        else:
+            ACL_FILE.write_bytes(original_acl)
         try:
             write_controller_secret_configs(original_configs)
-        except OSError:
+            if managed_acl:
+                reload_mosquitto()
+        except Exception:
             pass
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to remove controller group") from exc
     restart_ok = True
     try:
-        response = service_control_request({"action": "restart", "service": "api"})
+        response = service_control_request({"action": "restart", "service": "api", "reason": "configuration-change"})
         restart_ok = bool(response.get("ok"))
     except (OSError, RuntimeError, json.JSONDecodeError):
         restart_ok = False
@@ -1329,7 +1526,7 @@ def reload_mosquitto() -> None:
         raise RuntimeError(result.get("error", "Mosquitto reload failed"))
 
 
-def set_mqtt_password(username: str, password: str, create: bool = False) -> None:
+def set_mqtt_password(username: str, password: str, create: bool = False, reload: bool = True) -> None:
     command = ["mosquitto_passwd"]
     if create and not PASSWORD_FILE.exists():
         command.append("-c")
@@ -1360,7 +1557,8 @@ def set_mqtt_password(username: str, password: str, create: bool = False) -> Non
         if process.poll() is None:
             process.kill()
         os.close(master)
-    reload_mosquitto()
+    if reload:
+        reload_mosquitto()
 
 
 def sync_firmware_password(username: str, password: str) -> bool:
@@ -1389,9 +1587,19 @@ def sync_firmware_password(username: str, password: str) -> bool:
 @app.get("/admin-api/mqtt/accounts")
 def accounts(_admin: dict[str, Any] = Depends(read_access)) -> list[dict[str, Any]]:
     known = set(FIRMWARE_TARGETS)
+    managed: set[str] = set()
+    try:
+        for config in controller_secret_configs():
+            controller_id = str(config.get("id", ""))
+            if controller_id and controller_id != "default":
+                backend_username, device_usernames = controller_mqtt_accounts(controller_id)
+                managed.update({backend_username, *device_usernames.values()})
+    except (OSError, ValueError, RuntimeError):
+        pass
     return [
         {"username": username, "firmware_sync": username in known, "protected": username == "backend-controller"}
         for username in mqtt_accounts()
+        if username not in managed
     ]
 
 
@@ -1404,6 +1612,13 @@ def change_mqtt_password(
 ) -> dict[str, Any]:
     if username not in mqtt_accounts():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "MQTT account not found")
+    for config in controller_secret_configs():
+        controller_id = str(config.get("id", ""))
+        if not controller_id or controller_id == "default":
+            continue
+        backend_username, device_usernames = controller_mqtt_accounts(controller_id)
+        if username in {backend_username, *device_usernames.values()}:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Managed controller credentials must be rotated as a complete bundle")
     if username == "backend-controller":
         raise HTTPException(status.HTTP_409_CONFLICT, "Backend account must be rotated through server secrets")
     try:

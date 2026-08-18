@@ -37,7 +37,6 @@ def load_controller_configs() -> list[dict[str, Any]]:
         }]
     configs: list[dict[str, Any]] = []
     seen: set[str] = set()
-    endpoints: set[tuple[str, int]] = set()
     usernames: set[str] = set()
     for raw in rows:
         if not isinstance(raw, dict):
@@ -53,9 +52,6 @@ def load_controller_configs() -> list[dict[str, Any]]:
         password = str(raw.get("password", ""))
         if not host or not username:
             raise RuntimeError(f"MQTT host and username are required for controller {controller_id}")
-        endpoint = (host.lower(), port)
-        if endpoint in endpoints:
-            raise RuntimeError(f"MQTT endpoint {host}:{port} is assigned to more than one controller")
         if username.lower() in usernames:
             raise RuntimeError(f"MQTT username is assigned to more than one controller: {username}")
         password_required = from_secret_file or os.getenv("MQTT_DISABLED", "0") != "1"
@@ -68,9 +64,9 @@ def load_controller_configs() -> list[dict[str, Any]]:
             "port": port,
             "username": username,
             "password": password,
+            "topic_prefix": "" if controller_id == "default" else f"controllers/{controller_id}",
         })
         seen.add(controller_id)
-        endpoints.add(endpoint)
         usernames.add(username.lower())
     return configs
 

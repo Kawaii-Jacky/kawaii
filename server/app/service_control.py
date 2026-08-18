@@ -61,13 +61,13 @@ def find_container(service: str) -> dict[str, Any]:
     return matches[0]
 
 
-def restart_service(public_name: str) -> dict[str, Any]:
+def restart_service(public_name: str, configuration_change: bool = False) -> dict[str, Any]:
     compose_service = ALLOWED_SERVICES.get(public_name)
     if not compose_service:
         raise ValueError("Service is not restartable")
     now = time.monotonic()
     remaining = COOLDOWN_SECONDS - (now - last_restart.get(public_name, 0))
-    if remaining > 0:
+    if remaining > 0 and not (configuration_change and public_name == "api"):
         raise RuntimeError(f"Restart cooldown active for {int(remaining) + 1}s")
     container = find_container(compose_service)
     container_id = container["Id"]
@@ -99,7 +99,10 @@ def handle(request: dict[str, Any]) -> dict[str, Any]:
         status, _body = docker_request("GET", f"/{DOCKER_API_VERSION}/version")
         return {"ok": status == 200, "allowlist": sorted(ALLOWED_SERVICES)}
     if action == "restart":
-        return restart_service(str(request.get("service", "")))
+        return restart_service(
+            str(request.get("service", "")),
+            configuration_change=request.get("reason") == "configuration-change",
+        )
     if action == "signal":
         return signal_service(str(request.get("service", "")), str(request.get("signal", "")))
     raise ValueError("Unsupported action")

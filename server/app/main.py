@@ -465,6 +465,7 @@ class MQTTWorker:
         self.port = int(config["port"])
         self.username = str(config["username"])
         self.password = str(config.get("password", ""))
+        self.topic_prefix = str(config.get("topic_prefix", "")).strip("/")
         self.client = None
         self.connected = False
         self.subscribed = False
@@ -473,13 +474,17 @@ class MQTTWorker:
         self.reliability_thread = None
         self.stop_event = threading.Event()
 
+    def topic(self, logical_device_id: str, kind: str) -> str:
+        suffix = f"devices/{logical_device_id}/{kind}"
+        return f"{self.topic_prefix}/{suffix}" if self.topic_prefix else suffix
+
     def _on_connect(self, client, _userdata, _flags, reason_code, _properties) -> None:
         self.connected = reason_code == 0
         if self.connected:
             client.subscribe([
-                ("devices/+/telemetry", 1),
-                ("devices/+/status", 1),
-                ("devices/+/reported", 1),
+                (self.topic("+", "telemetry"), 1),
+                (self.topic("+", "status"), 1),
+                (self.topic("+", "reported"), 1),
             ])
 
     def _on_subscribe(self, _client, _userdata, _mid, reason_codes, _properties) -> None:
@@ -494,7 +499,13 @@ class MQTTWorker:
             if len(message.payload) > MQTT_MAX_PAYLOAD_BYTES:
                 self.last_error = "MQTT payload exceeded configured limit"
                 return
-            ingest(self.controller_id, message.topic, message.payload.decode("utf-8", "strict"))
+            topic = message.topic
+            if self.topic_prefix:
+                prefix = f"{self.topic_prefix}/"
+                if not topic.startswith(prefix):
+                    return
+                topic = topic[len(prefix):]
+            ingest(self.controller_id, topic, message.payload.decode("utf-8", "strict"))
             self.message_count += 1
             self.last_error = ""
         except Exception as exc:
@@ -600,7 +611,7 @@ def retry_due_commands(mqtt_worker: MQTTWorker, controller_id: str | None = None
                 command_failed_alert(row["id"], row["device_id"], f"no ACK after {attempts} attempts")
             continue
         mqtt_payload = row["mqtt_payload"] or row["payload"]
-        sent = mqtt_worker.publish(f"devices/{row['logical_device_id']}/command", mqtt_payload)
+        sent = mqtt_worker.publish(mqtt_worker.topic(row["logical_device_id"], "command"), mqtt_payload)
         attempted_at = now_iso()
         with db_lock, conn() as c:
             c.execute(
@@ -773,7 +784,7 @@ def command(device_id: str, req: CommandIn, user: dict[str, Any] = Depends(requi
             (cid, device["device_id"], req.command, raw, "pending", ts, mqtt_raw, 0, COMMAND_MAX_ATTEMPTS, None, ts),
         )
     mqtt_worker = workers.get(str(device["controller_id"]))
-    sent = bool(mqtt_worker and mqtt_worker.publish(f"devices/{device_id}/command", mqtt_raw))
+    sent = bool(mqtt_worker and mqtt_worker.publish(mqtt_worker.topic(device_id, "command"), mqtt_raw))
     command_state = "sent" if sent else "queued"
     with db_lock, conn() as c:
         c.execute(

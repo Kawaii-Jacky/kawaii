@@ -27,17 +27,17 @@
 - 授权发生变化时，该用户已有会话会被撤销，需要重新登录后才可使用新权限。
 
 前端用户不会获得 `backend-controller` 或任何 MQTT 用户名、密码，也不会直接
-连接 MQTT 端口。网页账户始终通过统一 HTTPS `443` 访问服务端。服务端可通过
-`MQTT_CONTROLLERS_FILE` 同时连接多个控制器；每个控制器可配置独立的 MQTT
-主机、端口、用户名和密码。真实配置放在被忽略的
-`server/.secrets/mqtt-controllers.json`，格式参考
-`server/mqtt-controllers.example.json`。修改配置后重启 API，再在 `/admin` 为账户
-分配对应套组。
+连接 MQTT 端口。网页账户始终通过统一 HTTPS `443` 访问服务端。管理员在
+`/admin` 只需填写套组名称；服务端自动生成套组 ID、Backend Controller 凭据、
+三台设备各自的凭据和 Topic 命名空间，写入 Mosquitto 密码库与 ACL，并重启 API。
+真实控制器配置保存在被忽略的 `server/.secrets/mqtt-controllers.json`。
 
-每个配置项必须指向独立的 MQTT Broker 实例，而不只是同一个 Mosquitto 进程的
-不同 listener。因为各套设备内部沿用相同的三个 topic ID，共用 Broker topic 空间
-会造成串线。API 会拒绝重复的 `host + port`、重复的控制器用户名和不足 12 位的
-控制器密码；同一个控制器套组也不能同时分配给两个普通账户。
+所有硬件仍使用统一的 `wss://mqtt.astroy.xyz/mqtt` 安全入口。默认套组保留旧的
+`devices/<device-id>/...` Topic；新套组使用
+`controllers/<controller-id>/devices/<device-id>/...`，并由独立账号与 ACL 强制
+隔离，因此相同的三个逻辑设备 ID 不会串线，也无需为每套设备开放新的公网端口。
+创建成功后，管理页面只显示一次包含明文密码的三份硬件配置；这些密码不会写入
+Cookie、数据库导出或 Git。
 
 | 用途 | 端口 | 暴露范围 |
 | --- | ---: | --- |

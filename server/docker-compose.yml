@@ -126,6 +126,7 @@ services:
       MQTT_PORT: 1883
       MQTT_USERNAME: ${MQTT_USERNAME:-backend-controller}
       MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD is required}
+      PUBLIC_MQTT_URI: ${PUBLIC_MQTT_URI:-wss://mqtt.astroy.xyz/mqtt}
       MQTT_CONTROLLERS_FILE: /run/astra-secrets/mqtt-controllers.json
       CLOUDFLARED_METRICS_URL: http://host.docker.internal:20241/metrics
       SERVICE_CONTROL_SOCKET: /run/service-control/control.sock
