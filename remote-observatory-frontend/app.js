@@ -2645,7 +2645,6 @@
     $$('[data-terminal-debug]').forEach(button=>button.addEventListener("click",()=>{const card=button.closest('[data-terminal-card]');const device=$('[data-terminal-device]',card)?.value||"esp32-001";sendCommand(device,{debug:true},"打印调试信息");}));
     $$('[data-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-range]').forEach(b=>b.classList.remove("active"));button.classList.add("active");state.historyRange=Number(button.dataset.range);drawCharts()}));
     $$('[data-device-history-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-device-history-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.deviceHistory.range=Number(button.dataset.deviceHistoryRange);rebuildDeviceHistory();drawDeviceHistoryChart()}));
-    $("#device-history-connect-unknown")?.addEventListener("change",event=>{state.deviceHistory.connectUnknown=event.currentTarget.checked;drawDeviceHistoryChart()});
     $$('[data-power-y-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-power-y-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.powerYRange=button.dataset.powerYRange;drawCharts()}));
     $$('[data-series]').forEach(button=>button.addEventListener("click",()=>{button.classList.toggle("active");state.visibleSeries[button.dataset.series]=button.classList.contains("active");drawCharts()}));
     $("#export-data").addEventListener("click",exportCsv);

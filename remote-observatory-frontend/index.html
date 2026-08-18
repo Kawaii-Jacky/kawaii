@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101110" />
   <meta name="description" content="远程天文台控制中心：环境、电源、屋顶、赤道仪与平场板统一监控。" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260819-20" />
+    <link rel="stylesheet" href="app.css?v=20260819-21" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -327,7 +327,7 @@
           </article>
           <article class="chart-card profile-device-history-card dark-card">
             <header class="chart-header"><div><span class="section-icon"><i data-lucide="activity"></i></span><div><h3>设备在线历史</h3></div></div></header>
-            <div class="device-history-toolbar"><span>时间范围</span><button data-device-history-range="10">10m</button><button data-device-history-range="30">30m</button><button data-device-history-range="60">1h</button><button data-device-history-range="360" class="active">6h</button><button data-device-history-range="1440">24h</button><button data-device-history-range="10080">1w</button><button data-device-history-range="43200">1个月</button><details class="device-history-advanced"><summary>高级设置</summary><label><input id="device-history-connect-unknown" type="checkbox" />未知区间连线</label></details></div>
+            <div class="device-history-toolbar"><span>时间范围</span><button data-device-history-range="10">10m</button><button data-device-history-range="30">30m</button><button data-device-history-range="60">1h</button><button data-device-history-range="360" class="active">6h</button><button data-device-history-range="1440">24h</button><button data-device-history-range="10080">1w</button><button data-device-history-range="43200">1个月</button></div>
             <div class="device-history-legend"><span><i style="--series-color:#54d79a"></i>主控 · esp32-001</span><span><i style="--series-color:#7fc8ff"></i>能源 · mppt-001</span><span><i style="--series-color:#f2a14b"></i>平场板 · ef-001</span></div>
             <div class="chart-wrap device-history-wrap"><div class="device-history-empty" id="device-history-empty">正在读取真实设备历史</div><canvas id="device-history-chart" hidden></canvas></div>
           </article>
@@ -398,7 +398,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260819-19"></script>
+  <script src="app.js?v=20260819-20"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
