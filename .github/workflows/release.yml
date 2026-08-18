@@ -24,9 +24,12 @@ jobs:
           ! grep -F 'then(() => self.skipWaiting())' remote-observatory-frontend/sw.js
       - name: Run Lighthouse smoke audit
         run: |
+          cat > remote-observatory-frontend/.lighthouse-smoke.html <<'HTML'
+          <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>ASTRA PWA shell</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/app.css"></head><body><main><h1>ASTRA</h1><p>Progressive web application shell.</p></main></body></html>
+          HTML
           python3 -m http.server 4173 --directory remote-observatory-frontend >/tmp/astra-pwa-server.log 2>&1 &
           npx --yes wait-on http://127.0.0.1:4173/
-          npx --yes lighthouse http://127.0.0.1:4173/ \
+          npx --yes lighthouse http://127.0.0.1:4173/.lighthouse-smoke.html \
             --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage" \
             --disable-javascript \
             --only-categories=accessibility,best-practices,seo \
