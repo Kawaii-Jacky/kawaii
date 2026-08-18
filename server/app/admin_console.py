@@ -1,7 +1,6 @@
 """Local ASTRA operations console on a dedicated port."""
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import json
@@ -23,11 +22,16 @@ from typing import Any, Literal
 import psycopg
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.responses import FileResponse
 from psycopg.rows import dict_row
 from pydantic import BaseModel, Field
+
+from app.credential_vault import (
+    credential_vault_key,
+    decrypt_controller_credentials,
+    encrypt_controller_credentials,
+)
 
 try:
     import paho.mqtt.client as mqtt
@@ -58,7 +62,6 @@ MQTT_USERNAME = os.getenv("MQTT_USERNAME", "backend-controller")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
 PUBLIC_MQTT_URI = os.getenv("PUBLIC_MQTT_URI", "wss://mqtt.astroy.xyz/mqtt")
 CONTROLLER_CONFIG_FILE = Path(os.getenv("MQTT_CONTROLLERS_FILE", "/run/astra-secrets/mqtt-controllers.json"))
-CREDENTIAL_VAULT_KEY_FILE = Path(os.getenv("CREDENTIAL_VAULT_KEY_FILE", "/run/astra-vault/credential-vault.key"))
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 CLOUDFLARED_METRICS_URL = os.getenv("CLOUDFLARED_METRICS_URL", "http://127.0.0.1:20241/metrics")
 SERVICE_CONTROL_SOCKET = Path(os.getenv("SERVICE_CONTROL_SOCKET", "/run/service-control/control.sock"))
@@ -218,6 +221,17 @@ def initialize() -> None:
           created_by text)""")
         db.execute("drop index if exists user_controller_access_controller")
         db.execute("create unique index if not exists user_controller_access_single_owner on user_controller_access(controller_id)")
+        db.execute("""create table if not exists controller_group_requests (
+          id text primary key,
+          user_id text not null references users(id) on delete cascade,
+          requested_name text not null,
+          note text not null default '',
+          status text not null default 'pending',
+          controller_id text,
+          created_at text not null,
+          reviewed_at text,
+          reviewed_by text,
+          decision_note text not null default '')""")
         db.execute("""create table if not exists controller_group_sequence (
           singleton integer primary key check(singleton=1),
           next_number integer not null check(next_number>=2))""")
@@ -261,6 +275,11 @@ class DevicePatch(BaseModel):
 
 class ControllerGroupIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
+
+
+class ControllerRequestDecisionIn(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    note: str = Field(default="", max_length=500)
 
 
 class CredentialRevealIn(BaseModel):
@@ -1162,50 +1181,6 @@ def controller_mqtt_accounts(controller_id: str) -> tuple[str, dict[str, str]]:
     return backend_username, device_usernames
 
 
-def credential_vault_key() -> bytes:
-    CREDENTIAL_VAULT_KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if not CREDENTIAL_VAULT_KEY_FILE.exists():
-        temporary = CREDENTIAL_VAULT_KEY_FILE.with_name(f".{CREDENTIAL_VAULT_KEY_FILE.name}.{uuid.uuid4().hex}.tmp")
-        try:
-            temporary.write_text(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii") + "\n", encoding="ascii")
-            temporary.chmod(0o600)
-            temporary.replace(CREDENTIAL_VAULT_KEY_FILE)
-        finally:
-            temporary.unlink(missing_ok=True)
-    try:
-        key = base64.urlsafe_b64decode(CREDENTIAL_VAULT_KEY_FILE.read_text(encoding="ascii").strip())
-    except (OSError, ValueError) as exc:
-        raise RuntimeError("Credential vault key file is invalid") from exc
-    if len(key) != 32:
-        raise RuntimeError("Credential vault key must contain exactly 32 bytes")
-    return key
-
-
-def encrypt_controller_credentials(controller_id: str, credentials: dict[str, Any]) -> tuple[str, str]:
-    nonce = secrets.token_bytes(12)
-    plaintext = json.dumps(credentials, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    associated_data = f"astra-controller-credentials:{controller_id}:v1".encode("utf-8")
-    ciphertext = AESGCM(credential_vault_key()).encrypt(nonce, plaintext, associated_data)
-    return (
-        base64.urlsafe_b64encode(nonce).decode("ascii"),
-        base64.urlsafe_b64encode(ciphertext).decode("ascii"),
-    )
-
-
-def decrypt_controller_credentials(controller_id: str, nonce_text: str, ciphertext_text: str) -> dict[str, Any]:
-    try:
-        nonce = base64.urlsafe_b64decode(nonce_text)
-        ciphertext = base64.urlsafe_b64decode(ciphertext_text)
-        associated_data = f"astra-controller-credentials:{controller_id}:v1".encode("utf-8")
-        plaintext = AESGCM(credential_vault_key()).decrypt(nonce, ciphertext, associated_data)
-        document = json.loads(plaintext.decode("utf-8"))
-    except Exception as exc:
-        raise RuntimeError("Stored controller credentials cannot be decrypted") from exc
-    if not isinstance(document, dict) or not isinstance(document.get("devices"), list):
-        raise RuntimeError("Stored controller credentials have an invalid structure")
-    return document
-
-
 def controller_acl_block(controller_id: str, backend_username: str, device_usernames: dict[str, str]) -> str:
     root = f"controllers/{controller_id}/devices"
     lines = [
@@ -1369,6 +1344,78 @@ def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dic
         item["last_seen"] = max((child["last_seen"] for child in children if child["last_seen"]), default=None)
         result.append(item)
     return result
+
+
+@app.get("/admin-api/controller-requests")
+def controller_group_requests(_admin: dict[str, Any] = Depends(read_access)) -> list[dict[str, Any]]:
+    with db_connection() as db:
+        rows = db.execute(
+            """select r.id,r.user_id,r.requested_name,r.note,r.status,r.controller_id,
+                      r.created_at,r.reviewed_at,r.reviewed_by,r.decision_note,
+                      u.display_name,u.email,u.phone
+               from controller_group_requests r join users u on u.id=r.user_id
+               order by case when r.status='pending' then 0 else 1 end,r.created_at desc"""
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+@app.post("/admin-api/controller-requests/{request_id}/approve")
+def approve_controller_group_request(
+    request_id: str,
+    body: ControllerRequestDecisionIn,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    with db_connection() as db:
+        row = db.execute(
+            "select id,user_id,requested_name,status from controller_group_requests where id=%s",
+            (request_id,),
+        ).fetchone()
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Controller group request not found")
+    if row["status"] != "pending":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Controller group request is already resolved")
+    with db_connection() as db:
+        if db.execute("select 1 from user_controller_access where user_id=%s", (row["user_id"],)).fetchone():
+            raise HTTPException(status.HTTP_409_CONFLICT, "This account already has a controller group")
+    name = (body.name or row["requested_name"]).strip()
+    result = create_controller_group(ControllerGroupIn(name=name), request, Response(), admin)
+    controller_id = result["controller_id"]
+    now = utc_iso()
+    with db_connection() as db:
+        db.execute(
+            "insert into user_controller_access(user_id,controller_id,created_at,created_by) values(%s,%s,%s,%s)",
+            (row["user_id"], controller_id, now, admin["user_id"]),
+        )
+        db.execute(
+            "update controller_group_requests set status='approved',controller_id=%s,reviewed_at=%s,reviewed_by=%s,decision_note=%s where id=%s",
+            (controller_id, now, admin["user_id"], body.note.strip(), request_id),
+        )
+    audit(admin, "controller.request.approve", request_id, {"controller_id": controller_id, "user_id": row["user_id"]}, request)
+    result["request_id"] = request_id
+    result["assigned_user_id"] = row["user_id"]
+    return result
+
+
+@app.post("/admin-api/controller-requests/{request_id}/reject")
+def reject_controller_group_request(
+    request_id: str,
+    body: ControllerRequestDecisionIn,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    with db_connection() as db:
+        row = db.execute("select id,status from controller_group_requests where id=%s", (request_id,)).fetchone()
+        if not row:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Controller group request not found")
+        if row["status"] != "pending":
+            raise HTTPException(status.HTTP_409_CONFLICT, "Controller group request is already resolved")
+        db.execute(
+            "update controller_group_requests set status='rejected',reviewed_at=%s,reviewed_by=%s,decision_note=%s where id=%s",
+            (utc_iso(), admin["user_id"], body.note.strip(), request_id),
+        )
+    audit(admin, "controller.request.reject", request_id, {"note": body.note.strip()}, request)
+    return {"ok": True, "request_id": request_id, "status": "rejected"}
 
 
 @app.post("/admin-api/controller-groups", status_code=201)

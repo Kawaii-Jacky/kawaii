@@ -24,6 +24,8 @@
   font-synthesis: none;
 }
 
+.controller-header-card{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--glass-inner)}.controller-header-card header{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}.controller-header-card header small{color:var(--muted);font-size:8px}.controller-header-card pre{max-height:180px;overflow:auto;margin:0;padding:10px;border-radius:9px;background:var(--glass-deep);font:8px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.controller-header-card .outline-button{width:auto;margin-top:8px;padding:8px 12px}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--paper); }

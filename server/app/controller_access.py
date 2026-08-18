@@ -95,6 +95,19 @@ def init_controller_access_db(configs: list[dict[str, Any]]) -> None:
           foreign key(user_id) references users(id) on delete cascade,
           foreign key(controller_id) references controllers(controller_id) on delete cascade
         );
+        create table if not exists controller_group_requests (
+          id text primary key,
+          user_id text not null,
+          requested_name text not null,
+          note text not null default '',
+          status text not null default 'pending',
+          controller_id text,
+          created_at text not null,
+          reviewed_at text,
+          reviewed_by text,
+          decision_note text not null default '',
+          foreign key(user_id) references users(id) on delete cascade
+        );
         """)
         db.execute("drop index if exists user_controller_access_controller")
         db.execute("create unique index if not exists user_controller_access_single_owner on user_controller_access(controller_id)")

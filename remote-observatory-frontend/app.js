@@ -120,6 +120,7 @@
     history: { solar: [], charge: [], battery: [], temperature: [], humidity: [], labels: [] },
     deviceHistory: { range:360, loading:false, error:"", devices:[], alerts:[], labels:[], series:{} },
     auth: { user:null, loading:true, mode:"login", channel:"phone", cooldown:0, returnRoute:null },
+    controller: { configured:false, loading:false, data:null, requests:[] },
     pendingConfirm: null,
     terminal: []
   };
@@ -179,6 +180,7 @@
     $("#settings-drawer").classList.add("open");
     $("#settings-drawer").setAttribute("aria-hidden", "false");
     $("#drawer-backdrop").classList.add("open");
+    if (state.auth.user) loadControllerConnection();
   }
   function closeSettings() {
     $("#settings-drawer").classList.remove("open");
@@ -192,6 +194,57 @@
     $("#connection-form").classList.remove("disabled");
     setHtml("#connection-hint", '<span class="status-dot"></span>登录后自动连接后端实时通道。');
     renderSeeingSource();
+  }
+
+  function downloadControllerHeader(device) {
+    if (!device?.header_content) return;
+    const blob = new Blob([device.header_content], { type:"text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a"); link.href = url; link.download = device.header_file || `${device.device_id}.h`;
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  }
+
+  function renderControllerConnection() {
+    const status = $("#controller-connection-status"), form = $("#controller-request-form"), list = $("#controller-header-configs");
+    if (!status || !form || !list) return;
+    list.hidden = true; list.innerHTML = "";
+    if (!state.auth.user) { status.textContent = "登录后会显示当前授权的硬件套组。"; form.hidden = true; return; }
+    if (state.controller.loading) { status.textContent = "正在读取套组授权…"; form.hidden = true; return; }
+    if (state.controller.configured && state.controller.data) {
+      const data = state.controller.data;
+      status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
+      form.hidden = true; list.hidden = false;
+      list.innerHTML = `<h3>设备头文件配置</h3><p>这些配置包含 MQTT 账号密码，仅用于写入对应硬件文件。</p>${(data.devices||[]).map(device=>`<article class="controller-header-card"><header><b>${escapeHtml(device.device_id)}</b><small>${escapeHtml(device.header_file||"")} · ${escapeHtml(device.client_id||device.username||"")}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${escapeHtml(device.device_id)}">下载头文件</button></article>`).join("")}`;
+      return;
+    }
+    const pending = state.controller.requests.find(item => item.status === "pending");
+    if (pending) {
+      status.textContent = `套组申请审核中：${pending.requested_name} · 提交于 ${timestamp(pending.created_at)}`;
+      form.hidden = true;
+      return;
+    }
+    status.textContent = "当前账户尚未分配硬件套组，可提交申请由管理员审核。";
+    form.hidden = false;
+  }
+
+  async function loadControllerConnection() {
+    if (!state.auth.user || state.controller.loading) return;
+    state.controller.loading = true; renderControllerConnection();
+    try {
+      const [assignment, requests] = await Promise.all([apiRequest("/api/v1/controller/connection"), apiRequest("/api/v1/controller-requests")]);
+      state.controller.configured = Boolean(assignment.configured); state.controller.data = assignment.configured ? assignment : null; state.controller.requests = Array.isArray(requests) ? requests : [];
+    } catch (error) { const statusNode = $("#controller-connection-status"); if (statusNode) statusNode.textContent = "套组信息暂时无法读取，请稍后重试。"; }
+    finally { state.controller.loading = false; renderControllerConnection(); }
+  }
+
+  async function submitControllerRequest(event) {
+    event.preventDefault();
+    const name = $("#controller-request-name")?.value.trim() || "", note = $("#controller-request-note")?.value.trim() || "", message = $("#controller-request-message"), button = event.submitter;
+    if (!name) { if (message) message.textContent = "请输入申请套组名称。"; return; }
+    if (button) button.disabled = true;
+    try { await apiRequest("/api/v1/controller-requests", { method:"POST", body:JSON.stringify({ requested_name:name, note }) }); $("#controller-request-form")?.reset(); if (message) message.textContent = "申请已提交，等待管理员审核。"; await loadControllerConnection(); }
+    catch (error) { if (message) message.textContent = error.message || "申请提交失败。"; }
+    finally { if (button) button.disabled = false; }
   }
 
   const deviceIds = ["esp32-001", "mppt-001", "ef-001"];
@@ -307,6 +360,7 @@
   function applyConnection() {
     if (state.simulationEnabled) { toast("测试数据注入已开启", "关闭模拟开关后才能连接真实设备。", "error", "background"); return; }
     if (!state.auth.user) { toast("需要登录", "登录后才能建立实时通道。", "error"); routeTo("login"); return; }
+    if (!state.controller.configured) { toast("尚未获得硬件套组", "请先在连接设置中提交申请并等待管理员批准。", "error", "background"); loadControllerConnection(); return; }
     connectEventStream();
   }
 
@@ -976,8 +1030,8 @@
     target.series = series;
   }
 
-  async function apiRequest(path) {
-    const response = await fetch(path, { credentials:"same-origin" });
+  async function apiRequest(path, options = {}) {
+    const response = await fetch(path, { credentials:"same-origin", ...options, headers:{"Content-Type":"application/json", ...(options.headers || {})} });
     const data = await response.json().catch(() => null);
     if (!response.ok) {
       const error = new Error(typeof data?.detail === "string" ? data.detail : `请求失败 (${response.status})`);
@@ -2136,7 +2190,8 @@
       }
       const result = await authApi("/me", { method:"GET" });
       state.auth.user = result.user;
-      connectEventStream();
+      await loadControllerConnection();
+      if (state.controller.configured) connectEventStream(); else openSettings();
     } catch (error) {
       if (error.status !== 401) setAuthMessage(authErrorMessage(error), "error");
       state.auth.user = null;
@@ -2220,7 +2275,8 @@
         state.auth.user = result.user;
         state.auth.loading = false;
         renderAuth();
-        connectEventStream();
+        await loadControllerConnection();
+        if (state.controller.configured) connectEventStream(); else openSettings();
         loadDeviceHistory();
         toast(mode === "register" ? "账户创建成功" : "登录成功", "账户会话已安全建立。", "ok");
         const target = state.auth.returnRoute || "profile";
@@ -2246,6 +2302,8 @@
     state.auth.user = null;
     state.auth.loading = false;
     state.auth.returnRoute = null;
+    state.controller = { configured:false, loading:false, data:null, requests:[] };
+    renderControllerConnection();
     disconnectEventStream();
     buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();
     state.deviceHistory.devices = []; state.deviceHistory.alerts = []; state.deviceHistory.labels = []; state.deviceHistory.series = {};
@@ -2373,6 +2431,8 @@
     $$('[data-route-jump]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.routeJump)));
     $$('[data-open-settings]').forEach(button => button.addEventListener("click", openSettings));
     $("#close-settings").addEventListener("click", closeSettings); $("#drawer-backdrop").addEventListener("click", closeSettings);
+    $("#controller-request-form")?.addEventListener("submit", submitControllerRequest);
+    $("#controller-header-configs")?.addEventListener("click", event => { const button = event.target.closest?.("[data-download-controller-header]"); if (!button || !state.controller.data) return; const device = (state.controller.data.devices || []).find(item => item.device_id === button.dataset.downloadControllerHeader); downloadControllerHeader(device); });
     $$('[data-connection-mode]').forEach(button => button.addEventListener("click", () => selectConnectionMode(button.dataset.connectionMode)));
     $("#apply-connection").addEventListener("click", applyConnection);
     $("#simulation-toggle")?.addEventListener("click",()=>setSimulationEnabled(!state.simulationEnabled));

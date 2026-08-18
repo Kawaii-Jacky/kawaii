@@ -56,9 +56,11 @@ services:
       MQTT_CONTROLLERS_FILE: /run/astra-secrets/mqtt-controllers.json
       DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-astroy}
       SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://sms-gateway:8090/send}
+      CREDENTIAL_VAULT_KEY_FILE: /run/astra-vault/credential-vault.key
     volumes:
       - ./data:/app/data
       - ./.secrets:/run/astra-secrets:ro
+      - credential-vault:/run/astra-vault:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:

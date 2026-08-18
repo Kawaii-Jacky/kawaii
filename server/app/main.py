@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, Depends, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -33,6 +33,7 @@ from app.controller_access import (
     require_device_access,
     storage_device_id,
 )
+from app.credential_vault import decrypt_controller_credentials
 
 try:
     import paho.mqtt.client as mqtt
@@ -41,6 +42,7 @@ except Exception:  # optional for API-only development
 
 DEVICE_IDS = LOGICAL_DEVICES
 CONTROLLER_CONFIGS = load_controller_configs()
+PUBLIC_MQTT_URI = os.getenv("PUBLIC_MQTT_URI", "wss://mqtt.astroy.xyz/mqtt")
 DEVICE_OFFLINE_SECONDS = max(30, int(os.getenv("DEVICE_OFFLINE_SECONDS", "120")))
 DEVICE_MONITOR_INTERVAL_SECONDS = max(5, int(os.getenv("DEVICE_MONITOR_INTERVAL_SECONDS", "15")))
 COMMAND_RETRY_SECONDS = max(2, int(os.getenv("COMMAND_RETRY_SECONDS", "5")))
@@ -705,6 +707,86 @@ async def open_meteo_geocoding(
         return await asyncio.to_thread(fetch_json_cached, f"{OPEN_METEO_GEOCODING_URL}?{params}", 3600)
     except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
         raise HTTPException(502, f"Open-Meteo geocoding unavailable: {exc}") from exc
+
+
+@app.get("/api/v1/controller/connection", tags=["Controller connection"])
+def controller_connection(
+    response: Response,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    controller_id = controller_for_user(user)
+    if not controller_id:
+        return {"configured": False, "devices": [], "message": "管理员尚未批准控制器套组"}
+    config = next((item for item in CONTROLLER_CONFIGS if item["id"] == controller_id), None)
+    if not config:
+        raise HTTPException(503, "assigned controller configuration is unavailable")
+    with conn() as c:
+        vault = c.execute(
+            "select nonce,ciphertext from device_credential_vault where controller_id=?",
+            (controller_id,),
+        ).fetchone()
+    if not vault:
+        raise HTTPException(503, "controller credentials are not available")
+    try:
+        credentials = decrypt_controller_credentials(controller_id, vault["nonce"], vault["ciphertext"])
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return {
+        "configured": True,
+        "controller_id": controller_id,
+        "name": str(config.get("name") or controller_id),
+        "mqtt_uri": credentials.get("mqtt_uri", PUBLIC_MQTT_URI),
+        "backend_controller": credentials.get("backend_controller"),
+        "devices": credentials.get("devices", []),
+    }
+
+
+class ControllerGroupRequestIn(BaseModel):
+    requested_name: str = Field(min_length=1, max_length=80)
+    note: str = Field(default="", max_length=500)
+
+
+@app.post("/api/v1/controller-requests", status_code=201, tags=["Controller requests"])
+def create_controller_request(
+    body: ControllerGroupRequestIn,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    if user.get("role") == "admin":
+        raise HTTPException(409, "Administrators should create controller groups from the admin console")
+    requested_name = body.requested_name.strip()
+    if not requested_name:
+        raise HTTPException(422, "A controller group name is required")
+    with db_lock, conn() as c:
+        if c.execute("select 1 from user_controller_access where user_id=?", (user["id"],)).fetchone():
+            raise HTTPException(409, "Your account already has a controller group")
+        if c.execute(
+            "select 1 from controller_group_requests where user_id=? and status='pending'",
+            (user["id"],),
+        ).fetchone():
+            raise HTTPException(409, "A controller group request is already pending")
+        request_id = str(uuid.uuid4())
+        created_at = now_iso()
+        c.execute(
+            """insert into controller_group_requests
+               (id,user_id,requested_name,note,status,created_at)
+               values(?,?,?,?,'pending',?)""",
+            (request_id, user["id"], requested_name, body.note.strip(), created_at),
+        )
+    return {"ok": True, "request_id": request_id, "status": "pending", "requested_name": requested_name, "created_at": created_at}
+
+
+@app.get("/api/v1/controller-requests", tags=["Controller requests"])
+def controller_requests(user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
+    with conn() as c:
+        rows = c.execute(
+            """select id,requested_name,note,status,controller_id,created_at,reviewed_at,decision_note
+               from controller_group_requests where user_id=? order by created_at desc""",
+            (user["id"],),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
 
 @app.get("/api/v1/devices", tags=["Devices"])
 def devices(user: dict[str, Any] = Depends(current_user)) -> list[dict[str, Any]]:
