@@ -12,7 +12,11 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2
     restart: unless-stopped
-    volumes: [./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro, mosquitto-data:/mosquitto/data]
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./.secrets/mosquitto.passwd:/mosquitto/dynamic-config/passwd:ro
+      - ./mosquitto/acl.conf:/mosquitto/dynamic-config/acl.conf:ro
+      - mosquitto-data:/mosquitto/data
   sms-gateway:
     image: ${ASTRA_SMS_IMAGE:-ghcr.io/kawaii-jacky/astra-sms:${ASTRA_VERSION:-latest}}
     build: { context: ., dockerfile: Dockerfile }

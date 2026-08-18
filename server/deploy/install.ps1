@@ -1,9 +1,9 @@
 param([switch]$BuildLocal)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-Set-Location $root
-docker compose version | Out-Null
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-if ($BuildLocal) { docker compose -f docker-compose.release.yml up -d --build --remove-orphans }
-else { docker compose -f docker-compose.release.yml up -d --remove-orphans }
-docker compose -f docker-compose.release.yml ps
+if (-not (Get-Command wsl -ErrorAction SilentlyContinue)) { throw 'WSL2 is required for the Windows installer' }
+$wslRoot = (& wsl wslpath -a ($root -replace '\\','/')).Trim()
+if ([string]::IsNullOrWhiteSpace($wslRoot)) { throw 'Unable to resolve the WSL project path' }
+$args = if ($BuildLocal) { '--build-local' } else { '' }
+& wsl --cd $wslRoot bash -lc "./deploy/install.sh $args"
+if ($LASTEXITCODE -ne 0) { throw "WSL installer failed with exit code $LASTEXITCODE" }

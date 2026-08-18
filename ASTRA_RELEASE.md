@@ -8,6 +8,8 @@ Android universal debug APK，以及后端 Docker Compose 发布包。Apple 端�
 在 Linux 服务器执行 `server/deploy/install.sh`，Windows/WSL 执行
 `server/deploy/install.ps1`。默认拉取 GHCR 版本镜像；设置
 `ASTRA_VERSION`、`ASTRA_*_IMAGE` 或使用 Compose 的 `--build` 可切换版本/本地构建。
+首次安装会自动生成 PostgreSQL、MQTT、AUTH_SECRET 和 Mosquitto 密码文件；
+这些文件只保存在服务器 `.env`/`.secrets`，不会进入发布包。
 安装脚本支持 `./deploy/install.sh --build-local` 或
 `./deploy/install.ps1 -BuildLocal`。
 
