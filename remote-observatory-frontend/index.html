@@ -146,15 +146,18 @@
                 <label>电池截止电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-min" value="" placeholder="--" data-min="8" data-max="20" data-step="0.1" aria-label="电池截止电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池截止电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池截止电压">−</button></span></span></label>
                 <label>电池满电电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-max" value="" placeholder="--" data-min="12" data-max="48" data-step="0.1" aria-label="电池满电电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池满电电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池满电电压">−</button></span></span></label>
                 <label>最大充电电流 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-charge-current" value="" placeholder="--" data-min="0.1" data-max="20" data-step="0.1" aria-label="最大充电电流" /><span class="stepper-unit">A</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加最大充电电流">+</button><button type="button" data-step-direction="-1" aria-label="减小最大充电电流">−</button></span></span></label>
-                <label>风扇启动温度 <span class="number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span></label>
               </div>
               <button class="primary-button" id="save-power-settings">保存充电参数 <span>↗</span></button>
             </article>
             <article class="card control-card">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="power"></i></span><h3>运行控制</h3></div></header>
-              <button class="control-row" data-mppt-toggle="mode"><span class="control-icon"><i data-lucide="chart-spline"></i></span><p><b>MPPT 算法</b><small>最大功率点追踪</small></p><i></i></button>
-              <button class="control-row" data-mppt-toggle="enable_fan"><span class="control-icon"><i data-lucide="thermometer-sun"></i></span><p><b>自动散热</b><small>按温度阈值启停</small></p><i></i></button>
-              <button class="control-row" data-mppt-toggle="fan"><span class="control-icon"><i data-lucide="fan"></i></span><p><b>风扇强制开启</b><small>手动覆盖自动策略</small></p><i></i></button>
+              <button class="control-row" data-mppt-toggle="mode"><span class="control-icon"><i data-lucide="chart-spline"></i></span><p><b id="mppt-algorithm-title">MPPT 算法</b><small id="mppt-algorithm-subtitle">最大功率点追踪</small></p><i></i></button>
+              <section class="mppt-fan-control">
+                <header><span class="control-icon"><i data-lucide="fan"></i></span><p><b>风扇控制</b><small id="mppt-fan-mode-note">自动模式 · 按温度阈值启停</small></p></header>
+                <div class="mppt-fan-mode"><button type="button" data-mppt-fan-mode="auto">自动</button><button type="button" data-mppt-fan-mode="manual">手动</button></div>
+                <button class="control-row mppt-fan-switch" data-mppt-toggle="fan"><span class="control-icon"><i data-lucide="power"></i></span><p><b id="mppt-fan-state-title">风扇关闭</b><small id="mppt-fan-state-subtitle">自动策略控制</small></p><i></i></button>
+                <label class="mppt-fan-threshold">温度阈值 <span class="number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span><button type="button" id="apply-mppt-fan-temp">应用阈值</button></label>
+              </section>
             </article>
           </div>
           <div class="terminal-slot" data-terminal-default="mppt-001" data-terminal-number="05"></div>
@@ -323,8 +326,8 @@
             </div>
           </article>
           <article class="chart-card profile-device-history-card dark-card">
-            <header class="chart-header"><div><span class="section-icon"><i data-lucide="activity"></i></span><div><h3>设备在线历史</h3><p id="device-history-note">来自后端设备状态与离线告警记录</p></div></div></header>
-            <div class="device-history-toolbar"><span>时间范围</span><button data-device-history-range="10">10m</button><button data-device-history-range="30">30m</button><button data-device-history-range="60">1h</button><button data-device-history-range="360" class="active">6h</button><button data-device-history-range="1440">24h</button><button data-device-history-range="10080">1w</button><button data-device-history-range="43200">1个月</button></div>
+            <header class="chart-header"><div><span class="section-icon"><i data-lucide="activity"></i></span><div><h3>设备在线历史</h3></div></div></header>
+            <div class="device-history-toolbar"><span>时间范围</span><button data-device-history-range="10">10m</button><button data-device-history-range="30">30m</button><button data-device-history-range="60">1h</button><button data-device-history-range="360" class="active">6h</button><button data-device-history-range="1440">24h</button><button data-device-history-range="10080">1w</button><button data-device-history-range="43200">1个月</button><details class="device-history-advanced"><summary>高级设置</summary><label><input id="device-history-connect-unknown" type="checkbox" />未知区间连线</label></details></div>
             <div class="device-history-legend"><span><i style="--series-color:#54d79a"></i>主控 · esp32-001</span><span><i style="--series-color:#7fc8ff"></i>能源 · mppt-001</span><span><i style="--series-color:#f2a14b"></i>平场板 · ef-001</span></div>
             <div class="chart-wrap device-history-wrap"><div class="device-history-empty" id="device-history-empty">正在读取真实设备历史</div><canvas id="device-history-chart" hidden></canvas></div>
           </article>
@@ -395,7 +398,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260819-09"></script>
+  <script src="app.js?v=20260819-10"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>

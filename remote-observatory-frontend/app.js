@@ -118,7 +118,7 @@
     sevenTimer: { labels: [], seeing: [], clear: [], transparency: [], cloud: [], loading:false, error:"", init:"", updatedAt:0 },
     visibleSeries: { solar: true, charge: true, battery: true, temperature: true, humidity: true },
     history: { solar: [], charge: [], battery: [], temperature: [], humidity: [], labels: [] },
-    deviceHistory: { range:360, loading:false, error:"", devices:[], alerts:[], labels:[], series:{} },
+    deviceHistory: { range:360, loading:false, error:"", connectUnknown:false, devices:[], alerts:[], labels:[], series:{} },
     auth: { user:null, loading:true, mode:"login", channel:"phone", cooldown:0, returnRoute:null },
     controller: { configured:false, loading:false, data:null, requests:[] },
     pendingConfirm: null,
@@ -706,6 +706,18 @@
     const mainMap = { camera:mainOnline&&state.main.camera, heater:mainOnline&&state.main.heater, fan:mainOnline&&state.main.fan, mosfet:mainOnline&&state.main.mosfet, flatLed:flatOnline&&state.flat.led };
     $$('[data-toggle]').forEach(button => { const key=button.dataset.toggle,source=key==="flatLed"?state.flat:state.main,field=key==="flatLed"?"led":key,online=key==="flatLed"?flatOnline:mainOnline,known=online&&source[field]!==null&&source[field]!==undefined,on=known&&!!mainMap[key];button.classList.toggle("on",on);button.classList.toggle("unknown",online&&!known);button.setAttribute("aria-pressed",known?String(on):"false");button.disabled=!canControl||!known });
     $$('[data-mppt-toggle]').forEach(button=>{const known=powerOnline&&state.power[button.dataset.mpptToggle]!==null&&state.power[button.dataset.mpptToggle]!==undefined;button.classList.toggle("on",known&&bool(state.power[button.dataset.mpptToggle]));button.classList.toggle("unknown",powerOnline&&!known);button.disabled=!canControl||!known});
+    const algorithmKnown=powerOnline&&state.power.mode!==null&&state.power.mode!==undefined,mpptEnabled=algorithmKnown&&bool(state.power.mode);
+    setText("#mppt-algorithm-title",algorithmKnown?(mpptEnabled?"MPPT 算法":"PWM 算法"):"算法状态未知");
+    setText("#mppt-algorithm-subtitle",algorithmKnown?(mpptEnabled?"最大功率点追踪":"PWM 调制模式"):"等待能源设备遥测");
+    const fanModeKnown=powerOnline&&state.power.enable_fan!==null&&state.power.enable_fan!==undefined,automaticFan=fanModeKnown&&bool(state.power.enable_fan);
+    $$('[data-mppt-fan-mode]').forEach(button=>{const active=fanModeKnown&&button.dataset.mpptFanMode===(automaticFan?"auto":"manual");button.classList.toggle("active",active);button.disabled=!canControl||!fanModeKnown});
+    setText("#mppt-fan-mode-note",!fanModeKnown?"等待能源设备遥测":automaticFan?`自动模式 · ${hasNumber(state.power.temperature_fan)?Math.round(state.power.temperature_fan)+"°C":"--"} 阈值`:"手动模式 · 由开关直接控制");
+    const fanKnown=powerOnline&&state.power.fan!==null&&state.power.fan!==undefined,fanOn=fanKnown&&bool(state.power.fan),fanSwitch=$('[data-mppt-toggle="fan"]');
+    setText("#mppt-fan-state-title",fanKnown?(fanOn?"风扇开启":"风扇关闭"):"风扇状态未知");
+    setText("#mppt-fan-state-subtitle",fanModeKnown?(automaticFan?"自动策略控制":"手动开关"):"等待控制模式遥测");
+    if(fanSwitch)fanSwitch.disabled=!canControl||!fanKnown||automaticFan;
+    $("#set-fan-temp")?.toggleAttribute("disabled",!canControl||!powerOnline||!fanModeKnown||!automaticFan);
+    $("#apply-mppt-fan-temp")?.toggleAttribute("disabled",!canControl||!powerOnline||!fanModeKnown||!automaticFan);
     $$('[data-flat-toggle]').forEach(button=>{const field=button.dataset.flatToggle==="led"?"led":"heater_mode",known=flatOnline&&state.flat[field]!==null&&state.flat[field]!==undefined;button.classList.toggle("on",known&&bool(state.flat[field]));button.classList.toggle("unknown",flatOnline&&!known);button.disabled=!canControl||!known});
     $("#save-power-settings")?.toggleAttribute("disabled",!canControl||!powerOnline);
     $("#toggle-panel")?.toggleAttribute("disabled",!canControl||!flatOnline||state.flat.servo===null||state.flat.servo===undefined);
@@ -1192,20 +1204,16 @@
     const target = state.deviceHistory;
     const canvas = $("#device-history-chart");
     const empty = $("#device-history-empty");
-    const note = $("#device-history-note");
     if (!canvas || !empty) return;
-    if (target.loading) {
+    const hasEvidence=deviceIds.some(id=>(target.series[id]||[]).filter(Number.isFinite).length>=2);
+    if (target.loading && !hasEvidence) {
       empty.hidden = false; canvas.hidden = true; empty.textContent = "正在读取真实设备历史";
       return;
     }
-    const hasEvidence=deviceIds.some(id=>(target.series[id]||[]).filter(Number.isFinite).length>=2);
-    if (target.error || !target.devices.length || target.labels.length < 2 || !hasEvidence) {
+    if (!target.devices.length || target.labels.length < 2 || !hasEvidence) {
       empty.hidden = false; canvas.hidden = true; empty.textContent = target.error || "暂无可用的设备历史记录";
-      if (note) note.textContent = "来自后端设备状态与离线告警记录";
       return;
     }
-    const transitionCount = target.alerts.filter(alert => alert.alert_type === "offline" && (apiTimestamp(alert.opened_at) >= target.labels[0] || apiTimestamp(alert.resolved_at) >= target.labels[0])).length;
-    if (note) note.textContent = transitionCount ? `${transitionCount} 条离线事件 · 未知区间不连线 · 更新于 ${timestamp()}` : `仅显示后端可证实的状态区间 · 更新于 ${timestamp()}`;
     empty.hidden = true; canvas.hidden = false;
     canvas.setAttribute("aria-label", "主控、能源和平场板设备在线与离线历史曲线");
     const offsets = { "esp32-001":.04, "mppt-001":0, "ef-001":-.04 };
@@ -1222,6 +1230,8 @@
       axisRanges:{ left:[-.12,1.12] },
       showYAxisLabels:true,
       stepped:true,
+      connectGaps:target.connectUnknown,
+      showGridLines:false,
       leftAxisColor:"#f5f5f2",
       xLabelColor:"#f5f5f2",
       axisFontSize:8,
@@ -1697,7 +1707,7 @@
     canvas.dataset.axisFont = ctx.font;
     canvas.dataset.leftAxisColor = options.leftAxisColor || options.yLabelColor || mutedColor;
     canvas.dataset.rightAxisColor = options.rightAxisColor || options.yLabelColor || mutedColor;
-    for(let i=0;i<5;i++){const y=pad.top+(plotH/4)*i;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(width-pad.right,y);ctx.stroke();}
+    if(options.showGridLines!==false)for(let i=0;i<5;i++){const y=pad.top+(plotH/4)*i;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(width-pad.right,y);ctx.stroke();}
     const slice = Math.max(1, Math.floor(state.historyRange/5));
     const visibleCount = Math.min(labels.length, options.visibleCount || Math.max(6, Math.floor(state.historyRange/slice)+1) * 12);
     const end = options.fromStart ? visibleCount : labels.length;
@@ -1732,7 +1742,7 @@
         data.forEach((raw,index)=>{
           const value=Number(raw);
           if(raw===undefined)return;
-          if(!Number.isFinite(value)){drawing=false;return}
+          if(!Number.isFinite(value)){if(!options.connectGaps)drawing=false;return}
           const x=xForIndex(index,data.length),y=pad.top+(1-(value-min)/(max-min))*plotH;
           if(!drawing){ctx.moveTo(x,y);drawing=true}
           else{if(options.stepped)ctx.lineTo(x,previousY);ctx.lineTo(x,y);hasLine=true}
@@ -2540,6 +2550,8 @@
     bindVerticalNumberDrag($("#camera-hours"));bindVerticalNumberDrag($("#camera-minutes"));
     $$('[data-toggle]').forEach(button => button.addEventListener("click", () => toggleMain(button.dataset.toggle)));
     $$('[data-mppt-toggle]').forEach(button => button.addEventListener("click", () => toggleMppt(button.dataset.mpptToggle)));
+    $$('[data-mppt-fan-mode]').forEach(button=>button.addEventListener("click",()=>{const automatic=button.dataset.mpptFanMode==="auto";sendCommand("mppt-001",{enable_fan:automatic},automatic?"风扇切换为自动模式":"风扇切换为手动模式")}));
+    $("#apply-mppt-fan-temp")?.addEventListener("click",()=>{const value=Number($("#set-fan-temp")?.value);if(!Number.isFinite(value)||value<20||value>80){toast("温度阈值无效","请输入 20 至 80°C。","error");return}sendCommand("mppt-001",{temperature_fan:value},`设置风扇阈值 ${Math.round(value)}°C`)});
     $$('[data-flat-toggle]').forEach(button => button.addEventListener("click", () => toggleFlat(button.dataset.flatToggle)));
     $$('[data-roof]').forEach(button => button.addEventListener("click", () => roofCommand(button.dataset.roof)));
     $$('[data-onstep]').forEach(button => button.addEventListener("click", () => sendCommand("esp32-001", {command:"onstep",action:Number(button.dataset.onstep)}, `OnStep 操作 ${button.textContent.trim()}`)));
@@ -2598,6 +2610,7 @@
     $$('[data-terminal-debug]').forEach(button=>button.addEventListener("click",()=>{const card=button.closest('[data-terminal-card]');const device=$('[data-terminal-device]',card)?.value||"esp32-001";sendCommand(device,{debug:true},"打印调试信息");}));
     $$('[data-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-range]').forEach(b=>b.classList.remove("active"));button.classList.add("active");state.historyRange=Number(button.dataset.range);drawCharts()}));
     $$('[data-device-history-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-device-history-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.deviceHistory.range=Number(button.dataset.deviceHistoryRange);rebuildDeviceHistory();drawDeviceHistoryChart()}));
+    $("#device-history-connect-unknown")?.addEventListener("change",event=>{state.deviceHistory.connectUnknown=event.currentTarget.checked;drawDeviceHistoryChart()});
     $$('[data-power-y-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-power-y-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.powerYRange=button.dataset.powerYRange;drawCharts()}));
     $$('[data-series]').forEach(button=>button.addEventListener("click",()=>{button.classList.toggle("active");state.visibleSeries[button.dataset.series]=button.classList.contains("active");drawCharts()}));
     $("#export-data").addEventListener("click",exportCsv);
