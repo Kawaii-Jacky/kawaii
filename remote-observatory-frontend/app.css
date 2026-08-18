@@ -651,8 +651,10 @@ button:active{transform:scale(.975)!important}
 .environment-main{align-items:stretch}
 .environment-left-stack{min-width:0;height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);align-content:stretch;gap:16px}
 .environment-left-stack>.terminal-slot{min-width:0;width:auto;margin-top:0;align-self:stretch}
+.environment-left-stack .terminal{height:152px}
 @media(max-width:620px){
   .environment-left-stack{display:contents;height:auto}
+  .environment-left-stack .terminal{height:104px}
   .environment-main>.environment-left-stack>.roof-card{order:1}
   .environment-main>.env-controls{order:2}
   .environment-main>.environment-left-stack>.terminal-slot{order:3;margin-top:0}
