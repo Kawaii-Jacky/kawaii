@@ -362,7 +362,6 @@
       clearTelemetryState();
       buildHistory();
       render(); drawCharts();
-      if (state.auth.user) loadTelemetryHistory();
       addLog("SYSTEM", "测试数据已清除，恢复真实离线状态", "ok");
     }
   }
