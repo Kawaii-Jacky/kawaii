@@ -728,6 +728,15 @@ def controller_connection(
             (controller_id,),
         ).fetchone()
     if not vault:
+        if controller_id == "default":
+            return {
+                "configured": True,
+                "controller_id": controller_id,
+                "name": str(config.get("name") or controller_id),
+                "mqtt_uri": PUBLIC_MQTT_URI,
+                "backend_controller": {"username": config.get("username", "backend-controller")},
+                "devices": [],
+            }
         raise HTTPException(503, "controller credentials are not available")
     try:
         credentials = decrypt_controller_credentials(controller_id, vault["nonce"], vault["ciphertext"])
