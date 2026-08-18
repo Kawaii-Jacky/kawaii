@@ -119,7 +119,7 @@
     },
     sevenTimer: { labels: [], seeing: [], clear: [], transparency: [], cloud: [], loading:false, error:"", init:"", updatedAt:0 },
     visibleSeries: { solar: true, charge: true, battery: true, temperature: true, humidity: true },
-    history: { solar: [], charge: [], battery: [], temperature: [], humidity: [], labels: [] },
+    history: { solar: [], charge: [], battery: [], temperature: [], humidity: [], labels: [], sources: [] },
     deviceHistory: { range:360, loading:false, error:"", connectUnknown:false, devices:[], alerts:[], labels:[], series:{} },
     auth: { user:null, loading:true, mode:"login", channel:"phone", cooldown:0, returnRoute:null },
     controller: { configured:false, loading:false, data:null, requests:[] },
@@ -133,7 +133,7 @@
   }
 
   function renderHumiditySparkline() {
-    const values = state.history.humidity.slice(-25).map(Number).filter(Number.isFinite);
+    const values = state.history.humidity.map((value,index)=>({value,index})).filter(item=>(state.simulationEnabled||state.history.sources[item.index]!==true)&&hasNumber(item.value)).slice(-25).map(item=>Number(item.value));
     const currentHumidity = Number(state.main.dht_humidity);
     if (values.length && Number.isFinite(currentHumidity)) values[values.length - 1] = currentHumidity;
     const line = $("#humidity-spark-line"), area = $("#humidity-spark-area"), point = $("#humidity-spark-point"), wrap = $(".humidity-sparkline"), svg = wrap?.querySelector("svg");
@@ -360,7 +360,6 @@
       addLog("SIMULATION", "测试数据注入已开启；不会发送真实设备指令", "warn");
     } else {
       clearTelemetryState();
-      buildHistory();
       render(); drawCharts();
       addLog("SYSTEM", "测试数据已清除，恢复真实离线状态", "ok");
     }
@@ -1092,6 +1091,7 @@
     h.battery.push(isPower ? reading("battery_percent") : undefined);
     h.temperature.push(isEnvironment ? reading("dht_temperature") : undefined);
     h.humidity.push(isEnvironment ? reading("dht_humidity") : undefined);
+    h.sources.push(Boolean(state.simulationEnabled));
     Object.keys(h).forEach(key => { if (h[key].length > 8641) h[key].shift(); });
     if (isEnvironment) drawEnvironmentLiveChart();
     if (isPower) drawPowerHistoryChart();
@@ -1175,6 +1175,7 @@
         h.battery.push(power ? reading(payload,"battery_percent") : undefined);
         h.temperature.push(environment ? reading(payload,"dht_temperature") : undefined);
         h.humidity.push(environment ? reading(payload,"dht_humidity") : undefined);
+        h.sources.push(false);
       });
       drawPowerHistoryChart();
       drawEnvironmentLiveChart();
@@ -1326,7 +1327,7 @@
   // Keep measured telemetry and forecast data in separate charts so each curve has its own time domain.
   function drawEnvironmentLiveChart() {
     const now=Date.now(),historyStart=now-state.environmentLiveRange*60000,forecastEnd=now+state.environmentForecastRange*60000;
-    const historyPoints=state.history.labels.map((time,index)=>({time:chartPointTime(time),index})).filter(point=>point.time>=historyStart&&point.time<=now&&(hasNumber(state.history.temperature[point.index])||hasNumber(state.history.humidity[point.index])));
+    const historyPoints=state.history.labels.map((time,index)=>({time:chartPointTime(time),index})).filter(point=>point.time>=historyStart&&point.time<=now&&(state.simulationEnabled||state.history.sources[point.index]!==true)&&(hasNumber(state.history.temperature[point.index])||hasNumber(state.history.humidity[point.index])));
     const forecast=state.forecast.hourly,forecastPoints=(forecast.time||[]).map((time,index)=>({time:chartPointTime(time),index})).filter(point=>point.time>=now-3600000&&point.time<=forecastEnd&&(hasNumber(forecast.temperature[point.index])||hasNumber(forecast.humidity[point.index])));
     const historyLabels=historyPoints.map(point=>point.time),forecastLabels=forecastPoints.map(point=>point.time),measuredTemperature=historyPoints.map(point=>number(state.history.temperature[point.index],NaN)),measuredHumidity=historyPoints.map(point=>number(state.history.humidity[point.index],NaN)),measuredDewPoint=historyPoints.map(point=>dewPointC(state.history.temperature[point.index],state.history.humidity[point.index])),forecastTemperature=forecastPoints.map(point=>number(forecast.temperature[point.index],NaN)),forecastHumidity=forecastPoints.map(point=>number(forecast.humidity[point.index],NaN));
     const canvas=$("#environment-live-chart"),empty=$("#environment-live-empty"),card=canvas?.closest(".temperature-card");if(!canvas||!card)return;
@@ -1334,8 +1335,8 @@
     let section=$("#environment-live-forecast");if(!section){section=document.createElement("section");section.id="environment-live-forecast";section.className="environment-live-forecast";section.innerHTML="<div class=\"environment-live-legend environment-live-forecast-legend\"><span class=\"forecast-temperature-legend\"><i></i>预报温度</span><span class=\"forecast-humidity-legend\"><i></i>预报湿度</span></div><div class=\"environment-live-chart\"><div class=\"environment-live-empty\" id=\"environment-forecast-empty\">暂无预报温湿度数据</div><canvas id=\"environment-forecast-chart\"></canvas></div>";canvas.parentElement.after(section)}
     const forecastCanvas=$("#environment-forecast-chart"),forecastEmpty=$("#environment-forecast-empty"),hasMeasured=measuredTemperature.some(Number.isFinite)||measuredHumidity.some(Number.isFinite),hasForecast=forecastTemperature.some(Number.isFinite)||forecastHumidity.some(Number.isFinite);if(empty){empty.hidden=state.simulationEnabled||hasMeasured;empty.textContent=state.forecast.loading?"正在读取真实温湿度数据":"暂无真实温湿度数据"}if(forecastEmpty){forecastEmpty.hidden=hasForecast;forecastEmpty.textContent=state.forecast.loading?"正在读取预报数据":"暂无预报温湿度数据"}
     const ranges=state.environmentYRange==="comfort"?{left:[10,30],right:[30,80]}:state.environmentYRange==="full"?{left:[-20,50],right:[0,100]}:{},forecastRanges=state.environmentForecastYRange==="comfort"?{left:[10,30],right:[30,80]}:state.environmentForecastYRange==="full"?{left:[-20,50],right:[0,100]}:{},dewColor=state.themeColor==="black"?"#e57654":getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#e57654";
-    if(hasMeasured)drawLineChart(canvas,[{key:"temperature",label:"实测温度",data:measuredTemperature,color:"#ff9f43",axis:"left"},{key:"humidity",label:"实测湿度",data:measuredHumidity,color:"#66c7f2",axis:"right"},{key:"dewPoint",label:"实测露点",data:measuredDewPoint,color:dewColor,axis:"left",lineWidth:2.2}],historyLabels,{visibleCount:historyLabels.length,fromStart:true,timeScale:true,ignoreVisibility:true,showNowMarker:false,axisRanges:ranges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
-    if(forecastCanvas&&hasForecast)drawLineChart(forecastCanvas,[{key:"forecastTemp",label:"预报温度",data:forecastTemperature,color:"#ff9f43",axis:"left",dash:[7,5]},{key:"forecastHumidity",label:"预报湿度",data:forecastHumidity,color:"#66c7f2",axis:"right",dash:[7,5]}],forecastLabels,{visibleCount:forecastLabels.length,fromStart:true,timeScale:true,ignoreVisibility:true,showNowMarker:false,mirrorNowMarker:false,axisRanges:forecastRanges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
+    if(hasMeasured)drawLineChart(canvas,[{key:"temperature",label:"实测温度",data:measuredTemperature,color:"#ff9f43",axis:"left"},{key:"humidity",label:"实测湿度",data:measuredHumidity,color:"#66c7f2",axis:"right"},{key:"dewPoint",label:"实测露点",data:measuredDewPoint,color:dewColor,axis:"left",lineWidth:2.2}],historyLabels,{visibleCount:historyLabels.length,fromStart:true,timeScale:true,windowMinutes:state.environmentLiveRange,ignoreVisibility:true,showNowMarker:false,axisRanges:ranges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
+    if(forecastCanvas&&hasForecast)drawLineChart(forecastCanvas,[{key:"forecastTemp",label:"预报温度",data:forecastTemperature,color:"#ff9f43",axis:"left",dash:[7,5]},{key:"forecastHumidity",label:"预报湿度",data:forecastHumidity,color:"#66c7f2",axis:"right",dash:[7,5]}],forecastLabels,{visibleCount:forecastLabels.length,fromStart:true,timeScale:true,windowMinutes:state.environmentForecastRange,ignoreVisibility:true,showNowMarker:false,mirrorNowMarker:false,axisRanges:forecastRanges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
     syncEnvironmentForecastControls();
   }
 
