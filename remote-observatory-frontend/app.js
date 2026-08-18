@@ -50,7 +50,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260819-03", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
