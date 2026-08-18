@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 use tokio::sync::{oneshot, Mutex};
 
 const DEFAULT_SERVER: &str = "https://astroy.xyz";
@@ -19,7 +19,7 @@ struct NativeState {
 #[derive(Serialize, Deserialize)]
 struct NativeResult { access_token: String, token_type: String, expires_in: u64, user: serde_json::Value }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct LoginBody { identifier: String, password: String }
 
 #[derive(Serialize)]
@@ -138,7 +138,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(NativeState { server: Arc::new(Mutex::new(DEFAULT_SERVER.to_string())), token: Arc::new(Mutex::new(None)), sse_abort: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_stronghold::Builder::new(|password| password.to_owned()).build())
+        .plugin(tauri_plugin_stronghold::Builder::new(|password| password.to_owned().into()).build())
         .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, clear_native_token, set_server, native_fetch, start_sse, stop_sse])
         .run(tauri::generate_context!())
         .expect("error while running ASTRA");
