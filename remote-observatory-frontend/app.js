@@ -928,7 +928,7 @@
               ${devices.map(([value, label]) => `<button type="button" role="option" data-terminal-option="${value}" aria-selected="${value === selected}" class="${value === selected ? "selected" : ""}"><i aria-hidden="true"></i><span>${label}</span><small>${value === "esp32-001" ? "环境 / 屋顶" : value === "mppt-001" ? "光伏 / 电池" : "舵机 / 灯光"}</small></button>`).join("")}
             </div>
           </div>
-          <span>›</span><input data-terminal-input placeholder="向所选设备发送指令…" autocomplete="off" /><button type="submit">发送</button>
+          <span>›</span><input data-terminal-input placeholder="向所选设备发送指令…" autocomplete="off" /><button type="button" class="terminal-debug-button" data-terminal-debug>打印调试信息</button><button type="submit">发送</button>
         </form>
       </article>`;
     });
@@ -1423,7 +1423,7 @@
     if (openData?.seeing?.length) {
       const count = Math.min(state.forecastRange, openData.time.length);
       const firstTime = chartPointTime(openData.time[0]), lastTime = chartPointTime(openData.time[count - 1]), now = Date.now();
-      if (Number.isFinite(firstTime) && Number.isFinite(lastTime) && now >= firstTime && now <= lastTime) sharedNowMarkerFraction = 1 - clamp((now - firstTime) / Math.max(lastTime - firstTime, 1), 0, 1);
+      if (Number.isFinite(firstTime) && Number.isFinite(lastTime) && now >= firstTime && now <= lastTime) sharedNowMarkerFraction = clamp((now - firstTime) / Math.max(lastTime - firstTime, 1), 0, 1);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
       const axisRanges = fullRange ? { left:[0,100], right:[0,100] } : comfortRange ? { left:[50,100], right:[50,100] } : {
         left:forecastAutoRange(openData.seeing.slice(0, count), 0, 100, 10),
@@ -1432,7 +1432,7 @@
       drawLineChart($("#forecast-astro-chart"), [
         { key:"forecastSeeing", data:openData.seeing, color:seeingSourceMeta.openmeteo.color, axis:"left" },
         { key:"forecastClear", data:openData.clear, color:"#f3d369", axis:"right" }
-      ], openData.time, { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, axisRanges, showYAxisLabels:true, leftAxisSuffix:"分", rightAxisSuffix:"%", axisFontWeight:600 });
+      ], openData.time, { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, mirrorNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"分", rightAxisSuffix:"%", axisFontWeight:600 });
     }
     if (sevenData?.seeing?.length) {
       const sevenCount = Math.min(Math.ceil(state.sevenTimerRange / 3), sevenData.labels.length);
@@ -1454,7 +1454,7 @@
     const f = state.forecast.hourly;
     if (f.time.length) {
       const count = Math.min(state.forecastRange, f.time.length);
-      const common = { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true };
+      const common = { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, mirrorNowMarker:false };
       const rainValues = f.precipitation.slice(0, count).map(Number).filter(Number.isFinite);
       const rainMax = Math.max(0, ...rainValues);
       const rainAxisMax = Math.max(0.4, Math.ceil(rainMax * 12) / 10);
@@ -1824,7 +1824,7 @@
     if(!location||!hasNumber(location.latitude)||!hasNumber(location.longitude)){
       setText("#forecast-location-name","尚未选择预报地点");setText("#forecast-location-coords","--");clearForecastSummary();renderSeeingSource();drawForecastCharts();return;
     }
-    const locationParts=[location.name,location.admin1&&location.admin1!==location.name?location.admin1:"",location.country].filter(Boolean);
+    const locationParts=[location.name,location.admin1,location.country].filter(Boolean).filter((part,index,parts)=>parts.indexOf(part)===index);
     setText("#forecast-location-name", locationParts.join(" · ")||"已选择地点");
     const lat = Number(location.latitude), lon = Number(location.longitude);
     setText("#forecast-location-coords", `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} · ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`);
@@ -1906,9 +1906,15 @@
     results.innerHTML = `<span class="location-loading">正在搜索地点…</span>`;
     if (submit) { submit.disabled = true; submit.textContent = "搜索中…"; }
     try {
-      const response = await fetch(`/api/weather/geocoding?name=${encodeURIComponent(normalized)}&count=7&language=zh`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
+      const aliases = { "厦门":"Xiamen", "济州":"Jeju", "济州岛":"Jeju", "首尔":"Seoul", "釜山":"Busan", "제주":"Jeju", "서울":"Seoul", "부산":"Busan" };
+      const lookupNames = [normalized, aliases[normalized]].filter(Boolean).filter((name,index,names)=>names.indexOf(name)===index);
+      let data = { results:[] };
+      for (const lookupName of lookupNames) {
+        const response = await fetch(`/api/weather/geocoding?name=${encodeURIComponent(lookupName)}&count=7&language=zh`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        data = await response.json();
+        if (data.results?.length) break;
+      }
       if (requestSequence !== weatherSearchSequence) return;
       const locations = data.results || [];
       results.innerHTML = locations.length ? locations.map((location, index) => `<button type="button" role="option" data-weather-location="${index}"><i></i><span><b>${escapeHtml(location.name)}</b><small>${escapeHtml([location.admin1, location.country].filter(Boolean).join(" · "))}</small></span><em>${Number(location.latitude).toFixed(2)}, ${Number(location.longitude).toFixed(2)}</em></button>`).join("") : `<span class="location-loading">未找到“${escapeHtml(normalized)}”，请尝试完整城市名</span>`;
@@ -2589,6 +2595,7 @@
     bindTerminalPickers();
     $$('[data-clear-terminal]').forEach(button=>button.addEventListener("click",()=>{state.terminal=[];renderTerminals()}));
     $$('[data-terminal-form]').forEach(form=>form.addEventListener("submit",event=>{event.preventDefault();const card=form.closest('[data-terminal-card]');const input=$('[data-terminal-input]',card);const device=$('[data-terminal-device]',card)?.value||"esp32-001";const value=input.value.trim();if(!value)return;sendCommand(device,{command:"terminal",value},`终端: ${value}`);input.value=""}));
+    $$('[data-terminal-debug]').forEach(button=>button.addEventListener("click",()=>{const card=button.closest('[data-terminal-card]');const device=$('[data-terminal-device]',card)?.value||"esp32-001";sendCommand(device,{debug:true},"打印调试信息");}));
     $$('[data-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-range]').forEach(b=>b.classList.remove("active"));button.classList.add("active");state.historyRange=Number(button.dataset.range);drawCharts()}));
     $$('[data-device-history-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-device-history-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.deviceHistory.range=Number(button.dataset.deviceHistoryRange);rebuildDeviceHistory();drawDeviceHistoryChart()}));
     $$('[data-power-y-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-power-y-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.powerYRange=button.dataset.powerYRange;drawCharts()}));

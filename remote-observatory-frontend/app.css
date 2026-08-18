@@ -409,6 +409,10 @@ html[data-color-mode="dark"] .terminal-device-menu{background:rgba(27,27,27,.94)
 html[data-color-mode="light"] .terminal-device-menu{background:rgba(244,244,242,.94);box-shadow:0 18px 46px rgba(20,20,20,.14)}
 .terminal-card form>span{padding-left:10px}
 .terminal-card form>button[type="submit"]{border:0!important;background:var(--glass-inner)!important}
+.terminal-card form{height:auto;min-height:39px;flex-wrap:wrap}
+.terminal-card form .terminal-debug-button{order:5;flex:0 0 100%;height:32px;padding:0 10px;border:0;border-top:1px solid var(--line);color:var(--ui-muted);background:transparent;white-space:nowrap;cursor:pointer}
+.terminal-card form>button[type="submit"]{order:4}
+.terminal-card form .terminal-debug-button:hover{color:var(--ui-text);background:var(--glass-deep)}
 @keyframes terminal-menu-in{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes steam-rise{0%{opacity:.12;transform:translate3d(0,22px,0) scaleX(.45)}25%{opacity:.82}70%{opacity:.44}100%{opacity:.08;transform:translate3d(14px,-102px,0) scaleX(1.35)}}
 @keyframes hinge-pulse{from{filter:brightness(.75)}to{filter:brightness(1.55)}}
@@ -643,11 +647,11 @@ button:active{transform:scale(.975)!important}
 .environment-live-toolbar span{color:#f5f5f2;font-weight:700}
 
 /* Keep the environment control columns aligned from the top. */
-.environment-main{align-items:start}
-.environment-left-stack{min-width:0;display:grid;align-content:start;gap:16px}
-.environment-left-stack>.terminal-slot{min-width:0;width:auto;margin-top:0}
+.environment-main{align-items:stretch}
+.environment-left-stack{min-width:0;height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);align-content:stretch;gap:16px}
+.environment-left-stack>.terminal-slot{min-width:0;width:auto;margin-top:0;align-self:stretch}
 @media(max-width:620px){
-  .environment-left-stack{display:contents}
+  .environment-left-stack{display:contents;height:auto}
   .environment-main>.environment-left-stack>.roof-card{order:1}
   .environment-main>.env-controls{order:2}
   .environment-main>.environment-left-stack>.terminal-slot{order:3;margin-top:0}
@@ -738,11 +742,11 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 .environment-live-toolbar button.active{color:var(--axis-control-selected-fg);background:var(--axis-control-selected-bg)}
 
 /* Secondary weather readings stay legible on the dark glass cards. */
-.weather-stat p{color:rgba(255,255,255,.62)}
-.weather-stat p b{color:#f5f5f2!important;font-weight:700}
-.weather-stat .micro-line{background:linear-gradient(to top,rgba(255,255,255,.18),rgba(255,255,255,.025) 76%,transparent)}
-.weather-stat .micro-line i{height:2px;background:rgba(255,255,255,.92);box-shadow:0 0 10px rgba(255,255,255,.24)}
-.weather-stat .rain-icon{color:#f5f5f2}
+.weather-stat p{color:var(--ui-muted)}
+.weather-stat p b{color:var(--ui-text)!important;font-weight:700}
+.weather-stat .micro-line{background:linear-gradient(to top,color-mix(in srgb,var(--ui-text) 12%,transparent),color-mix(in srgb,var(--ui-text) 2%,transparent) 76%,transparent)}
+.weather-stat .micro-line i{height:2px;background:var(--ui-text);box-shadow:0 0 10px color-mix(in srgb,var(--ui-text) 24%,transparent)}
+.weather-stat .rain-icon{color:var(--ui-text)}
 
 /* Keep the live temperature unit large and visible beside the primary value. */
 #weather-temp sup{font-size:calc(var(--fs-data) - 10px)!important;color:#f5f5f2!important;font-weight:650;margin-left:5px;vertical-align:.58em}
@@ -750,9 +754,9 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 /* Real, responsive two-hour humidity sparkline. */
 .weather-stat .humidity-sparkline{left:18px;right:18px;bottom:14px;height:38px;background:none;clip-path:none;overflow:visible}
 .humidity-sparkline svg{display:block;width:100%;height:100%;overflow:visible}
-.humidity-sparkline path{fill:rgba(255,255,255,.12)}
-.humidity-sparkline polyline{fill:none;stroke:#f5f5f2;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.humidity-sparkline circle{fill:#f5f5f2;stroke:rgba(255,255,255,.28);stroke-width:3;vector-effect:non-scaling-stroke}
+.humidity-sparkline path{fill:color-mix(in srgb,var(--ui-text) 12%,transparent)}
+.humidity-sparkline polyline{fill:none;stroke:var(--ui-text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.humidity-sparkline circle{fill:var(--ui-text);stroke:color-mix(in srgb,var(--ui-text) 28%,transparent);stroke-width:3;vector-effect:non-scaling-stroke}
 @media(max-width:620px){.weather-stat.humidity-stat{min-height:210px}}
 @media(max-width:620px){.environment-live-toolbar>div{width:fit-content;max-width:100%;padding-right:0;overflow-x:auto}}
 
