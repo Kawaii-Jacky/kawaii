@@ -78,6 +78,11 @@ jobs:
           java-version: '17'
       - name: Install Android NDK and Rust targets
         run: |
+          # The hosted image contains multiple emulator/system-image SDKs. Remove
+          # them before the universal four-ABI build so Gradle has enough space.
+          sudo rm -rf "$ANDROID_HOME/ndk" "$ANDROID_HOME/system-images" "$ANDROID_HOME/emulator"
+          sudo rm -rf /usr/share/dotnet /opt/ghc
+          df -h /
           sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
           rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
       - name: Install Tauri CLI
@@ -87,6 +92,7 @@ jobs:
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
           ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2
         run: |
           npx tauri android init
           npx tauri android build --apk --debug
