@@ -753,6 +753,8 @@ def auto_assign_controller_connection(
     existing = controller_for_user(user)
     if existing:
         return controller_connection(response, user)
+    if user.get("role") == "admin":
+        raise HTTPException(409, "管理员使用系统分配的默认天文台套组")
     with db_lock, conn() as c:
         candidate = c.execute(
             """select c.controller_id from controllers c
