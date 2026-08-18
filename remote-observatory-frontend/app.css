@@ -688,7 +688,8 @@ button:active{transform:scale(.975)!important}
 .camera-timer-config .custom-duration input{width:2.4em;min-width:2.4em;padding:0;color:var(--ui-text);font-weight:700;text-align:center;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield;opacity:1}
 .camera-timer-config .custom-duration input::-webkit-inner-spin-button,.camera-timer-config .custom-duration input::-webkit-outer-spin-button{margin:0;-webkit-appearance:none}
 .onstep-header-actions{display:flex;align-items:center;justify-self:end;gap:5px;min-width:0}
-.onstep-bluetooth-status{height:27px;padding:0 8px;border-radius:8px;display:flex;align-items:center;gap:4px;color:color-mix(in srgb,var(--ui-muted) 52%,transparent);background:var(--glass-inner);font-size:var(--fs-caption);transition:color .2s ease,background-color .2s ease,box-shadow .2s ease}
+.onstep-bluetooth-status{height:27px;padding:0 8px;border:0!important;border-radius:8px;outline:0!important;display:flex;align-items:center;gap:4px;color:color-mix(in srgb,var(--ui-muted) 52%,transparent);background:var(--glass-deep);font-size:var(--fs-caption);transition:color .2s ease,background-color .2s ease,box-shadow .2s ease}
+.onstep-bluetooth-status:focus-visible{outline:0!important;box-shadow:none}
 .onstep-bluetooth-status>svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8}
 .onstep-bluetooth-status.connected{color:#8cc9ff;background:rgba(63,139,222,.18);box-shadow:0 0 12px rgba(63,139,222,.32)}
 .simulation-option{margin-top:12px;padding:13px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--glass-inner)}
@@ -721,7 +722,7 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 .onstep-bluetooth-status.connected>em{background:#67aef7;box-shadow:0 0 9px rgba(103,174,247,.72)}
 .onstep-bluetooth-status.pending{animation:bluetooth-pending .8s ease-in-out infinite alternate}.onstep-bluetooth-status:disabled{cursor:not-allowed;opacity:.48}
 @keyframes bluetooth-pending{to{filter:brightness(1.65)}}
-@media(max-width:430px){.weather-stat.humidity-stat{display:block}.weather-stat .humidity-sparkline{position:relative;width:100%;height:48px;margin-top:18px}}
+@media(max-width:430px){.weather-stat.humidity-stat{display:block}.weather-stat .humidity-sparkline{position:relative;width:100%;height:48px;margin-top:18px;margin-left:0}}
 @media(max-width:620px){.forecast-controls{justify-content:stretch;margin-inline:10px}.forecast-controls .forecast-range{flex:1 1 auto}}
 .openmeteo-chart .astro-chart-legend span:first-child i{background:#b58cff}
 .openmeteo-chart .astro-chart-legend span:last-child i,
@@ -753,7 +754,7 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 #weather-temp sup{font-size:calc(var(--fs-data) - 10px)!important;color:#f5f5f2!important;font-weight:650;margin-left:5px;vertical-align:.58em}
 
 /* Real, responsive two-hour humidity sparkline. */
-.weather-stat .humidity-sparkline{left:18px;right:18px;bottom:14px;height:38px;background:none;clip-path:none;overflow:visible}
+.weather-stat .humidity-sparkline{left:18px;right:18px;bottom:14px;height:38px;margin-top:28px;margin-left:-26px;background:none;clip-path:none;overflow:visible}
 .humidity-sparkline svg{display:block;width:100%;height:100%;overflow:visible}
 .weather-stat .humidity-sparkline path{fill:color-mix(in srgb,var(--accent) 12%,transparent)!important}
 .weather-stat .humidity-sparkline polyline{fill:none;stroke:var(--accent)!important;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
