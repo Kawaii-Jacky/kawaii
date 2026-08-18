@@ -9,11 +9,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="ASTRA" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260819-01" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260819-02" />
   <link rel="icon" href="assets/pwa/icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="assets/pwa/icon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/pwa/icon-180.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260819-21" />
+    <link rel="stylesheet" href="app.css?v=20260819-22" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -370,6 +372,11 @@
               </div>
             </article>
           </div>
+          <article class="card server-settings-card" id="server-settings-card" hidden>
+            <header class="card-header"><div><span class="section-icon"><i data-lucide="server"></i></span><h3>服务器设置</h3></div><span class="auth-status-chip">仅 HTTPS</span></header>
+            <p class="server-settings-copy">Windows/Android 原生应用默认连接 https://astroy.xyz。切换服务器会清除当前原生会话并要求重新登录。</p>
+            <form id="server-settings-form" class="server-settings-form"><label class="auth-field"><span>后端 HTTPS 地址</span><input id="native-server-url" type="url" inputmode="url" placeholder="https://astroy.xyz" autocomplete="url" /></label><button class="primary-button" type="submit">保存服务器</button><p id="server-settings-message" class="auth-message" role="status" aria-live="polite"></p></form>
+          </article>
           <article class="card password-change-card account-settings-card" id="account-settings-card">
             <header class="card-header"><div><span class="section-icon"><i data-lucide="user-cog"></i></span><h3>账户设置</h3></div><span class="auth-status-chip" id="profile-auth-status">检查会话</span></header>
             <div class="account-settings-actions">
@@ -409,7 +416,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260819-20"></script>
+  <script src="app.js?v=20260819-22"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>

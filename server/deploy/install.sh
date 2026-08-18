@@ -15,5 +15,9 @@ s=s.replace('AUTH_SECRET=CHANGE_ME', 'AUTH_SECRET='+secrets.token_urlsafe(32))
 p.write_text(s)
 PY
 fi
-docker compose -f docker-compose.release.yml up -d --remove-orphans "$@"
+compose_args=()
+for arg in "$@"; do
+  if [[ "$arg" == "--build-local" ]]; then compose_args+=(--build); else compose_args+=("$arg"); fi
+done
+docker compose -f docker-compose.release.yml up -d --remove-orphans "${compose_args[@]}"
 docker compose -f docker-compose.release.yml ps

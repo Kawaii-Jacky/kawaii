@@ -78,6 +78,24 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const isNativeRuntime = () => Boolean(window.__TAURI__?.core?.invoke);
+  const nativeInvoke = (command, args = {}) => window.__TAURI__.core.invoke(command, args);
+  let nativeEventUnlisten = null;
+  let nativeEventBuffer = "";
+  async function nativeRequest(path, options = {}) {
+    const result = await nativeInvoke("native_fetch", {
+      path,
+      method: options.method || "GET",
+      body: options.body || null
+    });
+    const data = result?.body ? JSON.parse(result.body) : null;
+    if (Number(result?.status) < 200 || Number(result?.status) >= 300) {
+      const error = new Error(typeof data?.detail === "string" ? data.detail : `请求失败 (${result?.status || 0})`);
+      error.status = Number(result?.status || 0);
+      throw error;
+    }
+    return data;
+  }
   const clamp = (value, min, max) => Math.min(max, Math.max(min, Number(value)));
   const hasNumber = value => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
   const number = (value, fallback = 0) => hasNumber(value) ? Number(value) : fallback;
@@ -431,6 +449,35 @@
     renderHumiditySparkline();
     drawCharts();
     state.online = { "esp32-001": false, "mppt-001": false, "ef-001": false };
+    if (isNativeRuntime()) {
+      nativeEventBuffer = "";
+      nativeEventUnlisten?.();
+      nativeEventUnlisten = null;
+      nativeInvoke("start_sse").then(() => {
+        state.connected = true;
+        state.eventSource = { readyState: 1, close: () => nativeInvoke("stop_sse").catch(() => {}) };
+        updateConnectionUI();
+        syncRealtimeSnapshot();
+      }).catch(error => {
+        state.connected = false;
+        addLog("SYSTEM", error?.message || "Native event stream unavailable", "error");
+        updateConnectionUI();
+      });
+      window.__TAURI__.event.listen("astra://event", event => {
+        nativeEventBuffer += String(event.payload || "");
+        const frames = nativeEventBuffer.split(/\n\n/);
+        nativeEventBuffer = frames.pop() || "";
+        frames.forEach(frame => {
+          const line = frame.split(/\n/).find(item => item.startsWith("data:"));
+          if (!line) return;
+          try {
+            const message = JSON.parse(line.slice(5).trim());
+            if (message?.topic) handleMessage(message.topic, message.payload);
+          } catch (_) { /* partial or keepalive frame */ }
+        });
+      }).then(unlisten => { nativeEventUnlisten = unlisten; }).catch(() => {});
+      return;
+    }
     const source = new EventSource("/api/v1/events/stream", { withCredentials:true });
     state.eventSource = source;
     source.onopen = () => {
@@ -456,6 +503,7 @@
 
   function disconnectEventStream() {
     if (state.eventSource) { state.eventSource.close(); state.eventSource = null; }
+    if (isNativeRuntime()) { nativeInvoke("stop_sse").catch(() => {}); nativeEventUnlisten?.(); nativeEventUnlisten = null; }
     state.connected = false;
     markDevicesOffline();
   }
@@ -1168,6 +1216,7 @@
   }
 
   async function apiRequest(path, options = {}) {
+    if (isNativeRuntime()) return nativeRequest(path, options);
     const response = await fetch(path, { credentials:"same-origin", ...options, headers:{"Content-Type":"application/json", ...(options.headers || {})} });
     const data = await response.json().catch(() => null);
     if (!response.ok) {
@@ -2057,6 +2106,15 @@
   }
 
   async function authApi(path, options = {}) {
+    if (isNativeRuntime()) {
+      if (path === "/login") {
+        const body = JSON.parse(options.body || "{}");
+        const result = await nativeInvoke("native_login", { body });
+        return result;
+      }
+      if (path === "/session/refresh") return nativeInvoke("native_refresh");
+      return nativeRequest(`/api/v1/auth${path}`, options);
+    }
     const response = await fetch(`/api/v1/auth${path}`, {
       credentials: "same-origin",
       ...options,
@@ -2352,6 +2410,7 @@
     state.auth.loading = true;
     renderAuth();
     try {
+      if (isNativeRuntime()) await nativeInvoke("load_native_token").catch(() => null);
       if (localStorage.getItem("astra.logoutPending") === "1") {
         await authApi("/logout", { method:"POST" });
         localStorage.removeItem("astra.logoutPending");
@@ -2483,6 +2542,7 @@
     routeTo("login");
     try {
       await authApi("/logout", { method:"POST", signal:controller.signal });
+      if (isNativeRuntime()) await nativeInvoke("clear_native_token").catch(() => {});
       serverSessionEnded = true;
       try { localStorage.removeItem("astra.logoutPending"); } catch {}
     } catch (error) {
@@ -2507,6 +2567,7 @@
     button.textContent = "正在退出…";
     try {
       await authApi("/logout-all", { method:"POST" });
+      if (isNativeRuntime()) await nativeInvoke("clear_native_token").catch(() => {});
       state.auth.user = null;
       disconnectEventStream();
       buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();
@@ -2585,6 +2646,32 @@
       button?.classList.add("pending");
       window.setTimeout(()=>button?.classList.remove("pending"),8000);
     }
+  }
+
+  async function initNativeServerSettings() {
+    const card = $("#server-settings-card");
+    if (!isNativeRuntime()) return;
+    if (card) card.hidden = false;
+    const input = $("#native-server-url");
+    const message = $("#server-settings-message");
+    const saved = localStorage.getItem("astra.nativeServerUrl") || "https://astroy.xyz";
+    if (input) input.value = saved;
+    await nativeInvoke("set_server", { server: saved }).catch(() => {});
+    $("#server-settings-form")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const server = input?.value.trim() || "";
+      try {
+        await nativeInvoke("set_server", { server });
+        localStorage.setItem("astra.nativeServerUrl", server);
+        await nativeInvoke("clear_native_token").catch(() => {});
+        disconnectEventStream();
+        state.auth.user = null;
+        if (message) { message.textContent = "服务器已切换，请重新登录。"; message.className = "auth-message ok"; }
+        routeTo("login");
+      } catch (error) {
+        if (message) { message.textContent = error?.message || "服务器地址无效"; message.className = "auth-message error"; }
+      }
+    });
   }
 
   function bindEvents() {
@@ -2685,14 +2772,14 @@
     document.addEventListener("keydown",event=>{if(event.key==="Escape"){closeSettings();closeConfirm();closeSeeingSourceMenu()}});
   }
 
-  function init() {
+  async function init() {
     buildHistory();
     buildTerminals();
     window.lucide?.createIcons({ attrs: { "aria-hidden": "true" } });
     try { const savedLocation=JSON.parse(localStorage.getItem("astra.weather.location")); if(savedLocation?.latitude&&savedLocation?.longitude)state.forecast.location=savedLocation; } catch { /* optional local preference */ }
     const savedWeatherInput=$("#weather-location-search"); if(savedWeatherInput && state.forecast.location?.name) savedWeatherInput.value=state.forecast.location.name;
     applyPreferences();
-    selectConnectionMode(); bindEvents(); initPwa(); routeTo(state.route); loadAuthSession();
+    selectConnectionMode(); bindEvents(); initPwa(); await initNativeServerSettings(); routeTo(state.route); await loadAuthSession();
     addLog("SYSTEM", "ASTRA 控制台已启动", "ok"); addLog("SYSTEM", "等待后端实时通道", "warn");
     setInterval(()=>{const now=new Date();setText("#clock",now.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}));setText("#date",now.toLocaleDateString("zh-CN",{month:"2-digit",day:"2-digit",weekday:"short"}));renderEnvironmentControls()},1000);
     setInterval(()=>{const now=Date.now();deviceIds.forEach(id=>{if(state.online[id]&&now-state.lastSeen[id]>deviceOnlineTimeout){state.online[id]=false;toast("设备掉线",`${id} 已超过 30 秒未上传遥测。`,"error","background")}});renderDeviceStatuses();updateConnectionUI()},5000);

@@ -5,7 +5,8 @@
   "identifier": "xyz.astroy.app",
   "build": {
     "frontendDist": "../../../remote-observatory-frontend",
-    "devUrl": "http://localhost:4173"
+    "devUrl": "http://localhost:4173",
+    "withGlobalTauri": true
   },
   "app": {
     "windows": [{ "title": "ASTRA", "width": 1280, "height": 820, "resizable": true }],

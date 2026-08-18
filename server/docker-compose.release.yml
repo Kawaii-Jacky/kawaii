@@ -13,6 +13,22 @@ services:
     image: eclipse-mosquitto:2
     restart: unless-stopped
     volumes: [./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro, mosquitto-data:/mosquitto/data]
+  sms-gateway:
+    image: ${ASTRA_SMS_IMAGE:-ghcr.io/kawaii-jacky/astra-sms:${ASTRA_VERSION:-latest}}
+    build: { context: ., dockerfile: Dockerfile }
+    restart: unless-stopped
+    environment:
+      SMS_WEBHOOK_TOKEN: ${SMS_WEBHOOK_TOKEN:?SMS_WEBHOOK_TOKEN is required}
+      SMS_GATEWAY_MODE: ${SMS_GATEWAY_MODE:-mock}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
+  service-control:
+    image: ${ASTRA_CONTROL_IMAGE:-ghcr.io/kawaii-jacky/astra-control:${ASTRA_VERSION:-latest}}
+    build: { context: ., dockerfile: Dockerfile.admin }
+    restart: unless-stopped
+    command: python -m app.service_control
+    network_mode: none
+    volumes: [/var/run/docker.sock:/var/run/docker.sock:rw]
   api:
     image: ${ASTRA_API_IMAGE:-ghcr.io/kawaii-jacky/astra-api:${ASTRA_VERSION:-latest}}
     build: { context: ., dockerfile: Dockerfile }
@@ -22,19 +38,24 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-astroy}
       MQTT_HOST: mosquitto
       MQTT_PORT: 1883
-    depends_on: { postgres: { condition: service_healthy }, mosquitto: { condition: service_started } }
+    depends_on: { postgres: { condition: service_healthy }, mosquitto: { condition: service_started }, sms-gateway: { condition: service_started } }
   admin-console:
     image: ${ASTRA_ADMIN_IMAGE:-ghcr.io/kawaii-jacky/astra-admin:${ASTRA_VERSION:-latest}}
     build: { context: ., dockerfile: Dockerfile.admin }
     restart: unless-stopped
     env_file: .env
-    depends_on: { api: { condition: service_started } }
+    depends_on: { api: { condition: service_started }, service-control: { condition: service_started } }
   web:
     image: ${ASTRA_WEB_IMAGE:-ghcr.io/kawaii-jacky/astra-web:${ASTRA_VERSION:-latest}}
     build: { context: .., dockerfile: server/Dockerfile.web }
     restart: unless-stopped
     ports: ["${ASTRA_WEB_PORT:-8000}:80"]
     depends_on: { api: { condition: service_started }, admin-console: { condition: service_started } }
+  cloudflared:
+    image: cloudflare/cloudflared:2025.8.0
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN is required}
+    profiles: [cloudflared]
 volumes:
   postgres-data:
   mosquitto-data:
