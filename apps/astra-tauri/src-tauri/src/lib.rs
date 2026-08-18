@@ -134,6 +134,7 @@ async fn stop_sse(state: State<'_, NativeState>) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(NativeState { server: Arc::new(Mutex::new(DEFAULT_SERVER.to_string())), token: Arc::new(Mutex::new(None)), sse_abort: Arc::new(Mutex::new(None)) })
