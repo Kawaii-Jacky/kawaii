@@ -715,6 +715,8 @@ button:active{transform:scale(.975)!important}
 html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{background:#e57654!important}
 .environment-live-legend .forecast-temperature-legend i{background:repeating-linear-gradient(90deg,#ff9f43 0 6px,transparent 6px 10px)!important}
 .environment-live-legend .forecast-humidity-legend i{background:repeating-linear-gradient(90deg,#66c7f2 0 6px,transparent 6px 10px)!important}
+.environment-live-legend .forecast-dewpoint-legend i{background:repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 10px)!important}
+html[data-theme-color="black"] .environment-live-legend .forecast-dewpoint-legend i{background:repeating-linear-gradient(90deg,#e57654 0 6px,transparent 6px 10px)!important}
 .temperature-card{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto auto minmax(205px,1fr)}
 .temperature-current{grid-row:auto!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:end}
 .temperature-current>div{min-width:0;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.045)}
