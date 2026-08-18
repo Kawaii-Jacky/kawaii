@@ -753,12 +753,9 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 /* Real, responsive two-hour humidity sparkline. */
 .weather-stat .humidity-sparkline{left:18px;right:18px;bottom:14px;height:38px;background:none;clip-path:none;overflow:visible}
 .humidity-sparkline svg{display:block;width:100%;height:100%;overflow:visible}
-.humidity-sparkline path{fill:color-mix(in srgb,var(--ui-text) 12%,transparent)}
-.humidity-sparkline polyline{fill:none;stroke:var(--ui-text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.humidity-sparkline circle{fill:var(--ui-text);stroke:color-mix(in srgb,var(--ui-text) 28%,transparent);stroke-width:3;vector-effect:non-scaling-stroke}
-html[data-color-mode="light"] .humidity-sparkline path{fill:color-mix(in srgb,var(--accent) 12%,transparent)}
-html[data-color-mode="light"] .humidity-sparkline polyline{stroke:var(--accent)}
-html[data-color-mode="light"] .humidity-sparkline circle{fill:var(--accent);stroke:color-mix(in srgb,var(--accent) 28%,transparent)}
+.humidity-sparkline path{fill:color-mix(in srgb,var(--accent) 12%,transparent)}
+.humidity-sparkline polyline{fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.humidity-sparkline circle{fill:var(--accent);stroke:color-mix(in srgb,var(--accent) 28%,transparent);stroke-width:3;vector-effect:non-scaling-stroke}
 html[data-color-mode="light"] .weather-stat .rain-icon{color:var(--accent)}
 #weather-rain-analog{color:var(--ui-muted)!important}
 @media(max-width:620px){.weather-stat.humidity-stat{min-height:210px}}
