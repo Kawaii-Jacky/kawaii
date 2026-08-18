@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101110" />
   <meta name="description" content="远程天文台控制中心：环境、电源、屋顶、赤道仪与平场板统一监控。" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260818-70" />
+    <link rel="stylesheet" href="app.css?v=20260818-71" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -94,18 +94,18 @@
             <article class="card device-overview">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="network"></i></span><h3>节点状态</h3></div></header>
               <div class="device-table">
-                <div class="device-row"><span class="device-symbol">M</span><p><b>主控与环境</b><small>esp32-001 · 环境 / 屋顶 / OnStep</small></p><span class="device-data"><b id="node-main-value">--</b><small>环境温度</small></span><em class="online-badge offline">OFFLINE</em></div>
-                <div class="device-row"><span class="device-symbol">P</span><p><b>MPPT 能源</b><small>mppt-001 · 光伏 / 电池 / 负载</small></p><span class="device-data"><b id="node-power-value">--</b><small>电池电量</small></span><em class="online-badge offline">OFFLINE</em></div>
-                <div class="device-row"><span class="device-symbol">F</span><p><b>电动平场板</b><small>ef-001 · 舵机 / LED / 加热</small></p><span class="device-data"><b id="node-flat-value">--</b><small>当前角度</small></span><em class="online-badge offline">OFFLINE</em></div>
+                <div class="device-row"><span class="device-symbol"><i data-lucide="cpu" aria-hidden="true"></i></span><p><b>主控与环境</b><small>esp32-001 · 环境 / 屋顶 / OnStep</small></p><span class="device-data"><b id="node-main-value">--</b><small>环境温度</small></span><em class="online-badge offline">OFFLINE</em></div>
+                <div class="device-row"><span class="device-symbol"><i data-lucide="battery-charging" aria-hidden="true"></i></span><p><b>MPPT 能源</b><small>mppt-001 · 光伏 / 电池 / 负载</small></p><span class="device-data"><b id="node-power-value">--</b><small>电池电量</small></span><em class="online-badge offline">OFFLINE</em></div>
+                <div class="device-row"><span class="device-symbol"><i data-lucide="circle-dot" aria-hidden="true"></i></span><p><b>电动平场板</b><small>ef-001 · 舵机 / LED / 加热</small></p><span class="device-data"><b id="node-flat-value">--</b><small>当前角度</small></span><em class="online-badge offline">OFFLINE</em></div>
               </div>
             </article>
             <article class="card quick-controls">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="sliders-horizontal"></i></span><h3>快捷控制</h3></div></header>
               <div class="quick-grid">
-                <button class="quick-toggle" data-toggle="camera"><span class="quick-icon">CAM</span><p><b>拍摄系统</b><small>相机供电</small></p><i></i></button>
-                <button class="quick-toggle" data-toggle="heater"><span class="quick-icon">HTR</span><p><b>除露加热</b><small>主控加热片</small></p><i></i></button>
-                <button class="quick-toggle" data-toggle="fan"><span class="quick-icon">FAN</span><p><b>机箱风扇</b><small>手动控制</small></p><i></i></button>
-                <button class="quick-toggle" data-toggle="flatLed"><span class="quick-icon">LED</span><p><b>平场板灯</b><small id="quick-flat-led-state">设备离线</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="camera"><span class="quick-icon"><i data-lucide="camera" aria-hidden="true"></i></span><p><b>拍摄系统</b><small>相机供电</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="heater"><span class="quick-icon"><i data-lucide="flame" aria-hidden="true"></i></span><p><b>除露加热</b><small>主控加热片</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="fan"><span class="quick-icon"><i data-lucide="fan" aria-hidden="true"></i></span><p><b>机箱风扇</b><small>手动控制</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="flatLed"><span class="quick-icon"><i data-lucide="lightbulb" aria-hidden="true"></i></span><p><b>平场板灯</b><small id="quick-flat-led-state">设备离线</small></p><i></i></button>
               </div>
             </article>
             <div class="terminal-slot" data-terminal-default="esp32-001" data-terminal-number="04"></div>
@@ -255,7 +255,7 @@
               <article class="card flat-controls advanced-card heating-card">
                 <header class="card-header"><div><span class="section-icon"><i data-lucide="settings"></i></span><h3>高级设置</h3></div></header>
                 <label class="range-control"><span><b>LED 亮度</b><em id="brightness-value">--</em></span><input type="range" id="brightness" min="0" max="100" value="0" /></label>
-                <button class="control-row" data-flat-toggle="heater_mode"><span class="control-icon">AU</span><p><b>自动加热</b><small>根据湿度阈值启停</small></p><i></i></button>
+                <button class="control-row" data-flat-toggle="heater_mode"><span class="control-icon"><i data-lucide="thermometer-sun" aria-hidden="true"></i></span><p><b>自动加热</b><small>根据湿度阈值启停</small></p><i></i></button>
                 <label class="range-control"><span><b>湿度阈值</b><em id="humidity-threshold-value">--</em></span><input type="range" id="humidity-threshold" min="0" max="100" value="0" /></label>
                 <label class="range-control"><span><b>加热功率</b><em id="heater-power-value">--</em></span><input type="range" id="heater-power" min="0" max="100" value="0" /></label>
               </article>

@@ -679,7 +679,7 @@ button:active{transform:scale(.975)!important}
 .forecast-chart-legend .legend-cloud i{background:#a6a8b1!important}
 .forecast-chart-legend .legend-rain i{background:#4ab8e8!important}
 .seven-timer-range{width:max-content;min-height:36px;margin:0 0 0 auto;padding:3px 5px;border-radius:12px;background:var(--glass-inner);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.control-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.device-symbol svg,.quick-icon svg,.control-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .camera-timer-config .custom-duration input{width:2.4em;min-width:2.4em;padding:0;color:var(--ui-text);font-weight:700;text-align:center;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield;opacity:1}
 .camera-timer-config .custom-duration input::-webkit-inner-spin-button,.camera-timer-config .custom-duration input::-webkit-outer-spin-button{margin:0;-webkit-appearance:none}
 .onstep-header-actions{display:flex;align-items:center;justify-self:end;gap:5px;min-width:0}
