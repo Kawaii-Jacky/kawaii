@@ -8,7 +8,7 @@ tar -czf "$out" -C "$root" \
   --exclude='./.git' --exclude='./.secrets' --exclude='./server/data' \
   --exclude='./server/backups' --exclude='*/__pycache__' --exclude='*/node_modules' \
   --exclude='*/target' --exclude='*/gen' --exclude='*.env' --exclude='*.pem' \
-  --exclude='*.key' --exclude='*.token' --exclude='*/passwd' \
+  --exclude='*.key' --exclude='*.token' --exclude='*/passwd*' \
   server/docker-compose.release.yml server/Dockerfile server/Dockerfile.admin \
   server/Dockerfile.web server/nginx.release.conf server/mosquitto \
   server/app server/requirements.txt server/.env.example server/deploy \

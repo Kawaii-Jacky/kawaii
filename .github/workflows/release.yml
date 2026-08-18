@@ -1,6 +1,7 @@
 name: ASTRA release
 on:
   push:
+    branches: [master]
     tags: ['v*']
   workflow_dispatch:
 jobs:
@@ -9,7 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
       - name: Validate manifest, service worker and JavaScript
         run: |
           node -e "JSON.parse(require('fs').readFileSync('remote-observatory-frontend/manifest.webmanifest','utf8'))"
@@ -22,54 +24,104 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
       - uses: dtolnay/rust-toolchain@stable
       - name: Install Tauri CLI
         run: npm install --prefix apps/astra-tauri
       - name: Build Windows EXE
-        run: npx --prefix apps/astra-tauri tauri build --config apps/astra-tauri/src-tauri/tauri.conf.json
+        working-directory: apps/astra-tauri
+        run: npx tauri build
       - uses: actions/upload-artifact@v4
-        with: { name: ASTRA-windows, path: apps/astra-tauri/src-tauri/target/release/bundle/nsis/*.exe }
+        with:
+          name: ASTRA-windows
+          path: apps/astra-tauri/src-tauri/target/release/bundle/nsis/*.exe
   android:
     runs-on: ubuntu-latest
     needs: pwa
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
       - uses: dtolnay/rust-toolchain@stable
       - uses: android-actions/setup-android@v3
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android NDK and Rust targets
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
+          rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
       - name: Install Tauri CLI
         run: npm install --prefix apps/astra-tauri
       - name: Build universal debug APK
-        run: npx --prefix apps/astra-tauri tauri android build --debug
+        working-directory: apps/astra-tauri
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
+        run: |
+          npx tauri android init
+          npx tauri android build --apk --debug
       - uses: actions/upload-artifact@v4
-        with: { name: ASTRA-android, path: apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk/**/*.apk }
+        with:
+          name: ASTRA-android
+          path: apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
   docker:
     runs-on: ubuntu-latest
     needs: pwa
-    permissions: { contents: read, packages: write }
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
-        with: { registry: ghcr.io, username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push API image
         uses: docker/build-push-action@v6
-        with: { context: server, file: server/Dockerfile, platforms: linux/amd64,linux/arm64, push: true, tags: ghcr.io/${{ github.repository_owner }}/astra-api:${{ github.ref_name }} }
+        with:
+          context: server
+          file: server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/astra-api:${{ github.ref_name }}
       - name: Build and push web image
         uses: docker/build-push-action@v6
-        with: { context: ., file: server/Dockerfile.web, platforms: linux/amd64,linux/arm64, push: true, tags: ghcr.io/${{ github.repository_owner }}/astra-web:${{ github.ref_name }} }
+        with:
+          context: .
+          file: server/Dockerfile.web
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/astra-web:${{ github.ref_name }}
       - name: Build and push admin image
         uses: docker/build-push-action@v6
-        with: { context: server, file: server/Dockerfile.admin, platforms: linux/amd64,linux/arm64, push: true, tags: ghcr.io/${{ github.repository_owner }}/astra-admin:${{ github.ref_name }} }
+        with:
+          context: server
+          file: server/Dockerfile.admin
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/astra-admin:${{ github.ref_name }}
       - name: Build and push SMS image
         uses: docker/build-push-action@v6
-        with: { context: server, file: server/Dockerfile, platforms: linux/amd64,linux/arm64, push: true, tags: ghcr.io/${{ github.repository_owner }}/astra-sms:${{ github.ref_name }} }
+        with:
+          context: server
+          file: server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/astra-sms:${{ github.ref_name }}
       - name: Build and push service-control image
         uses: docker/build-push-action@v6
-        with: { context: server, file: server/Dockerfile.admin, platforms: linux/amd64,linux/arm64, push: true, tags: ghcr.io/${{ github.repository_owner }}/astra-control:${{ github.ref_name }} }
+        with:
+          context: server
+          file: server/Dockerfile.admin
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/astra-control:${{ github.ref_name }}
   package:
     runs-on: ubuntu-latest
     needs: [windows, android, docker]

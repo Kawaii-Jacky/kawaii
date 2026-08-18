@@ -3,6 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1] / "assets" / "pwa"
+TAURI_ROOT = Path(__file__).resolve().parents[2] / "apps" / "astra-tauri" / "src-tauri" / "icons"
 
 def make(size: int) -> None:
     image = Image.new("RGBA", (size, size), (13, 15, 14, 255))
@@ -20,3 +21,10 @@ def make(size: int) -> None:
 
 for icon_size in (60, 72, 76, 120, 152, 167, 180, 192, 512):
     make(icon_size)
+
+TAURI_ROOT.mkdir(parents=True, exist_ok=True)
+for source_size, name in ((60, "32x32.png"), (120, "128x128.png"), (192, "128x128@2x.png"), (512, "icon.png")):
+    source = Image.open(ROOT / f"icon-{source_size}.png")
+    target_size = 32 if name == "32x32.png" else 128 if name == "128x128.png" else 256 if name == "128x128@2x.png" else 512
+    source.resize((target_size, target_size), Image.Resampling.LANCZOS).save(TAURI_ROOT / name, optimize=True)
+Image.open(ROOT / "icon-512.png").save(TAURI_ROOT / "icon.ico", sizes=[(16,16), (24,24), (32,32), (48,48), (64,64), (128,128), (256,256)])
