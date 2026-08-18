@@ -53,6 +53,7 @@ services:
     environment:
       MQTT_HOST: mosquitto
       MQTT_PORT: 1883
+      MQTT_CONTROLLERS_FILE: /run/astra-secrets/mqtt-controllers.json
       DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-astroy}
       SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://sms-gateway:8090/send}
     volumes:
@@ -125,6 +126,7 @@ services:
       MQTT_PORT: 1883
       MQTT_USERNAME: ${MQTT_USERNAME:-backend-controller}
       MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD is required}
+      MQTT_CONTROLLERS_FILE: /run/astra-secrets/mqtt-controllers.json
       CLOUDFLARED_METRICS_URL: http://host.docker.internal:20241/metrics
       SERVICE_CONTROL_SOCKET: /run/service-control/control.sock
     extra_hosts:
@@ -135,6 +137,7 @@ services:
       - ../loT/loT/device_config.h:/firmware/device_config.h:rw
       - ../EF/config.h:/firmware/ef_config.h:rw
       - service-control-run:/run/service-control:rw
+      - ./.secrets:/run/astra-secrets:rw
     ports:
       - "127.0.0.1:8100:8100"
     depends_on:

@@ -37,8 +37,13 @@ PASSWORD_FILE = Path(os.getenv("MOSQUITTO_PASSWORD_FILE", "/config/passwd"))
 ACL_FILE = Path(os.getenv("MOSQUITTO_ACL_FILE", "/config/acl.conf"))
 HTML_FILE = Path(__file__).with_name("admin_console.html")
 COOKIE_NAME = "astra_admin_console"
-DEVICE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{2,47}$")
-BUNDLE_DEVICE_IDS = {"esp32-001", "mppt-001", "ef-001"}
+CONTROLLER_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
+BUNDLE_DEVICE_SPECS = {
+    "esp32-001": ("environment", "主控与环境"),
+    "mppt-001": ("mppt", "MPPT 能源"),
+    "ef-001": ("flat-field", "电动平场板"),
+}
+BUNDLE_DEVICE_IDS = set(BUNDLE_DEVICE_SPECS)
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 password_hasher = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
 metrics_lock = threading.Lock()
@@ -49,6 +54,7 @@ MQTT_HOST = os.getenv("MQTT_HOST", "127.0.0.1")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME", "backend-controller")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
+CONTROLLER_CONFIG_FILE = Path(os.getenv("MQTT_CONTROLLERS_FILE", "/run/astra-secrets/mqtt-controllers.json"))
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 CLOUDFLARED_METRICS_URL = os.getenv("CLOUDFLARED_METRICS_URL", "http://127.0.0.1:20241/metrics")
 SERVICE_CONTROL_SOCKET = Path(os.getenv("SERVICE_CONTROL_SOCKET", "/run/service-control/control.sock"))
@@ -228,15 +234,17 @@ class LoginIn(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
-class DeviceIn(BaseModel):
-    device_id: str = Field(min_length=3, max_length=48)
-    device_type: str = Field(min_length=2, max_length=40)
-    name: str = Field(min_length=1, max_length=80)
-    mqtt_password: str | None = Field(default=None, min_length=12, max_length=128)
-
-
 class DevicePatch(BaseModel):
     enabled: bool
+
+
+class ControllerGroupIn(BaseModel):
+    controller_id: str = Field(min_length=1, max_length=32)
+    name: str = Field(min_length=1, max_length=80)
+    mqtt_host: str = Field(min_length=1, max_length=253)
+    mqtt_port: int = Field(ge=1, le=65535)
+    mqtt_username: str = Field(min_length=1, max_length=128)
+    mqtt_password: str = Field(min_length=12, max_length=128)
 
 
 class PasswordIn(BaseModel):
@@ -645,7 +653,7 @@ def metrics(_admin: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
           pg_database_size(current_database()) as database_bytes,
           (select count(*) from pg_stat_activity where datname=current_database()) as connections,
           (select count(*) from devices) as devices,
-          (select count(*) from telemetry_samples) as telemetry,
+          (select count(*) from devices where enabled=1 and last_status='online') as online_devices,
           (select count(*) from commands) as commands,
           (select count(*) from users) as users,
           (select count(*) from auth_sessions where revoked_at is null) as sessions
@@ -1059,12 +1067,239 @@ def export_database(
     )
 
 
+def controller_secret_configs() -> list[dict[str, Any]]:
+    if CONTROLLER_CONFIG_FILE.is_file():
+        document = json.loads(CONTROLLER_CONFIG_FILE.read_text(encoding="utf-8"))
+        rows = document.get("controllers", document) if isinstance(document, dict) else document
+        if not isinstance(rows, list):
+            raise RuntimeError("Controller secret file must contain a controllers array")
+        return [dict(row) for row in rows if isinstance(row, dict)]
+    return [{
+        "id": "default",
+        "name": "默认天文台",
+        "host": MQTT_HOST,
+        "port": MQTT_PORT,
+        "username": MQTT_USERNAME,
+        "password": MQTT_PASSWORD,
+    }]
+
+
+def write_controller_secret_configs(configs: list[dict[str, Any]]) -> None:
+    CONTROLLER_CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    temporary = CONTROLLER_CONFIG_FILE.with_name(f".{CONTROLLER_CONFIG_FILE.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        temporary.write_text(
+            json.dumps({"controllers": configs}, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        try:
+            temporary.chmod(0o600)
+        except OSError:
+            pass
+        temporary.replace(CONTROLLER_CONFIG_FILE)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def bundle_storage_id(controller_id: str, logical_device_id: str) -> str:
+    return logical_device_id if controller_id == "default" else f"{controller_id}:{logical_device_id}"
+
+
+@app.get("/admin-api/controller-groups")
+def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dict[str, Any]]:
+    with db_connection() as db:
+        controllers = db.execute("""
+        select c.controller_id,c.name,c.mqtt_host,c.mqtt_port,c.mqtt_username,c.enabled,
+          a.user_id,u.display_name as assigned_name
+        from controllers c
+        left join user_controller_access a on a.controller_id=c.controller_id
+        left join users u on u.id=a.user_id
+        order by c.controller_id
+        """).fetchall()
+        devices = db.execute("""
+        select device_id,controller_id,logical_device_id,device_type,name,enabled,
+          last_seen,last_status,firmware_version
+        from devices
+        where logical_device_id in ('esp32-001','mppt-001','ef-001')
+        order by controller_id,logical_device_id
+        """).fetchall()
+    by_controller: dict[str, list[dict[str, Any]]] = {}
+    for row in devices:
+        item = dict(row)
+        item["enabled"] = bool(item["enabled"])
+        by_controller.setdefault(str(item["controller_id"]), []).append(item)
+    result = []
+    for row in controllers:
+        item = dict(row)
+        children = by_controller.get(str(item["controller_id"]), [])
+        item["enabled"] = bool(item["enabled"])
+        item["devices"] = children
+        item["complete"] = {child["logical_device_id"] for child in children} == BUNDLE_DEVICE_IDS
+        item["device_count"] = len(children)
+        item["all_devices_enabled"] = len(children) == 3 and all(child["enabled"] for child in children)
+        item["online_count"] = sum(1 for child in children if child["last_status"] == "online")
+        item["last_seen"] = max((child["last_seen"] for child in children if child["last_seen"]), default=None)
+        result.append(item)
+    return result
+
+
+@app.post("/admin-api/controller-groups", status_code=201)
+def create_controller_group(
+    body: ControllerGroupIn,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    controller_id = body.controller_id.strip().lower()
+    name = body.name.strip()
+    host = body.mqtt_host.strip()
+    username = body.mqtt_username.strip()
+    if not CONTROLLER_ID_RE.fullmatch(controller_id):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid controller id")
+    if not name or not host or not username:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Controller name, host and username are required")
+    try:
+        configs = controller_secret_configs()
+    except (OSError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Controller secret file is invalid: {exc}") from exc
+    if any(str(row.get("id", "")).lower() == controller_id for row in configs):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Controller id already exists")
+    if any((str(row.get("host", "")).lower(), int(row.get("port", 1883))) == (host.lower(), body.mqtt_port) for row in configs):
+        raise HTTPException(status.HTTP_409_CONFLICT, "MQTT host and port are already used by another controller")
+    if any(str(row.get("username", "")).lower() == username.lower() for row in configs):
+        raise HTTPException(status.HTTP_409_CONFLICT, "MQTT username is already used by another controller")
+    with db_connection() as db:
+        if db.execute("select 1 from controllers where controller_id=%s", (controller_id,)).fetchone():
+            raise HTTPException(status.HTTP_409_CONFLICT, "Controller id already exists")
+        db.execute(
+            """insert into controllers(controller_id,name,mqtt_host,mqtt_port,mqtt_username,enabled,updated_at)
+               values(%s,%s,%s,%s,%s,1,%s)""",
+            (controller_id, name, host, body.mqtt_port, username, utc_iso()),
+        )
+        for logical_id, (device_type, device_name) in BUNDLE_DEVICE_SPECS.items():
+            db.execute(
+                """insert into devices(device_id,device_type,name,enabled,controller_id,logical_device_id)
+                   values(%s,%s,%s,1,%s,%s)""",
+                (bundle_storage_id(controller_id, logical_id), device_type, device_name, controller_id, logical_id),
+            )
+    configs.append({
+        "id": controller_id,
+        "name": name,
+        "host": host,
+        "port": body.mqtt_port,
+        "username": username,
+        "password": body.mqtt_password,
+    })
+    try:
+        write_controller_secret_configs(configs)
+    except OSError as exc:
+        with db_connection() as db:
+            db.execute("delete from devices where controller_id=%s", (controller_id,))
+            db.execute("delete from controllers where controller_id=%s", (controller_id,))
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to save controller credentials") from exc
+    restart_ok = True
+    restart_warning = None
+    try:
+        response = service_control_request({"action": "restart", "service": "api"})
+        restart_ok = bool(response.get("ok"))
+        restart_warning = None if restart_ok else response.get("error", "API restart failed")
+    except (OSError, RuntimeError, json.JSONDecodeError) as exc:
+        restart_ok = False
+        restart_warning = str(exc)
+    audit(
+        admin,
+        "controller.create",
+        controller_id,
+        {"name": name, "mqtt_host": host, "mqtt_port": body.mqtt_port, "mqtt_username": username, "api_restarted": restart_ok},
+        request,
+    )
+    return {
+        "ok": True,
+        "controller_id": controller_id,
+        "device_ids": list(BUNDLE_DEVICE_SPECS),
+        "api_restarted": restart_ok,
+        "warning": restart_warning,
+    }
+
+
+@app.patch("/admin-api/controller-groups/{controller_id}")
+def patch_controller_group(
+    controller_id: str,
+    body: DevicePatch,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    with db_connection() as db:
+        if not db.execute("select 1 from controllers where controller_id=%s", (controller_id,)).fetchone():
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Controller group not found")
+        updated = db.execute(
+            """update devices set enabled=%s where controller_id=%s
+               and logical_device_id in ('esp32-001','mppt-001','ef-001')""",
+            (1 if body.enabled else 0, controller_id),
+        ).rowcount
+        if updated != 3:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Controller group does not contain exactly three devices")
+    audit(admin, "controller.enable" if body.enabled else "controller.disable", controller_id, {}, request)
+    return {"ok": True, "enabled": body.enabled, "device_count": updated}
+
+
+@app.delete("/admin-api/controller-groups/{controller_id}")
+def delete_controller_group(
+    controller_id: str,
+    request: Request,
+    purge: bool = Query(False),
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    if controller_id == "default":
+        raise HTTPException(status.HTTP_409_CONFLICT, "The default controller group cannot be deleted")
+    with db_connection() as db:
+        controller = db.execute(
+            "select controller_id from controllers where controller_id=%s",
+            (controller_id,),
+        ).fetchone()
+        if not controller:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Controller group not found")
+        if db.execute("select 1 from user_controller_access where controller_id=%s", (controller_id,)).fetchone():
+            raise HTTPException(status.HTTP_409_CONFLICT, "Unassign the controller group before deleting it")
+    try:
+        original_configs = controller_secret_configs()
+    except (OSError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Controller secret file is invalid: {exc}") from exc
+    updated_configs = [row for row in original_configs if str(row.get("id", "")).lower() != controller_id]
+    if len(updated_configs) == len(original_configs):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Controller credentials are not present in the secret file")
+    try:
+        write_controller_secret_configs(updated_configs)
+        with db_connection() as db:
+            storage_ids = [bundle_storage_id(controller_id, logical_id) for logical_id in BUNDLE_DEVICE_SPECS]
+            db.execute("delete from telemetry_latest where device_id=any(%s)", (storage_ids,))
+            if purge:
+                db.execute("delete from telemetry_samples where device_id=any(%s)", (storage_ids,))
+                db.execute("delete from commands where device_id=any(%s)", (storage_ids,))
+                db.execute("delete from device_alerts where device_id=any(%s)", (storage_ids,))
+            db.execute("delete from devices where controller_id=%s", (controller_id,))
+            db.execute("delete from controllers where controller_id=%s", (controller_id,))
+    except Exception as exc:
+        try:
+            write_controller_secret_configs(original_configs)
+        except OSError:
+            pass
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to remove controller group") from exc
+    restart_ok = True
+    try:
+        response = service_control_request({"action": "restart", "service": "api"})
+        restart_ok = bool(response.get("ok"))
+    except (OSError, RuntimeError, json.JSONDecodeError):
+        restart_ok = False
+    audit(admin, "controller.delete", controller_id, {"purge": purge, "api_restarted": restart_ok}, request)
+    return {"ok": True, "controller_id": controller_id, "api_restarted": restart_ok}
+
+
 @app.get("/admin-api/devices")
 def devices(_admin: dict[str, Any] = Depends(read_access)) -> list[dict[str, Any]]:
     with db_connection() as db:
         rows = db.execute("""
         select d.device_id,d.device_type,d.name,d.enabled,d.last_seen,d.last_status,d.firmware_version,
-          coalesce((select count(*) from telemetry_samples t where t.device_id=d.device_id),0) as telemetry_count
+          d.controller_id,d.logical_device_id
         from devices d order by d.device_id
         """).fetchall()
     return [dict(row) for row in rows]
@@ -1074,26 +1309,6 @@ def mqtt_accounts() -> list[str]:
     if not PASSWORD_FILE.exists():
         return []
     return sorted(line.split(":", 1)[0] for line in PASSWORD_FILE.read_text().splitlines() if ":" in line)
-
-
-def managed_acl_block(device_id: str) -> str:
-    return "\n".join([
-        f"# ASTRA ADMIN BEGIN {device_id}",
-        f"user {device_id}",
-        f"topic write devices/{device_id}/telemetry",
-        f"topic write devices/{device_id}/status",
-        f"topic write devices/{device_id}/reported",
-        f"topic read  devices/{device_id}/command",
-        f"topic read  devices/{device_id}/desired",
-        f"# ASTRA ADMIN END {device_id}",
-    ])
-
-
-def ensure_managed_acl(device_id: str) -> None:
-    text = ACL_FILE.read_text()
-    if f"user {device_id}" in text:
-        return
-    ACL_FILE.write_text(text.rstrip() + "\n\n" + managed_acl_block(device_id) + "\n")
 
 
 def remove_managed_acl(device_id: str) -> bool:
@@ -1202,34 +1417,9 @@ def change_mqtt_password(
 
 @app.post("/admin-api/devices", status_code=201)
 def create_device(
-    body: DeviceIn,
-    request: Request,
-    admin: dict[str, Any] = Depends(current_admin),
+    _admin: dict[str, Any] = Depends(current_admin),
 ) -> dict[str, Any]:
-    device_id = body.device_id.strip().lower()
-    if not DEVICE_ID_RE.fullmatch(device_id):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid device id")
-    try:
-        with db_connection() as db:
-            db.execute(
-                """insert into devices(device_id,device_type,name,enabled,controller_id,logical_device_id)
-                   values(%s,%s,%s,1,'default',%s)""",
-                (device_id, body.device_type.strip(), body.name.strip(), device_id),
-            )
-    except psycopg.IntegrityError as exc:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Device already exists") from exc
-    mqtt_created = False
-    if body.mqtt_password:
-        try:
-            set_mqtt_password(device_id, body.mqtt_password)
-            ensure_managed_acl(device_id)
-            mqtt_created = True
-        except Exception as exc:
-            with db_connection() as db:
-                db.execute("delete from devices where device_id=%s", (device_id,))
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"MQTT account creation failed: {exc}") from exc
-    audit(admin, "device.create", device_id, {"mqtt_created": mqtt_created}, request)
-    return {"ok": True, "device_id": device_id, "mqtt_created": mqtt_created}
+    raise HTTPException(status.HTTP_409_CONFLICT, "Individual device creation is disabled; create a three-device controller group")
 
 
 @app.patch("/admin-api/devices/{device_id}")

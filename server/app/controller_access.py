@@ -19,9 +19,10 @@ CONTROLLER_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 
 def load_controller_configs() -> list[dict[str, Any]]:
     path = os.getenv("MQTT_CONTROLLERS_FILE", "").strip()
-    from_secret_file = bool(path)
-    if path:
-        document = json.loads(Path(path).read_text(encoding="utf-8"))
+    secret_path = Path(path) if path else None
+    from_secret_file = bool(secret_path and secret_path.is_file())
+    if from_secret_file:
+        document = json.loads(secret_path.read_text(encoding="utf-8"))
         rows = document.get("controllers", document) if isinstance(document, dict) else document
         if not isinstance(rows, list) or not rows:
             raise RuntimeError("MQTT_CONTROLLERS_FILE must contain a non-empty controllers array")
