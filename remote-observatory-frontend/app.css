@@ -357,8 +357,8 @@ body.auth-route .auth-account-actions button{flex:1}
 #toggle-flat-led{color:var(--accent-contrast)!important;background:color-mix(in srgb,var(--accent) 84%,#fff 16%)!important}
 #toggle-flat-led:hover{background:color-mix(in srgb,var(--accent) 92%,#fff 8%)!important}
 .battery-gauge:not(.has-telemetry) i{background:#292a27!important}
-.panel-disc::before{opacity:0!important}
-.panel-disc.lit::before{opacity:calc(.58 + var(--led-level) * .42)!important}
+.panel-disc::before{opacity:calc(.58 + var(--led-level) * .42)!important}
+.panel-disc.lit::before{opacity:calc(.72 + var(--led-level) * .28)!important}
 .panel-disc.telemetry-offline,.roof-diagram.telemetry-offline{opacity:.38;filter:grayscale(1)}
 .control-row.unknown,.quick-toggle.unknown{opacity:.55}
 .flat-hero::before{background:radial-gradient(circle at 27% 50%,rgba(255,255,255,.10),transparent 46%)}
@@ -439,6 +439,11 @@ html[data-color-mode="light"] .terminal-device-menu{background:rgba(244,244,242,
 @media(min-width:621px) and (max-width:860px){
   .environment-main{grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr);align-items:start}
 }
+
+#close-settings{display:grid;place-items:center;color:var(--ui-text);transition:color .18s ease,background-color .18s ease,transform .18s ease}
+#close-settings svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#close-settings:hover{color:var(--ui-on-accent);background:var(--accent)!important;transform:translateX(1px)}
+#close-settings:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* Desktop model framing: center the stage in the hero card's right half.
    The additional 35px vertical translation aligns its visual center with

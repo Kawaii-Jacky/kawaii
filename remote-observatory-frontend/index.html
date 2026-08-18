@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101110" />
   <meta name="description" content="远程天文台控制中心：环境、电源、屋顶、赤道仪与平场板统一监控。" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260817-68" />
+    <link rel="stylesheet" href="app.css?v=20260818-69" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -380,7 +380,7 @@
 
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="settings-drawer" id="settings-drawer" aria-hidden="true">
-    <header><div><span>CONNECTION</span><h2>连接设置</h2></div><button id="close-settings" aria-label="关闭"><span aria-hidden="true">✕</span></button></header>
+    <header><div><span>CONNECTION</span><h2>连接设置</h2></div><button id="close-settings" aria-label="关闭连接设置"><i data-lucide="panel-right-close" aria-hidden="true"></i></button></header>
     <div class="drawer-content">
       <div class="simulation-option"><div><b>测试数据注入</b><small>仅用于界面测试；默认关闭，模拟值不会伪装成真实设备</small></div><button type="button" id="simulation-toggle" role="switch" aria-checked="false"><span>关闭</span><i></i></button></div>
       <div class="connection-form" id="connection-form"><p id="controller-connection-status">登录后会自动分配可用的硬件套组。</p><div id="controller-header-configs" hidden></div></div>
