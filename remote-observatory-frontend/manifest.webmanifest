@@ -1,0 +1,19 @@
+{
+  "name": "ASTRA Remote Observatory",
+  "short_name": "ASTRA",
+  "description": "ASTRA remote observatory control center",
+  "lang": "en",
+  "dir": "ltr",
+  "id": "/?pwa=1",
+  "start_url": "/?pwa=1#overview",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#f3f3f0",
+  "theme_color": "#101110",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {"src":"assets/pwa/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

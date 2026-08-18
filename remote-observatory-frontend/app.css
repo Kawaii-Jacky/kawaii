@@ -717,6 +717,10 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 .environment-live-legend .forecast-humidity-legend i{background:repeating-linear-gradient(90deg,#66c7f2 0 6px,transparent 6px 10px)!important}
 .environment-live-legend .forecast-dewpoint-legend i{background:repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 10px)!important}
 html[data-theme-color="black"] .environment-live-legend .forecast-dewpoint-legend i{background:repeating-linear-gradient(90deg,#e57654 0 6px,transparent 6px 10px)!important}
+.pwa-install-guide{position:fixed;z-index:240;left:16px;right:16px;top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 15px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:14px;color:var(--ui-text);background:color-mix(in srgb,var(--ui-surface) 94%,transparent);box-shadow:0 16px 44px rgba(0,0,0,.2);backdrop-filter:blur(18px);font-size:9px}
+.pwa-install-guide[hidden]{display:none}
+.pwa-install-guide div{display:grid;gap:4px}.pwa-install-guide strong{font-size:11px}.pwa-install-guide span{color:var(--ui-muted);line-height:1.5}.pwa-install-guide button{width:28px;height:28px;border:0;border-radius:8px;color:inherit;background:var(--glass-deep);font-size:18px;cursor:pointer}
+@media(max-width:620px){.pwa-install-guide{left:10px;right:10px;bottom:calc(84px + env(safe-area-inset-bottom));top:auto}}
 .temperature-card{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto auto minmax(205px,1fr)}
 .temperature-current{grid-row:auto!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:end}
 .temperature-current>div{min-width:0;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.045)}

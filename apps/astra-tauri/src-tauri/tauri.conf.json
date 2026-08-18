@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ASTRA",
+  "version": "0.1.0",
+  "identifier": "xyz.astroy.app",
+  "build": {
+    "frontendDist": "../../../remote-observatory-frontend",
+    "devUrl": "http://localhost:4173"
+  },
+  "app": {
+    "windows": [{ "title": "ASTRA", "width": 1280, "height": 820, "resizable": true }],
+    "security": { "csp": "default-src 'self' https: data: blob:; connect-src 'self' https: wss:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https: 'wasm-unsafe-eval'" }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "android"],
+    "windows": { "nsis": { "installMode": "perUser" } },
+    "android": { "minSdkVersion": 26 }
+  },
+  "plugins": { "stronghold": {}, "store": {} }
+}

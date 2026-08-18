@@ -5,12 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#101110" />
   <meta name="description" content="远程天文台控制中心：环境、电源、屋顶、赤道仪与平场板统一监控。" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ASTRA" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260819-01" />
+  <link rel="icon" href="assets/pwa/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/pwa/icon.svg" />
   <title>ASTRA / 远程天文台</title>
     <link rel="stylesheet" href="app.css?v=20260819-21" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
 <body>
+  <aside class="pwa-install-guide" id="pwa-install-guide" hidden aria-label="安装 ASTRA">
+    <div><strong>安装 ASTRA</strong><span id="pwa-install-copy">在 Safari 中点“分享”→“添加到主屏幕”，获得独立应用窗口。</span></div>
+    <button type="button" id="pwa-install-dismiss" aria-label="关闭安装提示">×</button>
+  </aside>
   <div class="app-preloader" id="app-preloader" role="status" aria-live="polite" aria-busy="true">
     <div class="app-preloader-card">
       <span class="app-preloader-mark">A</span>

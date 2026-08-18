@@ -294,7 +294,7 @@ def set_session_cookie(response: Response, token: str) -> None:
     )
 
 
-def create_session(user_id: str, request: Request, response: Response) -> None:
+def create_session(user_id: str, request: Request, response: Response | None = None) -> str:
     token, session_id = secrets.token_urlsafe(48), str(uuid.uuid4())
     created, expires = utcnow(), utcnow() + timedelta(days=SESSION_DAYS)
     ip_address = client_ip(request)
@@ -302,7 +302,9 @@ def create_session(user_id: str, request: Request, response: Response) -> None:
         db.execute("""insert into auth_sessions
           (id,user_id,token_hash,expires_at,created_at,last_seen_at,user_agent,ip_address)
           values(?,?,?,?,?,?,?,?)""", (session_id, user_id, token_digest(token), iso(expires), iso(created), iso(created), request.headers.get("user-agent", "")[:300], ip_address[:64]))
-    set_session_cookie(response, token)
+    if response is not None:
+        set_session_cookie(response, token)
+    return token
 
 
 def session_token(cookie_token: str | None, authorization: str | None) -> str | None:
@@ -382,6 +384,14 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     identifier: str = Field(min_length=5, max_length=254)
     password: str = Field(min_length=1, max_length=128)
+
+
+class NativeLoginRequest(LoginRequest):
+    """Password login used by Tauri clients; it never creates a browser cookie."""
+
+
+class NativeRefreshRequest(BaseModel):
+    refresh_token: str | None = Field(default=None, min_length=20, max_length=256)
 
 
 class RecoverRequest(RegisterRequest):
@@ -481,6 +491,34 @@ def login(body: LoginRequest, request: Request, response: Response) -> dict[str,
     return {"user": user_payload(row)}
 
 
+@router.post("/native/login", summary="Native bearer-token login")
+def native_login(body: NativeLoginRequest, request: Request) -> dict[str, Any]:
+    """Authenticate a Tauri client without setting a browser cookie.
+
+    The returned token is the same opaque, hashed-at-rest session credential
+    accepted by the regular Bearer authentication dependency.
+    """
+    identifier = body.identifier.strip().lower()
+    ip = client_ip(request)
+    check_rate_limit("login-identifier", identifier, LOGIN_FAILURE_LIMIT, LOGIN_FAILURE_WINDOW_SECONDS)
+    check_rate_limit("login-ip", ip, LOGIN_FAILURE_IP_LIMIT, LOGIN_FAILURE_WINDOW_SECONDS)
+    with connection() as db:
+        row = db.execute("select * from users where lower(email)=? or phone=?", (identifier, re.sub(r"[\s()-]", "", identifier))).fetchone()
+    if not row or row["disabled"]:
+        record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
+        record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid account or password")
+    try:
+        password_hasher.verify(row["password_hash"], body.password)
+    except VerifyMismatchError as exc:
+        record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
+        record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid account or password") from exc
+    clear_rate_limit("login-identifier", identifier)
+    token = create_session(row["id"], request)
+    return {"access_token": token, "token_type": "Bearer", "expires_in": SESSION_DAYS * 86400, "user": user_payload(row)}
+
+
 @router.get("/me", summary="获取当前账户")
 def me(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
     user.pop("session_id", None)
@@ -493,6 +531,16 @@ def refresh_session(request: Request, response: Response, user: dict[str, Any] =
     create_session(user["id"], request, response)
     user.pop("session_id", None)
     return {"user": user}
+
+
+@router.post("/native/session/refresh", summary="Refresh native bearer session")
+def native_refresh_session(request: Request, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    old_session = user["session_id"]
+    with db_lock, connection() as db:
+        db.execute("update auth_sessions set revoked_at=? where id=?", (iso(), old_session))
+    token = create_session(user["id"], request)
+    user.pop("session_id", None)
+    return {"access_token": token, "token_type": "Bearer", "expires_in": SESSION_DAYS * 86400, "user": user}
 
 
 @router.post("/logout", status_code=204, summary="退出当前会话")
@@ -534,7 +582,19 @@ def recover_password(body: RecoverRequest, request: Request) -> dict[str, bool]:
     field = "email" if body.channel == "email" else "phone"
     with db_lock, connection() as db:
         row = db.execute(f"select id from users where {field}=?", (target,)).fetchone()
-        if row: db.execute("update users set password_hash=?,updated_at=? where id=?", (password_hasher.hash(body.password), iso(), row["id"]))
+        if row:
+            changed_at = iso()
+            db.execute(
+                "update users set password_hash=?,updated_at=? where id=?",
+                (password_hasher.hash(body.password), changed_at, row["id"]),
+            )
+            # Password recovery is an account-takeover boundary. Any token
+            # issued before the recovery must stop working, including tokens
+            # held by an attacker on another device.
+            db.execute(
+                "update auth_sessions set revoked_at=? where user_id=? and revoked_at is null",
+                (changed_at, row["id"]),
+            )
     return {"ok": True}
 
 

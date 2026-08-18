@@ -48,6 +48,34 @@
 
   initModelGate();
 
+  function initPwa() {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("./sw.js", { scope: "./" }).then(registration => {
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        if (!worker) return;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            const guide = document.querySelector("#pwa-install-guide");
+            const copy = document.querySelector("#pwa-install-copy");
+            if (guide && copy) { copy.textContent = "新版本已准备就绪，刷新页面即可更新。"; guide.hidden = false; }
+          }
+        });
+      });
+    }).catch(() => {});
+    const guide = document.querySelector("#pwa-install-guide");
+    const dismiss = document.querySelector("#pwa-install-dismiss");
+    const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (guide && ios && !standalone && !sessionStorage.getItem("astra.pwaInstallDismissed")) guide.hidden = false;
+    dismiss?.addEventListener("click", () => { guide.hidden = true; sessionStorage.setItem("astra.pwaInstallDismissed", "1"); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible" || !state.auth.user || state.simulationEnabled || !state.controller.configured) return;
+      if (!state.eventSource || state.eventSource.readyState === EventSource.CLOSED) connectEventStream();
+      else syncRealtimeSnapshot();
+    });
+  }
+
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const clamp = (value, min, max) => Math.min(max, Math.max(min, Number(value)));
@@ -2664,7 +2692,7 @@
     try { const savedLocation=JSON.parse(localStorage.getItem("astra.weather.location")); if(savedLocation?.latitude&&savedLocation?.longitude)state.forecast.location=savedLocation; } catch { /* optional local preference */ }
     const savedWeatherInput=$("#weather-location-search"); if(savedWeatherInput && state.forecast.location?.name) savedWeatherInput.value=state.forecast.location.name;
     applyPreferences();
-    selectConnectionMode(); bindEvents(); routeTo(state.route); loadAuthSession();
+    selectConnectionMode(); bindEvents(); initPwa(); routeTo(state.route); loadAuthSession();
     addLog("SYSTEM", "ASTRA 控制台已启动", "ok"); addLog("SYSTEM", "等待后端实时通道", "warn");
     setInterval(()=>{const now=new Date();setText("#clock",now.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}));setText("#date",now.toLocaleDateString("zh-CN",{month:"2-digit",day:"2-digit",weekday:"short"}));renderEnvironmentControls()},1000);
     setInterval(()=>{const now=Date.now();deviceIds.forEach(id=>{if(state.online[id]&&now-state.lastSeen[id]>deviceOnlineTimeout){state.online[id]=false;toast("设备掉线",`${id} 已超过 30 秒未上传遥测。`,"error","background")}});renderDeviceStatuses();updateConnectionUI()},5000);
