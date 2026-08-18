@@ -27,7 +27,8 @@ jobs:
           python3 -m http.server 4173 --directory remote-observatory-frontend >/tmp/astra-pwa-server.log 2>&1 &
           npx --yes wait-on http://127.0.0.1:4173/
           npx --yes lighthouse http://127.0.0.1:4173/ \
-            --chrome-flags="--headless --no-sandbox" \
+            --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage" \
+            --disable-javascript \
             --only-categories=accessibility,best-practices,seo \
             --output=json --output-path=lighthouse-report.json --quiet
           node -e "const r=require('./lighthouse-report.json'); if(r.runtimeError) throw new Error(r.runtimeError.message); for (const k of ['accessibility','best-practices','seo']) if(typeof r.categories[k]?.score !== 'number') throw new Error('Missing Lighthouse '+k+' score')"
