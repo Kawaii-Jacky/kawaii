@@ -411,6 +411,7 @@ html[data-color-mode="light"] .terminal-device-menu{background:rgba(244,244,242,
 .terminal-card form>span{padding-left:10px}
 .terminal-card form>button[type="submit"]{border:0!important;background:var(--glass-inner)!important}
 .terminal-card form .terminal-debug-button{height:100%;padding:0 10px;border:0;border-left:1px solid var(--line);color:var(--ui-muted);background:transparent;white-space:nowrap;cursor:pointer}
+.terminal-card form>button[type="submit"],.terminal-card form .terminal-debug-button{border-radius:0!important}
 .terminal-card form .terminal-debug-button:hover{color:var(--ui-text);background:var(--glass-deep)}
 @keyframes terminal-menu-in{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes steam-rise{0%{opacity:.12;transform:translate3d(0,22px,0) scaleX(.45)}25%{opacity:.82}70%{opacity:.44}100%{opacity:.08;transform:translate3d(14px,-102px,0) scaleX(1.35)}}
