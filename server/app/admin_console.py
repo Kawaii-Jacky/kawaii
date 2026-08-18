@@ -327,6 +327,7 @@ class ControllerAccessPatch(BaseModel):
 
 
 class RuntimeDataClearIn(BaseModel):
+    user_id: str = Field(min_length=1, max_length=128)
     confirmation: str = Field(min_length=1, max_length=64)
 
 
@@ -1180,22 +1181,29 @@ def clear_runtime_database(
 ) -> dict[str, Any]:
     if body.confirmation != "CLEAR RUNTIME DATA":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Type CLEAR RUNTIME DATA to confirm")
-    table_names = (
-        "telemetry_samples",
-        "telemetry_latest",
-        "commands",
-        "device_alerts",
-        "service_traffic_samples",
-        "service_traffic_totals",
-    )
+    table_names = ("telemetry_samples", "telemetry_latest", "commands", "device_alerts")
     deleted: dict[str, int] = {}
     with db_connection() as db:
+        owner = db.execute(
+            "select u.id,u.display_name,a.controller_id from users u left join user_controller_access a on a.user_id=u.id where u.id=%s",
+            (body.user_id,),
+        ).fetchone()
+        if not owner:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+        controller_id = owner["controller_id"]
+        if not controller_id:
+            raise HTTPException(status.HTTP_409_CONFLICT, "User has no controller group")
+        device_rows = db.execute("select device_id from devices where controller_id=%s", (controller_id,)).fetchall()
+        storage_ids = [row["device_id"] for row in device_rows]
+        if not storage_ids:
+            raise HTTPException(status.HTTP_409_CONFLICT, "User controller group has no devices")
         for table in table_names:
-            deleted[table] = int(db.execute(f"delete from {table}").rowcount)
-        reset = db.execute("update devices set last_seen=null,last_status='offline'")
+            deleted[table] = int(db.execute(f"delete from {table} where device_id=any(%s)", (storage_ids,)).rowcount)
+        reset = db.execute("update devices set last_seen=null,last_status='offline' where device_id=any(%s)", (storage_ids,))
         deleted["devices_reset"] = int(reset.rowcount)
-    audit(admin, "database.clear_runtime", "runtime", {"deleted": deleted}, request)
-    return {"ok": True, "database": "postgresql", "scope": "runtime", "deleted": deleted}
+    detail = {"user_id": body.user_id, "user_name": owner["display_name"], "controller_id": controller_id, "deleted": deleted}
+    audit(admin, "database.clear_runtime_user", body.user_id, detail, request)
+    return {"ok": True, "database": "postgresql", "scope": "user", "user_id": body.user_id, "controller_id": controller_id, "deleted": deleted}
 
 
 def controller_secret_configs() -> list[dict[str, Any]]:
