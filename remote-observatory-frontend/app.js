@@ -106,6 +106,8 @@
     powerYRange: "auto",
     environmentLiveRange: 360,
     environmentYRange: "auto",
+    environmentForecastRange: 24 * 60,
+    environmentForecastYRange: "auto",
     forecastRange: 24,
     forecastYRange: "auto",
     sevenTimerRange: 24,
@@ -397,6 +399,11 @@
   function connectEventStream() {
     if (!state.auth.user || state.simulationEnabled) return;
     disconnectEventStream();
+    // A live connection must start from an empty telemetry state; never carry simulated values into LIVE mode.
+    clearTelemetryState();
+    buildHistory();
+    renderHumiditySparkline();
+    drawCharts();
     state.online = { "esp32-001": false, "mppt-001": false, "ef-001": false };
     const source = new EventSource("/api/v1/events/stream", { withCredentials:true });
     state.eventSource = source;
@@ -1319,17 +1326,28 @@
 
   // Keep measured telemetry and forecast data in separate charts so each curve has its own time domain.
   function drawEnvironmentLiveChart() {
-    const now=Date.now(),historyStart=now-state.environmentLiveRange*60000,forecastEnd=now+state.forecastRange*3600000;
+    const now=Date.now(),historyStart=now-state.environmentLiveRange*60000,forecastEnd=now+state.environmentForecastRange*60000;
     const historyPoints=state.history.labels.map((time,index)=>({time:chartPointTime(time),index})).filter(point=>point.time>=historyStart&&point.time<=now&&(hasNumber(state.history.temperature[point.index])||hasNumber(state.history.humidity[point.index])));
     const forecast=state.forecast.hourly,forecastPoints=(forecast.time||[]).map((time,index)=>({time:chartPointTime(time),index})).filter(point=>point.time>=now-3600000&&point.time<=forecastEnd&&(hasNumber(forecast.temperature[point.index])||hasNumber(forecast.humidity[point.index])));
     const historyLabels=historyPoints.map(point=>point.time),forecastLabels=forecastPoints.map(point=>point.time),measuredTemperature=historyPoints.map(point=>number(state.history.temperature[point.index],NaN)),measuredHumidity=historyPoints.map(point=>number(state.history.humidity[point.index],NaN)),measuredDewPoint=historyPoints.map(point=>dewPointC(state.history.temperature[point.index],state.history.humidity[point.index])),forecastTemperature=forecastPoints.map(point=>number(forecast.temperature[point.index],NaN)),forecastHumidity=forecastPoints.map(point=>number(forecast.humidity[point.index],NaN));
     const canvas=$("#environment-live-chart"),empty=$("#environment-live-empty"),card=canvas?.closest(".temperature-card");if(!canvas||!card)return;
     let measuredLegend=card.querySelector(".environment-live-measured-legend");if(!measuredLegend){const legacy=card.querySelector(".environment-live-legend");measuredLegend=legacy||document.createElement("div");measuredLegend.className="environment-live-legend environment-live-measured-legend";measuredLegend.innerHTML="<span><i></i>实测温度 °C</span><span><i></i>实测湿度 %</span><span class=\"dewpoint-legend\"><i></i>实测露点 °C</span>";if(!legacy)canvas.parentElement.before(measuredLegend)}
     let section=$("#environment-live-forecast");if(!section){section=document.createElement("section");section.id="environment-live-forecast";section.className="environment-live-forecast";section.innerHTML="<div class=\"environment-live-legend environment-live-forecast-legend\"><span class=\"forecast-temperature-legend\"><i></i>预报温度</span><span class=\"forecast-humidity-legend\"><i></i>预报湿度</span></div><div class=\"environment-live-chart\"><div class=\"environment-live-empty\" id=\"environment-forecast-empty\">暂无预报温湿度数据</div><canvas id=\"environment-forecast-chart\"></canvas></div>";canvas.parentElement.after(section)}
-    const forecastCanvas=$("#environment-forecast-chart"),forecastEmpty=$("#environment-forecast-empty"),hasMeasured=measuredTemperature.some(Number.isFinite)||measuredHumidity.some(Number.isFinite),hasForecast=forecastTemperature.some(Number.isFinite)||forecastHumidity.some(Number.isFinite);if(empty){empty.hidden=hasMeasured;empty.textContent=state.forecast.loading?"正在读取真实温湿度数据":"暂无真实温湿度数据"}if(forecastEmpty){forecastEmpty.hidden=hasForecast;forecastEmpty.textContent=state.forecast.loading?"正在读取预报数据":"暂无预报温湿度数据"}
-    const ranges=state.environmentYRange==="comfort"?{left:[10,30],right:[30,80]}:state.environmentYRange==="full"?{left:[-20,50],right:[0,100]}:{},dewColor=state.themeColor==="black"?"#e57654":getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#e57654";
+    const forecastCanvas=$("#environment-forecast-chart"),forecastEmpty=$("#environment-forecast-empty"),hasMeasured=measuredTemperature.some(Number.isFinite)||measuredHumidity.some(Number.isFinite),hasForecast=forecastTemperature.some(Number.isFinite)||forecastHumidity.some(Number.isFinite);if(empty){empty.hidden=state.simulationEnabled||hasMeasured;empty.textContent=state.forecast.loading?"正在读取真实温湿度数据":"暂无真实温湿度数据"}if(forecastEmpty){forecastEmpty.hidden=hasForecast;forecastEmpty.textContent=state.forecast.loading?"正在读取预报数据":"暂无预报温湿度数据"}
+    const ranges=state.environmentYRange==="comfort"?{left:[10,30],right:[30,80]}:state.environmentYRange==="full"?{left:[-20,50],right:[0,100]}:{},forecastRanges=state.environmentForecastYRange==="comfort"?{left:[10,30],right:[30,80]}:state.environmentForecastYRange==="full"?{left:[-20,50],right:[0,100]}:{},dewColor=state.themeColor==="black"?"#e57654":getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#e57654";
     if(hasMeasured)drawLineChart(canvas,[{key:"temperature",label:"实测温度",data:measuredTemperature,color:"#ff9f43",axis:"left"},{key:"humidity",label:"实测湿度",data:measuredHumidity,color:"#66c7f2",axis:"right"},{key:"dewPoint",label:"实测露点",data:measuredDewPoint,color:dewColor,axis:"left",lineWidth:2.2}],historyLabels,{visibleCount:historyLabels.length,fromStart:true,timeScale:true,ignoreVisibility:true,showNowMarker:false,axisRanges:ranges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
-    if(forecastCanvas&&hasForecast)drawLineChart(forecastCanvas,[{key:"forecastTemp",label:"预报温度",data:forecastTemperature,color:"#ff9f43",axis:"left",dash:[7,5]},{key:"forecastHumidity",label:"预报湿度",data:forecastHumidity,color:"#66c7f2",axis:"right",dash:[7,5]}],forecastLabels,{visibleCount:forecastLabels.length,fromStart:true,timeScale:true,ignoreVisibility:true,showNowMarker:true,mirrorNowMarker:false,axisRanges:ranges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
+    if(forecastCanvas&&hasForecast)drawLineChart(forecastCanvas,[{key:"forecastTemp",label:"预报温度",data:forecastTemperature,color:"#ff9f43",axis:"left",dash:[7,5]},{key:"forecastHumidity",label:"预报湿度",data:forecastHumidity,color:"#66c7f2",axis:"right",dash:[7,5]}],forecastLabels,{visibleCount:forecastLabels.length,fromStart:true,timeScale:true,ignoreVisibility:true,showNowMarker:false,mirrorNowMarker:false,axisRanges:forecastRanges,showYAxisLabels:true,leftAxisSuffix:"°",rightAxisSuffix:"%",xLabelColor:"#ffffff",leftAxisColor:"#ff9f43",rightAxisColor:"#66c7f2",axisFontSize:11,axisFontWeight:400});
+    syncEnvironmentForecastControls();
+  }
+
+  function syncEnvironmentForecastControls(){
+    const section=$("#environment-live-forecast");if(!section)return;
+    let toolbar=section.querySelector(".environment-live-forecast-toolbar");
+    if(!toolbar){toolbar=document.createElement("div");toolbar.className="environment-live-toolbar environment-live-forecast-toolbar";toolbar.innerHTML="<div><span>\u6a2a\u8f74\u65f6\u95f4</span><button data-env-forecast-range=\"60\">1h</button><button data-env-forecast-range=\"360\">6h</button><button data-env-forecast-range=\"720\">12h</button><button data-env-forecast-range=\"1440\">24h</button><button data-env-forecast-range=\"10080\">1\u5468</button><button data-env-forecast-range=\"43200\">1\u6708</button></div><div><span>\u7eb5\u8f74\u8303\u56f4</span><button data-env-forecast-y-range=\"auto\">\u81ea\u52a8</button><button data-env-forecast-y-range=\"comfort\">\u8212\u9002</button><button data-env-forecast-y-range=\"full\">\u5168\u91cf</button></div>";section.prepend(toolbar);toolbar.querySelectorAll('[data-env-forecast-range]').forEach(button=>button.addEventListener("click",()=>{state.environmentForecastRange=Number(button.dataset.envForecastRange);drawEnvironmentLiveChart()}));toolbar.querySelectorAll('[data-env-forecast-y-range]').forEach(button=>button.addEventListener("click",()=>{state.environmentForecastYRange=button.dataset.envForecastYRange;drawEnvironmentLiveChart()}))}
+    const forecastTimes=state.forecast.hourly?.time||[],lastForecastTime=forecastTimes.length?chartPointTime(forecastTimes[forecastTimes.length-1]):0,maxForecastMinutes=lastForecastTime?Math.max(60,Math.round((lastForecastTime-Date.now())/60000)):Infinity;$$('[data-env-forecast-range]').forEach(button=>{const minutes=Number(button.dataset.envForecastRange);button.hidden=minutes>maxForecastMinutes+24*60});
+    const visibleForecastRanges=$$('[data-env-forecast-range]').filter(button=>!button.hidden).map(button=>Number(button.dataset.envForecastRange));if(visibleForecastRanges.length&&state.environmentForecastRange>Math.max(...visibleForecastRanges))state.environmentForecastRange=Math.max(...visibleForecastRanges);
+    $$('[data-env-live-range]').forEach(button=>button.classList.toggle("active",Number(button.dataset.envLiveRange)===state.environmentLiveRange));$$('[data-env-y-range]').forEach(button=>button.classList.toggle("active",button.dataset.envYRange===state.environmentYRange));$$('[data-env-forecast-range]').forEach(button=>button.classList.toggle("active",Number(button.dataset.envForecastRange)===state.environmentForecastRange));$$('[data-env-forecast-y-range]').forEach(button=>button.classList.toggle("active",button.dataset.envForecastYRange===state.environmentForecastYRange));
+    if(state.simulationEnabled)$("#environment-live-empty")?.setAttribute("hidden","");
   }
 
   const sevenTimerSeeingArcsec = [0.4, 0.625, 0.875, 1.125, 1.375, 1.75, 2.25, 3];
@@ -2593,6 +2611,8 @@
     fanThreshold?.addEventListener("change",()=>{sendCommand("esp32-001",{command:"fan_threshold",value:Number(fanThreshold.value)},"设置风扇自动开启温度");renderEnvironmentControls()});
     $$('[data-env-live-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-env-live-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.environmentLiveRange=Number(button.dataset.envLiveRange);drawEnvironmentLiveChart()}));
     $$('[data-env-y-range]').forEach(button=>button.addEventListener("click",()=>{$$('[data-env-y-range]').forEach(item=>item.classList.remove("active"));button.classList.add("active");state.environmentYRange=button.dataset.envYRange;drawEnvironmentLiveChart()}));
+    $$('[data-env-forecast-range]').forEach(button=>button.addEventListener("click",()=>{state.environmentForecastRange=Number(button.dataset.envForecastRange);drawEnvironmentLiveChart()}));
+    $$('[data-env-forecast-y-range]').forEach(button=>button.addEventListener("click",()=>{state.environmentForecastYRange=button.dataset.envForecastYRange;drawEnvironmentLiveChart()}));
     $$('[data-forecast-range]').forEach(button=>button.addEventListener("click",()=>{state.forecastRange=Number(button.dataset.forecastRange);renderForecast()}));
     $$('[data-forecast-y-range]').forEach(button=>button.addEventListener("click",()=>{state.forecastYRange=button.dataset.forecastYRange;$$('[data-forecast-y-range]').forEach(item=>item.classList.toggle("active",item===button));drawForecastCharts()}));
     $$('[data-seven-timer-range]').forEach(button=>button.addEventListener("click",()=>{state.sevenTimerRange=Number(button.dataset.sevenTimerRange);$$('[data-seven-timer-range]').forEach(item=>item.classList.toggle("active",item===button));drawAstronomyChart()}));

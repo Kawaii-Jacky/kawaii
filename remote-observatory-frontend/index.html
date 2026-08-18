@@ -172,7 +172,7 @@
                  <div><span>横轴时间</span><button data-env-live-range="60">1h</button><button class="active" data-env-live-range="360">6h</button><button data-env-live-range="720">12h</button><button data-env-live-range="1440">24h</button><button data-env-live-range="10080">1周</button><button data-env-live-range="43200">1月</button></div>
                 <div><span>纵轴范围</span><button class="active" data-env-y-range="auto">自动</button><button data-env-y-range="comfort">舒适</button><button data-env-y-range="full">全量</button></div>
               </div>
-              <div class="environment-live-legend"><span><i></i>实测温度 °C</span><span><i></i>实测湿度 %</span><span class="dewpoint-legend"><i></i>实测露点 °C</span><span class="forecast-temperature-legend"><i></i>预报温度</span><span class="forecast-humidity-legend"><i></i>预报湿度</span></div>
+              <div class="environment-live-legend"><span><i></i>实测温度 °C</span><span><i></i>实测湿度 %</span><span class="dewpoint-legend"><i></i>实测露点 °C</span></div>
               <div class="environment-live-chart"><div class="environment-live-empty" id="environment-live-empty">暂无真实温湿度数据</div><canvas id="environment-live-chart"></canvas></div>
             </article>
             <article class="weather-stat card humidity-stat"><span>相对湿度</span><strong id="weather-humidity">--<sup>%</sup></strong><p>露点安全距离 <b id="dewpoint-distance">--</b></p><div class="micro-line humidity-sparkline" role="img" aria-label="暂无真实湿度历史"><svg viewBox="0 0 240 38" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path id="humidity-spark-area"></path><polyline id="humidity-spark-line"></polyline><circle id="humidity-spark-point" r="2.1"></circle></svg></div></article>
@@ -398,7 +398,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260819-12"></script>
+  <script src="app.js?v=20260819-15"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
