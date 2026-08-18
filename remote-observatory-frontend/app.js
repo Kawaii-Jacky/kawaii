@@ -124,6 +124,7 @@
     pendingConfirm: null,
     terminal: []
   };
+  const simulationAnimationTimers = new Set();
 
   function buildHistory() {
     Object.values(state.history).forEach(values => { values.length = 0; });
@@ -316,9 +317,9 @@
       dht_humidity:48 + Math.cos(phase * .72) * 6,
       power_output:11.8 + Math.sin(phase * .45) * 1.2,
       rain_analog:860 + Math.round(Math.sin(phase * .3) * 18),
-      rain_detected:false, heater:false, fan:false, mosfet:true, camera:false, bluetooth:true,
-      heater_mode:true, fan_mode:true, fan_threshold:40, cameraDurationMinutes:60, cameraOffAt:0,
-      roof:"closed", roofPosition:0
+      rain_detected:false, heater:state.main.heater ?? false, fan:state.main.fan ?? false, mosfet:state.main.mosfet ?? true, camera:state.main.camera ?? false, bluetooth:state.main.bluetooth ?? true,
+      heater_mode:state.main.heater_mode ?? true, fan_mode:state.main.fan_mode ?? true, fan_threshold:state.main.fan_threshold ?? 40, cameraDurationMinutes:state.main.cameraDurationMinutes ?? 60, cameraOffAt:state.main.cameraOffAt ?? 0,
+      roof:state.main.roof ?? "closed", roofPosition:hasNumber(state.main.roofPosition) ? state.main.roofPosition : 0
     });
     Object.assign(state.power, {
       power_input:3.1 + Math.sin(phase * .38) * .5,
@@ -327,10 +328,10 @@
       buck_current:.81 + Math.cos(phase * .43) * .1,
       buck_power:12.2 + Math.sin(phase * .31) * .6,
       voltage_input:15.1, buck_voltage:14.08, temperature:34 + Math.sin(phase * .2), pwm:62,
-      fan:false, enable_fan:true, mode:1, daily_energy:.07, total_energy:490.7, buck_efficiency:94,
+      fan:state.power.fan ?? false, enable_fan:state.power.enable_fan ?? true, mode:state.power.mode ?? 1, daily_energy:.07, total_energy:490.7, buck_efficiency:94,
       voltage_battery_min:10, voltage_battery_max:14.4, current_charging:2, temperature_fan:60
     });
-    Object.assign(state.flat, { humidity:state.main.dht_humidity, servo:false, servoMoving:false, led:false, heater:false, heater_mode:true, angle:0, maxAngle:300, brightness:68, humi_threshold:70, heater_power:50 });
+    Object.assign(state.flat, { humidity:state.main.dht_humidity, servo:state.flat.servo ?? false, servoMoving:state.flat.servoMoving ?? false, led:state.flat.led ?? false, heater:state.flat.heater ?? false, heater_mode:state.flat.heater_mode ?? true, angle:hasNumber(state.flat.angle) ? state.flat.angle : 0, maxAngle:state.flat.maxAngle ?? 300, brightness:state.flat.brightness ?? 68, humi_threshold:state.flat.humi_threshold ?? 70, heater_power:state.flat.heater_power ?? 50 });
     const now = Date.now();
     deviceIds.forEach(id => { state.online[id] = true; state.lastSeen[id] = now; });
     pushHistory("esp32-001", state.main); pushHistory("mppt-001", state.power);
@@ -340,6 +341,7 @@
   function setSimulationEnabled(enabled) {
     const next = Boolean(enabled);
     if (next === state.simulationEnabled) return;
+    if (!next) stopSimulationAnimation();
     clearInterval(state.simulationTimer);
     state.simulationTimer = 0;
     state.simulationEnabled = next;
@@ -493,9 +495,70 @@
     render(); updateConnectionUI();
   }
 
+  function stopSimulationAnimation() {
+    simulationAnimationTimers.forEach(timer => clearInterval(timer));
+    simulationAnimationTimers.clear();
+  }
+
+  function animateSimulation(update, duration = 700) {
+    const started = performance.now();
+    const timer = setInterval(() => {
+      const progress = Math.min(1, (performance.now() - started) / duration);
+      update(progress);
+      render();
+      if (progress >= 1) { clearInterval(timer); simulationAnimationTimers.delete(timer); }
+    }, 50);
+    simulationAnimationTimers.add(timer);
+    update(0); render();
+  }
+
+  function simulateCommand(device, payload, description) {
+    const entries = Object.entries(payload || {});
+    const command = payload?.command || (entries.length === 1 ? entries[0][0] : "settings");
+    const value = entries.length === 1 ? entries[0][1] : undefined;
+    const booleanValue = payload?.state ?? payload?.enabled ?? value;
+    const setMain = (field, next) => { state.main[field] = bool(next); };
+    const setPower = (field, next) => { state.power[field] = bool(next); };
+    const setFlat = (field, next) => { state.flat[field] = bool(next); };
+    if (device === "esp32-001") {
+      if (["camera", "heater", "fan", "mosfet", "bluetooth"].includes(command)) setMain(command, booleanValue);
+      else if (command === "camera_timer") { state.main.cameraDurationMinutes = clamp(Number(payload.minutes), 1, 1439); if (state.main.camera) state.main.cameraOffAt = Date.now() + state.main.cameraDurationMinutes * 60000; }
+      else if (command === "heater_mode" || command === "fan_mode") state.main[command] = payload.mode === "auto";
+      else if (command === "fan_threshold") state.main.fan_threshold = Number(payload.value);
+      else if (command === "motor_forward" || command === "motor_reverse") {
+        const from = hasNumber(state.main.roofPosition) ? Number(state.main.roofPosition) : (state.main.roof === "open" ? 100 : 0);
+        const to = command === "motor_forward" ? 100 : 0;
+        state.main.roof = "moving";
+        animateSimulation(progress => { state.main.roofPosition = from + (to - from) * progress; if (progress >= 1) state.main.roof = to ? "open" : "closed"; }, 1200);
+      } else if (command === "motor_stop") { stopSimulationAnimation(); const position = Number(state.main.roofPosition || 0); state.main.roof = position >= 98 ? "open" : position <= 2 ? "closed" : "moving"; }
+    } else if (device === "mppt-001") {
+      if (command === "settings") Object.entries(payload).forEach(([key, item]) => { if (key in state.power) state.power[key] = Number(item); });
+      else if (command === "mode") state.power.mode = Number(payload.value ?? payload.mode ?? 1);
+      else if (["fan", "enable_fan"].includes(command)) setPower(command, booleanValue);
+      else if (command in state.power) state.power[command] = Number(payload.value ?? value);
+    } else if (device === "ef-001") {
+      if (command === "led") setFlat("led", booleanValue);
+      else if (command === "heater_mode") setFlat("heater_mode", booleanValue);
+      else if (command === "brightness") state.flat.brightness = clamp(Number(payload.value), 0, 100);
+      else if (command === "humi_threshold") state.flat.humi_threshold = clamp(Number(payload.value), 0, 100);
+      else if (command === "heater_power") state.flat.heater_power = clamp(Number(payload.value), 0, 100);
+      else if (command === "angle") state.flat.maxAngle = clamp(Number(payload.value), 0, 300);
+      else if (command === "servo") {
+        const from = hasNumber(state.flat.angle) ? Number(state.flat.angle) : 0;
+        const to = bool(payload.state) ? Number(state.flat.maxAngle || 300) : 0;
+        state.flat.servoMoving = true;
+        animateSimulation(progress => { state.flat.angle = from + (to - from) * progress; if (progress >= 1) { state.flat.servo = to > 0; state.flat.servoMoving = false; } }, 1000);
+      }
+    }
+    addLog(device, `${description} · 模拟执行（未发送）`, "ok");
+    toast("模拟指令已执行", description, "ok");
+    render();
+    return true;
+  }
+
   function sendCommand(device, payload, description = "设备指令") {
-    if (state.simulationEnabled) { toast("模拟模式不发送指令", "请关闭测试数据注入后再控制真实设备。", "error", "background"); return false; }
     if (!state.auth.user || !["admin","operator"].includes(state.auth.user.role)) { toast("权限不足", "当前账户只能查看设备状态。", "error"); return false; }
+    if (state.simulationEnabled) return simulateCommand(device, payload, description);
     if (!isDeviceOnline(device)) { toast("设备离线", `${device} 当前没有有效在线遥测。`, "error", "background"); return false; }
     if (!state.connected) { toast("设备未连接", "后端实时通道尚未连接。", "error"); return false; }
     const entries = Object.entries(payload || {});
