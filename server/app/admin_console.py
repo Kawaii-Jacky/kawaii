@@ -835,6 +835,10 @@ def update_account(
     request: Request,
     admin: dict[str, Any] = Depends(current_admin),
 ) -> dict[str, Any]:
+    raise HTTPException(
+        status.HTTP_403_FORBIDDEN,
+        "账户资料和密码只能由账户本人通过个人中心或找回密码流程修改",
+    )
     provided = body.model_dump(exclude_unset=True)
     with db_connection() as db:
         existing = db.execute(
