@@ -28,6 +28,12 @@ cleanup() {
 trap cleanup EXIT
 BACKUP_FILE="$("$ROOT_DIR/scripts/backup.sh")"
 "$ROOT_DIR/scripts/restore-backup.sh" "$BACKUP_FILE" "$RESTORE_DIR" >/dev/null
+python3 - "$RESTORE_DIR/credential-vault.key" <<'PY'
+import base64, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+if not path.is_file() or len(base64.urlsafe_b64decode(path.read_text(encoding="ascii").strip())) != 32:
+    raise SystemExit("Credential vault key restore verification failed.")
+PY
 INTEGRITY="$(python3 -c "import sqlite3; print(sqlite3.connect('$RESTORE_DIR/astroy.db').execute('pragma integrity_check').fetchone()[0])")"
 if [[ "$INTEGRITY" != "ok" ]]; then
   echo "SQLite backup integrity check failed." >&2

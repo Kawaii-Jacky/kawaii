@@ -1,9 +1,11 @@
 # ASTRA encrypted backups
 
 The backup contains a PostgreSQL custom-format dump, the retained SQLite
-migration source, Mosquitto password hashes, and the Mosquitto ACL. It
-intentionally excludes `.env`, Cloudflare credentials, and all plaintext
-passwords.
+migration source, Mosquitto password hashes, the Mosquitto ACL, and the
+device-credential vault key. The vault key is included only inside the
+passphrase-encrypted archive so encrypted credential rows remain usable after
+a disaster recovery. The archive intentionally excludes `.env`, Cloudflare
+credentials, and the plaintext controller configuration.
 
 Run from WSL with a passphrase supplied only for the current shell:
 
@@ -28,6 +30,17 @@ unset ASTROY_BACKUP_PASSPHRASE
 
 Store the passphrase in a password manager. Losing it makes the encrypted
 backup unrecoverable. Keep an encrypted copy away from the host running ASTRA.
+
+The live vault key is stored in the Docker `credential-vault` named volume,
+not on the Windows/NTFS project directory where Linux mode `0600` cannot be
+enforced reliably. It must never be committed to Git, copied into a release
+package, placed in a normal database export, or stored next to an unencrypted
+backup. Restoring the PostgreSQL dump without restoring the matching
+`credential-vault.key` makes saved device credentials permanently unreadable.
+Restore the key into `/run/astra-vault/credential-vault.key` in the admin
+console volume, set mode `0600`, and restart the admin console. Delete the
+temporary restore directory when verification is complete because it contains
+sensitive backup material.
 
 ## Scheduled Windows backup
 

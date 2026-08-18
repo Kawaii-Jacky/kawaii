@@ -128,6 +128,7 @@ services:
       MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD is required}
       PUBLIC_MQTT_URI: ${PUBLIC_MQTT_URI:-wss://mqtt.astroy.xyz/mqtt}
       MQTT_CONTROLLERS_FILE: /run/astra-secrets/mqtt-controllers.json
+      CREDENTIAL_VAULT_KEY_FILE: /run/astra-vault/credential-vault.key
       CLOUDFLARED_METRICS_URL: http://host.docker.internal:20241/metrics
       SERVICE_CONTROL_SOCKET: /run/service-control/control.sock
     extra_hosts:
@@ -139,6 +140,7 @@ services:
       - ../EF/config.h:/firmware/ef_config.h:rw
       - service-control-run:/run/service-control:rw
       - ./.secrets:/run/astra-secrets:rw
+      - credential-vault:/run/astra-vault:rw
     ports:
       - "127.0.0.1:8100:8100"
     depends_on:
@@ -229,3 +231,4 @@ volumes:
   mosquitto-log:
   service-control-run:
   mosquitto-auth:
+  credential-vault:

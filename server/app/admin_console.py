@@ -1,6 +1,7 @@
 """Local ASTRA operations console on a dedicated port."""
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import json
@@ -22,6 +23,7 @@ from typing import Any, Literal
 import psycopg
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.responses import FileResponse
 from psycopg.rows import dict_row
@@ -56,6 +58,7 @@ MQTT_USERNAME = os.getenv("MQTT_USERNAME", "backend-controller")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
 PUBLIC_MQTT_URI = os.getenv("PUBLIC_MQTT_URI", "wss://mqtt.astroy.xyz/mqtt")
 CONTROLLER_CONFIG_FILE = Path(os.getenv("MQTT_CONTROLLERS_FILE", "/run/astra-secrets/mqtt-controllers.json"))
+CREDENTIAL_VAULT_KEY_FILE = Path(os.getenv("CREDENTIAL_VAULT_KEY_FILE", "/run/astra-vault/credential-vault.key"))
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 CLOUDFLARED_METRICS_URL = os.getenv("CLOUDFLARED_METRICS_URL", "http://127.0.0.1:20241/metrics")
 SERVICE_CONTROL_SOCKET = Path(os.getenv("SERVICE_CONTROL_SOCKET", "/run/service-control/control.sock"))
@@ -215,6 +218,23 @@ def initialize() -> None:
           created_by text)""")
         db.execute("drop index if exists user_controller_access_controller")
         db.execute("create unique index if not exists user_controller_access_single_owner on user_controller_access(controller_id)")
+        db.execute("""create table if not exists controller_group_sequence (
+          singleton integer primary key check(singleton=1),
+          next_number integer not null check(next_number>=2))""")
+        db.execute("insert into controller_group_sequence(singleton,next_number) values(1,2) on conflict(singleton) do nothing")
+        db.execute("""with existing as (
+          select coalesce(max(substring(controller_id from '^observatory-([0-9]+)$')::integer),1)+1 as next_number
+          from controllers)
+        update controller_group_sequence set next_number=greatest(controller_group_sequence.next_number,existing.next_number)
+        from existing where singleton=1""")
+        db.execute("""create table if not exists device_credential_vault (
+          controller_id text primary key references controllers(controller_id) on delete cascade,
+          key_version integer not null default 1,
+          nonce text not null,
+          ciphertext text not null,
+          created_at text not null,
+          updated_at text not null)""")
+    credential_vault_key()
 
 
 @app.on_event("startup")
@@ -241,6 +261,10 @@ class DevicePatch(BaseModel):
 
 class ControllerGroupIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
+
+
+class CredentialRevealIn(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
 
 
 class PasswordIn(BaseModel):
@@ -1101,22 +1125,85 @@ def bundle_storage_id(controller_id: str, logical_device_id: str) -> str:
     return logical_device_id if controller_id == "default" else f"{controller_id}:{logical_device_id}"
 
 
+def next_controller_number() -> int:
+    with db_connection() as db:
+        row = db.execute("""update controller_group_sequence
+          set next_number=next_number+1 where singleton=1
+          returning next_number-1 as allocated""").fetchone()
+    if not row:
+        raise RuntimeError("Controller number sequence is unavailable")
+    return int(row["allocated"])
+
+
 def generated_controller_id(configs: list[dict[str, Any]]) -> str:
     existing = {str(row.get("id", "")).lower() for row in configs}
     for _attempt in range(32):
-        candidate = f"observatory-{secrets.token_hex(3)}"
+        candidate = f"observatory-{next_controller_number():03d}"
         if candidate not in existing:
             return candidate
     raise RuntimeError("Unable to allocate a unique controller id")
 
 
 def controller_mqtt_accounts(controller_id: str) -> tuple[str, dict[str, str]]:
-    backend_username = f"backend-{controller_id}"
-    device_usernames = {
-        logical_id: f"{controller_id}-{logical_id}"
-        for logical_id in BUNDLE_DEVICE_SPECS
-    }
+    match = re.fullmatch(r"observatory-(\d{3,})", controller_id)
+    if match:
+        suffix = match.group(1)
+        backend_username = f"backend-controller-{suffix}"
+        device_usernames = {
+            logical_id: f"{logical_id.split('-', 1)[0]}-{suffix}"
+            for logical_id in BUNDLE_DEVICE_SPECS
+        }
+    else:
+        backend_username = f"backend-{controller_id}"
+        device_usernames = {
+            logical_id: f"{controller_id}-{logical_id}"
+            for logical_id in BUNDLE_DEVICE_SPECS
+        }
     return backend_username, device_usernames
+
+
+def credential_vault_key() -> bytes:
+    CREDENTIAL_VAULT_KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not CREDENTIAL_VAULT_KEY_FILE.exists():
+        temporary = CREDENTIAL_VAULT_KEY_FILE.with_name(f".{CREDENTIAL_VAULT_KEY_FILE.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            temporary.write_text(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii") + "\n", encoding="ascii")
+            temporary.chmod(0o600)
+            temporary.replace(CREDENTIAL_VAULT_KEY_FILE)
+        finally:
+            temporary.unlink(missing_ok=True)
+    try:
+        key = base64.urlsafe_b64decode(CREDENTIAL_VAULT_KEY_FILE.read_text(encoding="ascii").strip())
+    except (OSError, ValueError) as exc:
+        raise RuntimeError("Credential vault key file is invalid") from exc
+    if len(key) != 32:
+        raise RuntimeError("Credential vault key must contain exactly 32 bytes")
+    return key
+
+
+def encrypt_controller_credentials(controller_id: str, credentials: dict[str, Any]) -> tuple[str, str]:
+    nonce = secrets.token_bytes(12)
+    plaintext = json.dumps(credentials, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    associated_data = f"astra-controller-credentials:{controller_id}:v1".encode("utf-8")
+    ciphertext = AESGCM(credential_vault_key()).encrypt(nonce, plaintext, associated_data)
+    return (
+        base64.urlsafe_b64encode(nonce).decode("ascii"),
+        base64.urlsafe_b64encode(ciphertext).decode("ascii"),
+    )
+
+
+def decrypt_controller_credentials(controller_id: str, nonce_text: str, ciphertext_text: str) -> dict[str, Any]:
+    try:
+        nonce = base64.urlsafe_b64decode(nonce_text)
+        ciphertext = base64.urlsafe_b64decode(ciphertext_text)
+        associated_data = f"astra-controller-credentials:{controller_id}:v1".encode("utf-8")
+        plaintext = AESGCM(credential_vault_key()).decrypt(nonce, ciphertext, associated_data)
+        document = json.loads(plaintext.decode("utf-8"))
+    except Exception as exc:
+        raise RuntimeError("Stored controller credentials cannot be decrypted") from exc
+    if not isinstance(document, dict) or not isinstance(document.get("devices"), list):
+        raise RuntimeError("Stored controller credentials have an invalid structure")
+    return document
 
 
 def controller_acl_block(controller_id: str, backend_username: str, device_usernames: dict[str, str]) -> str:
@@ -1212,7 +1299,7 @@ def hardware_config_content(
     return filename, content
 
 
-def one_time_controller_credentials(
+def controller_credentials_document(
     controller_id: str,
     backend_username: str,
     backend_password: str,
@@ -1249,7 +1336,8 @@ def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dic
     with db_connection() as db:
         controllers = db.execute("""
         select c.controller_id,c.name,c.mqtt_host,c.mqtt_port,c.mqtt_username,c.enabled,
-          a.user_id,u.display_name as assigned_name
+          a.user_id,u.display_name as assigned_name,
+          exists(select 1 from device_credential_vault v where v.controller_id=c.controller_id) as credentials_available
         from controllers c
         left join user_controller_access a on a.controller_id=c.controller_id
         left join users u on u.id=a.user_id
@@ -1272,6 +1360,7 @@ def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dic
         item = dict(row)
         children = by_controller.get(str(item["controller_id"]), [])
         item["enabled"] = bool(item["enabled"])
+        item["credentials_available"] = bool(item["credentials_available"])
         item["devices"] = children
         item["complete"] = {child["logical_device_id"] for child in children} == BUNDLE_DEVICE_IDS
         item["device_count"] = len(children)
@@ -1302,6 +1391,14 @@ def create_controller_group(
     backend_username, device_usernames = controller_mqtt_accounts(controller_id)
     backend_password = secrets.token_urlsafe(24)
     device_passwords = {logical_id: secrets.token_urlsafe(24) for logical_id in BUNDLE_DEVICE_SPECS}
+    credentials = controller_credentials_document(
+        controller_id,
+        backend_username,
+        backend_password,
+        device_usernames,
+        device_passwords,
+    )
+    vault_nonce, vault_ciphertext = encrypt_controller_credentials(controller_id, credentials)
     existing_accounts = set(mqtt_accounts())
     generated_accounts = {backend_username, *device_usernames.values()}
     if existing_accounts.intersection(generated_accounts):
@@ -1337,6 +1434,13 @@ def create_controller_group(
                        values(%s,%s,%s,1,%s,%s)""",
                     (bundle_storage_id(controller_id, logical_id), device_type, device_name, controller_id, logical_id),
                 )
+            now = utc_iso()
+            db.execute(
+                """insert into device_credential_vault
+                   (controller_id,key_version,nonce,ciphertext,created_at,updated_at)
+                   values(%s,1,%s,%s,%s,%s)""",
+                (controller_id, vault_nonce, vault_ciphertext, now, now),
+            )
         reload_mosquitto()
     except Exception as exc:
         if original_passwords is None:
@@ -1381,14 +1485,46 @@ def create_controller_group(
         "device_ids": list(BUNDLE_DEVICE_SPECS),
         "api_restarted": restart_ok,
         "warning": restart_warning,
-        "credentials": one_time_controller_credentials(
-            controller_id,
-            backend_username,
-            backend_password,
-            device_usernames,
-            device_passwords,
-        ),
+        "credentials": credentials,
     }
+
+
+@app.post("/admin-api/controller-groups/{controller_id}/credentials")
+def reveal_controller_credentials(
+    controller_id: str,
+    body: CredentialRevealIn,
+    request: Request,
+    response: Response,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    check_admin_rate_limit("credential", admin["user_id"], ADMIN_LOGIN_LIMIT)
+    with db_connection() as db:
+        account = db.execute("select password_hash from users where id=%s", (admin["user_id"],)).fetchone()
+        vault = db.execute(
+            """select v.nonce,v.ciphertext from device_credential_vault v
+               join controllers c on c.controller_id=v.controller_id
+               where v.controller_id=%s""",
+            (controller_id,),
+        ).fetchone()
+    if not vault:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Stored controller credentials are not available")
+    if not account:
+        record_admin_rate_event("credential", admin["user_id"])
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Administrator password is incorrect")
+    try:
+        password_hasher.verify(account["password_hash"], body.password)
+    except VerifyMismatchError as exc:
+        record_admin_rate_event("credential", admin["user_id"])
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Administrator password is incorrect") from exc
+    clear_admin_rate_limit("credential", admin["user_id"])
+    try:
+        credentials = decrypt_controller_credentials(controller_id, vault["nonce"], vault["ciphertext"])
+    except RuntimeError as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(exc)) from exc
+    audit(admin, "controller.credentials.view", controller_id, {}, request)
+    return {"ok": True, "controller_id": controller_id, "credentials": credentials}
 
 
 @app.patch("/admin-api/controller-groups/{controller_id}")

@@ -9,9 +9,15 @@ PASSPHRASE="${ASTROY_BACKUP_PASSPHRASE:-}"
 RETENTION_DAYS="${ASTROY_BACKUP_RETENTION_DAYS:-14}"
 MIN_FREE_GB="${ASTROY_BACKUP_MIN_FREE_GB:-5}"
 STATUS_FILE="$BACKUP_DIR/last-backup-status.json"
+ADMIN_CONTAINER="${ASTROY_ADMIN_CONTAINER:-server-admin-console-1}"
+REMOTE_VAULT_KEY="${ASTROY_CREDENTIAL_VAULT_KEY_FILE:-/run/astra-vault/credential-vault.key}"
 
 if [[ -z "$PASSPHRASE" ]]; then
   echo "ASTROY_BACKUP_PASSPHRASE is required." >&2
+  exit 2
+fi
+if ! docker exec "$ADMIN_CONTAINER" test -r "$REMOTE_VAULT_KEY"; then
+  echo "Credential vault key is missing or unreadable in $ADMIN_CONTAINER." >&2
   exit 2
 fi
 
@@ -59,13 +65,14 @@ fi
 
 docker cp "${ASTROY_MQTT_CONTAINER:-server-mosquitto-1}:/mosquitto/dynamic-config/passwd" "$WORK_DIR/mosquitto-passwd" >/dev/null
 docker cp "${ASTROY_MQTT_CONTAINER:-server-mosquitto-1}:/mosquitto/dynamic-config/acl.conf" "$WORK_DIR/mosquitto-acl.conf" >/dev/null
-chmod 600 "$WORK_DIR/mosquitto-passwd" "$WORK_DIR/mosquitto-acl.conf"
+docker cp "$ADMIN_CONTAINER:$REMOTE_VAULT_KEY" "$WORK_DIR/credential-vault.key" >/dev/null
+chmod 600 "$WORK_DIR/mosquitto-passwd" "$WORK_DIR/mosquitto-acl.conf" "$WORK_DIR/credential-vault.key"
 
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 cat > "$WORK_DIR/manifest.txt" <<EOF
 created_utc=$TIMESTAMP
-contents=$CONTENTS,mosquitto-passwd,mosquitto-acl.conf
-excluded=.env,cloudflare-token,plaintext-secrets
+contents=$CONTENTS,mosquitto-passwd,mosquitto-acl.conf,credential-vault.key
+excluded=.env,cloudflare-token,plaintext-controller-config
 EOF
 
 OUTPUT="$BACKUP_DIR/astroy-$TIMESTAMP.tar.gz.enc"
