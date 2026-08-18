@@ -412,6 +412,7 @@ html[data-color-mode="light"] .terminal-device-menu{background:rgba(244,244,242,
 .terminal-card form>button[type="submit"]{border:0!important;background:var(--glass-inner)!important}
 .terminal-card form .terminal-debug-button{height:100%;padding:0 10px;border:0;border-left:1px solid var(--line);color:var(--ui-muted);background:transparent;white-space:nowrap;cursor:pointer}
 .terminal-card form>button[type="submit"],.terminal-card form .terminal-debug-button{border-radius:0!important}
+.terminal-card form>button[type="submit"]{border-radius:0 10px 10px 0!important}
 .terminal-card form .terminal-debug-button:hover{color:var(--ui-text);background:var(--glass-deep)}
 @keyframes terminal-menu-in{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes steam-rise{0%{opacity:.12;transform:translate3d(0,22px,0) scaleX(.45)}25%{opacity:.82}70%{opacity:.44}100%{opacity:.08;transform:translate3d(14px,-102px,0) scaleX(1.35)}}
@@ -757,6 +758,9 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 .weather-stat .humidity-sparkline path{fill:color-mix(in srgb,var(--accent) 12%,transparent)!important}
 .weather-stat .humidity-sparkline polyline{fill:none;stroke:var(--accent)!important;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .weather-stat .humidity-sparkline circle{fill:var(--accent)!important;stroke:color-mix(in srgb,var(--accent) 28%,transparent)!important;stroke-width:3;vector-effect:non-scaling-stroke}
+html[data-color-mode="light"] .weather-stat .humidity-sparkline path{fill:rgba(17,18,16,.12)!important}
+html[data-color-mode="light"] .weather-stat .humidity-sparkline polyline{stroke:#111210!important}
+html[data-color-mode="light"] .weather-stat .humidity-sparkline circle{fill:#111210!important;stroke:rgba(17,18,16,.28)!important}
 html[data-color-mode="light"] .weather-stat .rain-icon{color:var(--accent)}
 #weather-rain-analog{color:var(--ui-muted)!important}
 @media(max-width:620px){.weather-stat.humidity-stat{min-height:210px}}
