@@ -743,6 +743,38 @@ def controller_connection(
     }
 
 
+@app.post("/api/v1/controller/connection/auto-assign", tags=["Controller connection"])
+def auto_assign_controller_connection(
+    response: Response,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    existing = controller_for_user(user)
+    if existing:
+        return controller_connection(response, user)
+    with db_lock, conn() as c:
+        candidate = c.execute(
+            """select c.controller_id from controllers c
+               where c.enabled=1
+                 and c.controller_id<>'default'
+                 and exists(select 1 from device_credential_vault v where v.controller_id=c.controller_id)
+                 and not exists(select 1 from user_controller_access a where a.controller_id=c.controller_id)
+               order by c.controller_id limit 1"""
+        ).fetchone()
+        if not candidate:
+            raise HTTPException(409, "暂无可自动分配的空闲套组，请管理员先在设备数据库创建套组")
+        controller_id = str(candidate["controller_id"])
+        try:
+            c.execute(
+                "insert into user_controller_access(user_id,controller_id,created_at,created_by) values(?,?,?,?)",
+                (user["id"], controller_id, now_iso(), "auto-assign"),
+            )
+        except Exception as exc:
+            raise HTTPException(409, "套组刚刚被其他账户分配，请重试") from exc
+    return controller_connection(response, user)
+
+
 class ControllerGroupRequestIn(BaseModel):
     requested_name: str = Field(min_length=1, max_length=80)
     note: str = Field(default="", max_length=500)

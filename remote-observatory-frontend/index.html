@@ -380,11 +380,10 @@
 
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="settings-drawer" id="settings-drawer" aria-hidden="true">
-    <header><div><span>CONNECTION</span><h2>连接设置</h2></div><button id="close-settings" aria-label="关闭">×</button></header>
+    <header><div><span>CONNECTION</span><h2>连接设置</h2></div><button id="close-settings" aria-label="关闭"><span aria-hidden="true">✕</span></button></header>
     <div class="drawer-content">
-      <div class="mode-select"><button class="active" data-connection-mode="live"><span>LIVE</span><b>后端实时通道</b><small>使用当前登录会话安全连接</small></button></div>
       <div class="simulation-option"><div><b>测试数据注入</b><small>仅用于界面测试；默认关闭，模拟值不会伪装成真实设备</small></div><button type="button" id="simulation-toggle" role="switch" aria-checked="false"><span>关闭</span><i></i></button></div>
-      <div class="connection-form" id="connection-form"><p id="controller-connection-status">登录后会显示当前授权的硬件套组。</p><form id="controller-request-form" hidden><label>申请套组名称<input id="controller-request-name" maxlength="80" placeholder="例如：我的天文台" required></label><label>申请说明（可选）<input id="controller-request-note" maxlength="500" placeholder="例如：需要一套三设备控制器"></label><button class="primary-button" type="submit">提交创建申请</button><p id="controller-request-message" role="status"></p></form><div id="controller-header-configs" hidden></div></div>
+      <div class="connection-form" id="connection-form"><p id="controller-connection-status">登录后会自动分配可用的硬件套组。</p><div id="controller-header-configs" hidden></div></div>
       <div class="topic-map device-online-map"><h3>设备在线情况</h3><div data-drawer-device="esp32-001"><span>主控 · esp32-001</span><code>离线</code></div><div data-drawer-device="mppt-001"><span>能源 · mppt-001</span><code>离线</code></div><div data-drawer-device="ef-001"><span>平场板 · ef-001</span><code>离线</code></div></div>
     </div>
     <footer><p id="connection-hint"><span class="status-dot"></span> 登录后自动连接后端实时通道。</p><button class="primary-button" id="apply-connection">重新连接 <span>↗</span></button></footer>
@@ -396,7 +395,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260818-06"></script>
+  <script src="app.js?v=20260818-07"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>

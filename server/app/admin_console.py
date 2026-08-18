@@ -291,6 +291,12 @@ class PasswordIn(BaseModel):
     sync_firmware: bool = True
 
 
+class ControllerPasswordIn(BaseModel):
+    username: str = Field(min_length=1, max_length=128)
+    password: str = Field(min_length=12, max_length=128)
+    sync_firmware: bool = True
+
+
 class AccountPatch(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=80)
     email: str | None = Field(default=None, max_length=254)
@@ -1012,16 +1018,43 @@ def replace_user_controller_access(
 @app.get("/admin-api/clients")
 def client_sessions(
     limit: int = Query(100, ge=1, le=500),
+    search: str = Query("", min_length=0, max_length=120),
+    time_range: Literal["all", "1h", "24h", "7d", "30d", "90d"] = Query("all", alias="range"),
+    status_filter: Literal["all", "active", "idle", "ended"] = Query("all", alias="status"),
     access: dict[str, Any] = Depends(read_access),
 ) -> list[dict[str, Any]]:
     now_dt = datetime.now(timezone.utc)
+    now_text = now_dt.isoformat().replace("+00:00", "Z")
+    clauses: list[str] = []
+    params: list[Any] = []
+    term = search.strip().lower()
+    if term:
+        pattern = f"%{term}%"
+        clauses.append("(lower(coalesce(u.display_name,'')) like %s or lower(coalesce(u.email,'')) like %s or lower(coalesce(u.phone,'')) like %s or lower(coalesce(s.user_agent,'')) like %s or lower(coalesce(s.ip_address,'')) like %s or lower(s.id) like %s)")
+        params.extend([pattern] * 6)
+    range_seconds = {"1h": 3600, "24h": 86400, "7d": 604800, "30d": 2592000, "90d": 7776000}.get(time_range)
+    if range_seconds:
+        cutoff = (now_dt - timedelta(seconds=range_seconds)).isoformat().replace("+00:00", "Z")
+        clauses.append("s.last_seen_at >= %s")
+        params.append(cutoff)
+    if status_filter == "active":
+        clauses.extend(["s.revoked_at is null", "s.expires_at > %s", "s.last_seen_at >= %s"])
+        params.extend([now_text, (now_dt - timedelta(seconds=CLIENT_RECENT_SECONDS)).isoformat().replace("+00:00", "Z")])
+    elif status_filter == "idle":
+        clauses.extend(["s.revoked_at is null", "s.expires_at > %s", "s.last_seen_at < %s"])
+        params.extend([now_text, (now_dt - timedelta(seconds=CLIENT_RECENT_SECONDS)).isoformat().replace("+00:00", "Z")])
+    elif status_filter == "ended":
+        clauses.append("(s.revoked_at is not null or s.expires_at <= %s)")
+        params.append(now_text)
+    where = f"where {' and '.join(clauses)}" if clauses else ""
     with db_connection() as db:
-        rows = db.execute("""
+        rows = db.execute(f"""
         select s.id,s.user_id,u.display_name,u.email,u.phone,s.created_at,s.last_seen_at,
           s.expires_at,s.revoked_at,s.user_agent,s.ip_address
         from auth_sessions s join users u on u.id=s.user_id
+        {where}
         order by s.last_seen_at desc limit %s
-        """, (limit,)).fetchall()
+        """, (*params, limit)).fetchall()
     preview = bool(access.get("preview"))
     result = []
     for row in rows:
@@ -1342,6 +1375,12 @@ def controller_groups(_admin: dict[str, Any] = Depends(read_access)) -> list[dic
         item["all_devices_enabled"] = len(children) == 3 and all(child["enabled"] for child in children)
         item["online_count"] = sum(1 for child in children if child["last_status"] == "online")
         item["last_seen"] = max((child["last_seen"] for child in children if child["last_seen"]), default=None)
+        backend_username, device_usernames = controller_mqtt_accounts(str(item["controller_id"]))
+        item["mqtt_accounts"] = [{"username": backend_username, "label": "Backend Controller", "firmware_sync": False}]
+        item["mqtt_accounts"] += [
+            {"username": device_usernames[logical_id], "label": logical_id, "firmware_sync": True}
+            for logical_id in BUNDLE_DEVICE_SPECS
+        ]
         result.append(item)
     return result
 
@@ -1574,6 +1613,63 @@ def reveal_controller_credentials(
     return {"ok": True, "controller_id": controller_id, "credentials": credentials}
 
 
+@app.post("/admin-api/controller-groups/{controller_id}/password")
+def change_controller_group_password(
+    controller_id: str,
+    body: ControllerPasswordIn,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    """Rotate one MQTT credential in a managed three-device controller group."""
+    if controller_id == "default":
+        raise HTTPException(status.HTTP_409_CONFLICT, "The default controller credentials are managed by the server")
+    backend_username, device_usernames = controller_mqtt_accounts(controller_id)
+    username = body.username.strip()
+    if not username:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "MQTT username is required")
+    logical_id = next((key for key, value in device_usernames.items() if value == username), None)
+    if username != backend_username and logical_id is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "MQTT account is not part of this controller group")
+    try:
+        configs = controller_secret_configs()
+        config = next((item for item in configs if str(item.get("id", "")) == controller_id), None)
+    except (OSError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Controller secret file is invalid: {exc}") from exc
+    if not config:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Controller group not found")
+    with db_connection() as db:
+        vault = db.execute("select nonce,ciphertext from device_credential_vault where controller_id=%s", (controller_id,)).fetchone()
+    if not vault:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Stored controller credentials are not available")
+    try:
+        credentials = decrypt_controller_credentials(controller_id, vault["nonce"], vault["ciphertext"])
+        set_mqtt_password(username, body.password, reload=False)
+        if username == backend_username:
+            credentials["backend_controller"]["password"] = body.password
+            config["password"] = body.password
+            write_controller_secret_configs(configs)
+        else:
+            for device in credentials.get("devices", []):
+                if device.get("device_id") == logical_id:
+                    device["password"] = body.password
+                    device["content"] = hardware_config_content(controller_id, logical_id, device.get("username", username), body.password)[1]
+                    break
+        nonce, ciphertext = encrypt_controller_credentials(controller_id, credentials)
+        with db_connection() as db:
+            db.execute("update device_credential_vault set nonce=%s,ciphertext=%s,updated_at=%s where controller_id=%s", (nonce, ciphertext, utc_iso(), controller_id))
+        reload_mosquitto()
+    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"MQTT password update failed: {exc}") from exc
+    api_restarted = False
+    if username == backend_username:
+        try:
+            api_restarted = bool(service_control_request({"action": "restart", "service": "api", "reason": "mqtt-credential-change"}).get("ok"))
+        except (OSError, RuntimeError, json.JSONDecodeError):
+            api_restarted = False
+    audit(admin, "controller.password", controller_id, {"username": username, "api_restarted": api_restarted}, request)
+    return {"ok": True, "controller_id": controller_id, "username": username, "api_restarted": api_restarted}
+
+
 @app.patch("/admin-api/controller-groups/{controller_id}")
 def patch_controller_group(
     controller_id: str,
@@ -1801,7 +1897,7 @@ def change_mqtt_password(
             continue
         backend_username, device_usernames = controller_mqtt_accounts(controller_id)
         if username in {backend_username, *device_usernames.values()}:
-            raise HTTPException(status.HTTP_409_CONFLICT, "Managed controller credentials must be rotated as a complete bundle")
+            return change_controller_group_password(controller_id, ControllerPasswordIn(username=username, password=body.password, sync_firmware=body.sync_firmware), request, admin)
     if username == "backend-controller":
         raise HTTPException(status.HTTP_409_CONFLICT, "Backend account must be rotated through server secrets")
     try:

@@ -206,8 +206,22 @@
 
   function renderControllerConnection() {
     const status = $("#controller-connection-status"), form = $("#controller-request-form"), list = $("#controller-header-configs");
-    if (!status || !form || !list) return;
+    if (!status || !list) return;
     list.hidden = true; list.innerHTML = "";
+    if (!form) {
+      if (!state.auth.user) { status.textContent = "登录后会自动分配可用的硬件套组。"; return; }
+      if (state.controller.loading) { status.textContent = "正在读取硬件套组…"; return; }
+      if (state.controller.configured && state.controller.data) {
+        const data = state.controller.data;
+        status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
+        list.hidden = false;
+        list.innerHTML = `<h3>设备头文件配置</h3><p>配置包含 MQTT 账号密码，可下载后写入对应硬件。</p>${(data.devices||[]).map(device=>`<article class="controller-header-card"><header><b>${escapeHtml(device.device_id)}</b><small>${escapeHtml(device.header_file||device.filename||"")} · ${escapeHtml(device.client_id||device.username||"")}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${escapeHtml(device.device_id)}">下载头文件</button></article>`).join("")}`;
+        return;
+      }
+      status.innerHTML = `当前账户尚未分配硬件套组。<button type="button" class="primary-button" id="auto-assign-controller">自动分配并连接</button>`;
+      $("#auto-assign-controller")?.addEventListener("click", autoAssignController);
+      return;
+    }
     if (!state.auth.user) { status.textContent = "登录后会显示当前授权的硬件套组。"; form.hidden = true; return; }
     if (state.controller.loading) { status.textContent = "正在读取套组授权…"; form.hidden = true; return; }
     if (state.controller.configured && state.controller.data) {
@@ -231,8 +245,8 @@
     if (!state.auth.user || state.controller.loading) return;
     state.controller.loading = true; renderControllerConnection();
     try {
-      const [assignment, requests] = await Promise.all([apiRequest("/api/v1/controller/connection"), apiRequest("/api/v1/controller-requests")]);
-      state.controller.configured = Boolean(assignment.configured); state.controller.data = assignment.configured ? assignment : null; state.controller.requests = Array.isArray(requests) ? requests : [];
+      const assignment = await apiRequest("/api/v1/controller/connection");
+      state.controller.configured = Boolean(assignment.configured); state.controller.data = assignment.configured ? assignment : null;
     } catch (error) { const statusNode = $("#controller-connection-status"); if (statusNode) statusNode.textContent = "套组信息暂时无法读取，请稍后重试。"; }
     finally { state.controller.loading = false; renderControllerConnection(); }
   }
@@ -245,6 +259,19 @@
     try { await apiRequest("/api/v1/controller-requests", { method:"POST", body:JSON.stringify({ requested_name:name, note }) }); $("#controller-request-form")?.reset(); if (message) message.textContent = "申请已提交，等待管理员审核。"; await loadControllerConnection(); }
     catch (error) { if (message) message.textContent = error.message || "申请提交失败。"; }
     finally { if (button) button.disabled = false; }
+  }
+
+  async function autoAssignController(event) {
+    const button = event?.currentTarget || $("#auto-assign-controller");
+    if (button) button.disabled = true;
+    try {
+      await apiRequest("/api/v1/controller/connection/auto-assign", { method:"POST" });
+      await loadControllerConnection();
+      connectEventStream();
+      toast("硬件套组已自动分配", "实时通道已连接。", "ok", "background");
+    } catch (error) {
+      toast(error.message || "暂无可用硬件套组", "请稍后重试或联系管理员。", "error", "background");
+    } finally { if (button) button.disabled = false; }
   }
 
   const deviceIds = ["esp32-001", "mppt-001", "ef-001"];
@@ -358,6 +385,7 @@
   }
 
   function applyConnection() {
+    if (!state.controller.configured && state.auth.user && !state.simulationEnabled) { autoAssignController(); return; }
     if (state.simulationEnabled) { toast("测试数据注入已开启", "关闭模拟开关后才能连接真实设备。", "error", "background"); return; }
     if (!state.auth.user) { toast("需要登录", "登录后才能建立实时通道。", "error"); routeTo("login"); return; }
     if (!state.controller.configured) { toast("尚未获得硬件套组", "请先在连接设置中提交申请并等待管理员批准。", "error", "background"); loadControllerConnection(); return; }
@@ -2191,6 +2219,9 @@
       const result = await authApi("/me", { method:"GET" });
       state.auth.user = result.user;
       await loadControllerConnection();
+      if (!state.controller.configured) {
+        try { await autoAssignController(); } catch (_) { /* keep settings available when no group is free */ }
+      }
       if (state.controller.configured) connectEventStream(); else openSettings();
     } catch (error) {
       if (error.status !== 401) setAuthMessage(authErrorMessage(error), "error");
