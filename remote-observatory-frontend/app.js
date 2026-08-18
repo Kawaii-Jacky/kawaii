@@ -1834,7 +1834,7 @@
     if(!location||!hasNumber(location.latitude)||!hasNumber(location.longitude)){
       setText("#forecast-location-name","尚未选择预报地点");setText("#forecast-location-coords","--");clearForecastSummary();renderSeeingSource();drawForecastCharts();return;
     }
-    const locationParts=[location.name,location.admin1,location.country].filter(Boolean).filter((part,index,parts)=>parts.indexOf(part)===index);
+    const locationPartKeys=new Set(),locationParts=[location.name,location.admin1,location.country].filter(Boolean).filter(part=>{const key=String(part).trim().replace(/[市省州县区]$/u,"").toLocaleLowerCase();if(locationPartKeys.has(key))return false;locationPartKeys.add(key);return true});
     setText("#forecast-location-name", locationParts.join(" · ")||"已选择地点");
     const lat = Number(location.latitude), lon = Number(location.longitude);
     setText("#forecast-location-coords", `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"} · ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`);

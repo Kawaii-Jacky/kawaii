@@ -756,6 +756,11 @@ html[data-theme-color="black"] .environment-live-legend .dewpoint-legend i{backg
 .humidity-sparkline path{fill:color-mix(in srgb,var(--ui-text) 12%,transparent)}
 .humidity-sparkline polyline{fill:none;stroke:var(--ui-text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .humidity-sparkline circle{fill:var(--ui-text);stroke:color-mix(in srgb,var(--ui-text) 28%,transparent);stroke-width:3;vector-effect:non-scaling-stroke}
+html[data-color-mode="light"] .humidity-sparkline path{fill:color-mix(in srgb,var(--accent) 12%,transparent)}
+html[data-color-mode="light"] .humidity-sparkline polyline{stroke:var(--accent)}
+html[data-color-mode="light"] .humidity-sparkline circle{fill:var(--accent);stroke:color-mix(in srgb,var(--accent) 28%,transparent)}
+html[data-color-mode="light"] .weather-stat .rain-icon{color:var(--accent)}
+#weather-rain-analog{color:var(--ui-muted)!important}
 @media(max-width:620px){.weather-stat.humidity-stat{min-height:210px}}
 @media(max-width:620px){.environment-live-toolbar>div{width:fit-content;max-width:100%;padding-right:0;overflow-x:auto}}
 
