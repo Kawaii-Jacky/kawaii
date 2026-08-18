@@ -5,7 +5,10 @@ import hashlib
 import hmac
 import json
 import os
-import pty
+try:
+    import pty
+except ImportError:  # Windows test/development hosts do not provide termios.
+    pty = None
 import re
 import secrets
 import select
@@ -32,6 +35,7 @@ from app.credential_vault import (
     decrypt_controller_credentials,
     encrypt_controller_credentials,
 )
+from app.security import CookieCSRFMiddleware
 
 try:
     import paho.mqtt.client as mqtt
@@ -96,6 +100,15 @@ FIRMWARE_TARGETS = {
 }
 
 app = FastAPI(title="ASTRA Operations Console", docs_url=None, redoc_url=None, openapi_url=None)
+csrf_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000"),
+    ).split(",")
+    if origin.strip()
+]
+app.add_middleware(CookieCSRFMiddleware, cookie_name=COOKIE_NAME, allowed_origins=csrf_origins)
 
 
 def db_connection():
@@ -313,6 +326,10 @@ class ControllerAccessPatch(BaseModel):
     controller_id: str | None = Field(default=None, max_length=32)
 
 
+class RuntimeDataClearIn(BaseModel):
+    confirmation: str = Field(min_length=1, max_length=64)
+
+
 def current_console_user(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
     if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Console login required")
@@ -326,12 +343,16 @@ def current_console_user(token: str | None = Cookie(default=None, alias=COOKIE_N
         where s.token_hash=%s and s.revoked_at is null
         """, (digest,)).fetchone()
         expired = bool(session) and parse_utc(session["expires_at"]) <= now_dt
-        if not session or bool(session["disabled"]) or session["role"] not in ("operator", "admin") or expired:
+        if not session or bool(session["disabled"]) or not console_role_allowed(session["role"]) or expired:
             if session and expired:
                 db.execute("update auth_sessions set revoked_at=%s where id=%s and revoked_at is null", (now, session["session_id"]))
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Console session expired")
         db.execute("update auth_sessions set last_seen_at=%s where id=%s", (now, session["session_id"]))
     return dict(session)
+
+
+def console_role_allowed(role: str) -> bool:
+    return role in ("operator", "admin")
 
 
 def current_admin(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
@@ -592,7 +613,7 @@ def login(body: LoginIn, request: Request, response: Response) -> dict[str, Any]
             "select id,display_name,email,phone,password_hash,role,disabled from users where lower(email)=%s or phone=%s",
             (identifier, phone),
         ).fetchone()
-    if not row or row["disabled"] or row["role"] not in ("operator", "admin"):
+    if not row or row["disabled"] or not console_role_allowed(row["role"]):
         record_admin_rate_event("identifier", identifier)
         record_admin_rate_event("ip", ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid console credentials")
@@ -1149,6 +1170,32 @@ def export_database(
             "X-Content-Type-Options": "nosniff",
         },
     )
+
+
+@app.post("/admin-api/database/clear-runtime")
+def clear_runtime_database(
+    body: RuntimeDataClearIn,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    if body.confirmation != "CLEAR RUNTIME DATA":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Type CLEAR RUNTIME DATA to confirm")
+    table_names = (
+        "telemetry_samples",
+        "telemetry_latest",
+        "commands",
+        "device_alerts",
+        "service_traffic_samples",
+        "service_traffic_totals",
+    )
+    deleted: dict[str, int] = {}
+    with db_connection() as db:
+        for table in table_names:
+            deleted[table] = int(db.execute(f"delete from {table}").rowcount)
+        reset = db.execute("update devices set last_seen=null,last_status='offline'")
+        deleted["devices_reset"] = int(reset.rowcount)
+    audit(admin, "database.clear_runtime", "runtime", {"deleted": deleted}, request)
+    return {"ok": True, "database": "postgresql", "scope": "runtime", "deleted": deleted}
 
 
 def controller_secret_configs() -> list[dict[str, Any]]:
@@ -1818,6 +1865,8 @@ def reload_mosquitto() -> None:
 
 
 def set_mqtt_password(username: str, password: str, create: bool = False, reload: bool = True) -> None:
+    if pty is None:
+        raise RuntimeError("Mosquitto password rotation requires a POSIX host")
     command = ["mosquitto_passwd"]
     if create and not PASSWORD_FILE.exists():
         command.append("-c")
