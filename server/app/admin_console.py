@@ -313,9 +313,9 @@ class ControllerAccessPatch(BaseModel):
     controller_id: str | None = Field(default=None, max_length=32)
 
 
-def current_admin(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
+def current_console_user(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
     if not token:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Administrator login required")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Console login required")
     digest = token_hash(token)
     now_dt = datetime.now(timezone.utc)
     now = now_dt.isoformat().replace("+00:00", "Z")
@@ -326,12 +326,19 @@ def current_admin(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -
         where s.token_hash=%s and s.revoked_at is null
         """, (digest,)).fetchone()
         expired = bool(session) and parse_utc(session["expires_at"]) <= now_dt
-        if not session or bool(session["disabled"]) or session["role"] != "admin" or expired:
+        if not session or bool(session["disabled"]) or session["role"] not in ("operator", "admin") or expired:
             if session and expired:
                 db.execute("update auth_sessions set revoked_at=%s where id=%s and revoked_at is null", (now, session["session_id"]))
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Administrator session expired")
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Console session expired")
         db.execute("update auth_sessions set last_seen_at=%s where id=%s", (now, session["session_id"]))
     return dict(session)
+
+
+def current_admin(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
+    session = current_console_user(token)
+    if session["role"] != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Administrator permission required")
+    return session
 
 
 def read_access(
@@ -344,7 +351,7 @@ def read_access(
     local_preview = preview == "1" and client in ("127.0.0.1", "::1") and not real_ip
     if token:
         try:
-            return current_admin(token)
+            return current_console_user(token)
         except HTTPException:
             if not local_preview:
                 raise
@@ -585,16 +592,16 @@ def login(body: LoginIn, request: Request, response: Response) -> dict[str, Any]
             "select id,display_name,email,phone,password_hash,role,disabled from users where lower(email)=%s or phone=%s",
             (identifier, phone),
         ).fetchone()
-    if not row or row["disabled"] or row["role"] != "admin":
+    if not row or row["disabled"] or row["role"] not in ("operator", "admin"):
         record_admin_rate_event("identifier", identifier)
         record_admin_rate_event("ip", ip)
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid administrator credentials")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid console credentials")
     try:
         password_hasher.verify(row["password_hash"], body.password)
     except VerifyMismatchError as exc:
         record_admin_rate_event("identifier", identifier)
         record_admin_rate_event("ip", ip)
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid administrator credentials") from exc
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid console credentials") from exc
     clear_admin_rate_limit("identifier", identifier)
     token = secrets.token_urlsafe(48)
     created_dt = datetime.now(timezone.utc)
@@ -619,7 +626,7 @@ def login(body: LoginIn, request: Request, response: Response) -> dict[str, Any]
         max_age=ADMIN_SESSION_DAYS * 86400,
         path="/",
     )
-    return {"ok": True, "user": {"display_name": row["display_name"], "role": row["role"]}}
+    return {"ok": True, "user": {"display_name": row["display_name"], "role": row["role"], "read_only": row["role"] == "operator"}}
 
 
 @app.post("/admin-api/logout", status_code=204)
@@ -691,7 +698,7 @@ def system_metrics() -> dict[str, float | int | None]:
 
 
 @app.get("/admin-api/metrics")
-def metrics(_admin: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
+def metrics(access: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
     with db_connection() as db:
         row = db.execute("""
         select
@@ -705,6 +712,7 @@ def metrics(_admin: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
         """).fetchone()
     return {
         "time": utc_iso(),
+        "access": {"role": access.get("role", "preview"), "read_only": bool(access.get("preview")) or access.get("role") == "operator"},
         "database": dict(row),
         "network": network_rates(),
         "system": system_metrics(),

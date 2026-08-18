@@ -284,7 +284,7 @@
   const deviceOnlineTimeout = 30000;
 
   function canControlDevices() {
-    return Boolean(state.auth.user && ["admin", "operator"].includes(state.auth.user.role));
+    return Boolean(state.auth.user && ["user", "operator", "admin"].includes(state.auth.user.role));
   }
 
   function isDeviceOnline(id, now = Date.now()) {
@@ -557,7 +557,7 @@
   }
 
   function sendCommand(device, payload, description = "设备指令") {
-    if (!state.auth.user || !["admin","operator"].includes(state.auth.user.role)) { toast("权限不足", "当前账户只能查看设备状态。", "error"); return false; }
+    if (!state.auth.user || !["user","operator","admin"].includes(state.auth.user.role)) { toast("权限不足", "当前账户没有设备控制权限。", "error"); return false; }
     if (state.simulationEnabled) return simulateCommand(device, payload, description);
     if (!isDeviceOnline(device)) { toast("设备离线", `${device} 当前没有有效在线遥测。`, "error", "background"); return false; }
     if (!state.connected) { toast("设备未连接", "后端实时通道尚未连接。", "error"); return false; }

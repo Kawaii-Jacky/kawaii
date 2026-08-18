@@ -331,8 +331,8 @@ def current_user(
 
 
 def require_operator(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
-    if user["role"] not in ("operator", "admin"):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Operator permission required")
+    if user["role"] not in ("user", "operator", "admin"):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Device control permission required")
     return user
 
 
