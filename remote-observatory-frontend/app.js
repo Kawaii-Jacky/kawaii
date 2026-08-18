@@ -58,6 +58,9 @@
           if (worker.state === "installed" && navigator.serviceWorker.controller) {
             const guide = document.querySelector("#pwa-install-guide");
             const copy = document.querySelector("#pwa-install-copy");
+            waitingWorker = worker;
+            if (action) { action.hidden = false; action.textContent = "更新"; }
+            if (copy) copy.textContent = "新版本已准备就绪，确认后立即更新。";
             if (guide && copy) { copy.textContent = "新版本已准备就绪，刷新页面即可更新。"; guide.hidden = false; }
           }
         });
@@ -65,10 +68,18 @@
     }).catch(() => {});
     const guide = document.querySelector("#pwa-install-guide");
     const dismiss = document.querySelector("#pwa-install-dismiss");
+    const action = document.querySelector("#pwa-install-action");
+    let waitingWorker = null;
     const standalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     if (guide && ios && !standalone && !sessionStorage.getItem("astra.pwaInstallDismissed")) guide.hidden = false;
     dismiss?.addEventListener("click", () => { guide.hidden = true; sessionStorage.setItem("astra.pwaInstallDismissed", "1"); });
+    action?.addEventListener("click", () => {
+      if (!waitingWorker) return;
+      action.disabled = true;
+      navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), { once: true });
+      waitingWorker.postMessage({ type: "SKIP_WAITING" });
+    });
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState !== "visible" || !state.auth.user || state.simulationEnabled || !state.controller.configured) return;
       if (!state.eventSource || state.eventSource.readyState === EventSource.CLOSED) connectEventStream();
