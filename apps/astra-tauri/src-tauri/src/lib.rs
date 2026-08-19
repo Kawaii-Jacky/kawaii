@@ -81,9 +81,13 @@ async fn clear_native_token(state: State<'_, NativeState>) -> Result<(), String>
 async fn set_server(state: State<'_, NativeState>, server: String) -> Result<(), String> {
     let parsed = url::Url::parse(server.trim()).map_err(|_| "Server must be a valid URL".to_string())?;
     if parsed.scheme() != "https" && parsed.host_str() != Some("localhost") { return Err("Only HTTPS servers are allowed".into()); }
-    *state.server.lock().await = parsed.origin().ascii_serialization().trim_end_matches('/').to_string();
-    *state.token.lock().await = None;
-    let _ = clear_secure_token();
+    let next = parsed.origin().ascii_serialization().trim_end_matches('/').to_string();
+    let mut current = state.server.lock().await;
+    if *current != next {
+        *current = next;
+        *state.token.lock().await = None;
+        let _ = clear_secure_token();
+    }
     Ok(())
 }
 
@@ -108,19 +112,24 @@ async fn native_fetch(state: State<'_, NativeState>, path: String, method: Strin
 async fn start_sse(app: AppHandle, state: State<'_, NativeState>) -> Result<(), String> {
     let server = state.server.lock().await.clone();
     let token = state.token.lock().await.clone().ok_or("Not logged in")?;
+    let response = Client::new()
+        .get(format!("{server}/api/v1/events/stream"))
+        .bearer_auth(token)
+        .send()
+        .await
+        .map_err(|error| error.to_string())?
+        .error_for_status()
+        .map_err(|error| error.to_string())?;
     let (abort_tx, mut abort_rx) = oneshot::channel();
     if let Some(previous) = state.sse_abort.lock().await.replace(abort_tx) { let _ = previous.send(()); }
     tokio::spawn(async move {
-        let response = Client::new().get(format!("{server}/api/v1/events/stream")).bearer_auth(token).send().await;
-        if let Ok(response) = response {
-            let mut stream = response.bytes_stream();
-            loop {
-                tokio::select! {
-                    _ = &mut abort_rx => break,
-                    item = stream.next() => match item {
-                        Some(Ok(chunk)) => { let _ = app.emit("astra://event", String::from_utf8_lossy(&chunk).to_string()); }
-                        _ => break,
-                    }
+        let mut stream = response.bytes_stream();
+        loop {
+            tokio::select! {
+                _ = &mut abort_rx => break,
+                item = stream.next() => match item {
+                    Some(Ok(chunk)) => { let _ = app.emit("astra://event", String::from_utf8_lossy(&chunk).to_string()); }
+                    _ => break,
                 }
             }
         }
