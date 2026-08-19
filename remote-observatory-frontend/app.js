@@ -1272,7 +1272,7 @@
 
   async function apiRequest(path, options = {}) {
     if (isNativeRuntime()) return nativeRequest(path, options);
-    const response = await fetch(path, { credentials:"same-origin", ...options, headers:{"Content-Type":"application/json", ...(options.headers || {})} });
+    const response = await fetch(path, { credentials:"include", cache:"no-store", ...options, headers:{"Content-Type":"application/json", ...(options.headers || {})} });
     const data = await response.json().catch(() => null);
     if (!response.ok) {
       const error = new Error(typeof data?.detail === "string" ? data.detail : `请求失败 (${response.status})`);
@@ -2165,7 +2165,8 @@
       return nativeRequest(`/api/v1/auth${path}`, options);
     }
     const response = await fetch(`/api/v1/auth${path}`, {
-      credentials: "same-origin",
+      credentials: "include",
+      cache: "no-store",
       ...options,
       headers: { "Content-Type":"application/json", ...(options.headers || {}) }
     });
@@ -2191,6 +2192,7 @@
     if (/provider is not configured/i.test(detail)) return "验证服务尚未配置完成。";
     if (/Verification delivery failed/i.test(detail)) return "验证码发送失败，请稍后重试。";
     if (/Current password is incorrect/i.test(detail)) return "当前密码不正确。";
+    if (/Browser did not retain session cookie/i.test(detail)) return "Safari 未能保存登录会话。请确认未开启“阻止所有 Cookie”，然后彻底关闭并重新打开 ASTRA。";
     if (/Administrator password must contain at least 9 characters/i.test(detail)) return "管理员密码至少需要 9 个字符。";
     if (error?.status === 401) return "登录会话已失效，请重新登录后继续。";
     if (error?.status === 422) return "请检查输入格式后重试。";
@@ -2551,13 +2553,25 @@
     const original = submit.textContent;
     submit.textContent = "处理中…";
     try {
-      const result = await authApi(path, { method:"POST", body:JSON.stringify(body) });
+      let result = await authApi(path, { method:"POST", body:JSON.stringify(body) });
       if (mode === "recover") {
         setAuthMode("login");
         $("#auth-identifier").value = body.target;
         setAuthMessage("密码已重置，请使用新密码登录。", "ok");
         toast("密码已重置", "现在可以使用新密码登录。", "ok");
       } else {
+        if (!isNativeRuntime()) {
+          try {
+            result = await authApi("/me", { method:"GET" });
+          } catch (error) {
+            if (error.status === 401) {
+              const cookieError = new Error("Browser did not retain session cookie");
+              cookieError.status = 401;
+              throw cookieError;
+            }
+            throw error;
+          }
+        }
         state.auth.user = result.user;
         state.auth.loading = false;
         renderAuth();
