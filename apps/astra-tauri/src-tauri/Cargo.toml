@@ -1,6 +1,6 @@
 [package]
 name = "astra"
-version = "0.1.8"
+version = "0.1.9"
 description = "ASTRA remote observatory native client"
 authors = ["ASTRA"]
 edition = "2021"

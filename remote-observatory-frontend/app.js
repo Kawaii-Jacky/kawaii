@@ -56,7 +56,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-03", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-04", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -230,6 +230,7 @@
 
   function routeTo(route) {
     if (!routeMeta[route]) route = "overview";
+    if (route === "login" && state.auth.user) route = state.auth.returnRoute || "profile";
     if (route !== "login" && !state.auth.user) {
       state.auth.returnRoute = route;
       route = "login";
@@ -245,16 +246,29 @@
     requestAnimationFrame(drawCharts);
   }
 
+  let settingsHistoryActive = false;
+
   function openSettings() {
-    $("#settings-drawer").classList.add("open");
-    $("#settings-drawer").setAttribute("aria-hidden", "false");
+    const drawer = $("#settings-drawer");
+    if (!drawer.classList.contains("open")) {
+      history.pushState({ ...(history.state || {}), astraOverlay:"settings" }, "", location.href);
+      settingsHistoryActive = true;
+    }
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
     $("#drawer-backdrop").classList.add("open");
     if (state.auth.user) loadControllerConnection();
   }
-  function closeSettings() {
-    $("#settings-drawer").classList.remove("open");
-    $("#settings-drawer").setAttribute("aria-hidden", "true");
+  function closeSettings(options) {
+    const drawer = $("#settings-drawer");
+    const wasOpen = drawer.classList.contains("open");
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
     $("#drawer-backdrop").classList.remove("open");
+    if (wasOpen && settingsHistoryActive && options?.fromHistory !== true) {
+      settingsHistoryActive = false;
+      history.back();
+    }
   }
 
   function selectConnectionMode() {
@@ -2402,22 +2416,16 @@
     const mode = state.auth.mode;
     const channel = state.auth.channel;
     const form = $("#auth-form");
-    const summary = $("#auth-account-summary");
     const status = $("#auth-status-chip");
     const profileStatus=$("#profile-auth-status");
     if (form) form.hidden = loggedIn;
     if (form) form.dataset.authMode = mode;
-    if (summary) summary.hidden = !loggedIn;
     if (status) {
       status.textContent = state.auth.loading ? "检查会话" : (loggedIn ? "已验证 · 在线" : "未登录");
       status.classList.toggle("online", loggedIn);
     }
     if(profileStatus){profileStatus.textContent=state.auth.loading?"检查会话":loggedIn?"已登录会话":"未登录";profileStatus.classList.toggle("online",loggedIn)}
     if (loggedIn) {
-      const user = state.auth.user;
-      setText("#auth-account-name", user.display_name || "ASTRA 用户");
-      setText("#auth-account-detail", `${authRoleLabel(user.role)} · ${authContact(user)}`);
-      setText("#auth-account-mark", (user.display_name || "A").trim().slice(0, 2).toUpperCase());
       renderAuthIdentity();
       return;
     }
@@ -2628,31 +2636,6 @@
     }
   }
 
-  async function logoutAllAuth() {
-    const button = $("#auth-logout-all");
-    if (!button) return;
-    const original = button.textContent;
-    if (!window.confirm("这会退出当前账户在所有设备上的登录，会继续吗？")) return;
-    button.disabled = true;
-    button.textContent = "正在退出…";
-    try {
-      await authApi("/logout-all", { method:"POST" });
-      if (isNativeRuntime()) await nativeInvoke("clear_native_token").catch(() => {});
-      state.auth.user = null;
-      disconnectEventStream();
-      buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();
-      state.deviceHistory.devices = []; state.deviceHistory.alerts = []; state.deviceHistory.labels = []; state.deviceHistory.series = {};
-      drawDeviceHistoryChart();
-      state.auth.loading = false;
-      routeTo("login");
-      toast("已退出所有设备", "所有登录会话已经失效。", "ok");
-    } catch (error) {
-      toast("退出失败", authErrorMessage(error), "error");
-      button.disabled = false;
-      button.textContent = original;
-    }
-  }
-
   function setPasswordChangeMessage(message, type = "") {
     const node = $("#password-change-message");
     if (!node) return;
@@ -2724,10 +2707,14 @@
     if (card) card.hidden = false;
     const input = $("#native-server-url");
     const message = $("#server-settings-message");
+    const normalizeServer = value => new URL(value.trim()).origin.replace(/\/$/, "");
     const saved = localStorage.getItem("astra.nativeServerUrl") || "https://astroy.xyz";
-    if (input) input.value = saved;
+    let activeServer = "https://astroy.xyz";
+    try { activeServer = normalizeServer(saved); }
+    catch (_) { localStorage.setItem("astra.nativeServerUrl", activeServer); }
+    if (input) input.value = activeServer;
     try {
-      await nativeInvoke("set_server", { server: saved });
+      await nativeInvoke("set_server", { server: activeServer });
       await nativeRequest("/health");
       if (message) { message.textContent = "服务器连接正常"; message.className = "auth-message ok"; }
     } catch (error) {
@@ -2735,15 +2722,18 @@
     }
     $("#server-settings-form")?.addEventListener("submit", async event => {
       event.preventDefault();
-      const server = input?.value.trim() || "";
       try {
-        await nativeInvoke("set_server", { server });
+        const server = normalizeServer(input?.value || "");
         localStorage.setItem("astra.nativeServerUrl", server);
-        await nativeInvoke("clear_native_token").catch(() => {});
-        disconnectEventStream();
-        state.auth.user = null;
-        if (message) { message.textContent = "服务器已切换，请重新登录。"; message.className = "auth-message ok"; }
-        routeTo("login");
+        if (state.auth.user && server !== activeServer) {
+          if (input) input.value = server;
+          if (message) { message.textContent = "服务器地址已保存，当前会话保持连接；下次启动时应用新地址。"; message.className = "auth-message ok"; }
+          return;
+        }
+        await nativeInvoke("set_server", { server });
+        activeServer = server;
+        await nativeRequest("/health");
+        if (message) { message.textContent = state.auth.user ? "服务器连接正常，当前会话保持登录。" : "服务器连接正常，地址已保存。"; message.className = "auth-message ok"; }
       } catch (error) {
         if (message) { message.textContent = error?.message || "服务器地址无效"; message.className = "auth-message error"; }
       }
@@ -2756,15 +2746,33 @@
     $$('[data-auth-channel]').forEach(button => button.addEventListener("click", () => { state.auth.channel = button.dataset.authChannel; setAuthMessage(state.auth.channel === "phone" ? "验证码将通过阿里云短信认证发送。" : "验证码将发送到指定邮箱。"); renderAuth(); }));
     $("#auth-send-code")?.addEventListener("click", requestAuthCode);
     $("#auth-form")?.addEventListener("submit", submitAuth);
-    $("#auth-logout")?.addEventListener("click", logoutAuth);
     $("#profile-logout")?.addEventListener("click", logoutAuth);
-    $("#auth-logout-all")?.addEventListener("click", logoutAllAuth);
-    $("#auth-enter-profile")?.addEventListener("click", () => routeTo("profile"));
     $("#password-change-form")?.addEventListener("submit", changeAccountPassword);
     $$('[data-route]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.route)));
     $$('[data-route-jump]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.routeJump)));
     $$('[data-open-settings]').forEach(button => button.addEventListener("click", openSettings));
     $("#close-settings").addEventListener("click", closeSettings); $("#drawer-backdrop").addEventListener("click", closeSettings);
+    window.addEventListener("popstate", () => {
+      if (!$("#settings-drawer")?.classList.contains("open")) return;
+      settingsHistoryActive = false;
+      closeSettings({ fromHistory:true });
+    });
+    const settingsDrawer = $("#settings-drawer");
+    let settingsSwipeStart = null;
+    settingsDrawer?.addEventListener("touchstart", event => {
+      const touch = event.touches[0];
+      settingsSwipeStart = touch ? { x:touch.clientX, y:touch.clientY, at:Date.now() } : null;
+    }, { passive:true });
+    settingsDrawer?.addEventListener("touchend", event => {
+      if (!settingsSwipeStart) return;
+      const touch = event.changedTouches[0];
+      const dx = touch ? touch.clientX - settingsSwipeStart.x : 0;
+      const dy = touch ? touch.clientY - settingsSwipeStart.y : 0;
+      const elapsed = Date.now() - settingsSwipeStart.at;
+      settingsSwipeStart = null;
+      if (dx < -64 && Math.abs(dx) > Math.abs(dy) * 1.25 && elapsed < 900) closeSettings();
+    }, { passive:true });
+    settingsDrawer?.addEventListener("touchcancel", () => { settingsSwipeStart = null; }, { passive:true });
     $("#controller-request-form")?.addEventListener("submit", submitControllerRequest);
     $("#controller-header-configs")?.addEventListener("click", event => { const button = event.target.closest?.("[data-download-controller-header]"); if (!button || !state.controller.data) return; const device = (state.controller.data.devices || []).find(item => item.device_id === button.dataset.downloadControllerHeader); downloadControllerHeader(device); });
     $$('[data-connection-mode]').forEach(button => button.addEventListener("click", () => selectConnectionMode(button.dataset.connectionMode)));

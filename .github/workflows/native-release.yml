@@ -6,7 +6,7 @@ on:
       tag:
         description: GitHub release tag, for example v0.1.4
         required: true
-        default: v0.1.7
+        default: v0.1.9
 
 permissions:
   contents: write
@@ -27,6 +27,7 @@ jobs:
           node --check remote-observatory-frontend/observatory-3d.js
           node -e "const h=require('fs').readFileSync('remote-observatory-frontend/index.html','utf8'); const tag=h.match(/<script[^>]+vendor\/lucide\/lucide\.min\.js[^>]*>/i)?.[0]; if(!tag) throw new Error('Bundled Lucide script tag missing'); if(/\bintegrity\s*=/.test(tag)) throw new Error('SRI blocks bundled Lucide under the Tauri asset protocol')"
           node -e "const h=require('fs').readFileSync('remote-observatory-frontend/index.html','utf8'); if(!/<body class=\"auth-route\">/.test(h)) throw new Error('Initial body must use the login layout'); if(!/<section class=\"page auth-page active\" id=\"page-login\"/.test(h)) throw new Error('Login page must be the initial active page'); if(/<section class=\"page active\" id=\"page-overview\"/.test(h)) throw new Error('Overview must not render before authentication')"
+          node -e "const fs=require('fs'),h=fs.readFileSync('remote-observatory-frontend/index.html','utf8'),j=fs.readFileSync('remote-observatory-frontend/app.js','utf8'),c=fs.readFileSync('remote-observatory-frontend/app.css','utf8'); const block=j.match(/async function initNativeServerSettings\(\)[\s\S]*?\n  }/i)?.[0]||''; if(/clear_native_token|routeTo\(\"login\"\)/.test(block)) throw new Error('Saving native server must not clear or redirect the current session'); if(!/route === \"login\" && state\.auth\.user/.test(j)) throw new Error('Authenticated users must never remain on the login page'); if(/auth-account-summary|AUTHENTICATED SESSION|auth-enter-profile|auth-logout-all/.test(h+j)) throw new Error('Redundant authenticated-session login block must not exist'); if(!/dx < -64/.test(j)||!/astraOverlay:\"settings\"/.test(j)) throw new Error('Mobile settings drawer must support swipe/back dismissal'); if(!/\.auth-form\[hidden\]\{display:none!important\}/.test(c)) throw new Error('Authenticated login form must stay hidden')"
       - name: Validate native core-texture model
         run: |
           python3 - <<'PY'
