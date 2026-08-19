@@ -4,7 +4,9 @@
   "scripts": {
     "tauri": "tauri",
     "dev": "cargo tauri dev",
-    "build": "cargo tauri build"
+    "build": "cargo tauri build",
+    "icons:generate": "tauri icon src-tauri/icons/icon.png",
+    "android:sync-icons": "node scripts/sync-android-icons.mjs"
   },
   "dependencies": { "@tauri-apps/api": "^2.0.0" },
   "devDependencies": { "@tauri-apps/cli": "^2.0.0" }

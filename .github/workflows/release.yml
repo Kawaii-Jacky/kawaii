@@ -167,6 +167,7 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2
         run: |
           npx tauri android init
+          npm run android:sync-icons
           npx tauri android build --apk --debug --split-per-abi --target aarch64 armv7
       - name: Validate and name Android packages
         run: |
