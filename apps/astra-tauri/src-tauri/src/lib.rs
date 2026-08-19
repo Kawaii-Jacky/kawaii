@@ -25,8 +25,33 @@ struct LoginBody { identifier: String, password: String }
 #[derive(Serialize)]
 struct NativeHttpResponse { status: u16, body: String }
 
+#[derive(Debug, Serialize)]
+struct NativeCommandError {
+    message: String,
+    status: Option<u16>,
+}
+
+impl NativeCommandError {
+    fn http(status: u16, message: String) -> Self {
+        Self { message, status: Some(status) }
+    }
+}
+
+impl From<String> for NativeCommandError {
+    fn from(message: String) -> Self {
+        Self { message, status: None }
+    }
+}
+
 #[derive(Deserialize)]
 struct FrontendHealthReport { icon_source: String, unresolved_icons: u32, rendered_icons: u32 }
+
+fn native_login_error(status: u16, raw: &str) -> NativeCommandError {
+    let detail = serde_json::from_str::<serde_json::Value>(raw)
+        .ok()
+        .and_then(|value| value.get("detail").and_then(|item| item.as_str()).map(str::to_owned));
+    NativeCommandError::http(status, detail.unwrap_or_else(|| format!("Login failed ({status})")))
+}
 
 fn secure_entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new(KEYRING_SERVICE, KEYRING_ACCOUNT).map_err(|e| e.to_string())
@@ -49,19 +74,38 @@ fn clear_secure_token() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn native_login(state: State<'_, NativeState>, body: LoginBody) -> Result<NativeResult, String> {
+async fn native_login(state: State<'_, NativeState>, body: LoginBody) -> Result<NativeResult, NativeCommandError> {
     let server = state.server.lock().await.clone();
     let response = Client::new().post(format!("{server}/api/v1/auth/native/login")).json(&body).send().await.map_err(|e| e.to_string())?;
     let status = response.status();
     let raw = response.text().await.map_err(|e| e.to_string())?;
     if !status.is_success() {
-        let detail = serde_json::from_str::<serde_json::Value>(&raw).ok().and_then(|value| value.get("detail").and_then(|item| item.as_str()).map(str::to_owned));
-        return Err(detail.unwrap_or_else(|| format!("Login failed ({status})")));
+        return Err(native_login_error(status.as_u16(), &raw));
     }
     let value = serde_json::from_str::<NativeResult>(&raw).map_err(|e| e.to_string())?;
     *state.token.lock().await = Some(value.access_token.clone());
     save_secure_token(&value.access_token)?;
     Ok(value)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn native_login_error_preserves_backend_detail_for_tauri() {
+        let error = native_login_error(401, r#"{"detail":"Account does not exist"}"#);
+        let serialized = serde_json::to_value(error).expect("native error must serialize");
+        assert_eq!(serialized["message"], "Account does not exist");
+        assert_eq!(serialized["status"], 401);
+    }
+
+    #[test]
+    fn native_login_error_has_a_status_fallback() {
+        let error = native_login_error(502, "not json");
+        assert_eq!(error.message, "Login failed (502)");
+        assert_eq!(error.status, Some(502));
+    }
 }
 
 #[tauri::command]
