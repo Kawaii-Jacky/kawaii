@@ -46,6 +46,9 @@ impl From<String> for NativeCommandError {
 #[derive(Deserialize)]
 struct FrontendHealthReport { icon_source: String, unresolved_icons: u32, rendered_icons: u32 }
 
+#[derive(Deserialize)]
+struct ModelHealthReport { model_source: String, mesh_count: u32, textured_materials: u32 }
+
 fn native_login_error(status: u16, raw: &str) -> NativeCommandError {
     let detail = serde_json::from_str::<serde_json::Value>(raw)
         .ok()
@@ -209,13 +212,25 @@ fn report_frontend_health(report: FrontendHealthReport) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn report_model_health(report: ModelHealthReport) -> Result<(), String> {
+    eprintln!(
+        "ASTRA_MODEL_HEALTH source={} meshes={} textured={}",
+        report.model_source, report.mesh_count, report.textured_materials
+    );
+    if report.model_source != "png-core" || report.mesh_count < 20 || report.textured_materials < 5 {
+        return Err("Bundled observatory model textures failed to initialize".into());
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(NativeState { server: Arc::new(Mutex::new(DEFAULT_SERVER.to_string())), token: Arc::new(Mutex::new(None)), sse_abort: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_stronghold::Builder::new(|password| password.to_owned().into()).build())
-        .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, clear_native_token, set_server, native_fetch, start_sse, stop_sse, report_frontend_health])
+        .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, clear_native_token, set_server, native_fetch, start_sse, stop_sse, report_frontend_health, report_model_health])
         .run(tauri::generate_context!())
         .expect("error while running ASTRA");
 }
