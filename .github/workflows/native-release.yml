@@ -99,7 +99,7 @@ jobs:
           $process = [System.Diagnostics.Process]::new()
           $process.StartInfo = $info
           if (-not $process.Start()) { throw 'ASTRA process did not start' }
-          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 30
           if ($process.HasExited) {
             $out = $process.StandardOutput.ReadToEnd()
             $err = $process.StandardError.ReadToEnd()
