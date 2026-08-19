@@ -113,7 +113,7 @@ jobs:
           if ("$out`n$err" -notmatch 'ASTRA_FRONTEND_HEALTH icons=lucide unresolved=0 rendered=([2-9][0-9]|[1-9][0-9]{2,})') {
             throw "ASTRA stayed open but bundled Lucide icons did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
           }
-          if ("$out`n$err" -notmatch 'ASTRA_MODEL_HEALTH source=png-core meshes=([2-9][0-9]|[1-9][0-9]{2,}) textured=([5-9]|[1-9][0-9]+)') {
+          if ("$out`n$err" -notmatch 'ASTRA_MODEL_HEALTH source=external-png meshes=([2-9][0-9]|[1-9][0-9]{2,}) textured=([5-9]|[1-9][0-9]+)') {
             throw "ASTRA stayed open but bundled observatory textures did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
           }
       - name: Name Windows ${{ matrix.arch }} installer

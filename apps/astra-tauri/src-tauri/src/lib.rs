@@ -218,7 +218,7 @@ fn report_model_health(report: ModelHealthReport) -> Result<(), String> {
         "ASTRA_MODEL_HEALTH source={} meshes={} textured={}",
         report.model_source, report.mesh_count, report.textured_materials
     );
-    if report.model_source != "png-core" || report.mesh_count < 20 || report.textured_materials < 5 {
+    if report.model_source != "external-png" || report.mesh_count < 20 || report.textured_materials < 5 {
         return Err("Bundled observatory model textures failed to initialize".into());
     }
     Ok(())
