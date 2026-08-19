@@ -6,7 +6,7 @@ on:
       tag:
         description: GitHub release tag, for example v0.1.4
         required: true
-        default: v0.1.4
+        default: v0.1.5
 
 permissions:
   contents: write
@@ -24,7 +24,32 @@ jobs:
       - name: Validate bundled frontend
         run: |
           node --check remote-observatory-frontend/app.js
+          node --check remote-observatory-frontend/observatory-3d.js
           node -e "const h=require('fs').readFileSync('remote-observatory-frontend/index.html','utf8'); const tag=h.match(/<script[^>]+vendor\/lucide\/lucide\.min\.js[^>]*>/i)?.[0]; if(!tag) throw new Error('Bundled Lucide script tag missing'); if(/\bintegrity\s*=/.test(tag)) throw new Error('SRI blocks bundled Lucide under the Tauri asset protocol')"
+      - name: Validate native core-texture model
+        run: |
+          python3 - <<'PY'
+          import json, struct
+          from pathlib import Path
+          path = Path('remote-observatory-frontend/assets/models/observatory-web.glb')
+          raw = path.read_bytes()
+          magic, version, total = struct.unpack_from('<III', raw, 0)
+          assert magic == 0x46546C67 and version == 2 and total == len(raw)
+          offset = 12
+          document = None
+          while offset < len(raw):
+              length, kind = struct.unpack_from('<II', raw, offset)
+              offset += 8
+              chunk = raw[offset:offset + length]
+              offset += length
+              if kind == 0x4E4F534A:
+                  document = json.loads(chunk.rstrip(b' \t\r\n\0').decode('utf-8'))
+          assert document is not None
+          assert 'EXT_texture_webp' not in document.get('extensionsUsed', [])
+          assert len(document.get('images', [])) >= 40
+          assert all(image.get('mimeType') == 'image/png' for image in document['images'])
+          assert all('source' in texture for texture in document.get('textures', []))
+          PY
 
   windows:
     runs-on: windows-latest
@@ -84,6 +109,9 @@ jobs:
           $err = $process.StandardError.ReadToEnd()
           if ("$out`n$err" -notmatch 'ASTRA_FRONTEND_HEALTH icons=lucide unresolved=0 rendered=([2-9][0-9]|[1-9][0-9]{2,})') {
             throw "Bundled Lucide icons did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
+          }
+          if ("$out`n$err" -notmatch 'ASTRA_MODEL_HEALTH source=png-core meshes=([2-9][0-9]|[1-9][0-9]{2,}) textured=([5-9]|[1-9][0-9]+)') {
+            throw "Bundled observatory model textures did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
           }
       - name: Name Windows installer
         shell: pwsh

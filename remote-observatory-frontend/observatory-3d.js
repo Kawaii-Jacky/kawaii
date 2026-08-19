@@ -8,7 +8,14 @@ const canvas = document.querySelector("#observatory-canvas");
 const interactionSurface = document.querySelector("#observatory-interaction-layer") || canvas;
 const loadingLabel = document.querySelector("#observatory-loading span");
 const effectButtons = [...document.querySelectorAll("[data-model-effect]")];
-const MODEL_URL = "./assets/models/observatory-web-v3.glb?v=20260817-1";
+const NATIVE_RUNTIME = Boolean(window.__TAURI__?.core?.invoke);
+// The compact web model relies exclusively on EXT_texture_webp. Some native
+// WebView builds load its geometry but silently omit extension-only textures,
+// so Tauri uses the equivalent core glTF model with embedded PNG textures.
+const MODEL_SOURCE = NATIVE_RUNTIME ? "png-core" : "webp-extension";
+const MODEL_URL = NATIVE_RUNTIME
+  ? "./assets/models/observatory-web.glb?v=20260819-1"
+  : "./assets/models/observatory-web-v3.glb?v=20260817-1";
 
 const statusSources = [...document.querySelectorAll(".orbiting-statuses-front [id]")];
 const statusClones = new Map([...document.querySelectorAll("[data-status-clone]")].map((clone) => [clone.dataset.statusClone, clone]));
@@ -380,12 +387,27 @@ if (stage && canvas) {
         const materials = mesh.userData.astraMaterials?.realistic || [];
         return count + materials.filter((material) => material.isMeshPhysicalMaterial && material.transmission > 0).length;
       }, 0));
+      const texturedMaterials = modelMeshes.reduce((count, mesh) => {
+        const materials = mesh.userData.astraMaterials?.realistic || [];
+        return count + materials.filter((material) => Boolean(material.map)).length;
+      }, 0);
+      stage.dataset.modelSource = MODEL_SOURCE;
+      stage.dataset.texturedMaterials = String(texturedMaterials);
       stage.classList.add("model-ready");
       statusSpriteGroup.visible = false;
       stage.dataset.statusSprites = "0";
       stage.dataset.statusIndicatorMode = "html-orbit";
       loadingLabel.textContent = "三维模型就绪";
       controls.autoRotate = !reducedMotion.matches;
+      if (NATIVE_RUNTIME) {
+        window.__TAURI__.core.invoke("report_model_health", {
+          report: {
+            model_source: MODEL_SOURCE,
+            mesh_count: modelMeshes.length,
+            textured_materials: texturedMaterials,
+          },
+        }).catch((error) => console.error("Native model health check failed", error));
+      }
       window.dispatchEvent(new CustomEvent("observatory:model-ready"));
       window.__ASTRA_3D__ = { renderer, scene, camera, controls, model, modelPivot, statusSpriteGroup, statusSprites, applyEffect };
     },
