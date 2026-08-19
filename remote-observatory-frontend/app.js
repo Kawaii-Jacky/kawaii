@@ -86,10 +86,8 @@
       navigator.serviceWorker.addEventListener("controllerchange", () => window.location.reload(), { once: true });
       waitingWorker.postMessage({ type: "SKIP_WAITING" });
     });
-    document.addEventListener("visibilitychange", async () => {
-      if (document.visibilityState !== "visible" || !state.auth.user) return;
-      if (!await validateCurrentSession()) return;
-      if (state.simulationEnabled || !state.controller.configured) return;
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible" || !state.auth.user || state.simulationEnabled || !state.controller.configured) return;
       if (!state.eventSource || state.eventSource.readyState === EventSource.CLOSED) connectEventStream();
       else syncRealtimeSnapshot();
     });
@@ -195,44 +193,6 @@
     terminal: []
   };
   const simulationAnimationTimers = new Set();
-  let sessionValidationPromise = null;
-
-  function invalidateLocalSession(message = "此账号已在另一台设备登录，请重新登录。") {
-    if (!state.auth.user) return;
-    state.auth.user = null;
-    state.auth.loading = false;
-    state.controller = { configured:false, loading:false, data:null, requests:[] };
-    disconnectEventStream();
-    clearTelemetryState();
-    if (isNativeRuntime()) nativeInvoke("clear_native_token").catch(() => {});
-    renderAuth();
-    renderControllerConnection();
-    setAuthMessage(message, "error");
-    routeTo("login");
-    toast("登录会话已失效", message, "error", "background");
-  }
-
-  async function validateCurrentSession() {
-    if (!state.auth.user) return false;
-    if (sessionValidationPromise) return sessionValidationPromise;
-    sessionValidationPromise = (async () => {
-      try {
-        const result = await authApi("/me", { method:"GET" });
-        state.auth.user = result.user;
-        renderAuth();
-        return true;
-      } catch (error) {
-        if (error.status === 401) {
-          invalidateLocalSession();
-          return false;
-        }
-        return true;
-      } finally {
-        sessionValidationPromise = null;
-      }
-    })();
-    return sessionValidationPromise;
-  }
 
   function buildHistory() {
     Object.values(state.history).forEach(values => { values.length = 0; });
@@ -313,53 +273,8 @@
     document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
   }
 
-  function renderProfileAuthorization() {
-    const user = state.auth.user;
-    const status = $("#profile-authorization-status");
-    const role = $("#profile-authorization-role");
-    const control = $("#profile-authorization-control");
-    const controller = $("#profile-authorization-controller");
-    const devices = $("#profile-authorization-devices");
-    if (!status || !role || !control || !controller || !devices) return;
-    if (!user) {
-      status.textContent = state.auth.loading ? "正在读取" : "未登录";
-      status.classList.remove("online");
-      role.textContent = "--";
-      control.textContent = "登录后显示控制权限";
-      controller.textContent = "--";
-      devices.textContent = "登录后显示套组授权";
-      return;
-    }
-    const roleMeta = {
-      admin:["管理员", "系统管理与全部设备权限"],
-      operator:["操作员", "已授权设备的监测与控制权限"],
-      user:["用户", "已授权设备的监测与控制权限"],
-      viewer:["观察员", "已授权设备的只读权限"]
-    }[user.role] || [authRoleLabel(user.role), "账户权限已生效"];
-    role.textContent = roleMeta[0];
-    control.textContent = roleMeta[1];
-    if (state.controller.loading) {
-      status.textContent = "正在读取";
-      status.classList.remove("online");
-      controller.textContent = "正在读取套组";
-      devices.textContent = "正在校验硬件授权";
-    } else if (state.controller.configured && state.controller.data) {
-      const data = state.controller.data;
-      status.textContent = "已授权";
-      status.classList.add("online");
-      controller.textContent = data.name || data.controller_id;
-      devices.textContent = `${data.controller_id} · 已授权 ${(data.devices || []).length || 3} 台设备`;
-    } else {
-      status.textContent = "未分配";
-      status.classList.remove("online");
-      controller.textContent = "尚未分配硬件套组";
-      devices.textContent = "可在连接设置中自动创建并分配";
-    }
-  }
-
   function renderControllerConnection() {
     const status = $("#controller-connection-status"), form = $("#controller-request-form"), list = $("#controller-header-configs");
-    renderProfileAuthorization();
     if (!status || !list) return;
     list.hidden = true; list.innerHTML = "";
     if (!form) {
@@ -620,7 +535,6 @@
       if (state.eventSource !== source) return;
       state.connected = false;
       markDevicesOffline(); renderDeviceStatuses(); updateConnectionUI();
-      validateCurrentSession().catch(() => {});
     };
   }
 
@@ -1336,16 +1250,12 @@
   }
 
   async function apiRequest(path, options = {}) {
-    if (isNativeRuntime()) {
-      try { return await nativeRequest(path, options); }
-      catch (error) { if (error.status === 401) invalidateLocalSession(); throw error; }
-    }
+    if (isNativeRuntime()) return nativeRequest(path, options);
     const response = await fetch(path, { credentials:"same-origin", ...options, headers:{"Content-Type":"application/json", ...(options.headers || {})} });
     const data = await response.json().catch(() => null);
     if (!response.ok) {
       const error = new Error(typeof data?.detail === "string" ? data.detail : `请求失败 (${response.status})`);
       error.status = response.status;
-      if (response.status === 401) invalidateLocalSession();
       throw error;
     }
     return data;
@@ -2317,7 +2227,6 @@
       if (operatorName) operatorName.textContent = name;
       if (operatorRole) operatorRole.textContent = authRoleLabel(user.role);
       document.querySelector(".operator")?.setAttribute("data-route-jump", "profile");
-      renderProfileAuthorization();
       const newPassword = $("#new-password");
       if (newPassword) {
         const minimum = user.role === "admin" ? 9 : 8;
@@ -2333,7 +2242,6 @@
       if (operatorName) operatorName.textContent = "未登录";
       if (operatorRole) operatorRole.textContent = "Guest";
       document.querySelector(".operator")?.setAttribute("data-route-jump", "login");
-      renderProfileAuthorization();
     }
   }
 
