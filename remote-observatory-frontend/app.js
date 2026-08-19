@@ -188,7 +188,7 @@
     history: { solar: [], charge: [], battery: [], temperature: [], humidity: [], labels: [], sources: [] },
     deviceHistory: { range:360, loading:false, error:"", connectUnknown:false, devices:[], alerts:[], labels:[], series:{} },
     auth: { user:null, loading:true, mode:"login", channel:"phone", cooldown:0, returnRoute:requestedInitialRoute === "login" ? "overview" : requestedInitialRoute },
-    controller: { configured:false, loading:false, data:null, requests:[] },
+    controller: { configured:false, loading:false, data:null, requests:[], error:"" },
     pendingConfirm: null,
     terminal: []
   };
@@ -280,6 +280,7 @@
     if (!form) {
       if (!state.auth.user) { status.textContent = "登录后会自动分配可用的硬件套组。"; return; }
       if (state.controller.loading) { status.textContent = "正在读取硬件套组…"; return; }
+      if (state.controller.error) { status.textContent = state.controller.error; return; }
       if (state.controller.configured && state.controller.data) {
         const data = state.controller.data;
         status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
@@ -293,6 +294,7 @@
     }
     if (!state.auth.user) { status.textContent = "登录后会显示当前授权的硬件套组。"; form.hidden = true; return; }
     if (state.controller.loading) { status.textContent = "正在读取套组授权…"; form.hidden = true; return; }
+    if (state.controller.error) { status.textContent = state.controller.error; form.hidden = true; return; }
     if (state.controller.configured && state.controller.data) {
       const data = state.controller.data;
       status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
@@ -311,13 +313,32 @@
   }
 
   async function loadControllerConnection() {
-    if (!state.auth.user || state.controller.loading) return;
+    if (!state.auth.user) return false;
+    if (state.controller.loading) return null;
     state.controller.loading = true; renderControllerConnection();
+    let loaded = false;
     try {
-      const assignment = await apiRequest("/api/v1/controller/connection");
-      state.controller.configured = Boolean(assignment.configured); state.controller.data = assignment.configured ? assignment : null;
-    } catch (error) { const statusNode = $("#controller-connection-status"); if (statusNode) statusNode.textContent = "套组信息暂时无法读取，请稍后重试。"; }
-    finally { state.controller.loading = false; renderControllerConnection(); }
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const assignment = await apiRequest("/api/v1/controller/connection");
+          state.controller.configured = Boolean(assignment.configured);
+          state.controller.data = assignment.configured ? assignment : null;
+          state.controller.error = "";
+          loaded = true;
+          break;
+        } catch (error) {
+          lastError = error;
+          if (error.status === 401 || error.status === 403 || attempt === 2) break;
+          await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+        }
+      }
+      if (!loaded) {
+        console.warn("Unable to load controller authorization", lastError);
+        state.controller.error = "授权信息暂时无法读取，请检查网络后点击重新连接。";
+      }
+    } finally { state.controller.loading = false; renderControllerConnection(); }
+    return loaded;
   }
 
   async function submitControllerRequest(event) {
@@ -2450,8 +2471,8 @@
       }
       const result = await authApi("/me", { method:"GET" });
       state.auth.user = result.user;
-      await loadControllerConnection();
-      if (!state.controller.configured) {
+      const authorizationLoaded = await loadControllerConnection();
+      if (authorizationLoaded && !state.controller.configured) {
         try { await autoAssignController(); } catch (_) { /* keep settings available when no group is free */ }
       }
       if (state.controller.configured) connectEventStream(); else openSettings();
@@ -2567,7 +2588,7 @@
     state.auth.user = null;
     state.auth.loading = false;
     state.auth.returnRoute = null;
-    state.controller = { configured:false, loading:false, data:null, requests:[] };
+    state.controller = { configured:false, loading:false, data:null, requests:[], error:"" };
     renderControllerConnection();
     disconnectEventStream();
     buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();

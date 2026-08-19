@@ -1,9 +1,9 @@
-const CACHE_NAME = "astra-shell-20260819-07";
+const CACHE_NAME = "astra-shell-20260820-02";
 const SHELL_ASSETS = [
   "/",
   "/index.html",
   "/app.css?v=20260819-26",
-  "/app.js?v=20260819-27",
+  "/app.js?v=20260820-02",
   "/observatory-3d.js?v=20260817-23",
   "/vendor/lucide/lucide.min.js",
   "/assets/pwa/icon.svg",
