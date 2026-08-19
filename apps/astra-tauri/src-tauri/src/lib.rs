@@ -44,7 +44,14 @@ impl From<String> for NativeCommandError {
 }
 
 #[derive(Deserialize)]
-struct FrontendHealthReport { icon_source: String, unresolved_icons: u32, rendered_icons: u32 }
+struct FrontendHealthReport {
+    icon_source: String,
+    unresolved_icons: u32,
+    rendered_icons: u32,
+    initial_route: String,
+    login_visible: bool,
+    model_preloader_blocking: bool,
+}
 
 #[derive(Deserialize)]
 struct ModelHealthReport { model_source: String, mesh_count: u32, textured_materials: u32 }
@@ -203,11 +210,22 @@ async fn stop_sse(state: State<'_, NativeState>) -> Result<(), String> {
 #[tauri::command]
 fn report_frontend_health(report: FrontendHealthReport) -> Result<(), String> {
     eprintln!(
-        "ASTRA_FRONTEND_HEALTH icons={} unresolved={} rendered={}",
-        report.icon_source, report.unresolved_icons, report.rendered_icons
+        "ASTRA_FRONTEND_HEALTH icons={} unresolved={} rendered={} route={} login_visible={} model_blocking={}",
+        report.icon_source,
+        report.unresolved_icons,
+        report.rendered_icons,
+        report.initial_route,
+        report.login_visible,
+        report.model_preloader_blocking
     );
-    if report.icon_source != "lucide" || report.unresolved_icons != 0 || report.rendered_icons < 20 {
-        return Err("Bundled Lucide icons failed to initialize".into());
+    if report.icon_source != "lucide"
+        || report.unresolved_icons != 0
+        || report.rendered_icons < 20
+        || report.initial_route != "login"
+        || !report.login_visible
+        || report.model_preloader_blocking
+    {
+        return Err("Bundled frontend did not initialize on the non-blocking login screen".into());
     }
     Ok(())
 }

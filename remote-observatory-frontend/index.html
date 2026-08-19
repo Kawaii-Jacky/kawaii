@@ -19,7 +19,7 @@
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
-<body>
+<body class="auth-route">
   <aside class="pwa-install-guide" id="pwa-install-guide" hidden aria-label="安装 ASTRA">
     <div><strong>安装 ASTRA</strong><span id="pwa-install-copy">在 Safari 中点“分享”→“添加到主屏幕”，获得独立应用窗口。</span></div>
     <button type="button" id="pwa-install-action" hidden>更新</button>
@@ -43,7 +43,7 @@
 
       <nav class="nav-list">
         <p>工作台</p>
-        <button class="nav-item active" data-route="overview"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><span>观测总览</span></button>
+        <button class="nav-item" data-route="overview"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><span>观测总览</span></button>
         <button class="nav-item" data-route="power"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h8l-1 8 9-12h-8Z"/></svg></span><span>能源系统</span></button>
         <button class="nav-item" data-route="environment"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.5a4 4 0 0 1 1.2-7.8A6 6 0 0 1 16.5 9a3.5 3.5 0 0 1 .5 7H6.5"/><path d="m8 19-1 2m6-2-1 2m6-2-1 2"/></svg></span><span>环境与屋顶</span></button>
         <button class="nav-item" data-route="flat"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg></span><span>电动平场板</span></button>
@@ -59,7 +59,7 @@
 
     <main class="main">
       <div class="pages">
-        <section class="page active" id="page-overview" data-page="overview">
+        <section class="page" id="page-overview" data-page="overview">
           <div class="overview-grid">
             <article class="hero-card dark-card">
               <button class="outline-button connection-entry hero-connection" data-open-settings><span>••</span> 连接设置 ↗</button>
@@ -292,7 +292,7 @@
           <div class="flat-lower single-terminal"><div class="terminal-slot" data-terminal-default="ef-001" data-terminal-number="02"></div></div>
         </section>
 
-        <section class="page auth-page" id="page-login" data-page="login">
+        <section class="page auth-page active" id="page-login" data-page="login">
           <div class="auth-page-shell">
             <div class="auth-page-copy">
               <span class="eyebrow">ASTRA SECURE ACCESS</span>

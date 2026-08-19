@@ -5,6 +5,12 @@
     const gate = document.querySelector("#app-preloader");
     const shell = document.querySelector(".app-shell");
     if (!gate || !shell) return;
+    if (window.__TAURI__?.core?.invoke) {
+      document.documentElement.classList.add("model-gate-ready");
+      document.documentElement.dataset.nativeModelPreload = "background";
+      gate.remove();
+      return;
+    }
     let revealed = false;
     const title = document.querySelector("#app-preloader-title");
     const status = document.querySelector("#app-preloader-status");
@@ -131,10 +137,13 @@
     overview: ["01", "观测总览"], power: ["02", "能源系统"], environment: ["03", "环境与屋顶"],
     flat: ["04", "电动平场板"], profile: ["05", "个人中心"]
   };
+  const requestedInitialRoute = routeMeta[location.hash.replace("#", "")]
+    ? location.hash.replace("#", "")
+    : "overview";
 
   const state = {
     mode: "live",
-    route: location.hash.replace("#", "") || "overview",
+    route: "login",
     connected: false,
     simulationEnabled:false,
     simulationTimer:0,
@@ -178,7 +187,7 @@
     visibleSeries: { solar: true, charge: true, battery: true, temperature: true, humidity: true },
     history: { solar: [], charge: [], battery: [], temperature: [], humidity: [], labels: [], sources: [] },
     deviceHistory: { range:360, loading:false, error:"", connectUnknown:false, devices:[], alerts:[], labels:[], series:{} },
-    auth: { user:null, loading:true, mode:"login", channel:"phone", cooldown:0, returnRoute:null },
+    auth: { user:null, loading:true, mode:"login", channel:"phone", cooldown:0, returnRoute:requestedInitialRoute === "login" ? "overview" : requestedInitialRoute },
     controller: { configured:false, loading:false, data:null, requests:[] },
     pendingConfirm: null,
     terminal: []
@@ -2805,6 +2814,7 @@
   }
 
   async function init() {
+    routeTo("login");
     buildHistory();
     buildTerminals();
     const iconSource = window.lucide?.createIcons ? "lucide" : "missing";
@@ -2812,7 +2822,10 @@
     const iconHealth = {
       icon_source:iconSource,
       unresolved_icons:$$('i[data-lucide]').length,
-      rendered_icons:$$('svg.lucide').length
+      rendered_icons:$$('svg.lucide').length,
+      initial_route:state.route,
+      login_visible:Boolean($("#page-login")?.classList.contains("active")),
+      model_preloader_blocking:Boolean($("#app-preloader"))
     };
     window.__astraIconHealth = Object.freeze({ ...iconHealth });
     if (isNativeRuntime()) {
@@ -2822,7 +2835,7 @@
     try { const savedLocation=JSON.parse(localStorage.getItem("astra.weather.location")); if(savedLocation?.latitude&&savedLocation?.longitude)state.forecast.location=savedLocation; } catch { /* optional local preference */ }
     const savedWeatherInput=$("#weather-location-search"); if(savedWeatherInput && state.forecast.location?.name) savedWeatherInput.value=state.forecast.location.name;
     applyPreferences();
-    selectConnectionMode(); bindEvents(); initPwa(); await initNativeServerSettings(); routeTo(state.route); await loadAuthSession();
+    selectConnectionMode(); bindEvents(); initPwa(); await initNativeServerSettings(); await loadAuthSession();
     addLog("SYSTEM", "ASTRA 控制台已启动", "ok"); addLog("SYSTEM", "等待后端实时通道", "warn");
     setInterval(()=>{const now=new Date();setText("#clock",now.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit",hour12:false}));setText("#date",now.toLocaleDateString("zh-CN",{month:"2-digit",day:"2-digit",weekday:"short"}));renderEnvironmentControls()},1000);
     setInterval(()=>{const now=Date.now();deviceIds.forEach(id=>{if(state.online[id]&&now-state.lastSeen[id]>deviceOnlineTimeout){state.online[id]=false;toast("设备掉线",`${id} 已超过 30 秒未上传遥测。`,"error","background")}});renderDeviceStatuses();updateConnectionUI()},5000);
