@@ -1,7 +1,12 @@
 # ASTRA 发布与部署
 
-交付物包含：Web/PWA（iOS/iPadOS Safari 添加到主屏幕）、Tauri Windows EXE、
+交付物包含：Web/PWA（iOS/iPadOS Safari 添加到主屏幕）、Tauri Windows x64/x86 EXE、
 Android universal debug APK，以及后端 Docker Compose 发布包。Apple 端不生成 IPA。
+
+Windows 发布包分别为 `ASTRA-Setup-<version>-x64.exe` 和
+`ASTRA-Setup-<version>-x86.exe`。CI 会实际启动两个架构的可执行文件并保持
+10 秒，确保插件初始化成功后才上传安装包。Android Universal APK 已包含
+`arm64-v8a`、`armeabi-v7a`、`x86` 和 `x86_64`。
 
 ## Docker
 
