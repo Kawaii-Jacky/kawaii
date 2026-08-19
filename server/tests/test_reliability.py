@@ -340,9 +340,9 @@ class ReliabilityTest(unittest.TestCase):
             count = connection.execute("select count(*) as count from telemetry_samples").fetchone()["count"]
         self.assertEqual(count, 0)
 
-    def test_non_operator_is_rejected(self):
+    def test_unknown_role_cannot_control_devices(self):
         with self.assertRaises(HTTPException) as raised:
-            self.auth.require_operator({"role": "user"})
+            self.auth.require_operator({"role": "viewer"})
         self.assertEqual(raised.exception.status_code, 403)
 
     def test_prune_telemetry_removes_expired_rows(self):
