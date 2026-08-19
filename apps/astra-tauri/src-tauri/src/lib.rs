@@ -25,6 +25,9 @@ struct LoginBody { identifier: String, password: String }
 #[derive(Serialize)]
 struct NativeHttpResponse { status: u16, body: String }
 
+#[derive(Deserialize)]
+struct FrontendHealthReport { icon_source: String, unresolved_icons: u32, rendered_icons: u32 }
+
 fn secure_entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new(KEYRING_SERVICE, KEYRING_ACCOUNT).map_err(|e| e.to_string())
 }
@@ -48,7 +51,14 @@ fn clear_secure_token() -> Result<(), String> {
 #[tauri::command]
 async fn native_login(state: State<'_, NativeState>, body: LoginBody) -> Result<NativeResult, String> {
     let server = state.server.lock().await.clone();
-    let value = Client::new().post(format!("{server}/api/v1/auth/native/login")).json(&body).send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.json::<NativeResult>().await.map_err(|e| e.to_string())?;
+    let response = Client::new().post(format!("{server}/api/v1/auth/native/login")).json(&body).send().await.map_err(|e| e.to_string())?;
+    let status = response.status();
+    let raw = response.text().await.map_err(|e| e.to_string())?;
+    if !status.is_success() {
+        let detail = serde_json::from_str::<serde_json::Value>(&raw).ok().and_then(|value| value.get("detail").and_then(|item| item.as_str()).map(str::to_owned));
+        return Err(detail.unwrap_or_else(|| format!("Login failed ({status})")));
+    }
+    let value = serde_json::from_str::<NativeResult>(&raw).map_err(|e| e.to_string())?;
     *state.token.lock().await = Some(value.access_token.clone());
     save_secure_token(&value.access_token)?;
     Ok(value)
@@ -143,13 +153,25 @@ async fn stop_sse(state: State<'_, NativeState>) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn report_frontend_health(report: FrontendHealthReport) -> Result<(), String> {
+    eprintln!(
+        "ASTRA_FRONTEND_HEALTH icons={} unresolved={} rendered={}",
+        report.icon_source, report.unresolved_icons, report.rendered_icons
+    );
+    if report.icon_source != "lucide" || report.unresolved_icons != 0 || report.rendered_icons < 20 {
+        return Err("Bundled Lucide icons failed to initialize".into());
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(NativeState { server: Arc::new(Mutex::new(DEFAULT_SERVER.to_string())), token: Arc::new(Mutex::new(None)), sse_abort: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_stronghold::Builder::new(|password| password.to_owned().into()).build())
-        .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, clear_native_token, set_server, native_fetch, start_sse, stop_sse])
+        .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, clear_native_token, set_server, native_fetch, start_sse, stop_sse, report_frontend_health])
         .run(tauri::generate_context!())
         .expect("error while running ASTRA");
 }

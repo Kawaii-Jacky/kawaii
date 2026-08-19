@@ -50,7 +50,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260819-05", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260819-07", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -325,10 +325,27 @@
     const button = event?.currentTarget || $("#auto-assign-controller");
     if (button) button.disabled = true;
     try {
-      await apiRequest("/api/v1/controller/connection/auto-assign", { method:"POST" });
-      await loadControllerConnection();
+      try {
+        await apiRequest("/api/v1/controller/connection/auto-assign", { method:"POST" });
+      } catch (error) {
+        if (error.status !== 409 || !/暂无可自动分配的空闲套组/.test(error.message || "")) throw error;
+        toast("正在创建专属硬件套组", "后台正在生成设备、MQTT 凭据和访问权限。", "ok", "background");
+        await apiRequest("/api/v1/controller/connection/auto-provision", { method:"POST" });
+      }
+      let assignment = null;
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        try {
+          const candidate = await apiRequest("/api/v1/controller/connection");
+          if (candidate?.configured) { assignment = candidate; break; }
+        } catch (_) { /* API may be restarting after MQTT provisioning. */ }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      if (!assignment) throw new Error("套组已创建，但后台重载尚未完成，请稍后重试。");
+      state.controller.configured = true;
+      state.controller.data = assignment;
+      renderControllerConnection();
       connectEventStream();
-      toast("硬件套组已自动分配", "实时通道已连接。", "ok", "background");
+      toast("硬件套组已自动创建并分配", "三台设备与实时通道已经准备完成。", "ok", "background");
     } catch (error) {
       toast(error.message || "暂无可用硬件套组", "请稍后重试或联系管理员。", "error", "background");
     } finally { if (button) button.disabled = false; }
@@ -2133,6 +2150,9 @@
 
   function authErrorMessage(error) {
     const detail = String(error?.message || "请求失败");
+    if (/Account does not exist/i.test(detail)) return "该账号不存在，请检查手机号或邮箱。";
+    if (/Password is incorrect/i.test(detail)) return "密码错误，请重新输入。";
+    if (/Account is disabled/i.test(detail)) return "该账号已被停用，请联系管理员。";
     if (/Invalid account or password/i.test(detail)) return "账号或密码不正确。";
     if (/Account already exists/i.test(detail)) return "该手机号或邮箱已经注册，请直接登录。";
     if (/Invalid verification code/i.test(detail)) return "验证码不正确或已失效。";
@@ -2394,6 +2414,8 @@
     }
     const password = $("#auth-password");
     password.autocomplete = mode === "login" ? "current-password" : "new-password";
+    password.minLength = mode === "login" ? 0 : 9;
+    password.placeholder = mode === "login" ? "" : "至少 9 位";
     setText("#auth-password-label", mode === "login" ? "密码" : (mode === "register" ? "设置密码" : "新密码"));
     setText("#auth-submit", mode === "login" ? "登录" : (mode === "register" ? "创建账户" : "重置密码"));
     updateAuthCodeButton();
@@ -2474,7 +2496,9 @@
     const mode = state.auth.mode;
     const password = $("#auth-password").value;
     const submit = $("#auth-submit");
-    if (password.length < 9) { setAuthMessage("密码至少需要 9 个字符。", "error"); return; }
+    if (mode === "login" && !$("#auth-identifier").value.trim()) { setAuthMessage("请输入邮箱或手机号。", "error"); return; }
+    if (!password) { setAuthMessage("请输入密码。", "error"); return; }
+    if (mode !== "login" && password.length < 9) { setAuthMessage("新密码格式不符合要求。", "error"); return; }
     let path = "/login";
     let body = { identifier:$("#auth-identifier").value.trim(), password };
     if (mode !== "login") {
@@ -2783,7 +2807,18 @@
   async function init() {
     buildHistory();
     buildTerminals();
-    window.lucide?.createIcons({ attrs: { "aria-hidden": "true" } });
+    const iconSource = window.lucide?.createIcons ? "lucide" : "missing";
+    if (iconSource === "lucide") window.lucide.createIcons({ attrs: { "aria-hidden": "true" } });
+    const iconHealth = {
+      icon_source:iconSource,
+      unresolved_icons:$$('i[data-lucide]').length,
+      rendered_icons:$$('svg.lucide').length
+    };
+    window.__astraIconHealth = Object.freeze({ ...iconHealth });
+    if (isNativeRuntime()) {
+      nativeInvoke("report_frontend_health", { report:iconHealth })
+        .catch(error => console.error("Desktop icon health check failed", error));
+    }
     try { const savedLocation=JSON.parse(localStorage.getItem("astra.weather.location")); if(savedLocation?.latitude&&savedLocation?.longitude)state.forecast.location=savedLocation; } catch { /* optional local preference */ }
     const savedWeatherInput=$("#weather-location-search"); if(savedWeatherInput && state.forecast.location?.name) savedWeatherInput.value=state.forecast.location.name;
     applyPreferences();

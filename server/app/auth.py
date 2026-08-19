@@ -470,12 +470,16 @@ def login(body: LoginRequest, request: Request, response: Response) -> dict[str,
     check_rate_limit("login-ip", ip, LOGIN_FAILURE_IP_LIMIT, LOGIN_FAILURE_WINDOW_SECONDS)
     with connection() as db:
         row = db.execute("select * from users where lower(email)=? or phone=?", (identifier, re.sub(r"[\s()-]", "", identifier))).fetchone()
-    if not row or row["disabled"]:
+    if not row:
         identifier_hits = record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
         ip_hits = record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
         if identifier_hits >= LOGIN_FAILURE_LIMIT or ip_hits >= LOGIN_FAILURE_IP_LIMIT:
             raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many login failures. Try again later.", headers={"Retry-After": str(LOGIN_FAILURE_WINDOW_SECONDS)})
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid account or password")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Account does not exist")
+    if row["disabled"]:
+        record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
+        record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account is disabled")
     try:
         password_hasher.verify(row["password_hash"], body.password)
     except VerifyMismatchError as exc:
@@ -483,7 +487,7 @@ def login(body: LoginRequest, request: Request, response: Response) -> dict[str,
         ip_hits = record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
         if identifier_hits >= LOGIN_FAILURE_LIMIT or ip_hits >= LOGIN_FAILURE_IP_LIMIT:
             raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many login failures. Try again later.", headers={"Retry-After": str(LOGIN_FAILURE_WINDOW_SECONDS)}) from exc
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid account or password") from exc
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Password is incorrect") from exc
     clear_rate_limit("login-identifier", identifier)
     if password_hasher.check_needs_rehash(row["password_hash"]):
         with connection() as db: db.execute("update users set password_hash=?,updated_at=? where id=?", (password_hasher.hash(body.password), iso(), row["id"]))
@@ -504,16 +508,20 @@ def native_login(body: NativeLoginRequest, request: Request) -> dict[str, Any]:
     check_rate_limit("login-ip", ip, LOGIN_FAILURE_IP_LIMIT, LOGIN_FAILURE_WINDOW_SECONDS)
     with connection() as db:
         row = db.execute("select * from users where lower(email)=? or phone=?", (identifier, re.sub(r"[\s()-]", "", identifier))).fetchone()
-    if not row or row["disabled"]:
+    if not row:
         record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
         record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid account or password")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Account does not exist")
+    if row["disabled"]:
+        record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
+        record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account is disabled")
     try:
         password_hasher.verify(row["password_hash"], body.password)
     except VerifyMismatchError as exc:
         record_rate_event("login-identifier", identifier, LOGIN_FAILURE_WINDOW_SECONDS)
         record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid account or password") from exc
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Password is incorrect") from exc
     clear_rate_limit("login-identifier", identifier)
     token = create_session(row["id"], request)
     return {"access_token": token, "token_type": "Bearer", "expires_in": SESSION_DAYS * 86400, "user": user_payload(row)}
