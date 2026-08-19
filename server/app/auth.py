@@ -287,11 +287,20 @@ def verify_code(channel: str, target: str, purpose: str, code: str, request: Req
 
 
 def set_session_cookie(response: Response, token: str) -> None:
+    same_site = COOKIE_SAMESITE if COOKIE_SAMESITE in ("lax", "strict", "none") else "lax"
+    # Remove legacy variants before setting the canonical host-only root cookie.
+    # Safari may otherwise send two cookies with the same name and the API can
+    # receive the stale value instead of the session created by this login.
+    response.delete_cookie(COOKIE_NAME, path="/api", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
+    response.delete_cookie(COOKIE_NAME, path="/api/v1/auth", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
+    response.delete_cookie(COOKIE_NAME, path="/", domain=".astroy.xyz", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
     response.set_cookie(
         COOKIE_NAME, token, max_age=SESSION_DAYS * 86400, httponly=True,
-        secure=COOKIE_SECURE, samesite=COOKIE_SAMESITE if COOKIE_SAMESITE in ("lax", "strict", "none") else "lax",
+        secure=COOKIE_SECURE, samesite=same_site,
         path="/"
     )
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
 
 
 def create_session(user_id: str, request: Request, response: Response | None = None) -> str:
@@ -528,7 +537,9 @@ def native_login(body: NativeLoginRequest, request: Request) -> dict[str, Any]:
 
 
 @router.get("/me", summary="获取当前账户")
-def me(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+def me(response: Response, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
     user.pop("session_id", None)
     return {"user": user}
 
