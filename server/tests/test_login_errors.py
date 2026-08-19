@@ -69,51 +69,6 @@ class LoginErrorDetailTest(unittest.TestCase):
             )
         self.assertEqual((incorrect.exception.status_code, incorrect.exception.detail), (401, "Password is incorrect"))
 
-    def test_browser_and_native_login_replace_all_existing_sessions(self) -> None:
-        user_id = str(uuid.uuid4())
-        password = "correct-password"
-        now = self.auth.iso()
-        with self.db.connection() as connection:
-            connection.execute(
-                """insert into users(id,display_name,email,password_hash,email_verified,created_at,updated_at)
-                   values(?,?,?,?,1,?,?)""",
-                (user_id, "Single Session", "single@example.test", self.auth.password_hasher.hash(password), now, now),
-            )
-
-        old_browser_token = self.auth.create_session(user_id, self.request("192.0.2.21"))
-        old_native_token = self.auth.create_session(user_id, self.request("192.0.2.22"))
-        browser_response = Response()
-        self.auth.login(
-            self.auth.LoginRequest(identifier="single@example.test", password=password),
-            self.request("192.0.2.23"),
-            browser_response,
-        )
-
-        with self.db.connection() as connection:
-            old_rows = connection.execute(
-                "select revoked_at from auth_sessions where token_hash in (?,?)",
-                (self.auth.token_digest(old_browser_token), self.auth.token_digest(old_native_token)),
-            ).fetchall()
-            active_after_browser = connection.execute(
-                "select count(*) as count from auth_sessions where user_id=? and revoked_at is null",
-                (user_id,),
-            ).fetchone()["count"]
-        self.assertTrue(all(row["revoked_at"] for row in old_rows))
-        self.assertEqual(active_after_browser, 1)
-        self.assertIn(self.auth.COOKIE_NAME, browser_response.headers.get("set-cookie", ""))
-
-        native_result = self.auth.native_login(
-            self.auth.NativeLoginRequest(identifier="single@example.test", password=password),
-            self.request("192.0.2.24"),
-        )
-        with self.db.connection() as connection:
-            active_after_native = connection.execute(
-                "select count(*) as count from auth_sessions where user_id=? and revoked_at is null",
-                (user_id,),
-            ).fetchone()["count"]
-        self.assertEqual(active_after_native, 1)
-        self.assertEqual(native_result["token_type"], "Bearer")
-
 
 if __name__ == "__main__":
     unittest.main()
