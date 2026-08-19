@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260819-25" />
+    <link rel="stylesheet" href="app.css?v=20260819-26" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -315,13 +315,13 @@
                     <div><button class="active" type="button" data-auth-channel="phone">手机短信</button><button type="button" data-auth-channel="email">电子邮箱</button></div>
                   </div>
                   <label class="auth-field" id="auth-display-field" hidden><span>显示名称</span><input id="auth-display-name" maxlength="40" autocomplete="nickname" placeholder="例如：天文台值守员" /></label>
-                  <label class="auth-field" id="auth-identifier-field"><span>邮箱或手机号</span><input id="auth-identifier" autocomplete="username" placeholder="请输入登录账户" /></label>
+                  <label class="auth-field" id="auth-identifier-field"><span>邮箱或手机号</span><input id="auth-identifier" autocomplete="username" /></label>
                   <label class="auth-field" id="auth-target-field" hidden><span id="auth-target-label">手机号码</span><input id="auth-target" autocomplete="tel" inputmode="tel" placeholder="请输入中国内地手机号" /></label>
                   <div class="auth-code-row" id="auth-code-row" hidden>
                     <label class="auth-field"><span>验证码</span><input id="auth-code" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="6 位验证码" /></label>
                     <button class="outline-button" id="auth-send-code" type="button">发送验证码</button>
                   </div>
-                  <label class="auth-field"><span id="auth-password-label">密码</span><input id="auth-password" type="password" minlength="9" maxlength="128" autocomplete="current-password" placeholder="请输入密码（至少 9 位）" /></label>
+                  <label class="auth-field"><span id="auth-password-label">密码</span><input id="auth-password" type="password" maxlength="128" autocomplete="current-password" /></label>
                   <label class="auth-field" id="auth-confirm-field" hidden><span>确认密码</span><input id="auth-password-confirm" type="password" minlength="9" maxlength="128" autocomplete="new-password" placeholder="再次输入密码" /></label>
                   <button class="primary-button auth-submit" id="auth-submit" type="submit">登录</button>
                   <p class="auth-message" id="auth-message" role="status" aria-live="polite">登录后可在不同设备间安全使用控制台。</p>
@@ -427,8 +427,8 @@
   </div>
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
-  <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260819-25"></script>
+  <script src="vendor/lucide/lucide.min.js"></script>
+  <script src="app.js?v=20260819-27"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>

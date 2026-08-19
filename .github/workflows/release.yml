@@ -14,11 +14,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Validate manifest, service worker and JavaScript
         run: |
           node -e "JSON.parse(require('fs').readFileSync('remote-observatory-frontend/manifest.webmanifest','utf8'))"
           node --check remote-observatory-frontend/app.js
           node --check remote-observatory-frontend/sw.js
+          node -e "const h=require('fs').readFileSync('remote-observatory-frontend/index.html','utf8'); const tag=h.match(/<script[^>]+vendor\/lucide\/lucide\.min\.js[^>]*>/i)?.[0]; if(!tag) throw new Error('Bundled Lucide script tag missing'); if(/\bintegrity\s*=/.test(tag)) throw new Error('SRI blocks bundled Lucide under the Tauri asset protocol')"
           test -f remote-observatory-frontend/sw.js
           ! grep -E '(/api/|/admin-api/|/admin/)' remote-observatory-frontend/sw.js | grep 'cache.put' || exit 1
           ! grep -F 'then(() => self.skipWaiting())' remote-observatory-frontend/sw.js
@@ -35,6 +39,11 @@ jobs:
             --only-categories=accessibility,best-practices,seo \
             --output=json --output-path=lighthouse-report.json --quiet
           node -e "const r=require('./lighthouse-report.json'); if(r.runtimeError) throw new Error(r.runtimeError.message); for (const k of ['accessibility','best-practices','seo']) if(typeof r.categories[k]?.score !== 'number') throw new Error('Missing Lighthouse '+k+' score')"
+      - name: Run backend regression tests
+        run: |
+          python -m pip install --disable-pip-version-check -r server/requirements.txt
+          cd server
+          python -m unittest discover -s tests -v
       - uses: actions/upload-artifact@v4
         with:
           name: ASTRA-lighthouse
@@ -88,6 +97,14 @@ jobs:
             throw "ASTRA exited during startup with code $($process.ExitCode).`nSTDOUT:`n$out`nSTDERR:`n$err"
           }
           Stop-Process -Id $process.Id -Force
+          $process.WaitForExit(5000) | Out-Null
+          $out = $process.StandardOutput.ReadToEnd()
+          $err = $process.StandardError.ReadToEnd()
+          Set-Content -LiteralPath $stdout -Value $out
+          Set-Content -LiteralPath $stderr -Value $err
+          if ("$out`n$err" -notmatch 'ASTRA_FRONTEND_HEALTH icons=lucide unresolved=0 rendered=([2-9][0-9]|[1-9][0-9]{2,})') {
+            throw "ASTRA stayed open but bundled Lucide icons did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
+          }
       - name: Name Windows ${{ matrix.arch }} installer
         shell: pwsh
         run: |

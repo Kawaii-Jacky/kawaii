@@ -35,6 +35,7 @@ from app.credential_vault import (
     decrypt_controller_credentials,
     encrypt_controller_credentials,
 )
+from app.auth import COOKIE_NAME as USER_COOKIE_NAME, current_user
 from app.security import CookieCSRFMiddleware
 
 try:
@@ -76,6 +77,7 @@ ADMIN_LOGIN_IP_LIMIT = max(ADMIN_LOGIN_LIMIT, int(os.getenv("ADMIN_LOGIN_FAILURE
 ADMIN_LOGIN_WINDOW_SECONDS = max(60, int(os.getenv("ADMIN_LOGIN_FAILURE_WINDOW_SECONDS", "900")))
 RESTARTABLE_SERVICES = {"postgres", "mqtt", "api", "sms"}
 restart_lock = threading.Lock()
+controller_auto_provision_lock = threading.Lock()
 restart_requested_at: dict[str, float] = {}
 TRAFFIC_RANGES = {
     "10m": (600, 5),
@@ -109,6 +111,7 @@ csrf_origins = [
     if origin.strip()
 ]
 app.add_middleware(CookieCSRFMiddleware, cookie_name=COOKIE_NAME, allowed_origins=csrf_origins)
+app.add_middleware(CookieCSRFMiddleware, cookie_name=USER_COOKIE_NAME, allowed_origins=csrf_origins)
 
 
 def db_connection():
@@ -1640,6 +1643,54 @@ def create_controller_group(
         "warning": restart_warning,
         "credentials": credentials,
     }
+
+
+@app.post("/api/v1/controller/connection/auto-provision", status_code=201)
+def auto_provision_controller_group(
+    request: Request,
+    response: Response,
+    user: dict[str, Any] = Depends(current_user),
+) -> dict[str, Any]:
+    """Create and assign a complete MQTT controller bundle to the current account."""
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    if user.get("role") == "admin":
+        raise HTTPException(status.HTTP_409_CONFLICT, "管理员使用系统分配的默认天文台套组")
+    actor = {"user_id": user["id"], "display_name": user.get("display_name") or "ASTRA 用户", "role": user.get("role")}
+    with controller_auto_provision_lock:
+        with db_connection() as db:
+            existing = db.execute(
+                "select controller_id from user_controller_access where user_id=%s",
+                (user["id"],),
+            ).fetchone()
+        if existing:
+            return {"ok": True, "created": False, "controller_id": existing["controller_id"]}
+        display_name = re.sub(r"\s+", " ", str(user.get("display_name") or "ASTRA 用户")).strip()[:56]
+        result = create_controller_group(ControllerGroupIn(name=f"{display_name} 的天文台"), request, Response(), actor)
+        controller_id = result["controller_id"]
+        try:
+            with db_connection() as db:
+                db.execute(
+                    "insert into user_controller_access(user_id,controller_id,created_at,created_by) values(%s,%s,%s,%s)",
+                    (user["id"], controller_id, utc_iso(), "self-auto-provision"),
+                )
+        except Exception as exc:
+            with db_connection() as db:
+                existing = db.execute(
+                    "select controller_id from user_controller_access where user_id=%s",
+                    (user["id"],),
+                ).fetchone()
+            if existing:
+                return {"ok": True, "created": False, "controller_id": existing["controller_id"]}
+            raise HTTPException(status.HTTP_409_CONFLICT, "套组分配冲突，请重试") from exc
+        audit(actor, "controller.auto_provision.assign", controller_id, {"user_id": user["id"]}, request)
+        return {
+            "ok": True,
+            "created": True,
+            "controller_id": controller_id,
+            "api_restarted": result.get("api_restarted", False),
+            "warning": result.get("warning"),
+        }
 
 
 @app.post("/admin-api/controller-groups/{controller_id}/credentials")
