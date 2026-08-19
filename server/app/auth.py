@@ -294,11 +294,22 @@ def set_session_cookie(response: Response, token: str) -> None:
     )
 
 
-def create_session(user_id: str, request: Request, response: Response | None = None) -> str:
+def create_session(
+    user_id: str,
+    request: Request,
+    response: Response | None = None,
+    *,
+    replace_existing: bool = False,
+) -> str:
     token, session_id = secrets.token_urlsafe(48), str(uuid.uuid4())
     created, expires = utcnow(), utcnow() + timedelta(days=SESSION_DAYS)
     ip_address = client_ip(request)
     with db_lock, connection() as db:
+        if replace_existing:
+            db.execute(
+                "update auth_sessions set revoked_at=? where user_id=? and revoked_at is null",
+                (iso(created), user_id),
+            )
         db.execute("""insert into auth_sessions
           (id,user_id,token_hash,expires_at,created_at,last_seen_at,user_agent,ip_address)
           values(?,?,?,?,?,?,?,?)""", (session_id, user_id, token_digest(token), iso(expires), iso(created), iso(created), request.headers.get("user-agent", "")[:300], ip_address[:64]))
@@ -491,7 +502,7 @@ def login(body: LoginRequest, request: Request, response: Response) -> dict[str,
     clear_rate_limit("login-identifier", identifier)
     if password_hasher.check_needs_rehash(row["password_hash"]):
         with connection() as db: db.execute("update users set password_hash=?,updated_at=? where id=?", (password_hasher.hash(body.password), iso(), row["id"]))
-    create_session(row["id"], request, response)
+    create_session(row["id"], request, response, replace_existing=True)
     return {"user": user_payload(row)}
 
 
@@ -523,7 +534,7 @@ def native_login(body: NativeLoginRequest, request: Request) -> dict[str, Any]:
         record_rate_event("login-ip", ip, LOGIN_FAILURE_WINDOW_SECONDS)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Password is incorrect") from exc
     clear_rate_limit("login-identifier", identifier)
-    token = create_session(row["id"], request)
+    token = create_session(row["id"], request, replace_existing=True)
     return {"access_token": token, "token_type": "Bearer", "expires_in": SESSION_DAYS * 86400, "user": user_payload(row)}
 
 
@@ -536,7 +547,7 @@ def me(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
 @router.post("/session/refresh", summary="轮换当前会话")
 def refresh_session(request: Request, response: Response, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
     with db_lock, connection() as db: db.execute("update auth_sessions set revoked_at=? where id=?", (iso(), user["session_id"]))
-    create_session(user["id"], request, response)
+    create_session(user["id"], request, response, replace_existing=True)
     user.pop("session_id", None)
     return {"user": user}
 
@@ -546,7 +557,7 @@ def native_refresh_session(request: Request, user: dict[str, Any] = Depends(curr
     old_session = user["session_id"]
     with db_lock, connection() as db:
         db.execute("update auth_sessions set revoked_at=? where id=?", (iso(), old_session))
-    token = create_session(user["id"], request)
+    token = create_session(user["id"], request, replace_existing=True)
     user.pop("session_id", None)
     return {"access_token": token, "token_type": "Bearer", "expires_in": SESSION_DAYS * 86400, "user": user}
 
