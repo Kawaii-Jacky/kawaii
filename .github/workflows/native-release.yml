@@ -6,7 +6,7 @@ on:
       tag:
         description: GitHub release tag, for example v0.1.4
         required: true
-        default: v0.1.5
+        default: v0.1.6
 
 permissions:
   contents: write
@@ -155,10 +155,10 @@ jobs:
           sudo rm -rf "$ANDROID_HOME/ndk" "$ANDROID_HOME/system-images" "$ANDROID_HOME/emulator"
           sudo rm -rf /usr/share/dotnet /opt/ghc
           sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
-          rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+          rustup target add aarch64-linux-android armv7-linux-androideabi
       - name: Install Tauri CLI
         run: npm ci --prefix apps/astra-tauri
-      - name: Build universal debug APK
+      - name: Build optimized per-ABI debug APKs
         working-directory: apps/astra-tauri
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
@@ -166,19 +166,28 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2
         run: |
           npx tauri android init
-          npx tauri android build --apk --debug
-      - name: Name Android package
+          npx tauri android build --apk --debug --split-per-abi --target aarch64 armv7
+      - name: Validate and name Android packages
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           mkdir -p dist
-          apk=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | sort | head -n 1)
-          test -n "$apk"
-          cp "$apk" "dist/ASTRA-${RELEASE_TAG}-debug.apk"
+          arm64=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | grep -Ei '(aarch64|arm64)' | sort | head -n 1)
+          armv7=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | grep -Ei '(armv7|armeabi)' | sort | head -n 1)
+          test -n "$arm64" && test -n "$armv7"
+          cp "$arm64" "dist/ASTRA-${RELEASE_TAG}-arm64-v8a-debug.apk"
+          cp "$armv7" "dist/ASTRA-${RELEASE_TAG}-armeabi-v7a-debug.apk"
+          max_bytes=$((200 * 1024 * 1024))
+          test "$(stat -c %s "dist/ASTRA-${RELEASE_TAG}-arm64-v8a-debug.apk")" -lt "$max_bytes"
+          test "$(stat -c %s "dist/ASTRA-${RELEASE_TAG}-armeabi-v7a-debug.apk")" -lt "$max_bytes"
+          unzip -l "dist/ASTRA-${RELEASE_TAG}-arm64-v8a-debug.apk" | grep -q 'lib/arm64-v8a/'
+          ! unzip -l "dist/ASTRA-${RELEASE_TAG}-arm64-v8a-debug.apk" | grep -Eq 'lib/(armeabi-v7a|x86|x86_64)/'
+          unzip -l "dist/ASTRA-${RELEASE_TAG}-armeabi-v7a-debug.apk" | grep -q 'lib/armeabi-v7a/'
+          ! unzip -l "dist/ASTRA-${RELEASE_TAG}-armeabi-v7a-debug.apk" | grep -Eq 'lib/(arm64-v8a|x86|x86_64)/'
       - uses: actions/upload-artifact@v4
         with:
           name: ASTRA-android
-          path: dist/ASTRA-*-debug.apk
+          path: dist/ASTRA-*-*-debug.apk
           if-no-files-found: error
 
   release:
