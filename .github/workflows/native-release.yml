@@ -6,7 +6,7 @@ on:
       tag:
         description: GitHub release tag, for example v0.1.4
         required: true
-        default: v0.1.6
+        default: v0.1.7
 
 permissions:
   contents: write
@@ -26,6 +26,7 @@ jobs:
           node --check remote-observatory-frontend/app.js
           node --check remote-observatory-frontend/observatory-3d.js
           node -e "const h=require('fs').readFileSync('remote-observatory-frontend/index.html','utf8'); const tag=h.match(/<script[^>]+vendor\/lucide\/lucide\.min\.js[^>]*>/i)?.[0]; if(!tag) throw new Error('Bundled Lucide script tag missing'); if(/\bintegrity\s*=/.test(tag)) throw new Error('SRI blocks bundled Lucide under the Tauri asset protocol')"
+          node -e "const h=require('fs').readFileSync('remote-observatory-frontend/index.html','utf8'); if(!/<body class=\"auth-route\">/.test(h)) throw new Error('Initial body must use the login layout'); if(!/<section class=\"page auth-page active\" id=\"page-login\"/.test(h)) throw new Error('Login page must be the initial active page'); if(/<section class=\"page active\" id=\"page-overview\"/.test(h)) throw new Error('Overview must not render before authentication')"
       - name: Validate native core-texture model
         run: |
           python3 - <<'PY'
@@ -109,8 +110,8 @@ jobs:
           $process.WaitForExit(5000) | Out-Null
           $out = $process.StandardOutput.ReadToEnd()
           $err = $process.StandardError.ReadToEnd()
-          if ("$out`n$err" -notmatch 'ASTRA_FRONTEND_HEALTH icons=lucide unresolved=0 rendered=([2-9][0-9]|[1-9][0-9]{2,})') {
-            throw "Bundled Lucide icons did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
+          if ("$out`n$err" -notmatch 'ASTRA_FRONTEND_HEALTH icons=lucide unresolved=0 rendered=([2-9][0-9]|[1-9][0-9]{2,}) route=login login_visible=true model_blocking=false') {
+            throw "Bundled frontend did not initialize on the non-blocking login screen.`nSTDOUT:`n$out`nSTDERR:`n$err"
           }
           if ("$out`n$err" -notmatch 'ASTRA_MODEL_HEALTH source=external-png meshes=([2-9][0-9]|[1-9][0-9]{2,}) textured=([5-9]|[1-9][0-9]+)') {
             throw "Bundled observatory model textures did not initialize.`nSTDOUT:`n$out`nSTDERR:`n$err"
@@ -172,8 +173,8 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           mkdir -p dist
-          arm64=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | grep -Ei '(aarch64|arm64)' | sort | head -n 1)
-          armv7=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | grep -Ei '(armv7|armeabi)' | sort | head -n 1)
+          arm64=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -path '*/arm64/debug/*.apk' | sort | head -n 1)
+          armv7=$(find apps/astra-tauri/src-tauri/gen/android/app/build/outputs/apk -type f -path '*/arm/debug/*.apk' | sort | head -n 1)
           test -n "$arm64" && test -n "$armv7"
           cp "$arm64" "dist/ASTRA-${RELEASE_TAG}-arm64-v8a-debug.apk"
           cp "$armv7" "dist/ASTRA-${RELEASE_TAG}-armeabi-v7a-debug.apk"
