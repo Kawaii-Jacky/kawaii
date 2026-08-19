@@ -892,3 +892,27 @@ html[data-color-mode="dark"] .chart-hover-tooltip{color:#f5f5f2;border-color:rgb
   .env-control-grid .onstep-group-header b{overflow:visible;text-overflow:clip;white-space:normal;line-height:1.2}
   .env-control-grid .onstep-group-header .onstep-header-actions{grid-column:2;justify-self:start;flex-wrap:wrap;margin-top:2px}
 }
+
+/* Native-safe navigation icons: inline SVG never depends on an icon font or CDN. */
+.nav-icon svg,.mobile-nav svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.mobile-nav button span{display:grid;place-items:center}
+
+/* Measured history and forecast are independent, responsive cards. */
+.weather-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.environment-history-card,.environment-forecast-card{grid-column:auto;grid-row:auto;min-width:0;min-height:440px;padding:22px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(230px,1fr);gap:10px;align-items:stretch}
+.environment-history-card .temperature-current{grid-row:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.environment-history-card .temperature-current strong{margin:6px 0 0;font-size:calc(var(--fs-data) + 7px)!important}
+.environment-history-card .temperature-current p{margin:0}
+.environment-chart-card-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:56px}
+.environment-chart-card-title span{color:color-mix(in srgb,var(--ui-on-accent) 52%,transparent);font:600 var(--fs-caption)/1 ui-monospace,monospace;letter-spacing:.16em}
+.environment-chart-card-title h3{margin:0;color:var(--ui-on-accent);font-size:var(--fs-card-title)}
+.environment-forecast-card .environment-live-forecast{display:contents;margin:0;padding:0;border:0}
+.environment-history-card .environment-live-toolbar,.environment-forecast-card .environment-live-toolbar{justify-content:flex-start}
+.environment-history-card .environment-live-legend,.environment-forecast-card .environment-live-legend{justify-content:flex-start;flex-wrap:wrap;min-width:0}
+.environment-history-card .environment-live-chart,.environment-forecast-card .environment-live-chart{min-width:0;min-height:230px;height:100%}
+.environment-history-card .environment-live-chart canvas,.environment-forecast-card .environment-live-chart canvas{display:block;min-width:0}
+@media(max-width:720px){
+  .weather-grid{grid-template-columns:1fr}
+  .environment-history-card,.environment-forecast-card{min-height:410px;padding:18px}
+  .environment-history-card .environment-live-toolbar>div,.environment-forecast-card .environment-live-toolbar>div{width:100%;overflow:auto}
+}

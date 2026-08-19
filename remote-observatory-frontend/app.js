@@ -50,7 +50,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260819-04", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260819-05", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -664,12 +664,9 @@
       command = "settings";
       args = payload;
     }
-    fetch(`/api/v1/devices/${encodeURIComponent(device)}/commands`, {
-      method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ command, args })
-    }).then(async response => {
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof result.detail === "string" ? result.detail : `请求失败 (${response.status})`);
+    apiRequest(`/api/v1/devices/${encodeURIComponent(device)}/commands`, {
+      method:"POST", body:JSON.stringify({ command, args })
+    }).then(result => {
       addLog(device, `${description} · ${result.status === "sent" ? "已发送" : "已排队"}`, "ok");
       toast("指令已提交", description, "ok");
     }).catch(error => toast("指令发送失败", error.message, "error"));
@@ -1474,9 +1471,7 @@
     renderForecast();
     const params = new URLSearchParams({ lat:Number(location.latitude).toFixed(4), lon:Number(location.longitude).toFixed(4) });
     try {
-      const response = await fetch(`/api/astro?${params}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const parsed = parseSevenTimer(await response.json());
+      const parsed = parseSevenTimer(await apiRequest(`/api/astro?${params}`));
       Object.assign(target, parsed, { loading:false, error:"" });
     } catch (error) {
       Object.assign(target,{labels:[],seeing:[],clear:[],transparency:[],cloud:[],loading:false,error:"7Timer 预报暂不可用",init:"",updatedAt:0});
@@ -1988,9 +1983,7 @@
       hourly:"temperature_2m,relative_humidity_2m,cloud_cover,precipitation,visibility,wind_speed_10m"
     });
     try {
-      const response = await fetch(`/api/weather/forecast?${params}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
+      const data = await apiRequest(`/api/weather/forecast?${params}`);
       const h = data.hourly;
       if(!h||!Array.isArray(h.time)||!h.time.length)throw new Error("Open-Meteo returned no hourly data");
       const seeing = [], clear = [];
@@ -2041,9 +2034,7 @@
       const lookupNames = [normalized, aliases[normalized]].filter(Boolean).filter((name,index,names)=>names.indexOf(name)===index);
       let data = { results:[] };
       for (const lookupName of lookupNames) {
-        const response = await fetch(`/api/weather/geocoding?name=${encodeURIComponent(lookupName)}&count=7&language=zh`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        data = await response.json();
+        data = await apiRequest(`/api/weather/geocoding?name=${encodeURIComponent(lookupName)}&count=7&language=zh`);
         if (data.results?.length) break;
       }
       if (requestSequence !== weatherSearchSequence) return;
@@ -2667,7 +2658,13 @@
     const message = $("#server-settings-message");
     const saved = localStorage.getItem("astra.nativeServerUrl") || "https://astroy.xyz";
     if (input) input.value = saved;
-    await nativeInvoke("set_server", { server: saved }).catch(() => {});
+    try {
+      await nativeInvoke("set_server", { server: saved });
+      await nativeRequest("/health");
+      if (message) { message.textContent = "服务器连接正常"; message.className = "auth-message ok"; }
+    } catch (error) {
+      if (message) { message.textContent = `服务器连接失败：${error?.message || "请检查网络"}`; message.className = "auth-message error"; }
+    }
     $("#server-settings-form")?.addEventListener("submit", async event => {
       event.preventDefault();
       const server = input?.value.trim() || "";

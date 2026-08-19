@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260819-23" />
+    <link rel="stylesheet" href="app.css?v=20260819-25" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -43,12 +43,12 @@
 
       <nav class="nav-list">
         <p>工作台</p>
-        <button class="nav-item active" data-route="overview"><span class="nav-icon">⌂</span><span>观测总览</span></button>
-        <button class="nav-item" data-route="power"><span class="nav-icon">ϟ</span><span>能源系统</span></button>
-        <button class="nav-item" data-route="environment"><span class="nav-icon">◎</span><span>环境与屋顶</span></button>
-        <button class="nav-item" data-route="flat"><span class="nav-icon">◫</span><span>电动平场板</span></button>
+        <button class="nav-item active" data-route="overview"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><span>观测总览</span></button>
+        <button class="nav-item" data-route="power"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h8l-1 8 9-12h-8Z"/></svg></span><span>能源系统</span></button>
+        <button class="nav-item" data-route="environment"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.5a4 4 0 0 1 1.2-7.8A6 6 0 0 1 16.5 9a3.5 3.5 0 0 1 .5 7H6.5"/><path d="m8 19-1 2m6-2-1 2m6-2-1 2"/></svg></span><span>环境与屋顶</span></button>
+        <button class="nav-item" data-route="flat"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg></span><span>电动平场板</span></button>
         <p>账户</p>
-        <button class="nav-item" data-route="profile"><span class="nav-icon">●</span><span>个人中心</span></button>
+        <button class="nav-item" data-route="profile"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span>个人中心</span></button>
       </nav>
 
       <div class="sidebar-foot">
@@ -180,7 +180,7 @@
         <section class="page" id="page-environment" data-page="environment">
           <div class="page-intro"><div><h2>环境与屋顶</h2><p>气象安全、拍摄供电、屋顶电机与 OnStep 联动。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
           <div class="weather-grid">
-            <article class="temperature-card dark-card">
+            <article class="temperature-card dark-card environment-history-card">
               <div class="temperature-current"><div><p>当前温度</p><strong id="weather-temp">--<sup>°C</sup></strong></div><div><p>当前湿度</p><strong id="weather-humidity-primary">--<sup>%</sup></strong></div></div>
               <div class="environment-live-toolbar">
                  <div><span>横轴时间</span><button data-env-live-range="60">1h</button><button class="active" data-env-live-range="360">6h</button><button data-env-live-range="720">12h</button><button data-env-live-range="1440">24h</button><button data-env-live-range="10080">1周</button><button data-env-live-range="43200">1月</button></div>
@@ -188,6 +188,17 @@
               </div>
               <div class="environment-live-legend"><span><i></i>实测温度 °C</span><span><i></i>实测湿度 %</span><span class="dewpoint-legend"><i></i>实测露点 °C</span></div>
               <div class="environment-live-chart"><div class="environment-live-empty" id="environment-live-empty">暂无真实温湿度数据</div><canvas id="environment-live-chart"></canvas></div>
+            </article>
+            <article class="temperature-card dark-card environment-forecast-card">
+              <header class="environment-chart-card-title"><span>FORECAST</span><h3>预报温湿度</h3></header>
+              <section id="environment-live-forecast" class="environment-live-forecast">
+                <div class="environment-live-toolbar environment-live-forecast-toolbar">
+                  <div><span>横轴时间</span><button data-env-forecast-range="60">1h</button><button data-env-forecast-range="360">6h</button><button data-env-forecast-range="720">12h</button><button class="active" data-env-forecast-range="1440">24h</button><button data-env-forecast-range="10080">1周</button><button data-env-forecast-range="43200">1月</button></div>
+                  <div><span>纵轴范围</span><button class="active" data-env-forecast-y-range="auto">自动</button><button data-env-forecast-y-range="comfort">舒适</button><button data-env-forecast-y-range="full">全量</button></div>
+                </div>
+                <div class="environment-live-legend environment-live-forecast-legend"><span class="forecast-temperature-legend"><i></i>预报温度</span><span class="forecast-humidity-legend"><i></i>预报湿度</span><span class="forecast-dewpoint-legend"><i></i>预报露点</span></div>
+                <div class="environment-live-chart"><div class="environment-live-empty" id="environment-forecast-empty">暂无预报温湿度数据</div><canvas id="environment-forecast-chart"></canvas></div>
+              </section>
             </article>
             <article class="weather-stat card humidity-stat"><span>相对湿度</span><strong id="weather-humidity">--<sup>%</sup></strong><p>露点安全距离 <b id="dewpoint-distance">--</b></p><div class="micro-line humidity-sparkline" role="img" aria-label="暂无真实湿度历史"><svg viewBox="0 0 240 38" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path id="humidity-spark-area"></path><polyline id="humidity-spark-line"></polyline><circle id="humidity-spark-point" r="2.1"></circle></svg></div></article>
             <article class="weather-stat card"><span>雨水传感器</span><strong id="weather-rain">离线</strong><p>原始值 <b id="weather-rain-analog">--</b></p><div class="rain-icon">☂</div></article>
@@ -396,7 +407,7 @@
     </main>
 
     <nav class="mobile-nav" aria-label="移动端导航">
-      <button class="active" data-route="overview"><span>⌂</span>总览</button><button data-route="power"><span>ϟ</span>能源</button><button data-route="environment"><span>◎</span>环境</button><button data-route="flat"><span>◫</span>平场板</button><button data-route="profile"><span>●</span>我的</button>
+      <button class="active" data-route="overview"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9H3Z"/></svg></span>总览</button><button data-route="power"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h8l-1 8 9-12h-8Z"/></svg></span>能源</button><button data-route="environment"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.5a4 4 0 0 1 1.2-7.8A6 6 0 0 1 16.5 9a3.5 3.5 0 0 1 .5 7H6.5"/><path d="m8 19-1 2m6-2-1 2"/></svg></span>环境</button><button data-route="flat"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg></span>平场板</button><button data-route="profile"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>我的</button>
     </nav>
   </div>
 
@@ -417,7 +428,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
-  <script src="app.js?v=20260819-24"></script>
+  <script src="app.js?v=20260819-25"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
