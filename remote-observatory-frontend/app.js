@@ -833,7 +833,7 @@
     const dewPoint = mainValue(m.dht_temperature) && mainValue(m.dht_humidity) ? dewPointC(m.dht_temperature,m.dht_humidity) : NaN;
     const dewDistance = Number.isFinite(dewPoint) ? Number(m.dht_temperature)-dewPoint : NaN;
     setText("#overview-humidity-note", !mainOnline ? "设备离线 · 暂无数据" : Number.isFinite(dewDistance) ? `露点差 ${dewDistance.toFixed(1)}°C` : "暂无温湿度遥测");
-    setText("#overview-battery-note", !powerOnline ? "设备离线 · 暂无数据" : powerValue(p.buck_current) ? (Number(p.buck_current)>.05?"检测到充电电流":"未检测到充电电流") : "暂无充电电流遥测");
+    setText("#overview-battery-note", !powerOnline ? "设备离线 · 暂无数据" : powerValue(p.buck_current) ? (Number(p.buck_current)>.05?"充电中":"未充电") : "暂无充电电流遥测");
     setText("#overview-load-note", !mainOnline ? "设备离线 · 暂无数据" : mainValue(m.power_output) ? "实时设备遥测" : "暂无负载遥测");
     const solarLamp = $("#hero-solar");
     if (solarLamp) {
@@ -868,7 +868,7 @@
     setText("#node-power-value", powerValue(p.battery_percent)?`${Math.round(p.battery_percent)}%`:"--");
     setText("#node-flat-value", flatValue(f.angle)?`${Math.round(f.angle)}°`:"--");
     setHtml("#battery-big", `${powerValue(p.battery_percent)?Math.round(p.battery_percent):"--"}<sup>%</sup>`);
-    setText("#charge-state", !powerOnline?"设备离线":powerValue(p.buck_current)?(Number(p.buck_current)>.05?"检测到充电电流":"未检测到充电电流"):"暂无充电数据");
+    setText("#charge-state", !powerOnline?"设备离线":powerValue(p.buck_current)?(Number(p.buck_current)>.05?"充电中":"未充电"):"暂无充电数据");
     const chargeDot=$("#charge-state")?.parentElement?.querySelector(".status-dot");if(chargeDot){chargeDot.classList.toggle("offline",!powerOnline);chargeDot.classList.toggle("idle",powerOnline&&(!powerValue(p.buck_current)||Number(p.buck_current)<=.05))}
     setText("#battery-min", powerValue(p.voltage_battery_min)?`${fmt(p.voltage_battery_min)}V`:"--"); setText("#battery-max", powerValue(p.voltage_battery_max)?`${fmt(p.voltage_battery_max)}V`:"--");
     setText("#flow-input", powerValue(p.power_input)?`${fmt(p.power_input)}W`:"--"); setText("#flow-efficiency", powerValue(p.buck_efficiency)?`${Math.round(p.buck_efficiency)}%`:"--"); setText("#flow-output", powerValue(p.buck_power)?`${fmt(p.buck_power)}W`:"--");
