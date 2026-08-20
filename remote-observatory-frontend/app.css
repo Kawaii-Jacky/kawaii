@@ -919,3 +919,4 @@ html[data-color-mode="dark"] .chart-hover-tooltip{color:#f5f5f2;border-color:rgb
   .environment-history-card,.environment-forecast-card{min-height:410px;padding:18px}
   .environment-history-card .environment-live-toolbar>div,.environment-forecast-card .environment-live-toolbar>div{width:100%;overflow:auto}
 }
+.mobile-nav button{touch-action:manipulation}

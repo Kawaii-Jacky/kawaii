@@ -56,7 +56,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-13", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-14", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -2928,7 +2928,18 @@
     $("#auth-auto-login")?.addEventListener("change", event => localStorage.setItem(NATIVE_AUTO_LOGIN_KEY, event.currentTarget.checked ? "1" : "0"));
     $("#profile-logout")?.addEventListener("click", logoutAuth);
     $("#password-change-form")?.addEventListener("submit", changeAccountPassword);
-    $$('[data-route]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.route)));
+    let routeTouchAt = 0;
+    const activateRoute = event => {
+      if (event.type === "touchend") {
+        event.preventDefault();
+        routeTouchAt = Date.now();
+      } else if (Date.now() - routeTouchAt < 700) return;
+      routeTo(event.currentTarget.dataset.route);
+    };
+    $$('[data-route]').forEach(button => {
+      button.addEventListener("click", activateRoute);
+      button.addEventListener("touchend", activateRoute, { passive:false });
+    });
     $$('[data-route-jump]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.routeJump)));
     $$('[data-open-settings]').forEach(button => button.addEventListener("click", openSettings));
     $("#close-settings").addEventListener("click", closeSettings); $("#drawer-backdrop").addEventListener("click", closeSettings);
