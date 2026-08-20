@@ -56,7 +56,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-08", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-12", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -341,11 +341,29 @@
   }
 
   function downloadControllerHeader(device) {
-    if (!device?.header_content) return;
-    const blob = new Blob([device.header_content], { type:"text/plain;charset=utf-8" });
+    const content = device?.header_content || device?.content;
+    if (!content) return;
+    const blob = new Blob([content], { type:"text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a"); link.href = url; link.download = device.header_file || `${device.device_id}.h`;
+    const link = document.createElement("a"); link.href = url; link.download = device.header_file || device.filename || `${device.device_id}.h`;
     document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  }
+
+  function controllerDeviceLabel(deviceId) {
+    return ({
+      "esp32-001":"主控与环境",
+      "mppt-001":"MPPT 能源",
+      "ef-001":"电动平场板"
+    })[deviceId] || deviceId;
+  }
+
+  function controllerDeviceCards(data, description) {
+    const cards = (data.devices || []).map(device => {
+      const logicalId = escapeHtml(device.device_id || "");
+      const mqttIdentity = escapeHtml(device.client_id || device.username || "");
+      return `<article class="controller-header-card"><header><b>${escapeHtml(controllerDeviceLabel(device.device_id))}</b><small>逻辑设备 ${logicalId} · MQTT 身份 ${mqttIdentity}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${logicalId}">下载头文件</button></article>`;
+    }).join("");
+    return `<h3>设备头文件配置</h3><p>${description}逻辑设备 ID 固定用于接口与主题路径；MQTT 身份按套组独立生成，因此尾号可能不同。</p>${cards}`;
   }
 
   function renderControllerConnection() {
@@ -360,7 +378,7 @@
         const data = state.controller.data;
         status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
         list.hidden = false;
-        list.innerHTML = `<h3>设备头文件配置</h3><p>配置包含 MQTT 账号密码，可下载后写入对应硬件。</p>${(data.devices||[]).map(device=>`<article class="controller-header-card"><header><b>${escapeHtml(device.device_id)}</b><small>${escapeHtml(device.header_file||device.filename||"")} · ${escapeHtml(device.client_id||device.username||"")}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${escapeHtml(device.device_id)}">下载头文件</button></article>`).join("")}`;
+        list.innerHTML = controllerDeviceCards(data, "配置包含 MQTT 账号密码，可下载后写入对应硬件。");
         return;
       }
       status.innerHTML = `当前账户尚未分配硬件套组。<button type="button" class="primary-button" id="auto-assign-controller">自动分配并连接</button>`;
@@ -374,7 +392,7 @@
       const data = state.controller.data;
       status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
       form.hidden = true; list.hidden = false;
-      list.innerHTML = `<h3>设备头文件配置</h3><p>这些配置包含 MQTT 账号密码，仅用于写入对应硬件文件。</p>${(data.devices||[]).map(device=>`<article class="controller-header-card"><header><b>${escapeHtml(device.device_id)}</b><small>${escapeHtml(device.header_file||"")} · ${escapeHtml(device.client_id||device.username||"")}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${escapeHtml(device.device_id)}">下载头文件</button></article>`).join("")}`;
+      list.innerHTML = controllerDeviceCards(data, "这些配置包含 MQTT 账号密码，仅用于写入对应硬件文件。");
       return;
     }
     const pending = state.controller.requests.find(item => item.status === "pending");
@@ -916,6 +934,19 @@
     const canControl = canControlDevices();
     const mainMap = { camera:mainOnline&&state.main.camera, heater:mainOnline&&state.main.heater, fan:mainOnline&&state.main.fan, mosfet:mainOnline&&state.main.mosfet, flatLed:flatOnline&&state.flat.led };
     $$('[data-toggle]').forEach(button => { const key=button.dataset.toggle,source=key==="flatLed"?state.flat:state.main,field=key==="flatLed"?"led":key,online=key==="flatLed"?flatOnline:mainOnline,known=online&&source[field]!==null&&source[field]!==undefined,on=known&&!!mainMap[key];button.classList.toggle("on",on);button.classList.toggle("unknown",online&&!known);button.setAttribute("aria-pressed",known?String(on):"false");button.disabled=!canControl||!known });
+    const quickRoof = $('[data-quick-roof]');
+    if (quickRoof) {
+      const roofState = state.main.roof;
+      const known = mainOnline && ["open", "closed", "moving"].includes(roofState);
+      const action = !known ? "" : roofState === "moving" ? "stop" : roofState === "open" ? "close" : "open";
+      quickRoof.dataset.roofAction = action;
+      quickRoof.classList.toggle("on", known && roofState === "open");
+      quickRoof.classList.toggle("moving", known && roofState === "moving");
+      quickRoof.setAttribute("aria-pressed", known ? String(roofState === "open") : "false");
+      quickRoof.disabled = !canControl || !known;
+      setText("[data-quick-roof-title]", !known ? "开关屋顶" : roofState === "moving" ? "停止屋顶" : roofState === "open" ? "关闭屋顶" : "开启屋顶");
+      setText("[data-quick-roof-state]", !mainOnline ? "设备离线" : !known ? "状态未知" : roofState === "moving" ? "运行中 · 点击停止" : roofState === "open" ? "已开启 · 点击关闭" : "已关闭 · 点击开启");
+    }
     $$('[data-mppt-toggle]').forEach(button=>{const known=powerOnline&&state.power[button.dataset.mpptToggle]!==null&&state.power[button.dataset.mpptToggle]!==undefined;button.classList.toggle("on",known&&bool(state.power[button.dataset.mpptToggle]));button.classList.toggle("unknown",powerOnline&&!known);button.disabled=!canControl||!known});
     const algorithmKnown=powerOnline&&state.power.mode!==null&&state.power.mode!==undefined,mpptEnabled=algorithmKnown&&bool(state.power.mode);
     setText("#mppt-algorithm-title",algorithmKnown?(mpptEnabled?"MPPT 算法":"PWM 算法"):"算法状态未知");
@@ -928,9 +959,7 @@
     setText("#mppt-fan-state-subtitle",fanModeKnown?(automaticFan?"自动策略控制":"手动开关"):"等待控制模式遥测");
     if(fanSwitch)fanSwitch.disabled=!canControl||!fanKnown||automaticFan;
     $("#set-fan-temp")?.toggleAttribute("disabled",!canControl||!powerOnline||!fanModeKnown||!automaticFan);
-    $("#apply-mppt-fan-temp")?.toggleAttribute("disabled",!canControl||!powerOnline||!fanModeKnown||!automaticFan);
     $$('[data-flat-toggle]').forEach(button=>{const field=button.dataset.flatToggle==="led"?"led":"heater_mode",known=flatOnline&&state.flat[field]!==null&&state.flat[field]!==undefined;button.classList.toggle("on",known&&bool(state.flat[field]));button.classList.toggle("unknown",flatOnline&&!known);button.disabled=!canControl||!known});
-    $("#save-power-settings")?.toggleAttribute("disabled",!canControl||!powerOnline);
     $("#toggle-panel")?.toggleAttribute("disabled",!canControl||!flatOnline||state.flat.servo===null||state.flat.servo===undefined);
     $$('[data-roof]').forEach(button=>button.disabled=!canControl||!mainOnline||typeof state.main.roof!=="string");
     $$('[data-onstep],[data-camera-duration],#apply-camera-duration,#fan-threshold').forEach(button=>button.disabled=!canControl||!mainOnline);
@@ -1069,11 +1098,52 @@
     input.dispatchEvent(new Event("input", { bubbles:true }));
   }
 
+  let powerAutoSaveTimer = 0;
+  const pendingPowerAutoSave = new Set();
+
+  function queuePowerAutoSave(input, delay = 520) {
+    const scope = input?.id === "set-fan-temp" ? "fan" : ["set-battery-min", "set-battery-max", "set-charge-current"].includes(input?.id) ? "charge" : "";
+    if (!scope) return;
+    pendingPowerAutoSave.add(scope);
+    clearTimeout(powerAutoSaveTimer);
+    powerAutoSaveTimer = window.setTimeout(flushPowerAutoSave, delay);
+  }
+
+  function flushPowerAutoSave() {
+    clearTimeout(powerAutoSaveTimer);
+    powerAutoSaveTimer = 0;
+    if (!pendingPowerAutoSave.size) return;
+    const scopes = new Set(pendingPowerAutoSave);
+    pendingPowerAutoSave.clear();
+    const payload = {};
+    if (scopes.has("charge")) {
+      const minInput = $("#set-battery-min"), maxInput = $("#set-battery-max"), currentInput = $("#set-charge-current");
+      [minInput, maxInput, currentInput].forEach(normalizeStepper);
+      const min = Number(minInput.value), max = Number(maxInput.value), current = Number(currentInput.value);
+      if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(current) || min < 8 || min > 20 || max < 12 || max > 48 || max - min < .5 || current < .1 || current > 20) {
+        toast("充电参数无效", "满电电压需比截止电压高至少 0.5V。", "error");
+        return;
+      }
+      Object.assign(payload, { voltage_battery_min:min, voltage_battery_max:max, current_charging:current });
+    }
+    if (scopes.has("fan")) {
+      const input = $("#set-fan-temp");
+      const temperature = normalizeStepper(input);
+      if (!Number.isFinite(temperature) || temperature < 20 || temperature > 80) {
+        toast("温度阈值无效", "请输入 20 至 80°C。", "error");
+        return;
+      }
+      payload.temperature_fan = temperature;
+    }
+    if (Object.keys(payload).length) sendCommand("mppt-001", payload, scopes.size > 1 ? "自动保存能源参数" : scopes.has("fan") ? "自动保存风扇阈值" : "自动保存充电参数");
+  }
+
   function bindNumberSteppers() {
     $$('[data-number-stepper]').forEach(stepper => {
       const input = $("input", stepper);
       if (!input) return;
-      input.addEventListener("blur", () => normalizeStepper(input));
+      input.addEventListener("input", () => queuePowerAutoSave(input));
+      input.addEventListener("blur", () => { normalizeStepper(input); queuePowerAutoSave(input, 80); });
       input.addEventListener("keydown", event => {
         if (event.key === "ArrowUp" || event.key === "ArrowDown") {
           event.preventDefault(); adjustStepper(input, event.key === "ArrowUp" ? 1 : -1);
@@ -1081,16 +1151,18 @@
         if (event.key === "Enter") { event.preventDefault(); normalizeStepper(input); input.blur(); }
       });
       $$('[data-step-direction]', stepper).forEach(button => {
-        let holdDelay = 0, repeatTimer = 0, repeatCount = 0;
+        let holdDelay = 0, repeatTimer = 0, repeatCount = 0, active = false;
         const direction = Number(button.dataset.stepDirection) || 1;
-        const stop = () => {
+        const stop = (commit = true) => {
           clearTimeout(holdDelay); clearInterval(repeatTimer);
           holdDelay = 0; repeatTimer = 0; repeatCount = 0;
           button.classList.remove("pressing");
+          if (active && commit) queuePowerAutoSave(input, 100);
+          active = false;
         };
         button.addEventListener("pointerdown", event => {
-          if (event.button !== 0) return;
-          event.preventDefault(); stop();
+          if (event.button !== 0 || button.disabled || input.disabled) return;
+          event.preventDefault(); stop(false); active = true;
           button.classList.add("pressing");
           button.setPointerCapture?.(event.pointerId);
           input.focus({ preventScroll:true });
@@ -1103,20 +1175,11 @@
             }, 90);
           }, 380);
         });
-        ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => button.addEventListener(type, stop));
+        ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => button.addEventListener(type, () => stop(true)));
         button.addEventListener("click", event => { if (event.detail === 0) adjustStepper(input, direction); });
         button.addEventListener("contextmenu", event => event.preventDefault());
       });
     });
-  }
-
-  function savePowerSettings() {
-    $$('[data-number-stepper] input').forEach(normalizeStepper);
-    const min = number($("#set-battery-min").value), max = number($("#set-battery-max").value), current = number($("#set-charge-current").value), temp = number($("#set-fan-temp").value);
-    if (min < 8 || min > 20 || max < 12 || max > 48 || max - min < .5 || current < .1 || current > 20 || temp < 20 || temp > 80) {
-      toast("参数无效", "请检查阈值范围，满电电压需比截止电压高至少 0.5V。", "error"); return;
-    }
-    sendCommand("mppt-001", { voltage_battery_min:min, voltage_battery_max:max, current_charging:current, temperature_fan:temp }, "保存充电参数");
   }
 
   function togglePanel() {
@@ -2885,15 +2948,17 @@
     $("#onstep-bluetooth-status")?.addEventListener("click",requestBluetoothToggle);
     bindVerticalNumberDrag($("#camera-hours"));bindVerticalNumberDrag($("#camera-minutes"));
     $$('[data-toggle]').forEach(button => button.addEventListener("click", () => toggleMain(button.dataset.toggle)));
+    $('[data-quick-roof]')?.addEventListener("click", event => {
+      const action = event.currentTarget.dataset.roofAction;
+      if (action) roofCommand(action);
+    });
     $$('[data-mppt-toggle]').forEach(button => button.addEventListener("click", () => toggleMppt(button.dataset.mpptToggle)));
     $$('[data-mppt-fan-mode]').forEach(button=>button.addEventListener("click",()=>{const automatic=button.dataset.mpptFanMode==="auto";sendCommand("mppt-001",{enable_fan:automatic},automatic?"风扇切换为自动模式":"风扇切换为手动模式")}));
-    $("#apply-mppt-fan-temp")?.addEventListener("click",()=>{const value=Number($("#set-fan-temp")?.value);if(!Number.isFinite(value)||value<20||value>80){toast("温度阈值无效","请输入 20 至 80°C。","error");return}sendCommand("mppt-001",{temperature_fan:value},`设置风扇阈值 ${Math.round(value)}°C`)});
     $$('[data-flat-toggle]').forEach(button => button.addEventListener("click", () => toggleFlat(button.dataset.flatToggle)));
     $$('[data-roof]').forEach(button => button.addEventListener("click", () => roofCommand(button.dataset.roof)));
     $$('[data-onstep]').forEach(button => button.addEventListener("click", () => sendCommand("esp32-001", {command:"onstep",action:Number(button.dataset.onstep)}, `OnStep 操作 ${button.textContent.trim()}`)));
     $$('[data-command-debug]').forEach(button => button.addEventListener("click", () => sendCommand(button.dataset.commandDebug, {debug:true}, "请求诊断")));
     bindNumberSteppers();
-    $("#save-power-settings").addEventListener("click", savePowerSettings);
     $("#toggle-panel").addEventListener("click", togglePanel);
     $("#confirm-cancel").addEventListener("click", closeConfirm); $("#confirm-accept").addEventListener("click", () => state.pendingConfirm?.());
     $("#confirm-modal").addEventListener("click", event => { if(event.target.id==="confirm-modal") closeConfirm(); });

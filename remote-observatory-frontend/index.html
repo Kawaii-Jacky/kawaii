@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260820-08" />
+    <link rel="stylesheet" href="app.css?v=20260820-12" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -116,6 +116,7 @@
             <article class="card quick-controls">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="sliders-horizontal"></i></span><h3>快捷控制</h3></div></header>
               <div class="quick-grid">
+                <button class="quick-toggle quick-roof-toggle" data-quick-roof><span class="quick-icon"><i data-lucide="panels-top-left" aria-hidden="true"></i></span><p><b data-quick-roof-title>开关屋顶</b><small data-quick-roof-state>设备离线</small></p><i></i></button>
                 <button class="quick-toggle" data-toggle="camera"><span class="quick-icon"><i data-lucide="camera" aria-hidden="true"></i></span><p><b>拍摄系统</b><small>相机供电</small></p><i></i></button>
                 <button class="quick-toggle" data-toggle="heater"><span class="quick-icon"><i data-lucide="flame" aria-hidden="true"></i></span><p><b>除露加热</b><small>主控加热片</small></p><i></i></button>
                 <button class="quick-toggle" data-toggle="fan"><span class="quick-icon"><i data-lucide="fan" aria-hidden="true"></i></span><p><b>机箱风扇</b><small>手动控制</small></p><i></i></button>
@@ -157,11 +158,10 @@
             <article class="card settings-card">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="battery-charging"></i></span><h3>充电策略</h3></div></header>
               <div class="form-grid">
-                <label>电池截止电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-min" value="" placeholder="--" data-min="8" data-max="20" data-step="0.1" aria-label="电池截止电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池截止电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池截止电压">−</button></span></span></label>
-                <label>电池满电电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-max" value="" placeholder="--" data-min="12" data-max="48" data-step="0.1" aria-label="电池满电电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池满电电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池满电电压">−</button></span></span></label>
-                <label>最大充电电流 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-charge-current" value="" placeholder="--" data-min="0.1" data-max="20" data-step="0.1" aria-label="最大充电电流" /><span class="stepper-unit">A</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加最大充电电流">+</button><button type="button" data-step-direction="-1" aria-label="减小最大充电电流">−</button></span></span></label>
+                <label>电池截止电压 <span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-min" value="" placeholder="--" data-min="8" data-max="20" data-step="0.1" aria-label="电池截止电压" /><span class="stepper-unit">V</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加电池截止电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池截止电压">−</button></span></span></label>
+                <label>电池满电电压 <span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-max" value="" placeholder="--" data-min="12" data-max="48" data-step="0.1" aria-label="电池满电电压" /><span class="stepper-unit">V</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加电池满电电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池满电电压">−</button></span></span></label>
+                <label>最大充电电流 <span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-charge-current" value="" placeholder="--" data-min="0.1" data-max="20" data-step="0.1" aria-label="最大充电电流" /><span class="stepper-unit">A</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加最大充电电流">+</button><button type="button" data-step-direction="-1" aria-label="减小最大充电电流">−</button></span></span></label>
               </div>
-              <button class="primary-button" id="save-power-settings">保存充电参数 <span>↗</span></button>
             </article>
             <article class="card control-card">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="power"></i></span><h3>运行控制</h3></div></header>
@@ -170,7 +170,7 @@
                 <header><span class="control-icon"><i data-lucide="fan"></i></span><p><b>风扇控制</b><small id="mppt-fan-mode-note">自动模式 · 按温度阈值启停</small></p></header>
                 <div class="mppt-fan-mode"><button type="button" data-mppt-fan-mode="auto">自动</button><button type="button" data-mppt-fan-mode="manual">手动</button></div>
                 <button class="control-row mppt-fan-switch" data-mppt-toggle="fan"><span class="control-icon"><i data-lucide="power"></i></span><p><b id="mppt-fan-state-title">风扇关闭</b><small id="mppt-fan-state-subtitle">自动策略控制</small></p><i></i></button>
-                <label class="mppt-fan-threshold">温度阈值 <span class="number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span><button type="button" id="apply-mppt-fan-temp">应用阈值</button></label>
+                <label class="mppt-fan-threshold"><span class="mppt-fan-threshold-label">温度阈值</span><span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span></label>
               </section>
             </article>
           </div>
@@ -426,7 +426,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js"></script>
-  <script src="app.js?v=20260820-08"></script>
+  <script src="app.js?v=20260820-12"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
