@@ -15,6 +15,7 @@ import secrets
 import smtplib
 import urllib.request
 import uuid
+from urllib.parse import parse_qs, urlsplit
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from typing import Any, Literal
@@ -22,6 +23,7 @@ from typing import Any, Literal
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from app.db import INTEGRITY_ERRORS, connection, db_lock
 
@@ -314,6 +316,33 @@ def create_session(user_id: str, request: Request, response: Response | None = N
     return token
 
 
+def safari_user_agent(request: Request) -> bool:
+    user_agent = request.headers.get("user-agent", "")
+    return "Safari/" in user_agent and not any(
+        marker in user_agent for marker in ("Chrome/", "Chromium/", "CriOS/", "FxiOS/", "EdgiOS/", "Edg/")
+    )
+
+
+def consume_browser_handoff(token: str) -> str:
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Browser session handoff is missing")
+    now = utcnow()
+    with db_lock, connection() as db:
+        row = db.execute(
+            """select s.id as session_id,s.user_id,s.expires_at,u.disabled
+               from auth_sessions s join users u on u.id=s.user_id
+               where s.token_hash=? and s.revoked_at is null""",
+            (token_digest(token),),
+        ).fetchone()
+        expired = bool(row) and datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00")) < now
+        if not row or row["disabled"] or expired:
+            if row and expired:
+                db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Browser session handoff is invalid")
+        db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
+        return row["user_id"]
+
+
 def session_token(cookie_token: str | None, authorization: str | None) -> str | None:
     if cookie_token: return cookie_token
     if authorization and authorization.lower().startswith("bearer "): return authorization[7:].strip()
@@ -488,9 +517,11 @@ def register(body: RegisterRequest, request: Request, response: Response) -> dic
               values(?,?,?,?,1,?,?)""", (user_id, body.display_name.strip(), target, password_hasher.hash(body.password), now, now))
     except INTEGRITY_ERRORS as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, "Account already exists") from exc
-    create_session(user_id, request, response)
+    token = create_session(user_id, request, response)
     with connection() as db: row = db.execute("select * from users where id=?", (user_id,)).fetchone()
-    return {"user": user_payload(row)}
+    result = {"user": user_payload(row)}
+    if safari_user_agent(request): result["browser_handoff"] = token
+    return result
 
 
 @router.post("/login", summary="账号密码登录")
@@ -522,8 +553,24 @@ def login(body: LoginRequest, request: Request, response: Response) -> dict[str,
     clear_rate_limit("login-identifier", identifier)
     if password_hasher.check_needs_rehash(row["password_hash"]):
         with connection() as db: db.execute("update users set password_hash=?,updated_at=? where id=?", (password_hasher.hash(body.password), iso(), row["id"]))
-    create_session(row["id"], request, response)
-    return {"user": user_payload(row)}
+    token = create_session(row["id"], request, response)
+    result = {"user": user_payload(row)}
+    if safari_user_agent(request): result["browser_handoff"] = token
+    return result
+
+
+@router.post("/browser/session/commit", include_in_schema=False)
+async def commit_browser_session(request: Request) -> Response:
+    origin = request.headers.get("origin", "")
+    host = request.headers.get("host", "").lower()
+    if origin and urlsplit(origin).netloc.lower() != host:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Cross-origin session handoff rejected")
+    body = parse_qs((await request.body()).decode("utf-8", "strict"), keep_blank_values=True)
+    handoff = (body.get("handoff") or [""])[0]
+    user_id = consume_browser_handoff(handoff)
+    response = RedirectResponse(url="/#profile", status_code=status.HTTP_303_SEE_OTHER)
+    create_session(user_id, request, response)
+    return response
 
 
 @router.post("/native/login", summary="Native bearer-token login")

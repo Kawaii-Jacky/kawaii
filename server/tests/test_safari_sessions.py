@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import asyncio
 import os
 import sys
 import tempfile
@@ -67,6 +68,42 @@ class SafariSessionCompatibilityTest(unittest.TestCase):
         request = self.request(f"astra_session=stale-token; astra_session={valid}")
         user = self.auth.current_user(request, astra_session="stale-token", authorization=None)
         self.assertEqual(user["id"], user_id)
+
+    def test_browser_handoff_is_single_use(self) -> None:
+        user_id = self.create_user()
+        handoff = self.auth.create_session(user_id, self.request())
+        self.assertEqual(self.auth.consume_browser_handoff(handoff), user_id)
+        with self.assertRaises(Exception) as reused:
+            self.auth.consume_browser_handoff(handoff)
+        self.assertEqual(getattr(reused.exception, "status_code", None), 401)
+
+    def test_top_level_handoff_rotates_and_sets_cookie(self) -> None:
+        user_id = self.create_user()
+        handoff = self.auth.create_session(user_id, self.request())
+        encoded = f"handoff={handoff}".encode("ascii")
+        sent = False
+
+        async def receive():
+            nonlocal sent
+            if sent:
+                return {"type": "http.request", "body": b"", "more_body": False}
+            sent = True
+            return {"type": "http.request", "body": encoded, "more_body": False}
+
+        request = Request({
+            "type": "http",
+            "method": "POST",
+            "path": "/api/v1/auth/browser/session/commit",
+            "headers": [(b"host", b"astroy.xyz"), (b"origin", b"https://astroy.xyz")],
+            "client": ("192.0.2.30", 12345),
+        }, receive)
+        response = asyncio.run(self.auth.commit_browser_session(request))
+        cookies = [value for name, value in response.raw_headers if name.lower() == b"set-cookie"]
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response.headers["location"], "/#profile")
+        self.assertEqual(len(cookies), 1)
+        with self.assertRaises(Exception):
+            self.auth.consume_browser_handoff(handoff)
 
 
 if __name__ == "__main__":

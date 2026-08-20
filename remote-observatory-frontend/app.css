@@ -779,6 +779,8 @@ html[data-color-mode="light"] .weather-stat .rain-icon{color:var(--accent)}
 .account-settings-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:18px}
 .account-settings-actions button{min-height:44px;cursor:pointer}
 .account-settings-actions .danger-outline{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 42%,var(--ui-line))}
+.font-options button.active{color:var(--ui-on-accent)!important;background:var(--accent)!important}.font-options button.active b{color:#fff!important}.font-options button.active small{color:color-mix(in srgb,#fff 78%,transparent)!important}
+@media(max-width:860px){.preference-panel{min-height:0}}
 @media(max-width:620px){.account-settings-actions{grid-template-columns:1fr;padding:14px}}
 @media(max-width:620px){
   html[data-font-size="small"]{--fs-nav:12px}

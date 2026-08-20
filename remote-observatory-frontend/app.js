@@ -56,7 +56,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-05", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-06", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -2226,6 +2226,20 @@
     return user?.email || user?.phone || "已验证账户";
   }
 
+  function commitBrowserSession(handoff) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/api/v1/auth/browser/session/commit";
+    form.hidden = true;
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "handoff";
+    input.value = handoff;
+    form.append(input);
+    document.body.append(form);
+    form.submit();
+  }
+
   function authRoleLabel(role) {
     return ({ admin:"Administrator", operator:"Operator", user:"User", viewer:"Viewer" })[role] || "Member";
   }
@@ -2573,6 +2587,11 @@
             result = await authApi("/me", { method:"GET" });
           } catch (error) {
             if (error.status === 401) {
+              if (result.browser_handoff) {
+                setAuthMessage("正在建立 Safari 登录会话…", "ok");
+                commitBrowserSession(result.browser_handoff);
+                return;
+              }
               const cookieError = new Error("Browser did not retain session cookie");
               cookieError.status = 401;
               throw cookieError;
