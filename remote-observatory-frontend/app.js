@@ -47,7 +47,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-19", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-20", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -2395,6 +2395,49 @@
     return identity?`astra.profileAvatar.${identity}`:"";
   }
 
+  const migratedAvatarUsers = new Set();
+  function profileAvatarValue(user=state.auth.user) {
+    if (user?.avatar_data) return user.avatar_data;
+    const key = profileAvatarStorageKey(user);
+    return key ? localStorage.getItem(key) || "" : "";
+  }
+
+  function resizeAvatar(source) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        const scale = Math.min(1, 320 / Math.max(image.naturalWidth, image.naturalHeight));
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d", { alpha:true }).drawImage(image, 0, 0, width, height);
+        let result = canvas.toDataURL("image/webp", .82);
+        if (!result.startsWith("data:image/webp")) result = canvas.toDataURL("image/jpeg", .84);
+        resolve(result);
+      };
+      image.onerror = () => reject(new Error("Avatar image cannot be decoded"));
+      image.src = source;
+    });
+  }
+
+  async function migrateLegacyProfileAvatar(user=state.auth.user) {
+    const key = profileAvatarStorageKey(user);
+    if (!user?.id || user.avatar_data || !key || migratedAvatarUsers.has(user.id)) return;
+    const legacy = localStorage.getItem(key);
+    if (!legacy) return;
+    migratedAvatarUsers.add(user.id);
+    try {
+      const avatarData = await resizeAvatar(legacy);
+      const result = await authApi("/profile/avatar", { method:"PUT", body:JSON.stringify({ avatar_data:avatarData }) });
+      state.auth.user = result.user;
+      localStorage.setItem(key, avatarData);
+      renderAuthIdentity();
+    } catch (_) {
+      migratedAvatarUsers.delete(user.id);
+    }
+  }
+
   function renderAuthIdentity() {
     const user = state.auth.user;
     const profileName = $("#page-profile .profile-hero > div:nth-child(2) h2");
@@ -2405,18 +2448,19 @@
     const operatorName = $(".operator b");
     const operatorRole = $(".operator small");
     if (user) {
+      migrateLegacyProfileAvatar(user);
       const name = user.display_name || "ASTRA 用户";
       const mark = name.trim().slice(0, 2).toUpperCase() || "A";
       if (profileName) profileName.textContent = name;
       if (profileDetail) profileDetail.textContent = `账号 · ${authContact(user)}`;
       if (avatar) {
-        const avatarKey=profileAvatarStorageKey(user),savedAvatar=avatarKey?localStorage.getItem(avatarKey):"";
+        const savedAvatar=profileAvatarValue(user);
         if (avatarInitials) avatarInitials.textContent = savedAvatar ? "" : mark;
         avatar.style.backgroundImage = savedAvatar ? `url("${savedAvatar}")` : "";
         avatar.classList.toggle("has-image", Boolean(savedAvatar));
       }
       if (operatorAvatar) {
-        const avatarKey=profileAvatarStorageKey(user),savedAvatar=avatarKey?localStorage.getItem(avatarKey):"";
+        const savedAvatar=profileAvatarValue(user);
         operatorAvatar.textContent = savedAvatar ? "" : mark;
         operatorAvatar.style.backgroundImage = savedAvatar ? `url("${savedAvatar}")` : "";
         operatorAvatar.classList.toggle("has-image", Boolean(savedAvatar));
@@ -2468,29 +2512,36 @@
     const avatarInput = document.createElement("input");
     avatarInput.type = "file";
     avatarInput.id = "profile-avatar-input";
-    avatarInput.accept = "image/png,image/jpeg,image/webp,image/gif";
+    avatarInput.accept = "image/png,image/jpeg,image/webp";
     avatarInput.hidden = true;
     avatarInput.setAttribute("aria-label", "上传头像");
     hero.append(avatarInput);
     avatar.title = "点击上传头像";
     avatar.addEventListener("click", () => avatarInput.click());
-    avatarInput.addEventListener("change", () => {
+    avatarInput.addEventListener("change", async () => {
       const file = avatarInput.files?.[0];
       if (!file) return;
-      if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
-        toast("头像上传失败", "请选择 2 MB 以内的图片。", "error");
+      if (!/^image\/(png|jpeg|webp)$/i.test(file.type) || file.size > 5 * 1024 * 1024) {
+        toast("头像上传失败", "请选择 5 MB 以内的 PNG、JPEG 或 WebP 图片。", "error");
         avatarInput.value = "";
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
+      const source = URL.createObjectURL(file);
+      try {
+        const avatarData = await resizeAvatar(source);
         const avatarKey=profileAvatarStorageKey();
-        if(!avatarKey){toast("头像上传失败","当前账户信息不可用。","error","background");return}
-        localStorage.setItem(avatarKey, String(reader.result));
+        if(!avatarKey) throw new Error("当前账户信息不可用。");
+        const result = await authApi("/profile/avatar", { method:"PUT", body:JSON.stringify({ avatar_data:avatarData }) });
+        state.auth.user = result.user;
+        localStorage.setItem(avatarKey, avatarData);
         renderAuthIdentity();
-        toast("头像已更新", "图片已保存在当前浏览器。", "ok");
-      };
-      reader.readAsDataURL(file);
+        toast("头像已更新", "头像已同步到此账户的全部登录会话。", "ok");
+      } catch (error) {
+        toast("头像上传失败", authErrorMessage(error), "error");
+      } finally {
+        URL.revokeObjectURL(source);
+        avatarInput.value = "";
+      }
     });
 
     const passwordModal = document.createElement("div");

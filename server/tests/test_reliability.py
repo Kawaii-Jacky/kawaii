@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import uuid
 import queue
+import base64
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -86,6 +87,23 @@ class ReliabilityTest(unittest.TestCase):
             self.auth.check_rate_limit("login-identifier", "user@example.test", 3, 900)
         self.assertEqual(raised.exception.status_code, 429)
         self.assertIn("Retry-After", raised.exception.headers)
+
+    def test_avatar_is_persisted_in_account_payload(self):
+        user = self.create_user()
+        png = b"\x89PNG\r\n\x1a\n" + b"avatar-test"
+        avatar_data = "data:image/png;base64," + base64.b64encode(png).decode()
+        result = self.auth.update_avatar(self.auth.AvatarPatch(avatar_data=avatar_data), user)
+        self.assertEqual(result["user"]["avatar_data"], avatar_data)
+        with self.db.connection() as connection:
+            row = connection.execute("select * from users where id=?", (user["id"],)).fetchone()
+        self.assertEqual(self.auth.user_payload(row)["avatar_data"], avatar_data)
+
+    def test_avatar_rejects_mismatched_image_content(self):
+        user = self.create_user()
+        invalid = "data:image/png;base64," + base64.b64encode(b"not-a-png").decode()
+        with self.assertRaises(HTTPException) as raised:
+            self.auth.update_avatar(self.auth.AvatarPatch(avatar_data=invalid), user)
+        self.assertEqual(raised.exception.status_code, 422)
 
     def test_failed_verification_attempt_is_committed(self):
         target = "user@example.test"

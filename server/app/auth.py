@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import base64
+import binascii
 import json
 import os
 import re
@@ -25,7 +27,7 @@ from argon2.exceptions import VerifyMismatchError
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
-from app.db import INTEGRITY_ERRORS, connection, db_lock
+from app.db import INTEGRITY_ERRORS, connection, db_lock, is_postgres
 
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 AUTH_DEBUG_CODES = os.getenv("AUTH_DEBUG_CODES", "0") == "1"
@@ -112,6 +114,12 @@ def init_auth_db() -> None:
           primary key(scope, subject_hash)
         );
         """)
+        if is_postgres():
+            db.execute("alter table users add column if not exists avatar_data text")
+        else:
+            columns = {row["name"] for row in db.execute("pragma table_info(users)").fetchall()}
+            if "avatar_data" not in columns:
+                db.execute("alter table users add column avatar_data text")
         db.execute("delete from auth_rate_limits where updated_at<?", (iso(utcnow() - timedelta(days=7)),))
     bootstrap_admin()
 
@@ -214,7 +222,8 @@ def user_payload(row: Any) -> dict[str, Any]:
     return {
         "id": row["id"], "display_name": row["display_name"], "email": row["email"],
         "phone": row["phone"], "email_verified": bool(row["email_verified"]),
-        "phone_verified": bool(row["phone_verified"]), "role": row["role"]
+        "phone_verified": bool(row["phone_verified"]), "role": row["role"],
+        "avatar_data": row["avatar_data"] if "avatar_data" in row.keys() else None,
     }
 
 
@@ -467,6 +476,10 @@ class ProfilePatch(BaseModel):
     display_name: str = Field(min_length=1, max_length=40)
 
 
+class AvatarPatch(BaseModel):
+    avatar_data: str = Field(min_length=32, max_length=700_000)
+
+
 @router.post("/verification/request", status_code=202, summary="发送邮箱或手机验证码")
 def request_verification(body: VerificationRequest, request: Request) -> dict[str, Any]:
     target = normalize_target(body.channel, body.target)
@@ -706,5 +719,30 @@ def update_profile(body: ProfilePatch, user: dict[str, Any] = Depends(current_us
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Display name cannot be empty")
     with db_lock, connection() as db:
         db.execute("update users set display_name=?,updated_at=? where id=?", (display_name, iso(), user["id"]))
+        row = db.execute("select * from users where id=?", (user["id"],)).fetchone()
+    return {"user": user_payload(row)}
+
+
+@router.put("/profile/avatar", summary="Update the current account avatar")
+def update_avatar(body: AvatarPatch, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    match = re.fullmatch(r"data:(image/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)", body.avatar_data)
+    if not match:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar must be a PNG, JPEG, or WebP image")
+    try:
+        raw = base64.b64decode(match.group(2), validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar data is invalid") from exc
+    if not raw or len(raw) > 512 * 1024:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Avatar must be no larger than 512 KB")
+    mime = match.group(1)
+    valid_signature = (
+        (mime == "image/png" and raw.startswith(b"\x89PNG\r\n\x1a\n"))
+        or (mime == "image/jpeg" and raw.startswith(b"\xff\xd8\xff"))
+        or (mime == "image/webp" and raw.startswith(b"RIFF") and raw[8:12] == b"WEBP")
+    )
+    if not valid_signature:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar content does not match its image type")
+    with db_lock, connection() as db:
+        db.execute("update users set avatar_data=?,updated_at=? where id=?", (body.avatar_data, iso(), user["id"]))
         row = db.execute("select * from users where id=?", (user["id"],)).fetchone()
     return {"user": user_payload(row)}
