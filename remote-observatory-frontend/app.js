@@ -434,6 +434,10 @@
         console.warn("Unable to load controller authorization", lastError);
         state.controller.error = "授权信息暂时无法读取，请检查网络后点击重新连接。";
       }
+      if (loaded && state.auth.user?.role !== "admin" && !state.controller.configured) {
+        await autoAssignController();
+        loaded = Boolean(state.controller.configured);
+      }
     } finally { state.controller.loading = false; renderControllerConnection(); }
     return loaded;
   }
