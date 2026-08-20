@@ -56,7 +56,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-12", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-13", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -340,13 +340,27 @@
     renderSeeingSource();
   }
 
-  function downloadControllerHeader(device) {
+  async function copyControllerHeader(device) {
     const content = device?.header_content || device?.content;
     if (!content) return;
-    const blob = new Blob([content], { type:"text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a"); link.href = url; link.download = device.header_file || device.filename || `${device.device_id}.h`;
-    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(content);
+      else {
+        const textarea = document.createElement("textarea");
+        textarea.value = content;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand("copy");
+        textarea.remove();
+        if (!copied) throw new Error("clipboard unavailable");
+      }
+      toast("头文件已复制", `${controllerDeviceLabel(device.device_id)}配置已写入剪贴板。`, "ok");
+    } catch (_) {
+      toast("复制失败", "请允许浏览器访问剪贴板后重试。", "error");
+    }
   }
 
   function controllerDeviceLabel(deviceId) {
@@ -360,8 +374,7 @@
   function controllerDeviceCards(data, description) {
     const cards = (data.devices || []).map(device => {
       const logicalId = escapeHtml(device.device_id || "");
-      const mqttIdentity = escapeHtml(device.client_id || device.username || "");
-      return `<article class="controller-header-card"><header><b>${escapeHtml(controllerDeviceLabel(device.device_id))}</b><small>逻辑设备 ${logicalId} · MQTT 身份 ${mqttIdentity}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${logicalId}">下载头文件</button></article>`;
+      return `<article class="controller-header-card"><header><b>${escapeHtml(controllerDeviceLabel(device.device_id))}</b><button type="button" class="mini-link controller-copy-button" data-copy-controller-header="${logicalId}">复制</button></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre></article>`;
     }).join("");
     return `<h3>设备头文件配置</h3><p>${description}逻辑设备 ID 固定用于接口与主题路径；MQTT 身份按套组独立生成，因此尾号可能不同。</p>${cards}`;
   }
@@ -378,7 +391,7 @@
         const data = state.controller.data;
         status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
         list.hidden = false;
-        list.innerHTML = controllerDeviceCards(data, "配置包含 MQTT 账号密码，可下载后写入对应硬件。");
+        list.innerHTML = controllerDeviceCards(data, "配置包含 MQTT 账号密码，可复制后写入对应硬件。");
         return;
       }
       status.innerHTML = `当前账户尚未分配硬件套组。<button type="button" class="primary-button" id="auto-assign-controller">自动分配并连接</button>`;
@@ -392,7 +405,7 @@
       const data = state.controller.data;
       status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
       form.hidden = true; list.hidden = false;
-      list.innerHTML = controllerDeviceCards(data, "这些配置包含 MQTT 账号密码，仅用于写入对应硬件文件。");
+      list.innerHTML = controllerDeviceCards(data, "这些配置包含 MQTT 账号密码，仅用于复制到对应硬件文件。");
       return;
     }
     const pending = state.controller.requests.find(item => item.status === "pending");
@@ -2941,7 +2954,7 @@
     }, { passive:true });
     settingsDrawer?.addEventListener("touchcancel", () => { settingsSwipeStart = null; }, { passive:true });
     $("#controller-request-form")?.addEventListener("submit", submitControllerRequest);
-    $("#controller-header-configs")?.addEventListener("click", event => { const button = event.target.closest?.("[data-download-controller-header]"); if (!button || !state.controller.data) return; const device = (state.controller.data.devices || []).find(item => item.device_id === button.dataset.downloadControllerHeader); downloadControllerHeader(device); });
+    $("#controller-header-configs")?.addEventListener("click", event => { const button = event.target.closest?.("[data-copy-controller-header]"); if (!button || !state.controller.data) return; const device = (state.controller.data.devices || []).find(item => item.device_id === button.dataset.copyControllerHeader); copyControllerHeader(device); });
     $$('[data-connection-mode]').forEach(button => button.addEventListener("click", () => selectConnectionMode(button.dataset.connectionMode)));
     $("#apply-connection").addEventListener("click", applyConnection);
     $("#simulation-toggle")?.addEventListener("click",()=>setSimulationEnabled(!state.simulationEnabled));

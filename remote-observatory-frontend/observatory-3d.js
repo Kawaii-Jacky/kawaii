@@ -326,10 +326,13 @@ if (stage && canvas) {
     const width = Math.max(canvas.clientWidth, 1);
     const height = Math.max(canvas.clientHeight, 1);
     const mobile = window.matchMedia("(max-width: 620px)").matches;
+    const stageExpansion = Math.max(0, Number.parseFloat(getComputedStyle(stage).getPropertyValue("--stage-height-expansion")) || 0);
+    const baseHeight = Math.max(height - stageExpansion, 1);
+    const baseFov = mobile ? 34 : 30;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.1 : 1.3));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.fov = mobile ? 34 : 30;
+    camera.fov = 2 * Math.atan((height / baseHeight) * Math.tan(baseFov * Math.PI / 360)) * 180 / Math.PI;
     camera.updateProjectionMatrix();
   }
 

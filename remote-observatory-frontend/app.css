@@ -24,7 +24,7 @@
   font-synthesis: none;
 }
 
-.controller-header-card{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--glass-inner)}.controller-header-card header{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}.controller-header-card header small{color:var(--muted);font-size:8px}.controller-header-card pre{max-height:180px;overflow:auto;margin:0;padding:10px;border-radius:9px;background:var(--glass-deep);font:8px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.controller-header-card .outline-button{width:auto;margin-top:8px;padding:8px 12px}
+.controller-header-card{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--glass-inner)}.controller-header-card header{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}.controller-header-card pre{max-height:180px;overflow:auto;margin:0;padding:10px;border-radius:9px;background:var(--glass-deep);font:8px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.controller-header-card .controller-copy-button{min-width:54px;padding:7px 11px;border:1px solid var(--ui-line);border-radius:9px;color:var(--ui-text);background:var(--glass-deep)}
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -459,6 +459,7 @@ html[data-color-mode="light"] .terminal-device-menu{background:rgba(244,244,242,
   .observatory-art .temperature-indicator{right:12%}
 }
 @media(max-width:620px){.stage-indicator{width:36px;height:36px}.stage-indicator svg{width:20px;height:20px}.solar-indicator{top:14%;right:4%}.environment-indicators{right:3%;bottom:14%;gap:5px}}
+@media(max-width:620px){.observatory-art{--stage-height-expansion:30px;top:calc(215px - var(--stage-height-expansion))}}
 
 /* Fixed chart palette and restored legend marks. */
 .legend{align-items:center}.legend i,.environment-live-legend i,.forecast-chart-grid header i{display:inline-block!important;width:18px!important;height:3px!important;border-radius:999px!important;margin-right:6px;vertical-align:middle;background:#888}
