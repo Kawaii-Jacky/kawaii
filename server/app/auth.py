@@ -288,12 +288,10 @@ def verify_code(channel: str, target: str, purpose: str, code: str, request: Req
 
 def set_session_cookie(response: Response, token: str) -> None:
     same_site = COOKIE_SAMESITE if COOKIE_SAMESITE in ("lax", "strict", "none") else "lax"
-    # Remove legacy variants before setting the canonical host-only root cookie.
-    # Safari may otherwise send two cookies with the same name and the API can
-    # receive the stale value instead of the session created by this login.
-    response.delete_cookie(COOKIE_NAME, path="/api", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
-    response.delete_cookie(COOKIE_NAME, path="/api/v1/auth", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
-    response.delete_cookie(COOKIE_NAME, path="/", domain=".astroy.xyz", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
+    # Keep the login response to one canonical Set-Cookie header. Safari 18 can
+    # discard the new cookie when the same response also expires legacy cookies
+    # with the same name but different paths/domains. Duplicate legacy values
+    # are handled safely by current_user instead.
     response.set_cookie(
         COOKIE_NAME, token, max_age=SESSION_DAYS * 86400, httponly=True,
         secure=COOKIE_SECURE, samesite=same_site,
@@ -322,23 +320,47 @@ def session_token(cookie_token: str | None, authorization: str | None) -> str | 
     return None
 
 
+def request_session_tokens(
+    request: Request,
+    cookie_token: str | None,
+    authorization: str | None,
+) -> list[str]:
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization[7:].strip()
+        return [token] if token else []
+    tokens: list[str] = []
+    raw_cookie = request.headers.get("cookie", "")
+    for part in raw_cookie.split(";"):
+        name, separator, value = part.strip().partition("=")
+        if separator and name == COOKIE_NAME and value and value not in tokens:
+            tokens.append(value)
+    if cookie_token and cookie_token not in tokens:
+        tokens.append(cookie_token)
+    return tokens
+
+
 def current_user(
+    request: Request,
     astra_session: str | None = Cookie(default=None, alias=COOKIE_NAME),
     authorization: str | None = Header(default=None)
 ) -> dict[str, Any]:
-    token = session_token(astra_session, authorization)
-    if not token: raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authentication required")
+    tokens = request_session_tokens(request, astra_session, authorization)
+    if not tokens: raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authentication required")
     with db_lock, connection() as db:
-        row = db.execute("""select u.*,s.id as session_id,s.expires_at,s.last_seen_at from auth_sessions s
-          join users u on u.id=s.user_id where s.token_hash=? and s.revoked_at is null""", (token_digest(token),)).fetchone()
         now = utcnow()
-        expired = bool(row) and datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00")) < now
-        if not row or row["disabled"] or expired:
-            if row and expired: db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired")
-        db.execute("update auth_sessions set last_seen_at=? where id=?", (iso(now), row["session_id"]))
-        result = user_payload(row); result["session_id"] = row["session_id"]
-        return result
+        for token in tokens:
+            row = db.execute("""select u.*,s.id as session_id,s.expires_at,s.last_seen_at from auth_sessions s
+              join users u on u.id=s.user_id where s.token_hash=? and s.revoked_at is null""", (token_digest(token),)).fetchone()
+            expired = bool(row) and datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00")) < now
+            if row and expired:
+                db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
+                continue
+            if not row or row["disabled"]:
+                continue
+            db.execute("update auth_sessions set last_seen_at=? where id=?", (iso(now), row["session_id"]))
+            result = user_payload(row); result["session_id"] = row["session_id"]
+            return result
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired")
 
 
 def require_operator(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
