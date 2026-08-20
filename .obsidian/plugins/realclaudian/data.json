@@ -6,24 +6,15 @@
         "conversationId": "conv-1784373946139-62ti60mpq"
       },
       {
-        "tabId": "tab-1784605782995-itxeae0",
-        "conversationId": "conv-1784693497484-31gwx8r4y"
-      },
-      {
-        "draftModel": "opencode:qweapi/gpt-5.5",
-        "tabId": "tab-1785694287700-q38f3me",
-        "conversationId": null
-      },
-      {
-        "draftModel": "sonnet[1m]",
-        "tabId": "tab-1785937067326-50hlwx3",
-        "conversationId": null
-      },
-      {
         "tabId": "tab-1786016849797-9d4htfu",
         "conversationId": "conv-1786017005909-pxo7bxr70"
+      },
+      {
+        "draftModel": "opencode:daodunapi/gpt-5.5",
+        "tabId": "tab-1786995234045-5rr0n29",
+        "conversationId": null
       }
     ],
-    "activeTabId": "tab-1785937067326-50hlwx3"
+    "activeTabId": "tab-1784373763780-vavk8ou"
   }
 }
