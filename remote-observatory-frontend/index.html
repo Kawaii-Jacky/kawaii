@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260820-17" />
+    <link rel="stylesheet" href="app.css?v=20260820-19" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -62,7 +62,6 @@
             <article class="hero-card dark-card">
               <button class="outline-button connection-entry hero-connection" data-open-settings><span>••</span> 连接设置 ↗</button>
               <div class="hero-copy">
-                <span class="label-invert">OBSERVATORY 01</span>
                 <h2 class="hero-title" aria-label="羊牌 天文控制台"><span class="brand-word" data-text="羊牌">羊牌</span><span class="console-word">天文控制台</span></h2>
                 <p>专为迷你个人远程天文设计打造</p>
               </div>
@@ -129,7 +128,7 @@
           <div class="page-intro"><div><h2>能源系统</h2><p>光伏输入、电池状态与充电算法统一监测。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
           <div class="power-hero">
             <article class="battery-card dark-card">
-              <div><span class="label-invert">BATTERY RESERVE</span><h3>剩余电量</h3><strong id="battery-big">--<sup>%</sup></strong><p><span class="status-dot"></span><b id="charge-state">设备离线</b></p></div>
+              <div><h3>剩余电量</h3><strong id="battery-big">--<sup>%</sup></strong><p><span class="status-dot"></span><b id="charge-state">设备离线</b></p></div>
               <div class="battery-gauge"><span id="battery-fill"></span><i></i><i></i><i></i><i></i><i></i></div>
               <footer><span>最低电压 <b id="battery-min">--</b></span><span>满电电压 <b id="battery-max">--</b></span></footer>
             </article>
@@ -424,10 +423,10 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js"></script>
-  <script src="app.js?v=20260820-17"></script>
+  <script src="app.js?v=20260820-19"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
-  <script type="module" src="observatory-3d.js?v=20260820-13"></script>
+  <script type="module" src="observatory-3d.js?v=20260820-19"></script>
 </body>
 </html>

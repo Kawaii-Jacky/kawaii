@@ -47,7 +47,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-17", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-19", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -1731,27 +1731,32 @@
     return max > min ? [min, max] : [Math.max(minLimit, min - minimumSpan), Math.min(maxLimit, max + minimumSpan)];
   }
 
+  function forecastStartIndex(labels) {
+    const now = Date.now();
+    const index = labels.findIndex(value => chartPointTime(value) >= now);
+    return index < 0 ? labels.length : index;
+  }
+
   function drawAstronomyChart() {
     renderSeeingSource();
     const openData = state.forecast.hourly, sevenData = state.sevenTimer;
-    let sharedNowMarkerFraction = NaN;
     if (openData?.seeing?.length) {
-      const count = Math.min(state.forecastRange, openData.time.length);
-      const firstTime = chartPointTime(openData.time[0]), lastTime = chartPointTime(openData.time[count - 1]), now = Date.now();
-      if (Number.isFinite(firstTime) && Number.isFinite(lastTime) && now >= firstTime && now <= lastTime) sharedNowMarkerFraction = clamp((now - firstTime) / Math.max(lastTime - firstTime, 1), 0, 1);
+      const start = forecastStartIndex(openData.time), count = Math.min(state.forecastRange, openData.time.length - start);
+      if (!count) return;
+      const visibleSeeing = openData.seeing.slice(start, start + count), visibleClear = openData.clear.slice(start, start + count);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
       const axisRanges = fullRange ? { left:[0,100], right:[0,100] } : comfortRange ? { left:[50,100], right:[50,100] } : {
-        left:forecastAutoRange(openData.seeing.slice(0, count), 0, 100, 10),
-        right:forecastAutoRange(openData.clear.slice(0, count), 0, 100, 10)
+        left:forecastAutoRange(visibleSeeing, 0, 100, 10),
+        right:forecastAutoRange(visibleClear, 0, 100, 10)
       };
       drawLineChart($("#forecast-astro-chart"), [
-        { key:"forecastSeeing", data:openData.seeing, color:seeingSourceMeta.openmeteo.color, axis:"left" },
-        { key:"forecastClear", data:openData.clear, color:"#f3d369", axis:"right" }
-      ], openData.time, { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, mirrorNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"分", rightAxisSuffix:"%", axisFontWeight:600 });
+        { key:"forecastSeeing", data:visibleSeeing, color:seeingSourceMeta.openmeteo.color, axis:"left" },
+        { key:"forecastClear", data:visibleClear, color:"#f3d369", axis:"right" }
+      ], openData.time.slice(start, start + count), { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"分", rightAxisSuffix:"%", axisFontWeight:600 });
     }
     if (sevenData?.seeing?.length) {
-      const sevenCount = Math.min(Math.ceil(state.sevenTimerRange / 3), sevenData.labels.length);
-      const visibleSeeing = sevenData.seeing.slice(0, sevenCount), visibleTransparency = sevenData.transparency.slice(0, sevenCount);
+      const start = forecastStartIndex(sevenData.labels), sevenCount = Math.min(Math.ceil(state.sevenTimerRange / 3), sevenData.labels.length - start);
+      const visibleSeeing = sevenData.seeing.slice(start, start + sevenCount), visibleTransparency = sevenData.transparency.slice(start, start + sevenCount);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
       const axisMax = Math.max(5, Math.ceil(Math.max(0, ...visibleSeeing)));
       const axisRanges = fullRange ? { left:[0,axisMax], right:[0,100] } : comfortRange ? { left:[0,3], right:[50,100] } : {
@@ -1761,20 +1766,20 @@
       drawLineChart($("#forecast-seven-chart"), [
         { key:"sevenTimerSeeing", data:sevenData.seeing, color:seeingSourceMeta.seventimer.color, axis:"left" },
         { key:"sevenTimerTransparency", data:sevenData.transparency, color:"#f3d369", axis:"right" }
-      ], sevenData.labels, { visibleCount:sevenCount, fromStart:true, ignoreVisibility:true, showNowMarker:true, nowMarkerFraction:sharedNowMarkerFraction, mirrorNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"″", rightAxisSuffix:"%", axisFontWeight:600 });
+      ], sevenData.labels.slice(start, start + sevenCount), { visibleCount:sevenCount, fromStart:true, ignoreVisibility:true, showNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"″", rightAxisSuffix:"%", axisFontWeight:600 });
     }
   }
 
   function drawForecastCharts() {
     const f = state.forecast.hourly;
     if (f.time.length) {
-      const count = Math.min(state.forecastRange, f.time.length);
-      const common = { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, mirrorNowMarker:false };
-      const rainValues = f.precipitation.slice(0, count).map(Number).filter(Number.isFinite);
+      const start = forecastStartIndex(f.time), count = Math.min(state.forecastRange, f.time.length - start), labels = f.time.slice(start, start + count);
+      const common = { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:false };
+      const visibleTemperature = f.temperature.slice(start, start + count), visibleHumidity = f.humidity.slice(start, start + count), visibleCloud = f.cloud.slice(start, start + count), visiblePrecipitation = f.precipitation.slice(start, start + count);
+      const rainValues = visiblePrecipitation.map(Number).filter(Number.isFinite);
       const rainMax = Math.max(0, ...rainValues);
       const rainAxisMax = Math.max(0.4, Math.ceil(rainMax * 12) / 10);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
-      const visibleTemperature = f.temperature.slice(0, count), visibleHumidity = f.humidity.slice(0, count), visibleCloud = f.cloud.slice(0, count);
       const temperatureMin = Math.min(0, ...visibleTemperature.filter(Number.isFinite)), temperatureMax = Math.max(0, ...visibleTemperature.filter(Number.isFinite));
       const temperatureRanges = fullRange ? {
         left:[Math.min(-40, Math.floor(temperatureMin / 10) * 10), Math.max(50, Math.ceil(temperatureMax / 10) * 10)], right:[0,100]
@@ -1787,13 +1792,13 @@
         left:forecastAutoRange(visibleCloud, 0, 100, 10), right:[0,rainAxisMax]
       };
       drawLineChart($("#forecast-temperature-chart"), [
-        { key:"forecastTemp", data:f.temperature, color:"#ff9f43", axis:"left" },
-        { key:"forecastHumidity", data:f.humidity, color:"#66c7f2", axis:"right" }
-      ], f.time, { ...common, axisRanges:temperatureRanges, showYAxisLabels:true, leftAxisSuffix:"°", rightAxisSuffix:"%", axisFontWeight:600 });
+        { key:"forecastTemp", data:visibleTemperature, color:"#ff9f43", axis:"left" },
+        { key:"forecastHumidity", data:visibleHumidity, color:"#66c7f2", axis:"right" }
+      ], labels, { ...common, axisRanges:temperatureRanges, showYAxisLabels:true, leftAxisSuffix:"°", rightAxisSuffix:"%", axisFontWeight:600 });
       drawLineChart($("#forecast-sky-chart"), [
-        { key:"forecastCloud", data:f.cloud, color:"#a6a8b1", axis:"left" },
-        { key:"forecastRain", data:f.precipitation, color:"#4ab8e8", axis:"right" }
-      ], f.time, { ...common, axisRanges:skyRanges, showYAxisLabels:true, leftAxisSuffix:"%", rightAxisSuffix:"mm", axisFontWeight:600 });
+        { key:"forecastCloud", data:visibleCloud, color:"#a6a8b1", axis:"left" },
+        { key:"forecastRain", data:visiblePrecipitation, color:"#4ab8e8", axis:"right" }
+      ], labels, { ...common, axisRanges:skyRanges, showYAxisLabels:true, leftAxisSuffix:"%", rightAxisSuffix:"mm", axisFontWeight:600 });
     } else {
       drawLineChart($("#forecast-sky-chart"),[],[],{ignoreVisibility:true,showYAxisLabels:true,leftAxisSuffix:"%",rightAxisSuffix:"mm",axisFontWeight:600});
     }

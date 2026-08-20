@@ -9,9 +9,8 @@ const interactionSurface = document.querySelector("#observatory-interaction-laye
 const loadingLabel = document.querySelector("#observatory-loading span");
 const effectButtons = [...document.querySelectorAll("[data-model-effect]")];
 const NATIVE_RUNTIME = Boolean(window.__TAURI__?.core?.invoke);
-// The compact web model relies exclusively on EXT_texture_webp. Some native
-// WebView builds load its geometry but silently omit extension-only textures,
-// so Tauri uses the equivalent core glTF model with embedded PNG textures.
+// The compact web model uses the browser's supported WebP glTF extension;
+// native uses the equivalent core glTF model with embedded PNG textures.
 const MODEL_SOURCE = NATIVE_RUNTIME ? "external-png" : "webp-extension";
 const MODEL_URL = NATIVE_RUNTIME
   ? "./assets/models/observatory-native.glb?v=20260819-1"
