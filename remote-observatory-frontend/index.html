@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260820-15" />
+    <link rel="stylesheet" href="app.css?v=20260820-17" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -25,10 +25,8 @@
     <button type="button" id="pwa-install-action" hidden>更新</button>
     <button type="button" id="pwa-install-dismiss" aria-label="关闭安装提示">×</button>
   </aside>
-  <div class="app-preloader" id="app-preloader" role="status" aria-live="polite" aria-busy="true">
+  <div class="app-preloader" id="app-preloader" hidden role="status" aria-live="polite" aria-busy="true">
     <div class="app-preloader-card">
-      <span class="app-preloader-mark">A</span>
-      <span class="app-preloader-kicker">ASTRA / REMOTE OBSERVATORY</span>
       <strong id="app-preloader-title">加载天文台模型</strong>
       <div class="app-preloader-bar" aria-hidden="true"><i id="app-preloader-progress"></i></div>
       <small id="app-preloader-status">正在准备三维场景…</small>
@@ -426,7 +424,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js"></script>
-  <script src="app.js?v=20260820-15"></script>
+  <script src="app.js?v=20260820-17"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>

@@ -1,62 +1,53 @@
 (() => {
   "use strict";
 
+  let modelGateReady = false;
+  let modelGateError = false;
+  const modelGateWaiters = [];
+
   function initModelGate() {
     const gate = document.querySelector("#app-preloader");
-    const shell = document.querySelector(".app-shell");
-    if (!gate || !shell) return;
-    if (window.__TAURI__?.core?.invoke) {
-      document.documentElement.classList.add("model-gate-ready");
-      document.documentElement.dataset.nativeModelPreload = "background";
-      gate.remove();
-      return;
-    }
-    let revealed = false;
+    if (!gate) return;
     const title = document.querySelector("#app-preloader-title");
     const status = document.querySelector("#app-preloader-status");
-    const reveal = (message) => {
-      if (revealed) return;
-      revealed = true;
-      if (message && status) status.textContent = message;
-      document.documentElement.classList.add("model-gate-ready");
-      gate.classList.add("is-complete");
+    const finish = (message, error = false) => {
+      modelGateReady = !error;
+      modelGateError = error;
+      if (title) title.textContent = error ? "使用备用天文台图像" : "天文台模型就绪";
+      if (status) status.textContent = message;
       gate.setAttribute("aria-busy", "false");
-      window.setTimeout(() => gate.remove(), 420);
+      const waiters = modelGateWaiters.splice(0);
+      window.setTimeout(() => { gate.hidden = true; gate.classList.remove("is-complete"); waiters.forEach(resolve => resolve()); }, 180);
     };
-    window.addEventListener("observatory:model-progress", (event) => {
+    window.addEventListener("observatory:model-progress", event => {
       const progress = Number(event.detail?.progress);
       const bar = document.querySelector("#app-preloader-progress");
       const track = document.querySelector(".app-preloader-bar");
-      if (track && Number.isFinite(progress)) track.classList.remove("indeterminate");
-      if (track && !Number.isFinite(progress)) track.classList.add("indeterminate");
+      if (track) track.classList.toggle("indeterminate", !Number.isFinite(progress));
       if (bar && Number.isFinite(progress)) bar.style.width = `${Math.max(4, Math.min(100, progress))}%`;
       if (status) status.textContent = Number.isFinite(progress) ? `正在加载三维场景 ${Math.round(progress)}%` : "正在接收模型数据…";
     });
-    window.addEventListener("observatory:model-ready", () => {
-      const bar = document.querySelector("#app-preloader-progress");
-      const track = document.querySelector(".app-preloader-bar");
-      if (bar) bar.style.width = "100%";
-      if (track) track.classList.remove("indeterminate");
-      if (title) title.textContent = "天文台模型就绪";
-      reveal("正在进入控制台…");
-    }, { once: true });
-    window.addEventListener("observatory:model-error", () => {
-      if (title) title.textContent = "使用备用天文台图像";
-      reveal("三维模型暂不可用，已切换备用图");
-    }, { once: true });
-    window.setTimeout(() => {
-      if (!revealed) {
-        if (title) title.textContent = "模型加载超时";
-        reveal("网络响应较慢，已切换备用图");
-      }
-    }, 9000);
+    window.addEventListener("observatory:model-ready", () => finish("正在进入控制台…"), { once:true });
+    window.addEventListener("observatory:model-error", () => finish("模型不可用，已切换备用图。", true), { once:true });
+    window.setTimeout(() => { if (!modelGateReady && !modelGateError) finish("网络响应较慢，已切换备用图。", true); }, 9000);
+  }
+
+  function waitForModelReady() {
+    if (modelGateReady || modelGateError) return Promise.resolve();
+    const gate = document.querySelector("#app-preloader");
+    if (gate) {
+      gate.hidden = false;
+      gate.classList.remove("is-complete");
+      gate.setAttribute("aria-busy", "true");
+    }
+    return new Promise(resolve => modelGateWaiters.push(resolve));
   }
 
   initModelGate();
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-15", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-17", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -2669,6 +2660,7 @@
       if (state.auth.user && state.route === "login") {
         const target = state.auth.returnRoute || "overview";
         state.auth.returnRoute = null;
+        await waitForModelReady();
         routeTo(target);
       } else if (!state.auth.user && state.route !== "login") {
         routeTo("login");
@@ -2765,6 +2757,7 @@
         toast(mode === "register" ? "账户创建成功" : "登录成功", "账户会话已安全建立。", "ok");
         const target = state.auth.returnRoute || "profile";
         state.auth.returnRoute = null;
+        await waitForModelReady();
         routeTo(target);
       }
     } catch (error) {
@@ -3061,7 +3054,7 @@
       rendered_icons:$$('svg.lucide').length,
       initial_route:state.route,
       login_visible:Boolean($("#page-login")?.classList.contains("active")),
-      model_preloader_blocking:Boolean($("#app-preloader"))
+      model_preloader_blocking:Boolean($("#app-preloader") && !$("#app-preloader").hidden)
     };
     window.__astraIconHealth = Object.freeze({ ...iconHealth });
     if (isNativeRuntime()) {
