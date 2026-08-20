@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tokio::sync::{oneshot, Mutex};
 
 const DEFAULT_SERVER: &str = "https://astroy.xyz";
@@ -84,7 +84,7 @@ fn clear_secure_token() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn native_login(state: State<'_, NativeState>, body: LoginBody) -> Result<NativeResult, NativeCommandError> {
+async fn native_login(state: State<'_, NativeState>, body: LoginBody, remember: Option<bool>) -> Result<NativeResult, NativeCommandError> {
     let server = state.server.lock().await.clone();
     let response = Client::new().post(format!("{server}/api/v1/auth/native/login")).json(&body).send().await.map_err(|e| e.to_string())?;
     let status = response.status();
@@ -94,7 +94,11 @@ async fn native_login(state: State<'_, NativeState>, body: LoginBody) -> Result<
     }
     let value = serde_json::from_str::<NativeResult>(&raw).map_err(|e| e.to_string())?;
     *state.token.lock().await = Some(value.access_token.clone());
-    save_secure_token(&value.access_token)?;
+    if remember.unwrap_or(true) {
+        save_secure_token(&value.access_token)?;
+    } else {
+        clear_secure_token()?;
+    }
     Ok(value)
 }
 
@@ -133,6 +137,21 @@ async fn load_native_token(state: State<'_, NativeState>) -> Result<Option<Strin
     let token = load_secure_token()?;
     if let Some(value) = token.clone() { *state.token.lock().await = Some(value); }
     Ok(token)
+}
+
+#[tauri::command]
+async fn set_native_token(state: State<'_, NativeState>, token: String) -> Result<(), String> {
+    if token.trim().is_empty() { return Err("Native session token is empty".into()); }
+    *state.token.lock().await = Some(token);
+    Ok(())
+}
+
+#[tauri::command]
+fn native_vault_path(app: AppHandle) -> Result<String, String> {
+    app.path()
+        .app_data_dir()
+        .map(|path| path.join("astra-session.hold").to_string_lossy().into_owned())
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -248,7 +267,7 @@ pub fn run() {
         .manage(NativeState { server: Arc::new(Mutex::new(DEFAULT_SERVER.to_string())), token: Arc::new(Mutex::new(None)), sse_abort: Arc::new(Mutex::new(None)) })
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_stronghold::Builder::new(|password| password.to_owned().into()).build())
-        .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, clear_native_token, set_server, native_fetch, start_sse, stop_sse, report_frontend_health, report_model_health])
+        .invoke_handler(tauri::generate_handler![native_login, native_refresh, load_native_token, set_native_token, native_vault_path, clear_native_token, set_server, native_fetch, start_sse, stop_sse, report_frontend_health, report_model_health])
         .run(tauri::generate_context!())
         .expect("error while running ASTRA");
 }

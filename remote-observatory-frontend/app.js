@@ -56,7 +56,7 @@
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-06", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-08", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -97,6 +97,67 @@
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const isNativeRuntime = () => Boolean(window.__TAURI__?.core?.invoke);
   const nativeInvoke = (command, args = {}) => window.__TAURI__.core.invoke(command, args);
+  const NATIVE_AUTO_LOGIN_KEY = "astra.nativeAutoLogin";
+  const NATIVE_VAULT_PASSWORD = "ASTRA-xyz.astroy.app-session-v1!";
+  const NATIVE_VAULT_CLIENT = "astra-native-session";
+  const NATIVE_VAULT_RECORD = "session";
+  let nativeVaultContextPromise = null;
+
+  async function nativeVaultContext() {
+    if (!nativeVaultContextPromise) nativeVaultContextPromise = (async () => {
+      const snapshotPath = await nativeInvoke("native_vault_path");
+      await nativeInvoke("plugin:stronghold|initialize", { snapshotPath, password:NATIVE_VAULT_PASSWORD });
+      try {
+        await nativeInvoke("plugin:stronghold|load_client", { snapshotPath, client:NATIVE_VAULT_CLIENT });
+      } catch (_) {
+        await nativeInvoke("plugin:stronghold|create_client", { snapshotPath, client:NATIVE_VAULT_CLIENT });
+      }
+      return { snapshotPath, client:NATIVE_VAULT_CLIENT };
+    })().catch(error => { nativeVaultContextPromise = null; throw error; });
+    return nativeVaultContextPromise;
+  }
+
+  async function saveNativeAutoLoginToken(token) {
+    const context = await nativeVaultContext();
+    const server = localStorage.getItem("astra.nativeServerUrl") || "https://astroy.xyz";
+    const value = [...new TextEncoder().encode(JSON.stringify({ server, token }))];
+    await nativeInvoke("plugin:stronghold|save_store_record", { ...context, key:NATIVE_VAULT_RECORD, value, lifetime:null });
+    await nativeInvoke("plugin:stronghold|save", { snapshotPath:context.snapshotPath });
+  }
+
+  async function clearNativeAutoLoginToken() {
+    if (!isNativeRuntime()) return;
+    const context = await nativeVaultContext();
+    await nativeInvoke("plugin:stronghold|save_store_record", { ...context, key:NATIVE_VAULT_RECORD, value:[], lifetime:null });
+    await nativeInvoke("plugin:stronghold|save", { snapshotPath:context.snapshotPath });
+  }
+
+  async function restoreNativeAutoLoginToken() {
+    if (!isNativeRuntime()) return null;
+    if (localStorage.getItem(NATIVE_AUTO_LOGIN_KEY) === "0") {
+      await nativeInvoke("clear_native_token").catch(() => {});
+      await clearNativeAutoLoginToken().catch(() => {});
+      return null;
+    }
+    const desktopToken = await nativeInvoke("load_native_token").catch(() => null);
+    if (desktopToken) return desktopToken;
+    try {
+      const context = await nativeVaultContext();
+      const bytes = await nativeInvoke("plugin:stronghold|get_store_record", { ...context, key:NATIVE_VAULT_RECORD });
+      if (!Array.isArray(bytes) || !bytes.length) return null;
+      const saved = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes)));
+      const server = localStorage.getItem("astra.nativeServerUrl") || "https://astroy.xyz";
+      if (!saved?.token || saved.server !== server) {
+        await clearNativeAutoLoginToken();
+        return null;
+      }
+      await nativeInvoke("set_native_token", { token:saved.token });
+      return saved.token;
+    } catch (error) {
+      console.error("Unable to restore encrypted native session", error);
+      return null;
+    }
+  }
   let nativeEventUnlisten = null;
   let nativeEventBuffer = "";
   async function nativeRequest(path, options = {}) {
@@ -2172,7 +2233,16 @@
     if (isNativeRuntime()) {
       if (path === "/login") {
         const body = JSON.parse(options.body || "{}");
-        const result = await nativeInvoke("native_login", { body });
+        const remember = $("#auth-auto-login")?.checked !== false;
+        localStorage.setItem(NATIVE_AUTO_LOGIN_KEY, remember ? "1" : "0");
+        const result = await nativeInvoke("native_login", { body, remember });
+        try {
+          if (remember) await saveNativeAutoLoginToken(result.access_token);
+          else await clearNativeAutoLoginToken();
+        } catch (error) {
+          console.error("Unable to persist encrypted native session", error);
+          setAuthMessage("已登录，但自动登录信息保存失败。", "error");
+        }
         return result;
       }
       if (path === "/session/refresh") return nativeInvoke("native_refresh");
@@ -2432,6 +2502,13 @@
     const form = $("#auth-form");
     const status = $("#auth-status-chip");
     const profileStatus=$("#profile-auth-status");
+    const autoLoginField = $("#auth-auto-login-field");
+    const autoLogin = $("#auth-auto-login");
+    if (autoLoginField) autoLoginField.hidden = !isNativeRuntime() || mode !== "login";
+    if (autoLogin && !autoLogin.dataset.initialized) {
+      autoLogin.checked = localStorage.getItem(NATIVE_AUTO_LOGIN_KEY) !== "0";
+      autoLogin.dataset.initialized = "true";
+    }
     if (form) form.hidden = loggedIn;
     if (form) form.dataset.authMode = mode;
     if (status) {
@@ -2488,7 +2565,7 @@
     state.auth.loading = true;
     renderAuth();
     try {
-      if (isNativeRuntime()) await nativeInvoke("load_native_token").catch(() => null);
+      if (isNativeRuntime()) await restoreNativeAutoLoginToken();
       if (localStorage.getItem("astra.logoutPending") === "1") {
         await authApi("/logout", { method:"POST" });
         localStorage.removeItem("astra.logoutPending");
@@ -2502,6 +2579,10 @@
       if (state.controller.configured) connectEventStream(); else openSettings();
     } catch (error) {
       if (error.status !== 401) setAuthMessage(authErrorMessage(error), "error");
+      if (isNativeRuntime() && error.status === 401) {
+        await nativeInvoke("clear_native_token").catch(() => {});
+        await clearNativeAutoLoginToken().catch(() => {});
+      }
       state.auth.user = null;
       disconnectEventStream();
       buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();
@@ -2639,7 +2720,10 @@
     routeTo("login");
     try {
       await authApi("/logout", { method:"POST", signal:controller.signal });
-      if (isNativeRuntime()) await nativeInvoke("clear_native_token").catch(() => {});
+      if (isNativeRuntime()) {
+        await nativeInvoke("clear_native_token").catch(() => {});
+        await clearNativeAutoLoginToken().catch(() => {});
+      }
       serverSessionEnded = true;
       try { localStorage.removeItem("astra.logoutPending"); } catch {}
     } catch (error) {
@@ -2765,6 +2849,7 @@
     $$('[data-auth-channel]').forEach(button => button.addEventListener("click", () => { state.auth.channel = button.dataset.authChannel; setAuthMessage(state.auth.channel === "phone" ? "验证码将通过阿里云短信认证发送。" : "验证码将发送到指定邮箱。"); renderAuth(); }));
     $("#auth-send-code")?.addEventListener("click", requestAuthCode);
     $("#auth-form")?.addEventListener("submit", submitAuth);
+    $("#auth-auto-login")?.addEventListener("change", event => localStorage.setItem(NATIVE_AUTO_LOGIN_KEY, event.currentTarget.checked ? "1" : "0"));
     $("#profile-logout")?.addEventListener("click", logoutAuth);
     $("#password-change-form")?.addEventListener("submit", changeAccountPassword);
     $$('[data-route]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.route)));

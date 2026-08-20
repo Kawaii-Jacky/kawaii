@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260820-06" />
+    <link rel="stylesheet" href="app.css?v=20260820-08" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -317,6 +317,7 @@
                     <button class="outline-button" id="auth-send-code" type="button">发送验证码</button>
                   </div>
                   <label class="auth-field"><span id="auth-password-label">密码</span><input id="auth-password" type="password" maxlength="128" autocomplete="current-password" /></label>
+                  <label class="auth-auto-login" id="auth-auto-login-field" hidden><input id="auth-auto-login" type="checkbox" checked /><span><b>自动登录</b><small>安全保存登录会话，下次打开直接进入控制台</small></span></label>
                   <label class="auth-field" id="auth-confirm-field" hidden><span>确认密码</span><input id="auth-password-confirm" type="password" minlength="9" maxlength="128" autocomplete="new-password" placeholder="再次输入密码" /></label>
                   <button class="primary-button auth-submit" id="auth-submit" type="submit">登录</button>
                   <p class="auth-message" id="auth-message" role="status" aria-live="polite">登录后可在不同设备间安全使用控制台。</p>
@@ -425,7 +426,7 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js"></script>
-  <script src="app.js?v=20260820-06"></script>
+  <script src="app.js?v=20260820-08"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
