@@ -195,7 +195,7 @@ body,.main{color:var(--ui-text);background:var(--ui-bg)}
 .primary-button,.control-row.on>i,.quick-toggle.on>i,.range-tabs button.active,.font-options button.active{color:var(--ui-on-accent);background:var(--accent);border-color:var(--accent)}
 .primary-button:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .light-button{color:var(--ui-text);background:var(--ui-surface);border-color:var(--ui-surface)}.ghost-button{color:var(--ui-on-accent);background:color-mix(in srgb,var(--ui-bg) 64%,transparent);border-color:color-mix(in srgb,var(--ui-on-accent) 24%,transparent)}
-.quick-toggle.on{color:var(--ui-on-accent);background:var(--accent);border-color:var(--accent)}
+.quick-toggle.on{color:var(--ui-text);background:var(--ui-surface-2);border-color:var(--accent)}
 .section-num,.online-badge{color:var(--accent);background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 38%,var(--ui-line))}
 input,select{color:var(--ui-text);background:transparent}input[type=range]{accent-color:var(--accent)}
 .check{color:var(--ui-muted);background:var(--ui-surface-2)}.check.ok{color:var(--ui-on-accent);background:var(--accent)}
@@ -265,7 +265,8 @@ body h3{font-size:var(--fs-card-title)!important}
 .range-control{padding:12px;border-radius:12px;background:var(--glass-inner);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .quick-toggle>i::after,.control-row>i::after{box-shadow:none!important}
 .section-num,.online-badge{background:var(--glass-deep)!important}
-.quick-toggle.on,.font-options button.active,.color-mode-options button.active,.mode-select button.active,.theme-options button.active,.roof-controls button:first-child,.onstep-actions button:hover{color:var(--ui-on-accent)!important;background:var(--accent)!important}
+.font-options button.active,.color-mode-options button.active,.mode-select button.active,.theme-options button.active,.roof-controls button:first-child,.onstep-actions button:hover{color:var(--ui-on-accent)!important;background:var(--accent)!important}
+.quick-toggle.on{color:var(--ui-text)!important;background:var(--ui-surface-2)!important;border-color:var(--accent)!important}
 .theme-options button.active{position:relative;color:var(--ui-text)!important;background:var(--glass-inner)!important;outline:2px solid color-mix(in srgb,var(--swatch) 72%,var(--ui-text) 28%);outline-offset:-2px}
 .theme-options button.active i{box-shadow:0 0 0 5px color-mix(in srgb,var(--ui-text) 10%,transparent)}
 html[data-theme-color="black"][data-color-mode="dark"] .theme-options button[data-theme-color="black"].active{outline-color:color-mix(in srgb,var(--ui-text) 42%,transparent)}
@@ -296,7 +297,7 @@ html[data-color-mode="light"] .theme-options button:is([data-theme-color="black"
 .terminal,.terminal p,.terminal .ok,.terminal .warn{color:var(--accent)!important}
 html[data-theme-color="black"][data-color-mode="dark"] :is(.terminal,.terminal p,.terminal .ok,.terminal .warn){color:var(--ui-text)!important}
 html[data-color-mode="dark"] :is(.form-grid label,.angle-card>label,.control-row,.quick-toggle,.connection-form input,.terminal-card form,.dense-metrics>div){background:#1a1a1a!important}
-html[data-color-mode="dark"] .quick-toggle.on{background:var(--accent)!important}
+html[data-color-mode="dark"] .quick-toggle.on{background:#1a1a1a!important;color:var(--ui-text)!important}
 html[data-color-mode="dark"] :is(.control-row,.quick-toggle)>i{background:#050505!important}
 html[data-color-mode="dark"] :is(.control-row.on,.quick-toggle.on)>i{background:#73756f!important}
 html[data-color-mode="dark"] :is(.card-header,.chart-header,.device-row,.check-list>div,.profile-info-card>div:not(.card-header),.range-control){background:rgba(255,255,255,.045)!important}
@@ -475,6 +476,7 @@ html[data-color-mode="light"] .terminal-device-menu{background:rgba(244,244,242,
 button:active{transform:scale(.975)!important}
 .nav-item:not(.active):hover,.mobile-nav button:not(.active):hover{color:var(--ui-sidebar-text);background:rgba(72,72,72,.58)!important;transform:translateX(3px)}
 .control-row:hover,.quick-toggle:hover,.roof-controls button:hover,.onstep-actions button:hover{transform:scale(1.012)!important;background:var(--glass-deep)!important}
+.quick-toggle.on:hover{background:var(--ui-surface-2)!important;color:var(--ui-text)!important;border-color:var(--accent)!important}
 .light-button:hover,.ghost-button:hover,.outline-button:hover,.primary-button:hover,.mini-link:hover{transform:translateY(-2px) scale(1.025)!important;filter:brightness(1.06)}
 
 /* Environment live trend embedded in the ambient card. */
@@ -586,6 +588,9 @@ button:active{transform:scale(.975)!important}
     transform:none!important;filter:none!important
   }
 }
+
+/* An enabled quick control keeps the same card surface while hovered. */
+.quick-toggle.on:hover{background:var(--ui-surface-2)!important;color:var(--ui-text)!important;border-color:var(--accent)!important}
 
 /* Tighter six-item bottom navigation without hover-time scaling. */
 @media(max-width:980px){
