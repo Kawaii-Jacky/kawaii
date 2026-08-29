@@ -52,6 +52,8 @@ COMMAND_MAX_ATTEMPTS = max(1, int(os.getenv("COMMAND_MAX_ATTEMPTS", "3")))
 MQTT_MAX_PAYLOAD_BYTES = max(1024, int(os.getenv("MQTT_MAX_PAYLOAD_BYTES", "65536")))
 MQTT_MAX_MESSAGES_PER_SECOND = max(1, int(os.getenv("MQTT_MAX_MESSAGES_PER_SECOND", "30")))
 TELEMETRY_RETENTION_DAYS = max(1, int(os.getenv("TELEMETRY_RETENTION_DAYS", "30")))
+TELEMETRY_RETENTION_MIN_DAYS = 1
+TELEMETRY_RETENTION_MAX_DAYS = 3650
 WEATHER_CACHE_MAX_ENTRIES = max(16, int(os.getenv("WEATHER_CACHE_MAX_ENTRIES", "256")))
 WEATHER_RATE_LIMIT = max(10, int(os.getenv("WEATHER_RATE_LIMIT", "120")))
 WEATHER_RATE_WINDOW_SECONDS = max(60, int(os.getenv("WEATHER_RATE_WINDOW_SECONDS", "300")))
@@ -287,6 +289,8 @@ def init_db() -> None:
         create table if not exists service_traffic_totals (
           service text primary key, rx_bytes bigint not null default 0,
           tx_bytes bigint not null default 0, updated_at text not null);
+        create table if not exists runtime_settings (
+          key text primary key, value text not null, updated_at text not null);
         """)
         ensure_column(c, "commands", "mqtt_payload", "text")
         ensure_column(c, "commands", "attempt_count", "integer not null default 0")
@@ -306,6 +310,15 @@ def init_db() -> None:
         )
         c.execute("""insert into service_traffic_totals(service,rx_bytes,tx_bytes,updated_at)
           values('api',0,0,?) on conflict(service) do nothing""", (now_iso(),))
+        c.execute(
+            """insert into runtime_settings(key,value,updated_at)
+               values(?,?,?) on conflict(key) do nothing""",
+            (
+                "telemetry_retention_days",
+                str(min(max(TELEMETRY_RETENTION_DAYS, TELEMETRY_RETENTION_MIN_DAYS), TELEMETRY_RETENTION_MAX_DAYS)),
+                now_iso(),
+            ),
+        )
         for did in DEVICE_IDS:
             dtype = "mppt" if did.startswith("mppt") else ("environment" if did.startswith("esp32") else "flat-field")
             c.execute("insert into devices(device_id,device_type,name) values(?,?,?) on conflict(device_id) do nothing", (did, dtype, did))
@@ -613,7 +626,21 @@ def monitor_offline_devices(controller_id: str | None = None) -> None:
 
 
 def prune_telemetry() -> int:
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=TELEMETRY_RETENTION_DAYS)).isoformat().replace("+00:00", "Z")
+    retention_days = TELEMETRY_RETENTION_DAYS
+    try:
+        with db_lock, conn() as c:
+            row = c.execute(
+                "select value from runtime_settings where key=?",
+                ("telemetry_retention_days",),
+            ).fetchone()
+        if row:
+            retention_days = min(
+                max(int(row["value"]), TELEMETRY_RETENTION_MIN_DAYS),
+                TELEMETRY_RETENTION_MAX_DAYS,
+            )
+    except (TypeError, ValueError, KeyError):
+        retention_days = TELEMETRY_RETENTION_DAYS
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=retention_days)).isoformat().replace("+00:00", "Z")
     with db_lock, conn() as c:
         return c.execute("delete from telemetry_samples where ts<?", (cutoff,)).rowcount
 

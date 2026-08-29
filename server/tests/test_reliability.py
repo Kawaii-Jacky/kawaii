@@ -672,6 +672,19 @@ class ReliabilityTest(unittest.TestCase):
             )
         self.assertEqual(self.main.prune_telemetry(), 1)
 
+    def test_prune_telemetry_uses_persisted_retention_setting(self):
+        with self.db.connection() as connection:
+            connection.execute(
+                "update runtime_settings set value=? where key=?",
+                ("7", "telemetry_retention_days"),
+            )
+            stale = (datetime.now(timezone.utc) - timedelta(days=8)).isoformat().replace("+00:00", "Z")
+            connection.execute(
+                "insert into telemetry_samples(device_id,ts,seq,payload) values(?,?,?,?)",
+                ("esp32-001", stale, 1, "{}"),
+            )
+        self.assertEqual(self.main.prune_telemetry(), 1)
+
     def test_revoked_session_is_not_active(self):
         now = datetime.now(timezone.utc)
         user_id = str(uuid.uuid4())
