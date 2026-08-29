@@ -6,6 +6,12 @@ PROJECT_ROOT="$(cd "$SERVER_ROOT/.." && pwd)"
 ENV_EXAMPLE="$SERVER_ROOT/.env.example"
 ENV_FILE="$SERVER_ROOT/.env"
 
+if grep -qi microsoft /proc/version && [[ "$SERVER_ROOT" == /mnt/* ]]; then
+  echo "拒绝在 WSL 的 /mnt 挂载中写入服务器密钥：chmod 无法可靠限制 Windows ACL。" >&2
+  echo "请运行 scripts/install-astra.ps1，或将项目复制到 WSL 原生文件系统后再运行此脚本。" >&2
+  exit 2
+fi
+
 read_secret() {
   local label="$1" min="$2" safe="${3:-0}" first second
   while true; do
@@ -66,6 +72,32 @@ while true; do
   echo "请输入有效邮箱地址。" >&2
 done
 ADMIN_PASSWORD="$(read_secret '管理员密码' 9 1)"
+SUPER_ADMIN_PASSWORD=""
+if [[ "${ADMIN_EMAIL,,}" != "123@qq.com" ]]; then
+  SUPER_ADMIN_PASSWORD="$(read_secret '保留超级管理员 123@qq.com 的密码' 9 1)"
+fi
+read -rp "配置 SMTP 邮箱验证码？[Y/n]: " CONFIGURE_SMTP
+CONFIGURE_SMTP="${CONFIGURE_SMTP:-y}"
+SMTP_HOST=""; SMTP_PORT=587; SMTP_USERNAME=""; SMTP_PASSWORD=""; SMTP_FROM=""; SMTP_STARTTLS=1; SMTP_SSL=0
+if [[ "$CONFIGURE_SMTP" =~ ^[Yy]$ ]]; then
+  read -rp "SMTP 主机: " SMTP_HOST
+  [[ -n "$SMTP_HOST" ]] || { echo "SMTP 主机不能为空。" >&2; exit 2; }
+  read -rp "SMTP 端口 [587]: " SMTP_PORT_INPUT
+  SMTP_PORT="${SMTP_PORT_INPUT:-587}"
+  [[ "$SMTP_PORT" =~ ^[0-9]+$ ]] && ((SMTP_PORT >= 1 && SMTP_PORT <= 65535)) || { echo "SMTP 端口无效。" >&2; exit 2; }
+  read -rp "SMTP 用户名: " SMTP_USERNAME
+  SMTP_PASSWORD="$(read_secret 'SMTP 应用密码' 1 1)"
+  read -rp "SMTP 发件地址 [$SMTP_USERNAME]: " SMTP_FROM
+  SMTP_FROM="${SMTP_FROM:-$SMTP_USERNAME}"
+  [[ "$SMTP_FROM" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]] || { echo "SMTP 发件地址无效。" >&2; exit 2; }
+  read -rp "SMTP 安全模式 starttls / ssl / none [starttls]: " SMTP_SECURITY
+  case "${SMTP_SECURITY:-starttls}" in
+    starttls) SMTP_STARTTLS=1; SMTP_SSL=0 ;;
+    ssl) SMTP_STARTTLS=0; SMTP_SSL=1 ;;
+    none) SMTP_STARTTLS=0; SMTP_SSL=0 ;;
+    *) echo "SMTP 安全模式无效。" >&2; exit 2 ;;
+  esac
+fi
 MQTT_PASSWORD="$(read_secret 'backend-controller MQTT 密码' 12 1)"
 MPPT_PASSWORD="$(read_secret 'mppt-001 MQTT 密码' 12 1)"
 ESP_PASSWORD="$(read_secret 'esp32-001 MQTT 密码' 12 1)"
@@ -91,7 +123,16 @@ set_env AUTH_COOKIE_SECURE 1
 set_env AUTH_DEBUG_CODES 0
 set_env ADMIN_EMAIL "${ADMIN_EMAIL,,}"
 set_env ADMIN_PASSWORD "$ADMIN_PASSWORD"
+set_env SUPER_ADMIN_PASSWORD "$SUPER_ADMIN_PASSWORD"
 set_env ADMIN_DISPLAY_NAME "$ADMIN_DISPLAY_NAME"
+set_env ADMIN_PASSWORD_SYNC 1
+set_env SMTP_HOST "$SMTP_HOST"
+set_env SMTP_PORT "$SMTP_PORT"
+set_env SMTP_USERNAME "$SMTP_USERNAME"
+set_env SMTP_PASSWORD "$SMTP_PASSWORD"
+set_env SMTP_FROM "$SMTP_FROM"
+set_env SMTP_STARTTLS "$SMTP_STARTTLS"
+set_env SMTP_SSL "$SMTP_SSL"
 set_env MQTT_PASSWORD "$MQTT_PASSWORD"
 set_env SMS_WEBHOOK_TOKEN "$(openssl rand -hex 32)"
 set_env CORS_ORIGINS "$CORS_ORIGINS"
@@ -111,7 +152,7 @@ set_macro_if_exists "$PROJECT_ROOT/电动平场板控制/电动平场板控制.i
 set_macro_if_exists "$PROJECT_ROOT/电动平场板控制/电动平场板控制.ino" WIFI_PASSWORD "$WIFI_PASSWORD"
 
 PASSWD_TMP="$SERVER_ROOT/mosquitto/passwd.install"
-trap 'rm -f "$PASSWD_TMP"; unset POSTGRES_PASSWORD ADMIN_PASSWORD MQTT_PASSWORD MPPT_PASSWORD ESP_PASSWORD EF_PASSWORD BACKUP_PASSWORD WIFI_PASSWORD' EXIT
+trap 'rm -f "$PASSWD_TMP"; unset POSTGRES_PASSWORD ADMIN_PASSWORD SUPER_ADMIN_PASSWORD SMTP_PASSWORD MQTT_PASSWORD MPPT_PASSWORD ESP_PASSWORD EF_PASSWORD BACKUP_PASSWORD WIFI_PASSWORD' EXIT
 umask 077
 if ! docker info >/dev/null 2>&1; then
   if grep -qi microsoft /proc/version; then
@@ -141,10 +182,13 @@ fi
 read -rp "启用 Cloudflare Tunnel？[y/N]: " ENABLE_CF
 SERVICES=(postgres mosquitto sms-gateway service-control api admin-console web intro-web)
 if [[ "$ENABLE_CF" =~ ^[Yy]$ ]]; then
-  read -rp "Cloudflare token 文件路径 [/root/.cloudflared/home-iot.token]: " CF_PATH
-  CF_PATH="${CF_PATH:-/root/.cloudflared/home-iot.token}"
-  [[ -f "$CF_PATH" ]] || { echo "Cloudflare token 文件不存在: $CF_PATH" >&2; exit 2; }
-  set_env CLOUDFLARED_TOKEN_FILE "$CF_PATH"
+  mkdir -p "$SERVER_ROOT/.secrets"
+  chmod 700 "$SERVER_ROOT/.secrets"
+  read -rsp "Cloudflare Tunnel token: " CLOUDFLARE_TUNNEL_TOKEN; echo
+  [[ -n "$CLOUDFLARE_TUNNEL_TOKEN" ]] || { echo "Cloudflare token 不能为空。" >&2; exit 2; }
+  printf '%s\n' "$CLOUDFLARE_TUNNEL_TOKEN" > "$SERVER_ROOT/.secrets/cloudflared.token"
+  chmod 600 "$SERVER_ROOT/.secrets/cloudflared.token"
+  set_env CLOUDFLARED_TOKEN_FILE "./.secrets/cloudflared.token"
   SERVICES+=(cloudflared)
 fi
 
@@ -161,7 +205,7 @@ done
 grep -q '"ok":true' <<<"${HEALTH:-}" || { echo "服务健康检查失败。" >&2; exit 3; }
 curl -fsS http://127.0.0.1:8080/openapi.json | grep -q '/api/v1/auth/profile' || { echo "认证 API 验证失败。" >&2; exit 3; }
 
-unset POSTGRES_PASSWORD ADMIN_PASSWORD MQTT_PASSWORD MPPT_PASSWORD ESP_PASSWORD EF_PASSWORD BACKUP_PASSWORD WIFI_PASSWORD
+unset POSTGRES_PASSWORD ADMIN_PASSWORD SUPER_ADMIN_PASSWORD SMTP_PASSWORD CLOUDFLARE_TUNNEL_TOKEN MQTT_PASSWORD MPPT_PASSWORD ESP_PASSWORD EF_PASSWORD BACKUP_PASSWORD WIFI_PASSWORD
 echo "ASTRA 安装和配置验证完成。"
 echo "前端：http://127.0.0.1:8000/"
 echo "后台：http://127.0.0.1:8100/"

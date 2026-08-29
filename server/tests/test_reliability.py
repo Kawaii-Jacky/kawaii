@@ -8,8 +8,11 @@ import tempfile
 import unittest
 import uuid
 import queue
+import asyncio
+import base64
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi import HTTPException
 from starlette.requests import Request
@@ -54,6 +57,7 @@ class ReliabilityTest(unittest.TestCase):
             connection.execute("delete from device_alerts")
             connection.execute("delete from telemetry_samples")
             connection.execute("delete from telemetry_latest")
+            connection.execute("update devices set enabled=1,last_seen=null,last_status='offline'")
         with self.main.mqtt_rate_lock:
             self.main.mqtt_rate.clear()
 
@@ -79,6 +83,21 @@ class ReliabilityTest(unittest.TestCase):
                 (user_id, controller_id, self.auth.iso()),
             )
 
+    def mark_online(self, logical_device_id: str, controller_id: str = "default", telemetry: dict | None = None) -> None:
+        storage_id = logical_device_id if controller_id == "default" else f"{controller_id}:{logical_device_id}"
+        now = self.main.now_iso()
+        with self.db.connection() as connection:
+            connection.execute(
+                "update devices set last_seen=?,last_status='online' where device_id=?",
+                (now, storage_id),
+            )
+            if telemetry is not None:
+                payload = {"schema": 1, "device": logical_device_id, "ts": now, **telemetry}
+                connection.execute(
+                    "insert into telemetry_latest(device_id,ts,payload) values(?,?,?)",
+                    (storage_id, now, json.dumps(payload)),
+                )
+
     def test_fixed_window_rate_limit_blocks_after_limit(self):
         for _ in range(3):
             self.auth.record_rate_event("login-identifier", "user@example.test", 900)
@@ -86,6 +105,23 @@ class ReliabilityTest(unittest.TestCase):
             self.auth.check_rate_limit("login-identifier", "user@example.test", 3, 900)
         self.assertEqual(raised.exception.status_code, 429)
         self.assertIn("Retry-After", raised.exception.headers)
+
+    def test_avatar_is_persisted_in_account_payload(self):
+        user = self.create_user()
+        png = b"\x89PNG\r\n\x1a\n" + b"avatar-test"
+        avatar_data = "data:image/png;base64," + base64.b64encode(png).decode()
+        result = self.auth.update_avatar(self.auth.AvatarPatch(avatar_data=avatar_data), user)
+        self.assertEqual(result["user"]["avatar_data"], avatar_data)
+        with self.db.connection() as connection:
+            row = connection.execute("select * from users where id=?", (user["id"],)).fetchone()
+        self.assertEqual(self.auth.user_payload(row)["avatar_data"], avatar_data)
+
+    def test_avatar_rejects_mismatched_image_content(self):
+        user = self.create_user()
+        invalid = "data:image/png;base64," + base64.b64encode(b"not-a-png").decode()
+        with self.assertRaises(HTTPException) as raised:
+            self.auth.update_avatar(self.auth.AvatarPatch(avatar_data=invalid), user)
+        self.assertEqual(raised.exception.status_code, 422)
 
     def test_failed_verification_attempt_is_committed(self):
         target = "user@example.test"
@@ -266,6 +302,48 @@ class ReliabilityTest(unittest.TestCase):
             else:
                 os.environ["MQTT_CONTROLLERS_FILE"] = previous
 
+    def test_loopback_controller_host_uses_container_internal_override(self):
+        config_path = Path(self.temp.name) / 'controllers-loopback.json'
+        previous_file = os.environ.get('MQTT_CONTROLLERS_FILE')
+        previous_host = os.environ.get('MQTT_INTERNAL_HOST')
+        try:
+            os.environ['MQTT_CONTROLLERS_FILE'] = str(config_path)
+            os.environ['MQTT_INTERNAL_HOST'] = 'mosquitto'
+            config_path.write_text(json.dumps({'controllers': [
+                {'id': 'a', 'host': '127.0.0.1', 'port': 1883, 'username': 'backend-a', 'password': 'long-password-a'},
+            ]}), encoding='utf-8')
+            self.assertEqual(self.main.load_controller_configs()[0]['host'], 'mosquitto')
+        finally:
+            if previous_file is None:
+                os.environ.pop('MQTT_CONTROLLERS_FILE', None)
+            else:
+                os.environ['MQTT_CONTROLLERS_FILE'] = previous_file
+            if previous_host is None:
+                os.environ.pop('MQTT_INTERNAL_HOST', None)
+            else:
+                os.environ['MQTT_INTERNAL_HOST'] = previous_host
+
+    def test_compose_controller_host_uses_wsl_internal_override(self):
+        config_path = Path(self.temp.name) / "controllers-compose.json"
+        previous_file = os.environ.get("MQTT_CONTROLLERS_FILE")
+        previous_host = os.environ.get("MQTT_INTERNAL_HOST")
+        try:
+            os.environ["MQTT_CONTROLLERS_FILE"] = str(config_path)
+            os.environ["MQTT_INTERNAL_HOST"] = "127.0.0.1"
+            config_path.write_text(json.dumps({"controllers": [
+                {"id": "a", "host": "mosquitto", "port": 1883, "username": "backend-a", "password": "long-password-a"},
+            ]}), encoding="utf-8")
+            self.assertEqual(self.main.load_controller_configs()[0]["host"], "127.0.0.1")
+        finally:
+            if previous_file is None:
+                os.environ.pop("MQTT_CONTROLLERS_FILE", None)
+            else:
+                os.environ["MQTT_CONTROLLERS_FILE"] = previous_file
+            if previous_host is None:
+                os.environ.pop("MQTT_INTERNAL_HOST", None)
+            else:
+                os.environ["MQTT_INTERNAL_HOST"] = previous_host
+
     def test_public_health_does_not_expose_controller_identifiers(self):
         health = self.main.health()
         self.assertNotIn("mqtt_controllers", health)
@@ -340,10 +418,250 @@ class ReliabilityTest(unittest.TestCase):
             count = connection.execute("select count(*) as count from telemetry_samples").fetchone()["count"]
         self.assertEqual(count, 0)
 
+    def test_nested_and_unknown_telemetry_fields_are_rejected(self):
+        now = self.main.now_iso()
+        self.main.ingest(
+            "devices/esp32-001/telemetry",
+            json.dumps({"schema": 1, "device": "esp32-001", "ts": now, "data": {"dht_temperature": 22.0}}),
+        )
+        self.main.ingest(
+            "devices/esp32-001/telemetry",
+            json.dumps({"schema": 1, "device": "esp32-001", "ts": now, "dht_temperature": float("nan")}),
+        )
+        with self.db.connection() as connection:
+            count = connection.execute("select count(*) as count from telemetry_samples").fetchone()["count"]
+        self.assertEqual(count, 0)
+
+    def test_protocol_command_whitelist_and_normalization(self):
+        protocol = importlib.import_module("app.device_protocol")
+        self.assertEqual(
+            protocol.normalize_command("esp32-001", "heater_mode", {"mode": "auto"}),
+            {"enabled": True},
+        )
+        self.assertEqual(
+            protocol.normalize_command("mppt-001", "mode", {"value": 0}),
+            {"value": 0},
+        )
+        self.assertEqual(
+            protocol.normalize_command("ef-001", "servo", {"state": True, "angle": 300}),
+            {"state": True, "angle": 300},
+        )
+        for device_id, command, args in (
+            ("esp32-001", "fan_threshold", {"value": 200}),
+            ("esp32-001", "terminal", {"value": "REBOOT"}),
+            ("mppt-001", "settings", {"voltage_battery_min": 14.2, "voltage_battery_max": 14.4, "current_charging": 2, "temperature_fan": 60}),
+            ("ef-001", "erase_flash", {}),
+        ):
+            with self.subTest(device=device_id, command=command):
+                with self.assertRaises(protocol.ProtocolError):
+                    protocol.normalize_command(device_id, command, args)
+
+    def test_mppt_command_keeps_correlation_envelope(self):
+        user = self.create_user("user")
+        self.grant(user["id"])
+        self.mark_online("mppt-001")
+        result = self.main.command(
+            "mppt-001",
+            self.main.CommandIn(command="fan", args={"state": True}),
+            user,
+        )
+        with self.db.connection() as connection:
+            row = connection.execute("select mqtt_payload from commands where id=?", (result["id"],)).fetchone()
+        published = json.loads(row["mqtt_payload"])
+        self.assertEqual(published["id"], result["id"])
+        self.assertEqual(published["device"], "mppt-001")
+        self.assertEqual(published["command"], "fan")
+        self.assertIs(published["fan"], True)
+
+    def test_user_with_bundle_can_command(self):
+        user = self.create_user("user")
+        self.grant(user["id"])
+        self.mark_online("esp32-001")
+        result = self.main.command(
+            "esp32-001",
+            self.main.CommandIn(command="fan", args={"state": True}),
+            self.auth.require_operator(user),
+        )
+        self.assertEqual(result["status"], "queued")
+        with self.db.connection() as connection:
+            row = connection.execute(
+                "select device_id,command,status from commands where id=?",
+                (result["id"],),
+            ).fetchone()
+        self.assertEqual(dict(row), {"device_id": "esp32-001", "command": "fan", "status": "queued"})
+
+    def test_offline_devices_reject_new_commands(self):
+        user = self.create_user("user")
+        self.grant(user["id"])
+        with self.assertRaises(HTTPException) as raised:
+            self.main.command("esp32-001", self.main.CommandIn(command="fan", args={"state": True}), user)
+        self.assertEqual(raised.exception.status_code, 409)
+
+    def test_roof_open_requires_fresh_no_rain_telemetry(self):
+        user = self.create_user("user")
+        self.grant(user["id"])
+        self.mark_online("esp32-001", telemetry={"rain_detected": True})
+        with self.assertRaises(HTTPException) as raised:
+            self.main.command("esp32-001", self.main.CommandIn(command="motor_forward"), user)
+        self.assertEqual(raised.exception.status_code, 409)
+        with self.db.connection() as connection:
+            now = self.main.now_iso()
+            connection.execute(
+                "update telemetry_latest set ts=?,payload=? where device_id='esp32-001'",
+                (now, json.dumps({"schema": 1, "device": "esp32-001", "ts": now, "rain_detected": False})),
+            )
+        result = self.main.command("esp32-001", self.main.CommandIn(command="motor_forward"), user)
+        self.assertEqual(result["status"], "queued")
+
     def test_unknown_role_cannot_control_devices(self):
         with self.assertRaises(HTTPException) as raised:
             self.auth.require_operator({"role": "viewer"})
         self.assertEqual(raised.exception.status_code, 403)
+
+    def test_console_role_boundary(self):
+        try:
+            admin = importlib.import_module("app.admin_console")
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"admin console dependencies are unavailable on this host: {exc}")
+        self.assertFalse(admin.console_role_allowed("user"))
+        self.assertTrue(admin.console_role_allowed("operator"))
+        self.assertTrue(admin.console_role_allowed("admin"))
+        with patch.object(admin, "current_console_user", return_value={"role": "operator"}):
+            with self.assertRaises(HTTPException) as raised:
+                admin.current_admin("operator-token")
+        self.assertEqual(raised.exception.status_code, 403)
+        self.assertTrue(admin.is_reserved_super_admin(" 123@QQ.COM "))
+        self.assertFalse(admin.is_reserved_super_admin("operator@example.test"))
+
+    def test_bootstrap_admin_sync_recovers_role_and_configured_password(self):
+        email = f"recovery-{uuid.uuid4()}@example.test"
+        user = self.create_user("user")
+        now = self.auth.iso()
+        with self.db.connection() as connection:
+            connection.execute(
+                "update users set email=?,disabled=1,email_verified=0,password_hash=? where id=?",
+                (email, self.auth.password_hasher.hash("old-password"), user["id"]),
+            )
+            connection.execute(
+                """insert into auth_sessions(id,user_id,token_hash,expires_at,created_at,last_seen_at)
+                   values(?,?,?,?,?,?)""",
+                (user["session_id"], user["id"], self.auth.token_digest("old-session"), self.auth.iso(datetime.now(timezone.utc) + timedelta(days=1)), now, now),
+            )
+        with patch.dict(os.environ, {"ADMIN_EMAIL": email, "ADMIN_PASSWORD": "recovery-password", "SUPER_ADMIN_PASSWORD": "super-recovery-password"}), patch.object(self.auth, "ADMIN_PASSWORD_SYNC", True):
+            self.auth.bootstrap_admin()
+        with self.db.connection() as connection:
+            row = connection.execute("select role,disabled,email_verified,password_hash from users where id=?", (user["id"],)).fetchone()
+            session = connection.execute("select revoked_at from auth_sessions where id=?", (user["session_id"],)).fetchone()
+        self.assertEqual(row["role"], "admin")
+        self.assertFalse(row["disabled"])
+        self.assertTrue(row["email_verified"])
+        self.assertTrue(self.auth.password_hasher.verify(row["password_hash"], "recovery-password"))
+        self.assertIsNotNone(session["revoked_at"])
+        with self.db.connection() as connection:
+            super_admin = connection.execute("select role,disabled,password_hash from users where email=?", (self.auth.SUPER_ADMIN_EMAIL,)).fetchone()
+        self.assertEqual(super_admin["role"], "admin")
+        self.assertFalse(super_admin["disabled"])
+        self.assertTrue(self.auth.password_hasher.verify(super_admin["password_hash"], "super-recovery-password"))
+
+    def test_database_import_accepts_only_safe_export_shape(self):
+        try:
+            admin = importlib.import_module("app.admin_console")
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"admin console dependencies are unavailable on this host: {exc}")
+        document = {
+            "format": admin.SAFE_EXPORT_FORMAT,
+            "scope": "operational",
+            "tables": {"telemetry_latest": []},
+        }
+        self.assertEqual(admin.validate_import_document(json.dumps(document).encode()), document)
+        document["tables"]["users"] = []
+        with self.assertRaises(HTTPException) as raised:
+            admin.validate_import_document(json.dumps(document).encode())
+        self.assertEqual(raised.exception.status_code, 422)
+
+    def test_database_import_rejects_unknown_row_columns(self):
+        try:
+            admin = importlib.import_module("app.admin_console")
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"admin console dependencies are unavailable on this host: {exc}")
+        document = {
+            "format": admin.SAFE_EXPORT_FORMAT,
+            "scope": "operational",
+            "tables": {"telemetry_latest": [{"device_id": "esp32-001", "ts": "now", "payload": "{}", "password_hash": "no"}]},
+        }
+        with self.assertRaises(HTTPException) as raised:
+            admin.validate_import_document(json.dumps(document).encode())
+        self.assertEqual(raised.exception.status_code, 422)
+
+    def test_database_import_stream_enforces_limit_without_content_length(self):
+        try:
+            admin = importlib.import_module("app.admin_console")
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"admin console dependencies are unavailable on this host: {exc}")
+        messages = iter((
+            {"type": "http.request", "body": b"123", "more_body": True},
+            {"type": "http.request", "body": b"456", "more_body": False},
+        ))
+
+        async def receive():
+            return next(messages)
+
+        request = Request({"type": "http", "method": "POST", "headers": []}, receive)
+        with self.assertRaises(HTTPException) as raised:
+            asyncio.run(admin.read_limited_request_body(request, max_bytes=5))
+        self.assertEqual(raised.exception.status_code, 413)
+
+    def test_every_admin_console_mutation_requires_admin_dependency(self):
+        try:
+            admin = importlib.import_module("app.admin_console")
+        except ModuleNotFoundError as exc:
+            self.skipTest(f"admin console dependencies are unavailable on this host: {exc}")
+        public_mutations = {("/admin-api/login", "POST"), ("/admin-api/logout", "POST")}
+        checked = []
+        for route in admin.app.routes:
+            path = getattr(route, "path", "")
+            if not path.startswith("/admin-api/"):
+                continue
+            for method in set(getattr(route, "methods", set())) & {"POST", "PUT", "PATCH", "DELETE"}:
+                if (path, method) in public_mutations:
+                    continue
+                dependencies = {dependency.call for dependency in route.dependant.dependencies}
+                self.assertIn(admin.current_admin, dependencies, f"{method} {path} is not admin-only")
+                checked.append((method, path))
+        self.assertGreaterEqual(len(checked), 10)
+
+    def test_password_recovery_revokes_every_existing_session(self):
+        user = self.create_user("user")
+        now = datetime.now(timezone.utc)
+        session_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
+        with self.db.connection() as connection:
+            for session_id in session_ids:
+                connection.execute(
+                    """insert into auth_sessions(id,user_id,token_hash,expires_at,created_at,last_seen_at)
+                       values(?,?,?,?,?,?)""",
+                    (
+                        session_id,
+                        user["id"],
+                        self.auth.token_digest(str(uuid.uuid4())),
+                        self.auth.iso(now + timedelta(days=1)),
+                        self.auth.iso(now),
+                        self.auth.iso(now),
+                    ),
+                )
+        self.assertTrue(all(self.auth.session_is_active(session_id) for session_id in session_ids))
+        request = self.request()
+        body = self.auth.RecoverRequest(
+            channel="email",
+            target=f"{user['id']}@example.test",
+            code="123456",
+            password="new-password-9",
+        )
+        with patch.object(self.auth, "verify_code"):
+            self.assertEqual(self.auth.recover_password(body, request), {"ok": True})
+        self.assertTrue(all(not self.auth.session_is_active(session_id) for session_id in session_ids))
+        with self.db.connection() as connection:
+            row = connection.execute("select password_hash from users where id=?", (user["id"],)).fetchone()
+        self.assertTrue(self.auth.password_hasher.verify(row["password_hash"], "new-password-9"))
 
     def test_prune_telemetry_removes_expired_rows(self):
         stale = (datetime.now(timezone.utc) - timedelta(days=self.main.TELEMETRY_RETENTION_DAYS + 1)).isoformat().replace("+00:00", "Z")

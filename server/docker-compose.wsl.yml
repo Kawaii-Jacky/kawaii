@@ -15,6 +15,7 @@ services:
     command: uvicorn app.main:app --host 127.0.0.1 --port 8080
     environment:
       MQTT_HOST: 127.0.0.1
+      MQTT_INTERNAL_HOST: 127.0.0.1
       MQTT_PORT: 1883
       DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB:-astroy}
       SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://127.0.0.1:8090/send}
@@ -31,6 +32,9 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB:-astroy}
       MQTT_HOST: 127.0.0.1
+      POSTGRES_HOST: 127.0.0.1
+      API_INTERNAL_HOST: 127.0.0.1
+      SMS_HOST: 127.0.0.1
       CLOUDFLARED_METRICS_URL: http://127.0.0.1:20241/metrics
   web:
     network_mode: host

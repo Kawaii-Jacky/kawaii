@@ -30,6 +30,11 @@ from fastapi.responses import FileResponse
 from psycopg.rows import dict_row
 from pydantic import BaseModel, Field
 
+try:
+    import psutil
+except ImportError:  # Linux containers can collect these metrics from /proc.
+    psutil = None
+
 from app.credential_vault import (
     credential_vault_key,
     decrypt_controller_credentials,
@@ -56,6 +61,7 @@ BUNDLE_DEVICE_SPECS = {
 }
 BUNDLE_DEVICE_IDS = set(BUNDLE_DEVICE_SPECS)
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+SUPER_ADMIN_EMAIL = "123@qq.com"
 password_hasher = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
 metrics_lock = threading.Lock()
 last_network_sample: tuple[float, int, int] | None = None
@@ -72,9 +78,12 @@ CLOUDFLARED_METRICS_URL = os.getenv("CLOUDFLARED_METRICS_URL", "http://127.0.0.1
 SERVICE_CONTROL_SOCKET = Path(os.getenv("SERVICE_CONTROL_SOCKET", "/run/service-control/control.sock"))
 CLIENT_RECENT_SECONDS = max(300, int(os.getenv("AUTH_CLIENT_RECENT_SECONDS", "300")))
 ADMIN_SESSION_DAYS = max(1, int(os.getenv("ADMIN_SESSION_DAYS", "30")))
+ADMIN_LOGIN_RATE_LIMIT_ENABLED = os.getenv("ADMIN_LOGIN_RATE_LIMIT_ENABLED", "1") == "1"
 ADMIN_LOGIN_LIMIT = max(3, int(os.getenv("ADMIN_LOGIN_FAILURE_LIMIT", "5")))
 ADMIN_LOGIN_IP_LIMIT = max(ADMIN_LOGIN_LIMIT, int(os.getenv("ADMIN_LOGIN_FAILURE_IP_LIMIT", "15")))
 ADMIN_LOGIN_WINDOW_SECONDS = max(60, int(os.getenv("ADMIN_LOGIN_FAILURE_WINDOW_SECONDS", "900")))
+DATABASE_IMPORT_MAX_BYTES = max(1024, min(int(os.getenv("DATABASE_IMPORT_MAX_BYTES", str(25 * 1024 * 1024))), 100 * 1024 * 1024))
+DATABASE_IMPORT_MAX_ROWS = max(1, min(int(os.getenv("DATABASE_IMPORT_MAX_ROWS", "250000")), 1_000_000))
 RESTARTABLE_SERVICES = {"postgres", "mqtt", "api", "sms"}
 restart_lock = threading.Lock()
 controller_auto_provision_lock = threading.Lock()
@@ -93,6 +102,42 @@ TRAFFIC_SOURCES = {
     "mqtt": {"label": "MQTT", "source": "Mosquitto $SYS 网络字节", "rx_label": "接收", "tx_label": "发送"},
     "postgres": {"label": "PostgreSQL", "source": "缓存/磁盘块与 WAL/临时写入", "rx_label": "读取", "tx_label": "写入"},
     "tunnel": {"label": "公网隧道", "source": "cloudflared 进程网络字节", "rx_label": "接收", "tx_label": "发送"},
+}
+
+SAFE_EXPORT_FORMAT = "ASTRA safe database export v1"
+SAFE_EXPORT_QUERIES = {
+    "devices": "select * from devices order by device_id",
+    "telemetry_latest": "select * from telemetry_latest order by device_id",
+    "telemetry_samples": "select * from telemetry_samples order by ts,id",
+    "commands": "select * from commands order by created_at,id",
+    "service_traffic_totals": "select * from service_traffic_totals order by service",
+    "service_traffic_samples": "select * from service_traffic_samples order by ts,service,id",
+    "users": """select id,display_name,email,phone,email_verified,phone_verified,role,disabled,
+                created_at,updated_at from users order by created_at,id""",
+    "auth_sessions": """select id,user_id,expires_at,created_at,last_seen_at,revoked_at,user_agent,ip_address
+                       from auth_sessions order by created_at,id""",
+    "controllers": "select controller_id,name,mqtt_host,mqtt_port,mqtt_username,enabled,updated_at from controllers order by controller_id",
+    "user_controller_access": "select user_id,controller_id,created_at,created_by from user_controller_access order by user_id",
+    "admin_audit": "select * from admin_audit order by id",
+}
+SAFE_EXPORT_GROUPS = {
+    "operational": ["devices", "telemetry_latest", "telemetry_samples", "commands", "service_traffic_totals", "service_traffic_samples"],
+    "accounts": ["users", "auth_sessions", "controllers", "user_controller_access"],
+    "audit": ["admin_audit"],
+}
+SAFE_EXPORT_GROUPS["all"] = list(SAFE_EXPORT_QUERIES)
+SAFE_IMPORT_SPECS = {
+    "controllers": (("controller_id", "name", "mqtt_host", "mqtt_port", "mqtt_username", "enabled", "updated_at"), ("controller_id",)),
+    "users": (("id", "display_name", "email", "phone", "email_verified", "phone_verified", "role", "disabled", "created_at", "updated_at"), ("id",)),
+    "auth_sessions": (("id", "user_id", "expires_at", "created_at", "last_seen_at", "revoked_at", "user_agent", "ip_address"), ("id",)),
+    "devices": (("device_id", "device_type", "name", "enabled", "last_seen", "last_status", "firmware_version", "metadata", "controller_id", "logical_device_id"), ("device_id",)),
+    "telemetry_latest": (("device_id", "ts", "payload"), ("device_id",)),
+    "telemetry_samples": (("id", "device_id", "ts", "seq", "payload"), ("id",)),
+    "commands": (("id", "device_id", "command", "payload", "status", "created_at", "acknowledged_at", "result", "mqtt_payload", "attempt_count", "max_attempts", "last_attempt_at", "next_retry_at"), ("id",)),
+    "service_traffic_totals": (("service", "rx_bytes", "tx_bytes", "updated_at"), ("service",)),
+    "service_traffic_samples": (("id", "ts", "service", "rx_bytes", "tx_bytes", "interval_seconds", "source"), ("id",)),
+    "user_controller_access": (("user_id", "controller_id", "created_at", "created_by"), ("user_id",)),
+    "admin_audit": (("id", "actor_id", "action", "target", "detail", "ip_address", "created_at"), ("id",)),
 }
 
 FIRMWARE_TARGETS = {
@@ -143,6 +188,8 @@ def admin_rate_subject(scope: str, subject: str) -> str:
 
 
 def check_admin_rate_limit(scope: str, subject: str, limit: int) -> None:
+    if not ADMIN_LOGIN_RATE_LIMIT_ENABLED:
+        return
     digest = admin_rate_subject(scope, subject)
     now = datetime.now(timezone.utc)
     with db_connection() as db:
@@ -159,6 +206,8 @@ def check_admin_rate_limit(scope: str, subject: str, limit: int) -> None:
 
 
 def record_admin_rate_event(scope: str, subject: str) -> None:
+    if not ADMIN_LOGIN_RATE_LIMIT_ENABLED:
+        return
     digest = admin_rate_subject(scope, subject)
     now = datetime.now(timezone.utc)
     now_text = now.isoformat().replace("+00:00", "Z")
@@ -182,6 +231,8 @@ def record_admin_rate_event(scope: str, subject: str) -> None:
 
 
 def clear_admin_rate_limit(scope: str, subject: str) -> None:
+    if not ADMIN_LOGIN_RATE_LIMIT_ENABLED:
+        return
     with db_connection() as db:
         db.execute(
             "delete from auth_rate_limits where scope=%s and subject_hash=%s",
@@ -270,6 +321,7 @@ def initialize() -> None:
 @app.on_event("startup")
 def startup() -> None:
     initialize()
+    reconcile_controller_broker_access()
     broker_traffic_probe.start()
     start_traffic_sampler()
 
@@ -407,6 +459,10 @@ def masked_email(value: str | None) -> str | None:
         return value
     local, domain = value.split("@", 1)
     return f"{local[:2]}***@{domain}"
+
+
+def is_reserved_super_admin(email: Any) -> bool:
+    return str(email or "").strip().lower() == SUPER_ADMIN_EMAIL
 
 
 def masked_phone(value: str | None) -> str | None:
@@ -668,8 +724,14 @@ def logout(response: Response, token: str | None = Cookie(default=None, alias=CO
 
 
 def network_totals() -> tuple[int, int]:
+    proc_net_dev = Path("/proc/net/dev")
+    if not proc_net_dev.exists():
+        if psutil is None:
+            return 0, 0
+        counters = psutil.net_io_counters()
+        return int(counters.bytes_recv), int(counters.bytes_sent)
     rx = tx = 0
-    for line in Path("/proc/net/dev").read_text().splitlines()[2:]:
+    for line in proc_net_dev.read_text().splitlines()[2:]:
         name, values = line.split(":", 1)
         if name.strip() == "lo":
             continue
@@ -697,20 +759,53 @@ def network_rates() -> dict[str, float | int | None]:
     }
 
 
-def port_open(port: int) -> bool:
+SERVICE_PROBE_HOSTS = {
+    # The admin console runs in its own container. Probing 127.0.0.1
+    # would only check the console container, not its Compose peers.
+    "postgres": os.getenv("POSTGRES_HOST", "postgres"),
+    "mqtt": os.getenv("MQTT_HOST", "mosquitto"),
+    "api": os.getenv("API_INTERNAL_HOST", "api"),
+    "sms": os.getenv("SMS_HOST", "sms-gateway"),
+}
+
+
+def port_open(service: str, port: int) -> bool:
+    host = SERVICE_PROBE_HOSTS.get(service, "127.0.0.1")
     try:
-        with socket.create_connection(("127.0.0.1", port), timeout=0.35):
+        with socket.create_connection((host, port), timeout=0.5):
             return True
     except OSError:
         return False
 
 
 def system_metrics() -> dict[str, float | int | None]:
+    proc_meminfo = Path("/proc/meminfo")
+    proc_uptime = Path("/proc/uptime")
+    if not proc_meminfo.exists() or not proc_uptime.exists():
+        if psutil is None:
+            return {
+                "memory_total": None,
+                "memory_available": None,
+                "uptime": None,
+                "load1": None,
+                "load5": None,
+                "load15": None,
+            }
+        memory = psutil.virtual_memory()
+        load = psutil.getloadavg() if hasattr(psutil, "getloadavg") else (None, None, None)
+        return {
+            "memory_total": int(memory.total),
+            "memory_available": int(memory.available),
+            "uptime": max(0.0, time.time() - psutil.boot_time()),
+            "load1": load[0],
+            "load5": load[1],
+            "load15": load[2],
+        }
     memory: dict[str, int] = {}
-    for line in Path("/proc/meminfo").read_text().splitlines():
+    for line in proc_meminfo.read_text().splitlines():
         key, value = line.split(":", 1)
         memory[key] = int(value.strip().split()[0]) * 1024
-    uptime = float(Path("/proc/uptime").read_text().split()[0])
+    uptime = float(proc_uptime.read_text().split()[0])
     load1, load5, load15 = os.getloadavg()
     return {
         "memory_total": memory.get("MemTotal"),
@@ -742,10 +837,10 @@ def metrics(access: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
         "network": network_rates(),
         "system": system_metrics(),
         "services": {
-            "postgres": port_open(5432),
-            "mqtt": port_open(1883),
-            "api": port_open(8080),
-            "sms": port_open(8090),
+            "postgres": port_open("postgres", 5432),
+            "mqtt": port_open("mqtt", 1883),
+            "api": port_open("api", 8080),
+            "sms": port_open("sms", 8090),
         },
     }
 
@@ -849,12 +944,14 @@ def user_accounts(access: dict[str, Any] = Depends(read_access)) -> list[dict[st
     result = []
     for row in rows:
         item = dict(row)
+        protected = is_reserved_super_admin(item.get("email"))
         if preview:
             item["email"] = masked_email(item["email"])
             item["phone"] = masked_phone(item["phone"])
         item["email_verified"] = bool(item["email_verified"])
         item["phone_verified"] = bool(item["phone_verified"])
         item["disabled"] = bool(item["disabled"])
+        item["protected"] = protected
         item["self"] = item["id"] == access["user_id"]
         item["editable"] = not preview
         result.append(item)
@@ -941,10 +1038,12 @@ def update_permissions(
     admin: dict[str, Any] = Depends(current_admin),
 ) -> dict[str, Any]:
     with db_connection() as db:
-        target = db.execute("select id,role,disabled from users where id=%s", (user_id,)).fetchone()
+        target = db.execute("select id,email,role,disabled from users where id=%s", (user_id,)).fetchone()
         if not target:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
         current_disabled = bool(target["disabled"])
+        if is_reserved_super_admin(target["email"]) and (body.role != "admin" or body.disabled):
+            raise HTTPException(status.HTTP_409_CONFLICT, "The reserved super administrator cannot be demoted or disabled")
         if user_id == admin["user_id"] and (body.role != "admin" or body.disabled):
             raise HTTPException(status.HTTP_409_CONFLICT, "You cannot demote or disable your own account")
         removing_admin = target["role"] == "admin" and not current_disabled and (body.role != "admin" or body.disabled)
@@ -973,6 +1072,49 @@ def update_permissions(
     if body.disabled or body.role != target["role"]:
         revoke_console_sessions(user_id)
     return {"ok": True, "role": body.role, "disabled": body.disabled}
+
+
+@app.delete("/admin-api/users/{user_id}")
+def delete_account(
+    user_id: str,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    """Delete one account while keeping device groups and their configuration."""
+    if user_id == admin["user_id"]:
+        raise HTTPException(status.HTTP_409_CONFLICT, "不能删除当前登录的管理员账户")
+    with db_connection() as db:
+        target = db.execute(
+            "select id,display_name,email,role from users where id=%s",
+            (user_id,),
+        ).fetchone()
+        if not target:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
+        if is_reserved_super_admin(target["email"]):
+            raise HTTPException(status.HTTP_409_CONFLICT, "The reserved super administrator cannot be deleted")
+        if target["role"] == "admin":
+            raise HTTPException(status.HTTP_409_CONFLICT, "管理员账户请先降级为普通用户后再删除")
+        access = db.execute(
+            "select controller_id from user_controller_access where user_id=%s",
+            (user_id,),
+        ).fetchone()
+        controller_id = access["controller_id"] if access else None
+        session_count = int(db.execute(
+            "select count(*) as count from auth_sessions where user_id=%s",
+            (user_id,),
+        ).fetchone()["count"])
+        db.execute("delete from controller_group_requests where user_id=%s", (user_id,))
+        db.execute("delete from user_controller_access where user_id=%s", (user_id,))
+        db.execute("delete from auth_sessions where user_id=%s", (user_id,))
+        db.execute("delete from users where id=%s", (user_id,))
+    audit(
+        admin,
+        "account.delete",
+        user_id,
+        {"display_name": target["display_name"], "email": target["email"], "controller_id": controller_id, "sessions_deleted": session_count},
+        request,
+    )
+    return {"ok": True, "user_id": user_id, "controller_id": controller_id, "sessions_deleted": session_count}
 
 
 @app.get("/admin-api/users/{user_id}/controller")
@@ -1132,34 +1274,13 @@ def export_database(
     scope: Literal["operational", "accounts", "audit", "all"] = Query("all"),
     admin: dict[str, Any] = Depends(current_admin),
 ) -> Response:
-    table_queries = {
-        "devices": "select * from devices order by device_id",
-        "telemetry_latest": "select * from telemetry_latest order by device_id",
-        "telemetry_samples": "select * from telemetry_samples order by ts,id",
-        "commands": "select * from commands order by created_at,id",
-        "service_traffic_totals": "select * from service_traffic_totals order by service",
-        "service_traffic_samples": "select * from service_traffic_samples order by ts,service,id",
-        "users": """select id,display_name,email,phone,email_verified,phone_verified,role,disabled,
-                    created_at,updated_at from users order by created_at,id""",
-        "auth_sessions": """select id,user_id,expires_at,created_at,last_seen_at,revoked_at,user_agent,ip_address
-                           from auth_sessions order by created_at,id""",
-        "controllers": "select controller_id,name,mqtt_host,mqtt_port,mqtt_username,enabled,updated_at from controllers order by controller_id",
-        "user_controller_access": "select user_id,controller_id,created_at,created_by from user_controller_access order by user_id",
-        "admin_audit": "select * from admin_audit order by id",
-    }
-    groups = {
-        "operational": ["devices", "telemetry_latest", "telemetry_samples", "commands", "service_traffic_totals", "service_traffic_samples"],
-        "accounts": ["users", "auth_sessions", "controllers", "user_controller_access"],
-        "audit": ["admin_audit"],
-        "all": list(table_queries),
-    }
-    audit(admin, "database.export", scope, {"tables": groups[scope]}, request)
+    audit(admin, "database.export", scope, {"tables": SAFE_EXPORT_GROUPS[scope]}, request)
     exported: dict[str, list[dict[str, Any]]] = {}
     with db_connection() as db:
-        for table in groups[scope]:
-            exported[table] = [dict(row) for row in db.execute(table_queries[table]).fetchall()]
+        for table in SAFE_EXPORT_GROUPS[scope]:
+            exported[table] = [dict(row) for row in db.execute(SAFE_EXPORT_QUERIES[table]).fetchall()]
     document = {
-        "format": "ASTRA safe database export v1",
+        "format": SAFE_EXPORT_FORMAT,
         "exported_at": utc_iso(),
         "scope": scope,
         "excluded_secrets": ["password_hash", "token_hash", "verification_code", "environment_secrets"],
@@ -1174,6 +1295,155 @@ def export_database(
             "X-Content-Type-Options": "nosniff",
         },
     )
+
+
+def validate_import_document(payload: bytes) -> dict[str, Any]:
+    if not payload:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Import file is empty")
+    if len(payload) > DATABASE_IMPORT_MAX_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Import file exceeds the configured size limit")
+    try:
+        document = json.loads(
+            payload.decode("utf-8", "strict"),
+            parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"invalid number {value}")),
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Import file must be valid UTF-8 JSON") from exc
+    if not isinstance(document, dict) or document.get("format") != SAFE_EXPORT_FORMAT:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Only {SAFE_EXPORT_FORMAT} files are accepted")
+    scope = document.get("scope")
+    tables = document.get("tables")
+    if scope not in SAFE_EXPORT_GROUPS or not isinstance(tables, dict):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Import scope or tables are invalid")
+    unexpected_tables = set(tables) - set(SAFE_EXPORT_GROUPS[scope])
+    if unexpected_tables:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Unexpected import table: {sorted(unexpected_tables)[0]}")
+    total_rows = 0
+    for table, rows in tables.items():
+        spec = SAFE_IMPORT_SPECS.get(table)
+        if not spec or not isinstance(rows, list):
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Table {table} is not importable")
+        columns, keys = spec
+        expected = set(columns)
+        for row in rows:
+            if not isinstance(row, dict) or set(row) != expected:
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Table {table} has an invalid row shape")
+            if any(row[key] is None for key in keys):
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Table {table} has a missing identity")
+            if any(not isinstance(value, (str, int, float, bool, type(None))) for value in row.values()):
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Table {table} contains a non-scalar value")
+        total_rows += len(rows)
+        if total_rows > DATABASE_IMPORT_MAX_ROWS:
+            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Import file contains too many rows")
+    return document
+
+
+async def read_limited_request_body(request: Request, max_bytes: int = DATABASE_IMPORT_MAX_BYTES) -> bytes:
+    payload = bytearray()
+    async for chunk in request.stream():
+        if len(payload) + len(chunk) > max_bytes:
+            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Import file exceeds the configured size limit")
+        payload.extend(chunk)
+    return bytes(payload)
+
+
+def upsert_import_rows(db: Any, table: str, rows: list[dict[str, Any]]) -> int:
+    columns, keys = SAFE_IMPORT_SPECS[table]
+    quoted_columns = ",".join(columns)
+    placeholders = ",".join("%s" for _ in columns)
+    updates = [column for column in columns if column not in keys]
+    conflict = ",".join(keys)
+    action = "do update set " + ",".join(f"{column}=excluded.{column}" for column in updates) if updates else "do nothing"
+    sql = f"insert into {table}({quoted_columns}) values({placeholders}) on conflict({conflict}) {action}"
+    for row in rows:
+        db.execute(sql, tuple(row[column] for column in columns))
+    return len(rows)
+
+
+def import_export_document(db: Any, document: dict[str, Any], actor_id: str) -> tuple[dict[str, int], list[str]]:
+    tables = document["tables"]
+    imported: dict[str, int] = {}
+    warnings: list[str] = []
+    order = (
+        "controllers", "users", "devices", "telemetry_latest", "telemetry_samples", "commands",
+        "service_traffic_totals", "service_traffic_samples", "user_controller_access", "admin_audit",
+    )
+    for table in order:
+        rows = tables.get(table, [])
+        if not rows:
+            continue
+        if table == "users":
+            changed = 0
+            columns = [column for column in SAFE_IMPORT_SPECS[table][0] if column not in {"id", "role", "disabled"}]
+            for row in rows:
+                existing = db.execute("select email from users where id=%s", (row["id"],)).fetchone()
+                if not existing:
+                    continue
+                row_columns = columns
+                if is_reserved_super_admin(existing["email"]):
+                    row_columns = [column for column in columns if column not in {"email", "email_verified"}]
+                assignments = ",".join(f"{column}=%s" for column in row_columns)
+                db.execute(f"update users set {assignments} where id=%s", (*[row[column] for column in row_columns], row["id"]))
+                changed += 1
+            imported[table] = changed
+            skipped = len(rows) - changed
+            if skipped:
+                warnings.append(f"Skipped {skipped} new users because safe exports do not contain password hashes")
+            continue
+        if table == "user_controller_access":
+            valid_rows = []
+            for row in rows:
+                user = db.execute("select 1 from users where id=%s", (row["user_id"],)).fetchone()
+                controller = db.execute("select 1 from controllers where controller_id=%s", (row["controller_id"],)).fetchone()
+                if user and controller:
+                    valid_rows.append(row)
+            imported[table] = upsert_import_rows(db, table, valid_rows)
+            if len(valid_rows) != len(rows):
+                warnings.append(f"Skipped {len(rows) - len(valid_rows)} controller grants with missing users or controllers")
+            continue
+        imported[table] = upsert_import_rows(db, table, rows)
+    session_rows = tables.get("auth_sessions", [])
+    if session_rows:
+        warnings.append(f"Skipped {len(session_rows)} sessions because safe exports never contain login tokens")
+        imported["auth_sessions"] = 0
+    for table in ("telemetry_samples", "service_traffic_samples", "admin_audit"):
+        if table in tables:
+            db.execute(
+                f"select setval(pg_get_serial_sequence('{table}','id'), greatest(coalesce((select max(id) from {table}),1),1), true)"
+            )
+    # The account performing the restore must remain an enabled administrator.
+    db.execute("update users set role='admin',disabled=0,email_verified=1 where id=%s", (actor_id,))
+    db.execute("update users set role='admin',disabled=0,email_verified=1 where lower(email)=%s", (SUPER_ADMIN_EMAIL,))
+    return imported, warnings
+
+
+@app.post("/admin-api/import")
+async def import_database(
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    content_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+    if content_type != "application/json":
+        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Import must use application/json")
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            declared_size = int(content_length)
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid Content-Length") from exc
+        if declared_size < 0:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid Content-Length")
+        if declared_size > DATABASE_IMPORT_MAX_BYTES:
+            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Import file exceeds the configured size limit")
+    document = validate_import_document(await read_limited_request_body(request))
+    try:
+        with db_connection() as db:
+            imported, warnings = import_export_document(db, document, admin["user_id"])
+    except psycopg.IntegrityError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Import conflicts with existing account or controller data") from exc
+    detail = {"scope": document["scope"], "imported": imported, "warnings": warnings}
+    audit(admin, "database.import", document["scope"], detail, request)
+    return {"ok": True, **detail}
 
 
 @app.post("/admin-api/database/clear-runtime")
@@ -1316,6 +1586,43 @@ def add_controller_acl(controller_id: str, backend_username: str, device_usernam
     if marker in text:
         raise RuntimeError("Controller ACL already exists")
     ACL_FILE.write_text(text.rstrip() + "\n\n" + controller_acl_block(controller_id, backend_username, device_usernames) + "\n", encoding="utf-8")
+
+
+def upsert_controller_acl(controller_id: str, backend_username: str, device_usernames: dict[str, str]) -> None:
+    text = ACL_FILE.read_text(encoding="utf-8") if ACL_FILE.exists() else ""
+    block = controller_acl_block(controller_id, backend_username, device_usernames)
+    pattern = re.compile(
+        rf"# ASTRA CONTROLLER BEGIN {re.escape(controller_id)}\n.*?# ASTRA CONTROLLER END {re.escape(controller_id)}",
+        re.DOTALL,
+    )
+    if pattern.search(text):
+        updated = pattern.sub(block, text)
+    else:
+        updated = text.rstrip() + "\n\n" + block + "\n"
+    ACL_FILE.write_text(updated.lstrip("\n"), encoding="utf-8")
+
+
+def reconcile_controller_broker_access() -> int:
+    """Restore backend MQTT accounts and ACLs from the server-side secret file."""
+    if not CONTROLLER_CONFIG_FILE.is_file() or not PASSWORD_FILE.exists():
+        return 0
+    configs = controller_secret_configs()
+    reconciled = 0
+    for config in configs:
+        controller_id = str(config.get("id", "")).strip().lower()
+        if controller_id == "default":
+            continue
+        username = str(config.get("username", "")).strip()
+        password = str(config.get("password", ""))
+        if not CONTROLLER_ID_RE.fullmatch(controller_id) or not username or len(password) < 12:
+            raise RuntimeError(f"Controller {controller_id or '<missing>'} has invalid backend MQTT credentials")
+        _generated_backend, device_usernames = controller_mqtt_accounts(controller_id)
+        set_mqtt_password(username, password, reload=False)
+        upsert_controller_acl(controller_id, username, device_usernames)
+        reconciled += 1
+    if reconciled:
+        reload_mosquitto()
+    return reconciled
 
 
 def remove_controller_acl(controller_id: str) -> bool:
@@ -1814,10 +2121,12 @@ def delete_controller_group(
     controller_id: str,
     request: Request,
     purge: bool = Query(False),
+    unassign: bool = Query(False),
     admin: dict[str, Any] = Depends(current_admin),
 ) -> dict[str, Any]:
     if controller_id == "default":
         raise HTTPException(status.HTTP_409_CONFLICT, "The default controller group cannot be deleted")
+    assigned_user_id = None
     with db_connection() as db:
         controller = db.execute(
             "select controller_id from controllers where controller_id=%s",
@@ -1825,7 +2134,9 @@ def delete_controller_group(
         ).fetchone()
         if not controller:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Controller group not found")
-        if db.execute("select 1 from user_controller_access where controller_id=%s", (controller_id,)).fetchone():
+        owner = db.execute("select user_id from user_controller_access where controller_id=%s", (controller_id,)).fetchone()
+        assigned_user_id = owner["user_id"] if owner else None
+        if assigned_user_id and not unassign:
             raise HTTPException(status.HTTP_409_CONFLICT, "Unassign the controller group before deleting it")
     try:
         original_configs = controller_secret_configs()
@@ -1855,6 +2166,9 @@ def delete_controller_group(
             reload_mosquitto()
         with db_connection() as db:
             storage_ids = [bundle_storage_id(controller_id, logical_id) for logical_id in BUNDLE_DEVICE_SPECS]
+            if assigned_user_id:
+                db.execute("delete from user_controller_access where controller_id=%s", (controller_id,))
+                db.execute("delete from auth_sessions where user_id=%s", (assigned_user_id,))
             db.execute("delete from telemetry_latest where device_id=any(%s)", (storage_ids,))
             if purge:
                 db.execute("delete from telemetry_samples where device_id=any(%s)", (storage_ids,))
@@ -1884,7 +2198,7 @@ def delete_controller_group(
         restart_ok = bool(response.get("ok"))
     except (OSError, RuntimeError, json.JSONDecodeError):
         restart_ok = False
-    audit(admin, "controller.delete", controller_id, {"purge": purge, "api_restarted": restart_ok}, request)
+    audit(admin, "controller.delete", controller_id, {"purge": purge, "unassigned_user_id": assigned_user_id, "api_restarted": restart_ok}, request)
     return {"ok": True, "controller_id": controller_id, "api_restarted": restart_ok}
 
 

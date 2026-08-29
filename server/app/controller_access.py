@@ -21,6 +21,7 @@ def load_controller_configs() -> list[dict[str, Any]]:
     path = os.getenv("MQTT_CONTROLLERS_FILE", "").strip()
     secret_path = Path(path) if path else None
     from_secret_file = bool(secret_path and secret_path.is_file())
+    internal_host = os.getenv("MQTT_INTERNAL_HOST", "").strip()
     if from_secret_file:
         document = json.loads(secret_path.read_text(encoding="utf-8"))
         rows = document.get("controllers", document) if isinstance(document, dict) else document
@@ -57,6 +58,8 @@ def load_controller_configs() -> list[dict[str, Any]]:
         password_required = from_secret_file or os.getenv("MQTT_DISABLED", "0") != "1"
         if password_required and len(password) < 12:
             raise RuntimeError(f"MQTT password must contain at least 12 characters for controller {controller_id}")
+        if internal_host and host.lower() in {"127.0.0.1", "localhost", "::1", "mosquitto"}:
+            host = internal_host
         configs.append({
             "id": controller_id,
             "name": str(raw.get("name") or controller_id).strip()[:80],

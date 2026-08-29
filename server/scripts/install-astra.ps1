@@ -57,6 +57,24 @@ function New-RandomToken([int]$Bytes = 48) {
     return [Convert]::ToBase64String($buffer).TrimEnd('=').Replace('+', '-').Replace('/', '_')
 }
 
+function Protect-SecretPath([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) { return }
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+    $item = Get-Item -LiteralPath $Path
+    $rights = if ($item.PSIsContainer) { "(OI)(CI)(F)" } else { "(F)" }
+    $arguments = @(
+        $Path,
+        "/inheritance:r",
+        "/grant:r",
+        "${identity}:$rights",
+        "*S-1-5-18:$rights",
+        "*S-1-5-32-544:$rights"
+    )
+    if ($item.PSIsContainer) { $arguments += @("/T", "/C") }
+    & icacls.exe @arguments | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Failed to restrict access to secret path: $Path" }
+}
+
 function Set-EnvValue([string]$Key, [string]$Value) {
     $escaped = [Regex]::Escape($Key)
     if ($script:envText -match "(?m)^$escaped=") {
@@ -89,6 +107,39 @@ Write-Host "`n=== Required ASTRA credentials ===" -ForegroundColor Cyan
 $postgresPassword = Read-ValidatedSecret "PostgreSQL password" 16 -FirmwareSafe
 $adminEmail = Read-EmailAddress
 $adminPassword = Read-ValidatedSecret "Administrator password" 9 -FirmwareSafe
+$superAdminPassword = ""
+if ($adminEmail -ne "123@qq.com") {
+    $superAdminPassword = Read-ValidatedSecret "Reserved super administrator 123@qq.com password" 9 -FirmwareSafe
+}
+$configureSmtp = (Read-Host "Configure SMTP email verification? [Y/n]").Trim()
+$smtpHost = ""
+$smtpPort = "587"
+$smtpUsername = ""
+$smtpPassword = ""
+$smtpFrom = ""
+$smtpStartTls = "1"
+$smtpSsl = "0"
+if (-not $configureSmtp -or $configureSmtp -match '^[Yy]$') {
+    $smtpHost = (Read-Host "SMTP host").Trim()
+    if (-not $smtpHost) { throw "SMTP host is required." }
+    $smtpPortInput = (Read-Host "SMTP port [587]").Trim()
+    if ($smtpPortInput) { $smtpPort = $smtpPortInput }
+    $parsedSmtpPort = 0
+    if (-not [int]::TryParse($smtpPort, [ref]$parsedSmtpPort) -or $parsedSmtpPort -lt 1 -or $parsedSmtpPort -gt 65535) { throw "SMTP port is invalid." }
+    $smtpUsername = (Read-Host "SMTP username").Trim()
+    $smtpPassword = Read-ValidatedSecret "SMTP app password" 1 -FirmwareSafe
+    $smtpFrom = (Read-Host "SMTP sender address [$smtpUsername]").Trim()
+    if (-not $smtpFrom) { $smtpFrom = $smtpUsername }
+    try { $null = [Net.Mail.MailAddress]::new($smtpFrom) } catch { throw "SMTP sender address is invalid." }
+    $smtpSecurity = (Read-Host "SMTP security: starttls, ssl, or none [starttls]").Trim().ToLowerInvariant()
+    if (-not $smtpSecurity) { $smtpSecurity = "starttls" }
+    switch ($smtpSecurity) {
+        "starttls" { $smtpStartTls = "1"; $smtpSsl = "0" }
+        "ssl" { $smtpStartTls = "0"; $smtpSsl = "1" }
+        "none" { $smtpStartTls = "0"; $smtpSsl = "0" }
+        default { throw "SMTP security must be starttls, ssl, or none." }
+    }
+}
 $backendPassword = Read-ValidatedSecret "backend-controller MQTT password" 12 -FirmwareSafe
 $mpptPassword = Read-ValidatedSecret "mppt-001 MQTT password" 12 -FirmwareSafe
 $espPassword = Read-ValidatedSecret "esp32-001 MQTT password" 12 -FirmwareSafe
@@ -119,7 +170,16 @@ Set-EnvValue "AUTH_COOKIE_SECURE" "1"
 Set-EnvValue "AUTH_DEBUG_CODES" "0"
 Set-EnvValue "ADMIN_EMAIL" $adminEmail
 Set-EnvValue "ADMIN_PASSWORD" $adminPassword
+Set-EnvValue "SUPER_ADMIN_PASSWORD" $superAdminPassword
 Set-EnvValue "ADMIN_DISPLAY_NAME" $displayName
+Set-EnvValue "ADMIN_PASSWORD_SYNC" "1"
+Set-EnvValue "SMTP_HOST" $smtpHost
+Set-EnvValue "SMTP_PORT" $smtpPort
+Set-EnvValue "SMTP_USERNAME" $smtpUsername
+Set-EnvValue "SMTP_PASSWORD" $smtpPassword
+Set-EnvValue "SMTP_FROM" $smtpFrom
+Set-EnvValue "SMTP_STARTTLS" $smtpStartTls
+Set-EnvValue "SMTP_SSL" $smtpSsl
 Set-EnvValue "MQTT_PASSWORD" $backendPassword
 Set-EnvValue "SMS_WEBHOOK_TOKEN" (New-RandomToken 32)
 Set-EnvValue "CORS_ORIGINS" $cors
@@ -134,12 +194,17 @@ if ($ConfigureAliyunPnvs) {
 }
 
 if ($EnableCloudflare) {
-    $cloudflareTokenPath = (Read-Host "Cloudflare token file Linux path [/root/.cloudflared/home-iot.token]").Trim()
-    if (-not $cloudflareTokenPath) { $cloudflareTokenPath = "/root/.cloudflared/home-iot.token" }
-    Set-EnvValue "CLOUDFLARED_TOKEN_FILE" $cloudflareTokenPath
+    $cloudflareToken = ConvertFrom-SecureValue (Read-Host "Cloudflare Tunnel token" -AsSecureString)
+    if (-not $cloudflareToken) { throw "Cloudflare Tunnel token is required." }
+    $secretDirectory = Join-Path $serverRoot ".secrets"
+    [IO.Directory]::CreateDirectory($secretDirectory) | Out-Null
+    [IO.File]::WriteAllText((Join-Path $secretDirectory "cloudflared.token"), $cloudflareToken + "`n", [Text.UTF8Encoding]::new($false))
+    Set-EnvValue "CLOUDFLARED_TOKEN_FILE" "./.secrets/cloudflared.token"
+    $cloudflareToken = $null
 }
 
 [IO.File]::WriteAllText($envFile, $script:envText, [Text.UTF8Encoding]::new($false))
+Protect-SecretPath $envFile
 Set-CMacroIfPresent (Join-Path $projectRoot "ESP32_MPPT\mppt_config.h") "MPPT_MQTT_PASSWORD" $mpptPassword
 Set-CMacroIfPresent (Join-Path $projectRoot "ESP32_MPPT\mppt_config.h") "MPPT_WIFI_SSID" $wifiSsid
 Set-CMacroIfPresent (Join-Path $projectRoot "ESP32_MPPT\mppt_config.h") "MPPT_WIFI_PASSWORD" $wifiPassword
@@ -177,6 +242,8 @@ try {
 } finally {
     if (Test-Path -LiteralPath $passwdTemp) { Remove-Item -LiteralPath $passwdTemp -Force }
 }
+Protect-SecretPath $passwdFinal
+Protect-SecretPath (Join-Path $serverRoot ".secrets")
 
 $backupPassword | & wsl.exe -d $WslDistribution -u root -- bash "${linuxServerRoot}/scripts/install-backup-secret.sh"
 if ($LASTEXITCODE -ne 0) { throw "Failed to install the backup passphrase." }
@@ -205,7 +272,7 @@ if (-not $SkipStart) {
     if ($openapi.paths.PSObject.Properties.Name -notcontains "/api/v1/auth/profile") { throw "Authentication API verification failed." }
 }
 
-$postgresPassword = $adminPassword = $backendPassword = $mpptPassword = $espPassword = $efPassword = $backupPassword = $wifiPassword = $null
+$postgresPassword = $adminPassword = $superAdminPassword = $smtpPassword = $backendPassword = $mpptPassword = $espPassword = $efPassword = $backupPassword = $wifiPassword = $null
 Write-Host "`nASTRA installation and validation completed." -ForegroundColor Green
 Write-Host "Frontend: http://127.0.0.1:8000/"
 Write-Host "Admin:    http://127.0.0.1:8100/"

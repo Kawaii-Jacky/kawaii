@@ -41,13 +41,14 @@ function Publish-Telemetry([string]$user, [string]$password, [hashtable]$data, [
         status = "online"
         ts = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
     }
-    Publish-Json $user $password "telemetry" @{
+    $telemetry = @{
         schema = 1
         device = $user
         ts = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
         seq = $sequence
-        data = $data
     }
+    foreach ($key in $data.Keys) { $telemetry[$key] = $data[$key] }
+    Publish-Json $user $password "telemetry" $telemetry
 }
 
 $mpptPassword = Read-Macro "$root\ESP32_MPPT\mppt_config.h" "MPPT_MQTT_PASSWORD"
@@ -57,18 +58,24 @@ $seed = [int][DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 
 try {
     Publish-Telemetry "mppt-001" $mpptPassword @{
-        power_input_w = 42.6; voltage_input_v = 18.2; current_input_a = 2.34
-        buck_power_w = 38.1; buck_voltage_v = 12.4; temperature = 31
-        pwm = 96; fan = 1; mode = 1
+        power_input = 42.6; battery_percent = 76; current_input = 2.34
+        buck_current = 3.08; buck_power = 38.1; voltage_input = 18.2
+        buck_voltage = 12.4; temperature = 31; pwm = 96; fan = 1
+        enable_fan = 1; mode = 1; daily_energy = 126.4; total_energy = 490700.2
+        buck_efficiency = 89.4; days_running = 18.2; voltage_battery_min = 10.0
+        voltage_battery_max = 14.4; current_charging = 3.5; temperature_fan = 60
     } $seed
     Publish-Telemetry "esp32-001" $espPassword @{
         dht_temperature = 22.4; dht_humidity = 43.0; utc_temperature = 21.9
         output_voltage = 12.18; output_current = 2.1; power_output = 25.6
-        rain_analog = 872; rain_detected = $false; heater = $false
-        fan = $true; mosfet = $true; camera = $false
+        rain_analog = 872; rain_detected = $false; heater = $false; heater_mode = $true
+        fan = $true; fan_mode = $true; fan_threshold = 40; mosfet = $true
+        camera = $false; cameraDurationMinutes = 180; bluetooth = $false; roof = "closed"; roofPosition = 0
     } ($seed + 1)
     Publish-Telemetry "ef-001" $efPassword @{
-        humidity = 72; servo = $true; led = $true; heater = $false; angle = 150
+        humidity = 72; servo = $true; servoMoving = $false; led = $true
+        heater = $false; heater_mode = $true; angle = 150; maxAngle = 300
+        brightness = 68; humi_threshold = 70; heater_power = 50
     } ($seed + 2)
     Write-Output "MQTTX firmware simulation published telemetry for 3 devices."
 }

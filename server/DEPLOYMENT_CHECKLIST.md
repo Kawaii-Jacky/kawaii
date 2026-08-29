@@ -9,14 +9,17 @@
 
 ## 启动前检查
 
-1. 复制 `.env.example` 为 `.env`，填写真实值；不要提交 `.env`、`mosquitto/passwd` 或 Token 文件。
-2. 生产环境至少设置：
+1. Linux 发布包运行 `./deploy/install.sh`；源码/WSL 部署运行 `./scripts/install-astra.sh` 或 `./scripts/install-astra.ps1`。首次安装会逐项询问管理员、SMTP、Cloudflare 和设备凭据，并以受限文件权限保存服务端秘密。
+2. 不要提交 `.env`、`.secrets/`、`mosquitto/passwd`、备份口令或 Token 文件。迁移到新主机时重新运行安装 CLI，使用操作者自己的管理员邮箱和密码。
+3. 生产环境至少设置：
    - `AUTH_DEBUG_CODES=0`
    - `AUTH_COOKIE_SECURE=1`
    - `CORS_ORIGINS=https://<正式域名>`
    - `MQTT_DISABLED=0`
-3. 确认 `CLOUDFLARED_TOKEN_FILE` 在运行 Docker 的 Linux/WSL 环境中可读。
-4. 确认设备固件使用 `devices/<id>/{telemetry,status,reported}`，命令发布到 `devices/<id>/command`。
+4. 确认 `CLOUDFLARED_TOKEN_FILE` 在运行 Docker 的 Linux/WSL 环境中可读。
+5. 确认设备固件使用 `devices/<id>/{telemetry,status,reported}`，命令发布到 `devices/<id>/command`。
+
+后台 `/admin` 的安全 JSON 导入只合并白名单表并整笔事务提交。由于安全导出不包含密码哈希、会话令牌、MQTT 密码、凭据库密钥或环境密钥，它不会创建新账户，也不能替代加密的 PostgreSQL 灾难恢复备份。
 
 ## 配置与冒烟测试
 

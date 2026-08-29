@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import base64
+import binascii
 import json
 import os
 import re
@@ -15,18 +17,22 @@ import secrets
 import smtplib
 import urllib.request
 import uuid
+from urllib.parse import parse_qs, urlsplit
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from typing import Any, Literal
 
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from argon2.exceptions import VerificationError, VerifyMismatchError
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
-from app.db import INTEGRITY_ERRORS, connection, db_lock
+from app.db import INTEGRITY_ERRORS, connection, db_lock, is_postgres
 
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 AUTH_DEBUG_CODES = os.getenv("AUTH_DEBUG_CODES", "0") == "1"
+ADMIN_PASSWORD_SYNC = os.getenv("ADMIN_PASSWORD_SYNC", "0") == "1"
+SUPER_ADMIN_EMAIL = "123@qq.com"
 SESSION_DAYS = max(1, int(os.getenv("AUTH_SESSION_DAYS", "7")))
 COOKIE_NAME = os.getenv("AUTH_COOKIE_NAME", "astra_session")
 COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "0") == "1"
@@ -110,6 +116,12 @@ def init_auth_db() -> None:
           primary key(scope, subject_hash)
         );
         """)
+        if is_postgres():
+            db.execute("alter table users add column if not exists avatar_data text")
+        else:
+            columns = {row["name"] for row in db.execute("pragma table_info(users)").fetchall()}
+            if "avatar_data" not in columns:
+                db.execute("alter table users add column avatar_data text")
         db.execute("delete from auth_rate_limits where updated_at<?", (iso(utcnow() - timedelta(days=7)),))
     bootstrap_admin()
 
@@ -212,7 +224,8 @@ def user_payload(row: Any) -> dict[str, Any]:
     return {
         "id": row["id"], "display_name": row["display_name"], "email": row["email"],
         "phone": row["phone"], "email_verified": bool(row["email_verified"]),
-        "phone_verified": bool(row["phone_verified"]), "role": row["role"]
+        "phone_verified": bool(row["phone_verified"]), "role": row["role"],
+        "avatar_data": row["avatar_data"] if "avatar_data" in row.keys() else None,
     }
 
 
@@ -227,8 +240,9 @@ def send_email_code(target: str, code: str, purpose: str) -> None:
     message["Subject"] = "ASTRA 验证码"
     message["From"], message["To"] = sender, target
     message.set_content(f"你的 ASTRA 验证码是：{code}\n\n用途：{purpose}\n{CODE_TTL_MINUTES} 分钟内有效。请勿转发给其他人。")
-    with smtplib.SMTP(host, port, timeout=15) as smtp:
-        if os.getenv("SMTP_STARTTLS", "1") == "1": smtp.starttls()
+    smtp_class = smtplib.SMTP_SSL if os.getenv("SMTP_SSL", "0") == "1" else smtplib.SMTP
+    with smtp_class(host, port, timeout=15) as smtp:
+        if smtp_class is smtplib.SMTP and os.getenv("SMTP_STARTTLS", "1") == "1": smtp.starttls()
         if username: smtp.login(username, password)
         smtp.send_message(message)
 
@@ -288,12 +302,9 @@ def verify_code(channel: str, target: str, purpose: str, code: str, request: Req
 
 def set_session_cookie(response: Response, token: str) -> None:
     same_site = COOKIE_SAMESITE if COOKIE_SAMESITE in ("lax", "strict", "none") else "lax"
-    # Remove legacy variants before setting the canonical host-only root cookie.
-    # Safari may otherwise send two cookies with the same name and the API can
-    # receive the stale value instead of the session created by this login.
-    response.delete_cookie(COOKIE_NAME, path="/api", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
-    response.delete_cookie(COOKIE_NAME, path="/api/v1/auth", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
-    response.delete_cookie(COOKIE_NAME, path="/", domain=".astroy.xyz", secure=COOKIE_SECURE, httponly=True, samesite=same_site)
+    # Keep login to one canonical Set-Cookie header. Safari 18 can discard the
+    # new cookie when the same response also expires legacy same-name cookies.
+    # Duplicate legacy values are handled safely by current_user instead.
     response.set_cookie(
         COOKIE_NAME, token, max_age=SESSION_DAYS * 86400, httponly=True,
         secure=COOKIE_SECURE, samesite=same_site,
@@ -316,29 +327,80 @@ def create_session(user_id: str, request: Request, response: Response | None = N
     return token
 
 
+def safari_user_agent(request: Request) -> bool:
+    user_agent = request.headers.get("user-agent", "")
+    return "Safari/" in user_agent and not any(
+        marker in user_agent for marker in ("Chrome/", "Chromium/", "CriOS/", "FxiOS/", "EdgiOS/", "Edg/")
+    )
+
+
+def consume_browser_handoff(token: str) -> str:
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Browser session handoff is missing")
+    now = utcnow()
+    with db_lock, connection() as db:
+        row = db.execute(
+            """select s.id as session_id,s.user_id,s.expires_at,u.disabled
+               from auth_sessions s join users u on u.id=s.user_id
+               where s.token_hash=? and s.revoked_at is null""",
+            (token_digest(token),),
+        ).fetchone()
+        expired = bool(row) and datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00")) < now
+        if not row or row["disabled"] or expired:
+            if row and expired:
+                db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Browser session handoff is invalid")
+        db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
+        return row["user_id"]
+
+
 def session_token(cookie_token: str | None, authorization: str | None) -> str | None:
     if cookie_token: return cookie_token
     if authorization and authorization.lower().startswith("bearer "): return authorization[7:].strip()
     return None
 
 
+def request_session_tokens(
+    request: Request,
+    cookie_token: str | None,
+    authorization: str | None,
+) -> list[str]:
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization[7:].strip()
+        return [token] if token else []
+    tokens: list[str] = []
+    raw_cookie = request.headers.get("cookie", "")
+    for part in raw_cookie.split(";"):
+        name, separator, value = part.strip().partition("=")
+        if separator and name == COOKIE_NAME and value and value not in tokens:
+            tokens.append(value)
+    if cookie_token and cookie_token not in tokens:
+        tokens.append(cookie_token)
+    return tokens
+
+
 def current_user(
+    request: Request,
     astra_session: str | None = Cookie(default=None, alias=COOKIE_NAME),
     authorization: str | None = Header(default=None)
 ) -> dict[str, Any]:
-    token = session_token(astra_session, authorization)
-    if not token: raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authentication required")
+    tokens = request_session_tokens(request, astra_session, authorization)
+    if not tokens: raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authentication required")
     with db_lock, connection() as db:
-        row = db.execute("""select u.*,s.id as session_id,s.expires_at,s.last_seen_at from auth_sessions s
-          join users u on u.id=s.user_id where s.token_hash=? and s.revoked_at is null""", (token_digest(token),)).fetchone()
         now = utcnow()
-        expired = bool(row) and datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00")) < now
-        if not row or row["disabled"] or expired:
-            if row and expired: db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired")
-        db.execute("update auth_sessions set last_seen_at=? where id=?", (iso(now), row["session_id"]))
-        result = user_payload(row); result["session_id"] = row["session_id"]
-        return result
+        for token in tokens:
+            row = db.execute("""select u.*,s.id as session_id,s.expires_at,s.last_seen_at from auth_sessions s
+              join users u on u.id=s.user_id where s.token_hash=? and s.revoked_at is null""", (token_digest(token),)).fetchone()
+            expired = bool(row) and datetime.fromisoformat(row["expires_at"].replace("Z", "+00:00")) < now
+            if row and expired:
+                db.execute("update auth_sessions set revoked_at=? where id=? and revoked_at is null", (iso(now), row["session_id"]))
+                continue
+            if not row or row["disabled"]:
+                continue
+            db.execute("update auth_sessions set last_seen_at=? where id=?", (iso(now), row["session_id"]))
+            result = user_payload(row); result["session_id"] = row["session_id"]
+            return result
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired")
 
 
 def require_operator(user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
@@ -362,18 +424,71 @@ def session_is_active(session_id: str) -> bool:
     )
 
 
-def bootstrap_admin() -> None:
-    email, password = os.getenv("ADMIN_EMAIL", "").strip().lower(), os.getenv("ADMIN_PASSWORD", "")
-    if not email and not password: return
-    if not email or not password: raise RuntimeError("ADMIN_EMAIL and ADMIN_PASSWORD must be configured together")
-    if password.startswith("CHANGE_ME_"): raise RuntimeError("ADMIN_PASSWORD must be replaced with a real secret")
-    if len(password) < 9: raise RuntimeError("ADMIN_PASSWORD must contain at least 9 characters")
+def ensure_admin_account(email: str, password: str, display_name: str, sync_password: bool) -> None:
+    if not EMAIL_RE.fullmatch(email): raise RuntimeError("ADMIN_EMAIL must be a valid email address")
+    if password and password.startswith("CHANGE_ME_"): raise RuntimeError("Administrator passwords must be replaced with real secrets")
+    if password and len(password) < 9: raise RuntimeError("Administrator passwords must contain at least 9 characters")
     now = iso()
     with db_lock, connection() as db:
-        if db.execute("select 1 from users where email=?", (email,)).fetchone(): return
+        existing = db.execute(
+            "select id,password_hash,role,disabled,email_verified from users where lower(email)=?",
+            (email,),
+        ).fetchone()
+        if existing:
+            assignments = ["role='admin'", "disabled=0", "email_verified=1", "updated_at=?"]
+            params: list[Any] = [now]
+            password_changed = False
+            if sync_password and password:
+                try:
+                    password_matches = password_hasher.verify(existing["password_hash"], password)
+                except VerificationError:
+                    password_matches = False
+                if not password_matches:
+                    assignments.append("password_hash=?")
+                    params.append(password_hasher.hash(password))
+                    password_changed = True
+            params.append(existing["id"])
+            db.execute(f"update users set {','.join(assignments)} where id=?", tuple(params))
+            if password_changed:
+                db.execute(
+                    "update auth_sessions set revoked_at=? where user_id=? and revoked_at is null",
+                    (now, existing["id"]),
+                )
+            return
+        if not password:
+            return
         db.execute("""insert into users
           (id,display_name,email,password_hash,email_verified,role,created_at,updated_at)
-          values(?,?,?,?,1,'admin',?,?)""", (str(uuid.uuid4()), os.getenv("ADMIN_DISPLAY_NAME", "ASTRA 管理员"), email, password_hasher.hash(password), now, now))
+          values(?,?,?,?,1,'admin',?,?)""", (str(uuid.uuid4()), display_name, email, password_hasher.hash(password), now, now))
+
+
+def bootstrap_admin() -> None:
+    email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    password = os.getenv("ADMIN_PASSWORD", "")
+    if bool(email) != bool(password):
+        raise RuntimeError("ADMIN_EMAIL and ADMIN_PASSWORD must be configured together")
+    if email:
+        ensure_admin_account(
+            email,
+            password,
+            os.getenv("ADMIN_DISPLAY_NAME", "ASTRA 管理员"),
+            ADMIN_PASSWORD_SYNC,
+        )
+
+    if email == SUPER_ADMIN_EMAIL:
+        return
+    super_password = os.getenv("SUPER_ADMIN_PASSWORD", "")
+    if super_password:
+        ensure_admin_account(SUPER_ADMIN_EMAIL, super_password, "ASTRA 超级管理员", True)
+        return
+    # Existing installations keep the reserved identity even before their next
+    # installer run. Managed deployments must provide its recovery password.
+    ensure_admin_account(SUPER_ADMIN_EMAIL, "", "ASTRA 超级管理员", False)
+    if ADMIN_PASSWORD_SYNC:
+        with db_lock, connection() as db:
+            exists = db.execute("select 1 from users where lower(email)=?", (SUPER_ADMIN_EMAIL,)).fetchone()
+        if not exists:
+            raise RuntimeError("SUPER_ADMIN_PASSWORD must be configured for the reserved super administrator")
 
 
 class VerificationRequest(BaseModel):
@@ -414,6 +529,10 @@ class PasswordChangeRequest(BaseModel):
 
 class ProfilePatch(BaseModel):
     display_name: str = Field(min_length=1, max_length=40)
+
+
+class AvatarPatch(BaseModel):
+    avatar_data: str = Field(min_length=32, max_length=700_000)
 
 
 @router.post("/verification/request", status_code=202, summary="发送邮箱或手机验证码")
@@ -466,9 +585,11 @@ def register(body: RegisterRequest, request: Request, response: Response) -> dic
               values(?,?,?,?,1,?,?)""", (user_id, body.display_name.strip(), target, password_hasher.hash(body.password), now, now))
     except INTEGRITY_ERRORS as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, "Account already exists") from exc
-    create_session(user_id, request, response)
+    token = create_session(user_id, request, response)
     with connection() as db: row = db.execute("select * from users where id=?", (user_id,)).fetchone()
-    return {"user": user_payload(row)}
+    result = {"user": user_payload(row)}
+    if safari_user_agent(request): result["browser_handoff"] = token
+    return result
 
 
 @router.post("/login", summary="账号密码登录")
@@ -500,8 +621,24 @@ def login(body: LoginRequest, request: Request, response: Response) -> dict[str,
     clear_rate_limit("login-identifier", identifier)
     if password_hasher.check_needs_rehash(row["password_hash"]):
         with connection() as db: db.execute("update users set password_hash=?,updated_at=? where id=?", (password_hasher.hash(body.password), iso(), row["id"]))
-    create_session(row["id"], request, response)
-    return {"user": user_payload(row)}
+    token = create_session(row["id"], request, response)
+    result = {"user": user_payload(row)}
+    if safari_user_agent(request): result["browser_handoff"] = token
+    return result
+
+
+@router.post("/browser/session/commit", include_in_schema=False)
+async def commit_browser_session(request: Request) -> Response:
+    origin = request.headers.get("origin", "")
+    host = request.headers.get("host", "").lower()
+    if origin and urlsplit(origin).netloc.lower() != host:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Cross-origin session handoff rejected")
+    body = parse_qs((await request.body()).decode("utf-8", "strict"), keep_blank_values=True)
+    handoff = (body.get("handoff") or [""])[0]
+    user_id = consume_browser_handoff(handoff)
+    response = RedirectResponse(url="/#profile", status_code=status.HTTP_303_SEE_OTHER)
+    create_session(user_id, request, response)
+    return response
 
 
 @router.post("/native/login", summary="Native bearer-token login")
@@ -637,5 +774,30 @@ def update_profile(body: ProfilePatch, user: dict[str, Any] = Depends(current_us
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Display name cannot be empty")
     with db_lock, connection() as db:
         db.execute("update users set display_name=?,updated_at=? where id=?", (display_name, iso(), user["id"]))
+        row = db.execute("select * from users where id=?", (user["id"],)).fetchone()
+    return {"user": user_payload(row)}
+
+
+@router.put("/profile/avatar", summary="Update the current account avatar")
+def update_avatar(body: AvatarPatch, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    match = re.fullmatch(r"data:(image/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)", body.avatar_data)
+    if not match:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar must be a PNG, JPEG, or WebP image")
+    try:
+        raw = base64.b64decode(match.group(2), validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar data is invalid") from exc
+    if not raw or len(raw) > 512 * 1024:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Avatar must be no larger than 512 KB")
+    mime = match.group(1)
+    valid_signature = (
+        (mime == "image/png" and raw.startswith(b"\x89PNG\r\n\x1a\n"))
+        or (mime == "image/jpeg" and raw.startswith(b"\xff\xd8\xff"))
+        or (mime == "image/webp" and raw.startswith(b"RIFF") and raw[8:12] == b"WEBP")
+    )
+    if not valid_signature:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar content does not match its image type")
+    with db_lock, connection() as db:
+        db.execute("update users set avatar_data=?,updated_at=? where id=?", (body.avatar_data, iso(), user["id"]))
         row = db.execute("select * from users where id=?", (user["id"],)).fetchone()
     return {"user": user_payload(row)}

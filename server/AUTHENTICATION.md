@@ -5,7 +5,7 @@
 1. 安装新增依赖：`pip install -r requirements.txt`。
 2. 从 `.env.example` 复制或补齐认证变量。
 3. 生成高强度密钥，例如：`python -c "import secrets; print(secrets.token_urlsafe(48))"`，填入 `AUTH_SECRET`。
-4. 设置首个管理员的 `ADMIN_EMAIL` 和 `ADMIN_PASSWORD`（至少 9 位）。启动时仅在该邮箱不存在时创建一次。
+4. 设置管理员的 `ADMIN_EMAIL` 和 `ADMIN_PASSWORD`（至少 9 位）。安装 CLI 会设置 `ADMIN_PASSWORD_SYNC=1`，使该私有部署配置在迁移后恢复管理员角色和密码；仓库不包含默认管理员账号或密码。
 5. 为生产环境设置邮件 SMTP 或短信网关；关闭 `AUTH_DEBUG_CODES`；HTTPS 部署时设置 `AUTH_COOKIE_SECURE=1`。
 6. 用 Nginx `/api/` 代理让前端与 API 同源。`nginx.conf` 和 `nginx-wsl.conf` 已包含配置。
 
