@@ -84,6 +84,9 @@ ADMIN_LOGIN_IP_LIMIT = max(ADMIN_LOGIN_LIMIT, int(os.getenv("ADMIN_LOGIN_FAILURE
 ADMIN_LOGIN_WINDOW_SECONDS = max(60, int(os.getenv("ADMIN_LOGIN_FAILURE_WINDOW_SECONDS", "900")))
 DATABASE_IMPORT_MAX_BYTES = max(1024, min(int(os.getenv("DATABASE_IMPORT_MAX_BYTES", str(25 * 1024 * 1024))), 100 * 1024 * 1024))
 DATABASE_IMPORT_MAX_ROWS = max(1, min(int(os.getenv("DATABASE_IMPORT_MAX_ROWS", "250000")), 1_000_000))
+TELEMETRY_RETENTION_DEFAULT_DAYS = max(1, int(os.getenv("TELEMETRY_RETENTION_DAYS", "30")))
+TELEMETRY_RETENTION_MIN_DAYS = 1
+TELEMETRY_RETENTION_MAX_DAYS = 3650
 RESTARTABLE_SERVICES = {"postgres", "mqtt", "api", "sms"}
 restart_lock = threading.Lock()
 controller_auto_provision_lock = threading.Lock()
@@ -112,6 +115,7 @@ SAFE_EXPORT_QUERIES = {
     "commands": "select * from commands order by created_at,id",
     "service_traffic_totals": "select * from service_traffic_totals order by service",
     "service_traffic_samples": "select * from service_traffic_samples order by ts,service,id",
+    "runtime_settings": "select * from runtime_settings where key='telemetry_retention_days' order by key",
     "users": """select id,display_name,email,phone,email_verified,phone_verified,role,disabled,
                 created_at,updated_at from users order by created_at,id""",
     "auth_sessions": """select id,user_id,expires_at,created_at,last_seen_at,revoked_at,user_agent,ip_address
@@ -121,7 +125,7 @@ SAFE_EXPORT_QUERIES = {
     "admin_audit": "select * from admin_audit order by id",
 }
 SAFE_EXPORT_GROUPS = {
-    "operational": ["devices", "telemetry_latest", "telemetry_samples", "commands", "service_traffic_totals", "service_traffic_samples"],
+    "operational": ["devices", "telemetry_latest", "telemetry_samples", "commands", "service_traffic_totals", "service_traffic_samples", "runtime_settings"],
     "accounts": ["users", "auth_sessions", "controllers", "user_controller_access"],
     "audit": ["admin_audit"],
 }
@@ -136,6 +140,7 @@ SAFE_IMPORT_SPECS = {
     "commands": (("id", "device_id", "command", "payload", "status", "created_at", "acknowledged_at", "result", "mqtt_payload", "attempt_count", "max_attempts", "last_attempt_at", "next_retry_at"), ("id",)),
     "service_traffic_totals": (("service", "rx_bytes", "tx_bytes", "updated_at"), ("service",)),
     "service_traffic_samples": (("id", "ts", "service", "rx_bytes", "tx_bytes", "interval_seconds", "source"), ("id",)),
+    "runtime_settings": (("key", "value", "updated_at"), ("key",)),
     "user_controller_access": (("user_id", "controller_id", "created_at", "created_by"), ("user_id",)),
     "admin_audit": (("id", "actor_id", "action", "target", "detail", "ip_address", "created_at"), ("id",)),
 }
@@ -281,6 +286,13 @@ def initialize() -> None:
           scope text not null, subject_hash text not null, window_started_at text not null,
           hits integer not null default 0, updated_at text not null,
           primary key(scope, subject_hash))""")
+        db.execute("""create table if not exists runtime_settings (
+          key text primary key, value text not null, updated_at text not null)""")
+        db.execute(
+            """insert into runtime_settings(key,value,updated_at)
+               values(%s,%s,%s) on conflict(key) do nothing""",
+            ("telemetry_retention_days", str(min(max(TELEMETRY_RETENTION_DEFAULT_DAYS, TELEMETRY_RETENTION_MIN_DAYS), TELEMETRY_RETENTION_MAX_DAYS)), utc_iso()),
+        )
         db.execute("""create table if not exists user_controller_access (
           user_id text primary key references users(id) on delete cascade,
           controller_id text not null references controllers(controller_id) on delete cascade,
@@ -384,6 +396,24 @@ class ControllerAccessPatch(BaseModel):
 class RuntimeDataClearIn(BaseModel):
     user_id: str = Field(min_length=1, max_length=128)
     confirmation: str = Field(min_length=1, max_length=64)
+
+
+class TelemetryRetentionPatch(BaseModel):
+    days: int = Field(ge=TELEMETRY_RETENTION_MIN_DAYS, le=TELEMETRY_RETENTION_MAX_DAYS)
+
+
+QUERY_TABLES = {
+    "devices": ("device_id", "select device_id,device_type,name,enabled,last_seen,last_status,firmware_version,metadata,controller_id,logical_device_id from devices order by device_id"),
+    "telemetry_latest": ("device_id", "select device_id,ts,payload from telemetry_latest order by ts desc"),
+    "telemetry_samples": ("ts", "select id,device_id,ts,seq,payload from telemetry_samples order by ts desc,id desc"),
+    "commands": ("created_at", "select id,device_id,command,status,created_at,acknowledged_at,result from commands order by created_at desc"),
+    "device_alerts": ("opened_at", "select id,device_id,alert_type,status,opened_at,resolved_at,detail from device_alerts order by opened_at desc"),
+}
+
+
+class QueryRequest(BaseModel):
+    table: Literal["devices", "telemetry_latest", "telemetry_samples", "commands", "device_alerts"]
+    limit: int = Field(default=100, ge=1, le=500)
 
 
 def current_console_user(token: str | None = Cookie(default=None, alias=COOKIE_NAME)) -> dict[str, Any]:
@@ -817,6 +847,75 @@ def system_metrics() -> dict[str, float | int | None]:
     }
 
 
+def configured_telemetry_retention_days() -> int:
+    with db_connection() as db:
+        row = db.execute(
+            "select value from runtime_settings where key=%s",
+            ("telemetry_retention_days",),
+        ).fetchone()
+    try:
+        value = int(row["value"]) if row else TELEMETRY_RETENTION_DEFAULT_DAYS
+    except (TypeError, ValueError, KeyError):
+        value = TELEMETRY_RETENTION_DEFAULT_DAYS
+    return min(max(value, TELEMETRY_RETENTION_MIN_DAYS), TELEMETRY_RETENTION_MAX_DAYS)
+
+
+@app.get("/admin-api/settings/telemetry-retention")
+def telemetry_retention_settings(access: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
+    return {
+        "days": configured_telemetry_retention_days(),
+        "min_days": TELEMETRY_RETENTION_MIN_DAYS,
+        "max_days": TELEMETRY_RETENTION_MAX_DAYS,
+        "read_only": bool(access.get("preview")) or access.get("role") == "operator",
+    }
+
+
+@app.patch("/admin-api/settings/telemetry-retention")
+def update_telemetry_retention(
+    body: TelemetryRetentionPatch,
+    request: Request,
+    admin: dict[str, Any] = Depends(current_admin),
+) -> dict[str, Any]:
+    with db_connection() as db:
+        db.execute(
+            """insert into runtime_settings(key,value,updated_at)
+               values(%s,%s,%s) on conflict(key) do update set
+               value=excluded.value,updated_at=excluded.updated_at""",
+            ("telemetry_retention_days", str(body.days), utc_iso()),
+        )
+    audit(admin, "settings.telemetry_retention.update", "telemetry_retention_days", {"days": body.days}, request)
+    return {"days": body.days, "min_days": TELEMETRY_RETENTION_MIN_DAYS, "max_days": TELEMETRY_RETENTION_MAX_DAYS}
+
+
+@app.get("/admin-api/database/write-stats")
+def database_write_stats(_admin: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
+    with db_connection() as db:
+        totals = db.execute("""
+        select
+          (select count(*) from telemetry_samples) as telemetry_total,
+          (select count(*) from telemetry_samples where ts::timestamptz >= now()-interval '1 hour') as telemetry_1h,
+          (select count(*) from telemetry_samples where ts::timestamptz >= now()-interval '24 hours') as telemetry_24h,
+          (select count(*) from telemetry_samples where ts::timestamptz >= now()-interval '7 days') as telemetry_7d,
+          (select count(*) from commands) as commands_total,
+          (select count(*) from commands where created_at::timestamptz >= now()-interval '24 hours') as commands_24h
+        """).fetchone()
+        devices = db.execute("""
+        select device_id,count(*) as samples_24h,max(ts) as last_sample
+        from telemetry_samples
+        where ts::timestamptz >= now()-interval '24 hours'
+        group by device_id order by device_id
+        """).fetchall()
+    return {"totals": dict(totals), "devices": [dict(row) for row in devices]}
+
+
+@app.post("/admin-api/database/query")
+def query_database(body: QueryRequest, _admin: dict[str, Any] = Depends(current_admin)) -> dict[str, Any]:
+    _sort_column, statement = QUERY_TABLES[body.table]
+    with db_connection() as db:
+        rows = db.execute(f"{statement} limit %s", (body.limit,)).fetchall()
+    return {"table": body.table, "columns": list(rows[0].keys()) if rows else [], "rows": [dict(row) for row in rows]}
+
+
 @app.get("/admin-api/metrics")
 def metrics(access: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
     with db_connection() as db:
@@ -834,6 +933,7 @@ def metrics(access: dict[str, Any] = Depends(read_access)) -> dict[str, Any]:
         "time": utc_iso(),
         "access": {"role": access.get("role", "preview"), "read_only": bool(access.get("preview")) or access.get("role") == "operator"},
         "database": dict(row),
+        "telemetry_retention_days": configured_telemetry_retention_days(),
         "network": network_rates(),
         "system": system_metrics(),
         "services": {
@@ -1332,6 +1432,13 @@ def validate_import_document(payload: bytes) -> dict[str, Any]:
                 raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Table {table} has a missing identity")
             if any(not isinstance(value, (str, int, float, bool, type(None))) for value in row.values()):
                 raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Table {table} contains a non-scalar value")
+            if table == "runtime_settings":
+                try:
+                    days = int(row["value"])
+                except (TypeError, ValueError) as exc:
+                    raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Telemetry retention must be an integer") from exc
+                if row["key"] != "telemetry_retention_days" or not TELEMETRY_RETENTION_MIN_DAYS <= days <= TELEMETRY_RETENTION_MAX_DAYS:
+                    raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Runtime setting is not allowed")
         total_rows += len(rows)
         if total_rows > DATABASE_IMPORT_MAX_ROWS:
             raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Import file contains too many rows")
@@ -1366,7 +1473,7 @@ def import_export_document(db: Any, document: dict[str, Any], actor_id: str) -> 
     warnings: list[str] = []
     order = (
         "controllers", "users", "devices", "telemetry_latest", "telemetry_samples", "commands",
-        "service_traffic_totals", "service_traffic_samples", "user_controller_access", "admin_audit",
+        "service_traffic_totals", "service_traffic_samples", "runtime_settings", "user_controller_access", "admin_audit",
     )
     for table in order:
         rows = tables.get(table, [])
