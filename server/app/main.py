@@ -7,7 +7,7 @@ and streams updates over Server-Sent Events.
 """
 from __future__ import annotations
 
-import asyncio, copy, json, os, queue, threading, time, uuid
+import asyncio, copy, json, os, queue, re, threading, time, uuid
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -34,6 +34,8 @@ from app.controller_access import (
     storage_device_id,
 )
 from app.credential_vault import decrypt_controller_credentials
+from app.security import CookieCSRFMiddleware
+from app.device_protocol import ProtocolError, normalize_command, validate_telemetry
 
 try:
     import paho.mqtt.client as mqtt
@@ -105,6 +107,8 @@ app = FastAPI(title="Astroy Control API", version="1.1.0", lifespan=lifespan)
 cors_origins = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",") if origin.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=cors_origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.add_middleware(APITrafficMiddleware)
+csrf_origins = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", ",".join(cors_origins)).split(",") if origin.strip()]
+app.add_middleware(CookieCSRFMiddleware, cookie_name=os.getenv("AUTH_COOKIE_NAME", "astra_session"), allowed_origins=csrf_origins)
 app.include_router(auth_router)
 
 
@@ -426,6 +430,10 @@ def ingest(controller_id: str, topic: str | None = None, payload: str | None = N
         if not device or not bool(device["enabled"]):
             return
         if kind == "telemetry":
+            try:
+                validate_telemetry(logical_id, body)
+            except ProtocolError:
+                return
             c.execute("insert into telemetry_samples(device_id,ts,seq,payload) values(?,?,?,?)", (did, ts, body.get("seq"), payload))
             c.execute("insert into telemetry_latest(device_id,ts,payload) values(?,?,?) on conflict(device_id) do update set ts=excluded.ts,payload=excluded.payload", (did, ts, payload))
             c.execute("update devices set last_seen=?,last_status='online' where device_id=?", (ts, did))
@@ -458,6 +466,30 @@ def ingest(controller_id: str, topic: str | None = None, payload: str | None = N
 class CommandIn(BaseModel):
     command: str = Field(min_length=1, max_length=64)
     args: dict[str, Any] = Field(default_factory=dict)
+
+
+def require_command_ready(device: dict[str, Any], command_name: str) -> None:
+    """Prevent stale queued controls and enforce the rain interlock."""
+    last_seen = device.get("last_seen")
+    try:
+        age = (datetime.now(timezone.utc) - parse_iso(str(last_seen))).total_seconds()
+    except (TypeError, ValueError):
+        age = float("inf")
+    if device.get("last_status") != "online" or age < -60 or age > DEVICE_OFFLINE_SECONDS:
+        raise HTTPException(409, "device is offline or telemetry is stale")
+    if command_name != "motor_forward":
+        return
+    with conn() as c:
+        latest_row = c.execute("select ts,payload from telemetry_latest where device_id=?", (device["device_id"],)).fetchone()
+    if not latest_row:
+        raise HTTPException(409, "roof opening requires current rain telemetry")
+    try:
+        latest_age = (datetime.now(timezone.utc) - parse_iso(str(latest_row["ts"]))).total_seconds()
+        latest_payload = json.loads(latest_row["payload"])
+    except (TypeError, ValueError, json.JSONDecodeError):
+        raise HTTPException(409, "roof opening requires valid rain telemetry")
+    if latest_age < -60 or latest_age > DEVICE_OFFLINE_SECONDS or latest_payload.get("rain_detected") is not False:
+        raise HTTPException(409, "roof opening is blocked until current telemetry confirms no rain")
 
 class MQTTWorker:
     def __init__(self, config: dict[str, Any]) -> None:
@@ -702,9 +734,21 @@ async def open_meteo_geocoding(
 ) -> dict[str, Any]:
     """Same-origin Open-Meteo geocoding proxy used by the location search."""
     check_weather_rate(request, "geocoding")
-    params = urllib.parse.urlencode({"name": name, "count": count, "language": language, "format": "json"})
     try:
-        return await asyncio.to_thread(fetch_json_cached, f"{OPEN_METEO_GEOCODING_URL}?{params}", 3600)
+        query = name.strip()
+        params = urllib.parse.urlencode({"name": query, "count": count, "language": language, "format": "json"})
+        payload = await asyncio.to_thread(fetch_json_cached, f"{OPEN_METEO_GEOCODING_URL}?{params}", 3600)
+        # Open-Meteo's geocoder often requires the Chinese administrative
+        # suffix even though users naturally search with the short city name
+        # (e.g. “厦门” vs “厦门市”).  Retry one deterministic suffix only
+        # when the first response is empty; this keeps rate/caching bounded.
+        if not payload.get("results") and re.search(r"[\u3400-\u9fff]", query) and not re.search(r"(?:市|县|区|镇|乡)$", query):
+            fallback = f"{query}市"
+            fallback_params = urllib.parse.urlencode({"name": fallback, "count": count, "language": language, "format": "json"})
+            fallback_payload = await asyncio.to_thread(fetch_json_cached, f"{OPEN_METEO_GEOCODING_URL}?{fallback_params}", 3600)
+            if fallback_payload.get("results"):
+                return fallback_payload
+        return payload
     except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
         raise HTTPException(502, f"Open-Meteo geocoding unavailable: {exc}") from exc
 
@@ -867,38 +911,26 @@ def telemetry(device_id: str, limit: int = Query(100, ge=1, le=2000), user: dict
 def command(device_id: str, req: CommandIn, user: dict[str, Any] = Depends(require_operator)) -> dict[str, Any]:
     device = require_device_access(user, device_id)
     if not device["enabled"]: raise HTTPException(409, "device is disabled")
-    cid = str(uuid.uuid4()); ts = now_iso(); payload = {"schema": 1, "id": cid, "device": device_id, "ts": ts, "command": req.command, **req.args}
-    # The current MPPT firmware predates the common command envelope and uses
-    # top-level key/string matching. Do not include schema:1 there: its parser
-    # would otherwise mistake that value for mode=1 or state=true.
+    try:
+        command_args = normalize_command(device_id, req.command, req.args)
+    except ProtocolError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    command_name = req.command.strip().lower()
+    require_command_ready(device, command_name)
+    cid = str(uuid.uuid4()); ts = now_iso(); payload = {"schema": 1, "id": cid, "device": device_id, "ts": ts, "command": command_name, **command_args}
+    # MPPT settings remain top-level for its lightweight parser, while the
+    # common envelope is preserved so firmware can return a correlated ACK.
     mqtt_payload = payload
     if device_id == "mppt-001":
-        if req.command == "fan": mqtt_payload = {"fan": bool(req.args.get("state", False))}
-        elif req.command == "mode": mqtt_payload = {"mode": int(req.args.get("value", req.args.get("state", 0)))}
-        elif req.command == "enable_fan": mqtt_payload = {"enable_fan": bool(req.args.get("state", req.args.get("enabled", False)))}
-        elif req.command in ("voltage_battery_min", "voltage_battery_max", "current_charging", "temperature_fan"):
-            value = req.args.get("value")
-            if not isinstance(value, (int, float)):
-                raise HTTPException(422, "MPPT setting requires a numeric value")
-            limits = {"voltage_battery_min": (8.0, 20.0), "voltage_battery_max": (12.0, 48.0), "current_charging": (0.1, 20.0), "temperature_fan": (20.0, 80.0)}
-            low, high = limits[req.command]
-            if not low <= float(value) <= high:
-                raise HTTPException(422, f"{req.command} must be between {low} and {high}")
-            mqtt_payload = {req.command: value}
-        elif req.command == "debug": mqtt_payload = {"debug": True}
-        elif req.command == "settings":
-            limits = {
-                "voltage_battery_min": (8.0, 20.0),
-                "voltage_battery_max": (12.0, 48.0),
-                "current_charging": (0.1, 20.0),
-                "temperature_fan": (20.0, 80.0),
-            }
-            mqtt_payload = {}
-            for key, (low, high) in limits.items():
-                value = req.args.get(key)
-                if not isinstance(value, (int, float)) or not low <= float(value) <= high:
-                    raise HTTPException(422, f"{key} must be between {low} and {high}")
-                mqtt_payload[key] = value
+        mqtt_payload = dict(payload)
+        command_name = payload["command"]
+        if command_name == "fan": mqtt_payload["fan"] = command_args["state"]
+        elif command_name == "mode": mqtt_payload["mode"] = command_args["value"]
+        elif command_name == "enable_fan": mqtt_payload["enable_fan"] = command_args["state"]
+        elif command_name in ("voltage_battery_min", "voltage_battery_max", "current_charging", "temperature_fan"):
+            mqtt_payload[command_name] = command_args["value"]
+        elif command_name == "debug": mqtt_payload["debug"] = True
+        elif command_name == "settings": mqtt_payload.update(command_args)
     raw = json.dumps(payload, separators=(",", ":"))
     mqtt_raw = json.dumps(mqtt_payload, separators=(",", ":"))
     with db_lock, conn() as c:

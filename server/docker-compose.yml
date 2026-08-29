@@ -54,6 +54,7 @@ services:
       MQTT_HOST: mosquitto
       MQTT_PORT: 1883
       MQTT_CONTROLLERS_FILE: /run/astra-secrets/mqtt-controllers.json
+      MQTT_INTERNAL_HOST: mosquitto
       DATABASE_URL: postgresql://${POSTGRES_USER:-astra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-astroy}
       SMS_WEBHOOK_URL: ${SMS_WEBHOOK_URL:-http://sms-gateway:8090/send}
       CREDENTIAL_VAULT_KEY_FILE: /run/astra-vault/credential-vault.key

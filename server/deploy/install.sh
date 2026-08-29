@@ -11,6 +11,9 @@ Environment variables for unattended installation:
   ASTRA_DOMAIN                 Public domain or HTTPS origin
   ADMIN_EMAIL                  Initial administrator email
   ADMIN_PASSWORD               Initial administrator password (9+ characters)
+  SUPER_ADMIN_PASSWORD         Reserved 123@qq.com administrator password
+  SMTP_HOST / SMTP_PORT        Email verification SMTP server
+  SMTP_USERNAME / SMTP_PASSWORD / SMTP_FROM
   CLOUDFLARE_TUNNEL_TOKEN      Optional Cloudflare Tunnel token
 EOF
 }
@@ -114,6 +117,7 @@ PY
 MQTT_PASSWORD=${MQTT_PASSWORD:-$(read_env_value MQTT_PASSWORD)}
 ADMIN_EMAIL=${ADMIN_EMAIL:-$(read_env_value ADMIN_EMAIL)}
 ADMIN_PASSWORD=${ADMIN_PASSWORD:-$(read_env_value ADMIN_PASSWORD)}
+SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD:-$(read_env_value SUPER_ADMIN_PASSWORD)}
 if [[ -z "${MQTT_PASSWORD:-}" || "$MQTT_PASSWORD" == CHANGE_ME* ]]; then
   echo 'MQTT_PASSWORD must be configured' >&2
   exit 1
@@ -143,6 +147,19 @@ if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
 fi
 if (( ${#ADMIN_PASSWORD} < 9 )); then
   echo 'ADMIN_PASSWORD must contain at least 9 characters' >&2
+  exit 1
+fi
+if [[ "${ADMIN_EMAIL,,}" != "123@qq.com" && -z "$SUPER_ADMIN_PASSWORD" ]]; then
+  if [[ -t 0 ]]; then
+    read -r -s -p 'Reserved super administrator (123@qq.com) password (9+ characters): ' SUPER_ADMIN_PASSWORD
+    echo
+  else
+    echo 'Set SUPER_ADMIN_PASSWORD for non-interactive installation' >&2
+    exit 1
+  fi
+fi
+if [[ -n "$SUPER_ADMIN_PASSWORD" ]] && (( ${#SUPER_ADMIN_PASSWORD} < 9 )); then
+  echo 'SUPER_ADMIN_PASSWORD must contain at least 9 characters' >&2
   exit 1
 fi
 
@@ -178,8 +195,65 @@ PY
 CORS_ORIGINS="$ASTRA_PUBLIC_ORIGIN"
 CSRF_TRUSTED_ORIGINS="$ASTRA_PUBLIC_ORIGIN"
 if [[ "$ASTRA_PUBLIC_ORIGIN" == https://* ]]; then AUTH_COOKIE_SECURE=1; else AUTH_COOKIE_SECURE=0; fi
-export ADMIN_EMAIL ADMIN_PASSWORD ASTRA_PUBLIC_ORIGIN CORS_ORIGINS CSRF_TRUSTED_ORIGINS AUTH_COOKIE_SECURE
-write_env_values ADMIN_EMAIL ADMIN_PASSWORD ASTRA_PUBLIC_ORIGIN CORS_ORIGINS CSRF_TRUSTED_ORIGINS AUTH_COOKIE_SECURE
+ADMIN_PASSWORD_SYNC=1
+
+SMTP_HOST=${SMTP_HOST:-$(read_env_value SMTP_HOST)}
+SMTP_PORT=${SMTP_PORT:-$(read_env_value SMTP_PORT)}
+SMTP_PORT=${SMTP_PORT:-587}
+SMTP_USERNAME=${SMTP_USERNAME:-$(read_env_value SMTP_USERNAME)}
+SMTP_PASSWORD=${SMTP_PASSWORD:-$(read_env_value SMTP_PASSWORD)}
+SMTP_FROM=${SMTP_FROM:-$(read_env_value SMTP_FROM)}
+SMTP_STARTTLS=${SMTP_STARTTLS:-$(read_env_value SMTP_STARTTLS)}
+SMTP_STARTTLS=${SMTP_STARTTLS:-1}
+SMTP_SSL=${SMTP_SSL:-$(read_env_value SMTP_SSL)}
+SMTP_SSL=${SMTP_SSL:-0}
+if [[ -t 0 ]]; then
+  configure_smtp=y
+  if [[ -z "$SMTP_HOST" ]]; then
+    read -r -p 'Configure SMTP email verification? [Y/n]: ' configure_smtp
+    configure_smtp=${configure_smtp:-y}
+  fi
+  if [[ "$configure_smtp" =~ ^[Yy]$ ]]; then
+    read -r -p "SMTP host${SMTP_HOST:+ [$SMTP_HOST]}: " value
+    SMTP_HOST=${value:-$SMTP_HOST}
+    read -r -p "SMTP port [$SMTP_PORT]: " value
+    SMTP_PORT=${value:-$SMTP_PORT}
+    read -r -p "SMTP username${SMTP_USERNAME:+ [$SMTP_USERNAME]}: " value
+    SMTP_USERNAME=${value:-$SMTP_USERNAME}
+    if [[ -z "$SMTP_PASSWORD" || -n "$value" ]]; then
+      read -r -s -p 'SMTP password or app password: ' SMTP_PASSWORD
+      echo
+    fi
+    read -r -p "SMTP sender address [${SMTP_FROM:-$SMTP_USERNAME}]: " value
+    SMTP_FROM=${value:-${SMTP_FROM:-$SMTP_USERNAME}}
+    current_security=starttls
+    [[ "$SMTP_SSL" == 1 ]] && current_security=ssl
+    [[ "$SMTP_SSL" == 0 && "$SMTP_STARTTLS" == 0 ]] && current_security=none
+    read -r -p "SMTP security: starttls, ssl, or none [$current_security]: " value
+    value=${value:-$current_security}
+    case "$value" in
+      starttls) SMTP_STARTTLS=1; SMTP_SSL=0 ;;
+      ssl) SMTP_STARTTLS=0; SMTP_SSL=1 ;;
+      none) SMTP_STARTTLS=0; SMTP_SSL=0 ;;
+      *) echo 'SMTP security must be starttls, ssl, or none' >&2; exit 1 ;;
+    esac
+  fi
+fi
+if [[ -n "$SMTP_HOST" ]]; then
+  [[ "$SMTP_PORT" =~ ^[0-9]+$ ]] && ((SMTP_PORT >= 1 && SMTP_PORT <= 65535)) || { echo 'SMTP_PORT must be between 1 and 65535' >&2; exit 1; }
+  [[ -n "$SMTP_FROM" ]] || { echo 'SMTP_FROM is required when SMTP is enabled' >&2; exit 1; }
+  [[ "$SMTP_STARTTLS" == 0 || "$SMTP_STARTTLS" == 1 ]] || { echo 'SMTP_STARTTLS must be 0 or 1' >&2; exit 1; }
+  [[ "$SMTP_SSL" == 0 || "$SMTP_SSL" == 1 ]] || { echo 'SMTP_SSL must be 0 or 1' >&2; exit 1; }
+  [[ "$SMTP_STARTTLS$SMTP_SSL" != 11 ]] || { echo 'SMTP_STARTTLS and SMTP_SSL cannot both be enabled' >&2; exit 1; }
+  if [[ -n "$SMTP_USERNAME" && -z "$SMTP_PASSWORD" ]]; then
+    echo 'SMTP_PASSWORD is required when SMTP_USERNAME is set' >&2
+    exit 1
+  fi
+fi
+
+export ADMIN_EMAIL ADMIN_PASSWORD SUPER_ADMIN_PASSWORD ADMIN_PASSWORD_SYNC ASTRA_PUBLIC_ORIGIN CORS_ORIGINS CSRF_TRUSTED_ORIGINS AUTH_COOKIE_SECURE
+export SMTP_HOST SMTP_PORT SMTP_USERNAME SMTP_PASSWORD SMTP_FROM SMTP_STARTTLS SMTP_SSL
+write_env_values ADMIN_EMAIL ADMIN_PASSWORD SUPER_ADMIN_PASSWORD ADMIN_PASSWORD_SYNC ASTRA_PUBLIC_ORIGIN CORS_ORIGINS CSRF_TRUSTED_ORIGINS AUTH_COOKIE_SECURE SMTP_HOST SMTP_PORT SMTP_USERNAME SMTP_PASSWORD SMTP_FROM SMTP_STARTTLS SMTP_SSL
 
 if [[ ! -s .secrets/credential-vault.key ]]; then
   python3 - <<'PY'
@@ -214,6 +288,10 @@ fi
 if [[ -n "${CLOUDFLARE_TUNNEL_TOKEN:-}" ]]; then
   printf '%s\n' "$CLOUDFLARE_TUNNEL_TOKEN" > .secrets/cloudflared.token
   chmod 600 .secrets/cloudflared.token
+fi
+if [[ $force_cloudflared -eq 0 && ! -s .secrets/cloudflared.token && -t 0 ]]; then
+  read -r -p 'Enable Cloudflare Tunnel? [y/N]: ' enable_cloudflared
+  [[ "$enable_cloudflared" =~ ^[Yy]$ ]] && force_cloudflared=1
 fi
 if [[ $force_cloudflared -eq 1 && ! -s .secrets/cloudflared.token ]]; then
   if [[ -t 0 ]]; then

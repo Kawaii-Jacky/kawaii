@@ -91,9 +91,7 @@ class SafariSessionCompatibilityTest(unittest.TestCase):
             return {"type": "http.request", "body": encoded, "more_body": False}
 
         request = Request({
-            "type": "http",
-            "method": "POST",
-            "path": "/api/v1/auth/browser/session/commit",
+            "type": "http", "method": "POST", "path": "/api/v1/auth/browser/session/commit",
             "headers": [(b"host", b"astroy.xyz"), (b"origin", b"https://astroy.xyz")],
             "client": ("192.0.2.30", 12345),
         }, receive)

@@ -166,7 +166,7 @@ services:
     build: { context: .., dockerfile: server/Dockerfile.web }
     restart: unless-stopped
     ports:
-      - "${ASTRA_WEB_PORT:-8000}:80"
+      - "${ASTRA_WEB_BIND:-127.0.0.1}:${ASTRA_WEB_PORT:-8000}:80"
     depends_on:
       api: { condition: service_healthy }
       admin-console: { condition: service_healthy }

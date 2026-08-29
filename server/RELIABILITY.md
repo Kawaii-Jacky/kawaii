@@ -47,13 +47,17 @@ alerts.
 ## MQTTX acceptance
 
 ```powershell
-& "D:\h2o\remote astro\server\scripts\mqttx-firmware-sim.ps1"
-& "D:\h2o\remote astro\server\scripts\mqttx-command-roundtrip.ps1"
+& "D:\h2o\remote astro\server\scripts\mqttx-e2e-contract-test.ps1" `
+  -ControllerId observatory-999 `
+  -CredentialFile "D:\private\observatory-999-credentials.json" `
+  -StartSimulator
 ```
 
-The first script publishes online status and telemetry for all three devices.
-The second verifies command delivery, reported ACKs, explicit disconnect and
-reconnection using the same client IDs through `wss://mqtt.astroy.xyz/mqtt`.
+The comprehensive test publishes every frontend command, checks correlated
+positive and negative ACKs, proves unauthorized telemetry writes do not cross
+ACL boundaries, and verifies offline LWT plus reconnection. Use a dedicated
+test controller; the scripts refuse the real `default` namespace unless
+`-AllowDefaultController` is explicitly supplied.
 
 ## Linux Mosquitto ownership
 

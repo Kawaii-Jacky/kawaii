@@ -46,8 +46,9 @@ def send_email_alert(subject: str, body: str) -> int:
     message["From"] = sender
     message["To"] = ", ".join(recipients)
     message.set_content(body)
-    with smtplib.SMTP(host, port, timeout=15) as smtp:
-        if os.getenv("SMTP_STARTTLS", "1") == "1":
+    smtp_class = smtplib.SMTP_SSL if os.getenv("SMTP_SSL", "0") == "1" else smtplib.SMTP
+    with smtp_class(host, port, timeout=15) as smtp:
+        if smtp_class is smtplib.SMTP and os.getenv("SMTP_STARTTLS", "1") == "1":
             smtp.starttls()
         if username:
             smtp.login(username, password)

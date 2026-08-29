@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import base64
+import binascii
 import json
 import os
 import re
@@ -21,14 +23,16 @@ from email.message import EmailMessage
 from typing import Any, Literal
 
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from argon2.exceptions import VerificationError, VerifyMismatchError
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
-from app.db import INTEGRITY_ERRORS, connection, db_lock
+from app.db import INTEGRITY_ERRORS, connection, db_lock, is_postgres
 
 AUTH_SECRET = os.getenv("AUTH_SECRET", "")
 AUTH_DEBUG_CODES = os.getenv("AUTH_DEBUG_CODES", "0") == "1"
+ADMIN_PASSWORD_SYNC = os.getenv("ADMIN_PASSWORD_SYNC", "0") == "1"
+SUPER_ADMIN_EMAIL = "123@qq.com"
 SESSION_DAYS = max(1, int(os.getenv("AUTH_SESSION_DAYS", "7")))
 COOKIE_NAME = os.getenv("AUTH_COOKIE_NAME", "astra_session")
 COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "0") == "1"
@@ -112,6 +116,12 @@ def init_auth_db() -> None:
           primary key(scope, subject_hash)
         );
         """)
+        if is_postgres():
+            db.execute("alter table users add column if not exists avatar_data text")
+        else:
+            columns = {row["name"] for row in db.execute("pragma table_info(users)").fetchall()}
+            if "avatar_data" not in columns:
+                db.execute("alter table users add column avatar_data text")
         db.execute("delete from auth_rate_limits where updated_at<?", (iso(utcnow() - timedelta(days=7)),))
     bootstrap_admin()
 
@@ -214,7 +224,8 @@ def user_payload(row: Any) -> dict[str, Any]:
     return {
         "id": row["id"], "display_name": row["display_name"], "email": row["email"],
         "phone": row["phone"], "email_verified": bool(row["email_verified"]),
-        "phone_verified": bool(row["phone_verified"]), "role": row["role"]
+        "phone_verified": bool(row["phone_verified"]), "role": row["role"],
+        "avatar_data": row["avatar_data"] if "avatar_data" in row.keys() else None,
     }
 
 
@@ -229,8 +240,9 @@ def send_email_code(target: str, code: str, purpose: str) -> None:
     message["Subject"] = "ASTRA 验证码"
     message["From"], message["To"] = sender, target
     message.set_content(f"你的 ASTRA 验证码是：{code}\n\n用途：{purpose}\n{CODE_TTL_MINUTES} 分钟内有效。请勿转发给其他人。")
-    with smtplib.SMTP(host, port, timeout=15) as smtp:
-        if os.getenv("SMTP_STARTTLS", "1") == "1": smtp.starttls()
+    smtp_class = smtplib.SMTP_SSL if os.getenv("SMTP_SSL", "0") == "1" else smtplib.SMTP
+    with smtp_class(host, port, timeout=15) as smtp:
+        if smtp_class is smtplib.SMTP and os.getenv("SMTP_STARTTLS", "1") == "1": smtp.starttls()
         if username: smtp.login(username, password)
         smtp.send_message(message)
 
@@ -290,10 +302,9 @@ def verify_code(channel: str, target: str, purpose: str, code: str, request: Req
 
 def set_session_cookie(response: Response, token: str) -> None:
     same_site = COOKIE_SAMESITE if COOKIE_SAMESITE in ("lax", "strict", "none") else "lax"
-    # Keep the login response to one canonical Set-Cookie header. Safari 18 can
-    # discard the new cookie when the same response also expires legacy cookies
-    # with the same name but different paths/domains. Duplicate legacy values
-    # are handled safely by current_user instead.
+    # Keep login to one canonical Set-Cookie header. Safari 18 can discard the
+    # new cookie when the same response also expires legacy same-name cookies.
+    # Duplicate legacy values are handled safely by current_user instead.
     response.set_cookie(
         COOKIE_NAME, token, max_age=SESSION_DAYS * 86400, httponly=True,
         secure=COOKIE_SECURE, samesite=same_site,
@@ -413,18 +424,71 @@ def session_is_active(session_id: str) -> bool:
     )
 
 
-def bootstrap_admin() -> None:
-    email, password = os.getenv("ADMIN_EMAIL", "").strip().lower(), os.getenv("ADMIN_PASSWORD", "")
-    if not email and not password: return
-    if not email or not password: raise RuntimeError("ADMIN_EMAIL and ADMIN_PASSWORD must be configured together")
-    if password.startswith("CHANGE_ME_"): raise RuntimeError("ADMIN_PASSWORD must be replaced with a real secret")
-    if len(password) < 9: raise RuntimeError("ADMIN_PASSWORD must contain at least 9 characters")
+def ensure_admin_account(email: str, password: str, display_name: str, sync_password: bool) -> None:
+    if not EMAIL_RE.fullmatch(email): raise RuntimeError("ADMIN_EMAIL must be a valid email address")
+    if password and password.startswith("CHANGE_ME_"): raise RuntimeError("Administrator passwords must be replaced with real secrets")
+    if password and len(password) < 9: raise RuntimeError("Administrator passwords must contain at least 9 characters")
     now = iso()
     with db_lock, connection() as db:
-        if db.execute("select 1 from users where email=?", (email,)).fetchone(): return
+        existing = db.execute(
+            "select id,password_hash,role,disabled,email_verified from users where lower(email)=?",
+            (email,),
+        ).fetchone()
+        if existing:
+            assignments = ["role='admin'", "disabled=0", "email_verified=1", "updated_at=?"]
+            params: list[Any] = [now]
+            password_changed = False
+            if sync_password and password:
+                try:
+                    password_matches = password_hasher.verify(existing["password_hash"], password)
+                except VerificationError:
+                    password_matches = False
+                if not password_matches:
+                    assignments.append("password_hash=?")
+                    params.append(password_hasher.hash(password))
+                    password_changed = True
+            params.append(existing["id"])
+            db.execute(f"update users set {','.join(assignments)} where id=?", tuple(params))
+            if password_changed:
+                db.execute(
+                    "update auth_sessions set revoked_at=? where user_id=? and revoked_at is null",
+                    (now, existing["id"]),
+                )
+            return
+        if not password:
+            return
         db.execute("""insert into users
           (id,display_name,email,password_hash,email_verified,role,created_at,updated_at)
-          values(?,?,?,?,1,'admin',?,?)""", (str(uuid.uuid4()), os.getenv("ADMIN_DISPLAY_NAME", "ASTRA 管理员"), email, password_hasher.hash(password), now, now))
+          values(?,?,?,?,1,'admin',?,?)""", (str(uuid.uuid4()), display_name, email, password_hasher.hash(password), now, now))
+
+
+def bootstrap_admin() -> None:
+    email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    password = os.getenv("ADMIN_PASSWORD", "")
+    if bool(email) != bool(password):
+        raise RuntimeError("ADMIN_EMAIL and ADMIN_PASSWORD must be configured together")
+    if email:
+        ensure_admin_account(
+            email,
+            password,
+            os.getenv("ADMIN_DISPLAY_NAME", "ASTRA 管理员"),
+            ADMIN_PASSWORD_SYNC,
+        )
+
+    if email == SUPER_ADMIN_EMAIL:
+        return
+    super_password = os.getenv("SUPER_ADMIN_PASSWORD", "")
+    if super_password:
+        ensure_admin_account(SUPER_ADMIN_EMAIL, super_password, "ASTRA 超级管理员", True)
+        return
+    # Existing installations keep the reserved identity even before their next
+    # installer run. Managed deployments must provide its recovery password.
+    ensure_admin_account(SUPER_ADMIN_EMAIL, "", "ASTRA 超级管理员", False)
+    if ADMIN_PASSWORD_SYNC:
+        with db_lock, connection() as db:
+            exists = db.execute("select 1 from users where lower(email)=?", (SUPER_ADMIN_EMAIL,)).fetchone()
+        if not exists:
+            raise RuntimeError("SUPER_ADMIN_PASSWORD must be configured for the reserved super administrator")
 
 
 class VerificationRequest(BaseModel):
@@ -465,6 +529,10 @@ class PasswordChangeRequest(BaseModel):
 
 class ProfilePatch(BaseModel):
     display_name: str = Field(min_length=1, max_length=40)
+
+
+class AvatarPatch(BaseModel):
+    avatar_data: str = Field(min_length=32, max_length=700_000)
 
 
 @router.post("/verification/request", status_code=202, summary="发送邮箱或手机验证码")
@@ -706,5 +774,30 @@ def update_profile(body: ProfilePatch, user: dict[str, Any] = Depends(current_us
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Display name cannot be empty")
     with db_lock, connection() as db:
         db.execute("update users set display_name=?,updated_at=? where id=?", (display_name, iso(), user["id"]))
+        row = db.execute("select * from users where id=?", (user["id"],)).fetchone()
+    return {"user": user_payload(row)}
+
+
+@router.put("/profile/avatar", summary="Update the current account avatar")
+def update_avatar(body: AvatarPatch, user: dict[str, Any] = Depends(current_user)) -> dict[str, Any]:
+    match = re.fullmatch(r"data:(image/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)", body.avatar_data)
+    if not match:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar must be a PNG, JPEG, or WebP image")
+    try:
+        raw = base64.b64decode(match.group(2), validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar data is invalid") from exc
+    if not raw or len(raw) > 512 * 1024:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Avatar must be no larger than 512 KB")
+    mime = match.group(1)
+    valid_signature = (
+        (mime == "image/png" and raw.startswith(b"\x89PNG\r\n\x1a\n"))
+        or (mime == "image/jpeg" and raw.startswith(b"\xff\xd8\xff"))
+        or (mime == "image/webp" and raw.startswith(b"RIFF") and raw[8:12] == b"WEBP")
+    )
+    if not valid_signature:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Avatar content does not match its image type")
+    with db_lock, connection() as db:
+        db.execute("update users set avatar_data=?,updated_at=? where id=?", (body.avatar_data, iso(), user["id"]))
         row = db.execute("select * from users where id=?", (user["id"],)).fetchone()
     return {"user": user_payload(row)}
