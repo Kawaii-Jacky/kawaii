@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" sizes="167x167" href="assets/pwa/icon-167.png" />
   <link rel="apple-touch-icon" sizes="152x152" href="assets/pwa/icon-152.png" />
   <title>ASTRA / 远程天文台</title>
-    <link rel="stylesheet" href="app.css?v=20260819-26" />
+    <link rel="stylesheet" href="app.css?v=20260821-01" />
   <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
   <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
 </head>
@@ -25,10 +25,8 @@
     <button type="button" id="pwa-install-action" hidden>更新</button>
     <button type="button" id="pwa-install-dismiss" aria-label="关闭安装提示">×</button>
   </aside>
-  <div class="app-preloader" id="app-preloader" role="status" aria-live="polite" aria-busy="true">
+  <div class="app-preloader" id="app-preloader" hidden role="status" aria-live="polite" aria-busy="true">
     <div class="app-preloader-card">
-      <span class="app-preloader-mark">A</span>
-      <span class="app-preloader-kicker">ASTRA / REMOTE OBSERVATORY</span>
       <strong id="app-preloader-title">加载天文台模型</strong>
       <div class="app-preloader-bar" aria-hidden="true"><i id="app-preloader-progress"></i></div>
       <small id="app-preloader-status">正在准备三维场景…</small>
@@ -64,7 +62,6 @@
             <article class="hero-card dark-card">
               <button class="outline-button connection-entry hero-connection" data-open-settings><span>••</span> 连接设置 ↗</button>
               <div class="hero-copy">
-                <span class="label-invert">OBSERVATORY 01</span>
                 <h2 class="hero-title" aria-label="羊牌 天文控制台"><span class="brand-word" data-text="羊牌">羊牌</span><span class="console-word">天文控制台</span></h2>
                 <p>专为迷你个人远程天文设计打造</p>
               </div>
@@ -116,10 +113,11 @@
             <article class="card quick-controls">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="sliders-horizontal"></i></span><h3>快捷控制</h3></div></header>
               <div class="quick-grid">
-                <button class="quick-toggle" data-toggle="camera"><span class="quick-icon"><i data-lucide="camera" aria-hidden="true"></i></span><p><b>拍摄系统</b><small>相机供电</small></p><i></i></button>
-                <button class="quick-toggle" data-toggle="heater"><span class="quick-icon"><i data-lucide="flame" aria-hidden="true"></i></span><p><b>除露加热</b><small>主控加热片</small></p><i></i></button>
-                <button class="quick-toggle" data-toggle="fan"><span class="quick-icon"><i data-lucide="fan" aria-hidden="true"></i></span><p><b>机箱风扇</b><small>手动控制</small></p><i></i></button>
-                <button class="quick-toggle" data-toggle="flatLed"><span class="quick-icon"><i data-lucide="lightbulb" aria-hidden="true"></i></span><p><b>平场板灯</b><small id="quick-flat-led-state">设备离线</small></p><i></i></button>
+                <button class="quick-toggle quick-roof-toggle" data-quick-roof><span class="quick-icon"><i data-lucide="panels-top-left" aria-hidden="true"></i></span><p><b data-quick-roof-title>开关屋顶</b></p><i></i></button>
+                <button class="quick-toggle" data-toggle="camera"><span class="quick-icon"><i data-lucide="camera" aria-hidden="true"></i></span><p><b>拍摄系统</b></p><i></i></button>
+                <button class="quick-toggle" data-toggle="heater"><span class="quick-icon"><i data-lucide="flame" aria-hidden="true"></i></span><p><b>除露加热</b></p><i></i></button>
+                <button class="quick-toggle" data-toggle="fan"><span class="quick-icon"><i data-lucide="fan" aria-hidden="true"></i></span><p><b>机箱风扇</b></p><i></i></button>
+                <button class="quick-toggle" data-toggle="flatLed"><span class="quick-icon"><i data-lucide="lightbulb" aria-hidden="true"></i></span><p><b>平场板灯</b></p><i></i></button>
               </div>
             </article>
             <div class="terminal-slot" data-terminal-default="esp32-001" data-terminal-number="04"></div>
@@ -130,7 +128,7 @@
           <div class="page-intro"><div><h2>能源系统</h2><p>光伏输入、电池状态与充电算法统一监测。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
           <div class="power-hero">
             <article class="battery-card dark-card">
-              <div><span class="label-invert">BATTERY RESERVE</span><h3>剩余电量</h3><strong id="battery-big">--<sup>%</sup></strong><p><span class="status-dot"></span><b id="charge-state">设备离线</b></p></div>
+              <div><h3>剩余电量</h3><strong id="battery-big">--<sup>%</sup></strong><p><span class="status-dot"></span><b id="charge-state">设备离线</b></p></div>
               <div class="battery-gauge"><span id="battery-fill"></span><i></i><i></i><i></i><i></i><i></i></div>
               <footer><span>最低电压 <b id="battery-min">--</b></span><span>满电电压 <b id="battery-max">--</b></span></footer>
             </article>
@@ -157,11 +155,10 @@
             <article class="card settings-card">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="battery-charging"></i></span><h3>充电策略</h3></div></header>
               <div class="form-grid">
-                <label>电池截止电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-min" value="" placeholder="--" data-min="8" data-max="20" data-step="0.1" aria-label="电池截止电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池截止电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池截止电压">−</button></span></span></label>
-                <label>电池满电电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-max" value="" placeholder="--" data-min="12" data-max="48" data-step="0.1" aria-label="电池满电电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池满电电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池满电电压">−</button></span></span></label>
-                <label>最大充电电流 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-charge-current" value="" placeholder="--" data-min="0.1" data-max="20" data-step="0.1" aria-label="最大充电电流" /><span class="stepper-unit">A</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加最大充电电流">+</button><button type="button" data-step-direction="-1" aria-label="减小最大充电电流">−</button></span></span></label>
+                <label>电池截止电压 <span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-min" value="" placeholder="--" data-min="8" data-max="20" data-step="0.1" aria-label="电池截止电压" /><span class="stepper-unit">V</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加电池截止电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池截止电压">−</button></span></span></label>
+                <label>电池满电电压 <span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-max" value="" placeholder="--" data-min="12" data-max="48" data-step="0.1" aria-label="电池满电电压" /><span class="stepper-unit">V</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加电池满电电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池满电电压">−</button></span></span></label>
+                <label>最大充电电流 <span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-charge-current" value="" placeholder="--" data-min="0.1" data-max="20" data-step="0.1" aria-label="最大充电电流" /><span class="stepper-unit">A</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加最大充电电流">+</button><button type="button" data-step-direction="-1" aria-label="减小最大充电电流">−</button></span></span></label>
               </div>
-              <button class="primary-button" id="save-power-settings">保存充电参数 <span>↗</span></button>
             </article>
             <article class="card control-card">
               <header class="card-header"><div><span class="section-icon"><i data-lucide="power"></i></span><h3>运行控制</h3></div></header>
@@ -170,7 +167,7 @@
                 <header><span class="control-icon"><i data-lucide="fan"></i></span><p><b>风扇控制</b><small id="mppt-fan-mode-note">自动模式 · 按温度阈值启停</small></p></header>
                 <div class="mppt-fan-mode"><button type="button" data-mppt-fan-mode="auto">自动</button><button type="button" data-mppt-fan-mode="manual">手动</button></div>
                 <button class="control-row mppt-fan-switch" data-mppt-toggle="fan"><span class="control-icon"><i data-lucide="power"></i></span><p><b id="mppt-fan-state-title">风扇关闭</b><small id="mppt-fan-state-subtitle">自动策略控制</small></p><i></i></button>
-                <label class="mppt-fan-threshold">温度阈值 <span class="number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span><button type="button" id="apply-mppt-fan-temp">应用阈值</button></label>
+                <label class="mppt-fan-threshold"><span class="mppt-fan-threshold-label">温度阈值</span><span class="number-stepper power-number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="power-stepper-actions"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span></label>
               </section>
             </article>
           </div>
@@ -304,11 +301,6 @@
               <header class="card-header"><div><span class="section-icon"><i data-lucide="shield-check"></i></span><h3>账户验证</h3></div><span class="auth-status-chip" id="auth-status-chip">检查会话</span></header>
               <div class="auth-layout">
                 <div class="auth-login-heading"><span>ASTRA · REMOTE OBSERVATORY</span><h2 id="auth-title">登录</h2><p id="auth-subtitle">使用邮箱或手机号进入控制台</p></div>
-                <section class="auth-account-summary" id="auth-account-summary" hidden>
-                  <span class="auth-account-mark" id="auth-account-mark">--</span>
-                  <div><span>AUTHENTICATED SESSION</span><h3 id="auth-account-name">检查会话</h3><p id="auth-account-detail">正在读取真实账户信息</p></div>
-                  <div class="auth-account-actions"><button class="primary-button" id="auth-enter-profile" type="button">进入个人中心</button><button class="outline-button" id="auth-logout" type="button">退出登录</button><button class="outline-button danger-outline" id="auth-logout-all" type="button">退出所有设备</button></div>
-                </section>
                 <form class="auth-form" id="auth-form" novalidate>
                   <div class="auth-channel" id="auth-channel" hidden>
                     <span>验证方式</span>
@@ -386,8 +378,10 @@
           </div>
           <article class="card server-settings-card" id="server-settings-card" hidden>
             <header class="card-header"><div><span class="section-icon"><i data-lucide="server"></i></span><h3>服务器设置</h3></div><span class="auth-status-chip">仅 HTTPS</span></header>
-            <p class="server-settings-copy">Windows/Android 原生应用默认连接 https://astroy.xyz。切换服务器会清除当前原生会话并要求重新登录。</p>
-            <form id="server-settings-form" class="server-settings-form"><label class="auth-field"><span>后端 HTTPS 地址</span><input id="native-server-url" type="url" inputmode="url" placeholder="https://astroy.xyz" autocomplete="url" /></label><button class="primary-button" type="submit">保存服务器</button><p id="server-settings-message" class="auth-message" role="status" aria-live="polite"></p></form>
+            <div class="server-settings-body">
+              <p class="server-settings-copy">Windows/Android 原生应用默认连接 https://astroy.xyz。保存当前地址不会中断已登录会话。</p>
+              <form id="server-settings-form" class="server-settings-form"><label class="auth-field"><span>后端 HTTPS 地址</span><input id="native-server-url" type="url" inputmode="url" placeholder="https://astroy.xyz" autocomplete="url" /></label><button class="primary-button" type="submit">保存服务器</button><p id="server-settings-message" class="auth-message" role="status" aria-live="polite"></p></form>
+            </div>
           </article>
           <article class="card password-change-card account-settings-card" id="account-settings-card">
             <header class="card-header"><div><span class="section-icon"><i data-lucide="user-cog"></i></span><h3>账户设置</h3></div><span class="auth-status-chip" id="profile-auth-status">检查会话</span></header>
@@ -428,10 +422,10 @@
   <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
   <script src="vendor/lucide/lucide.min.js"></script>
-  <script src="app.js?v=20260820-03"></script>
+  <script src="app.js?v=20260820-20"></script>
   <script type="importmap">
     {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
   </script>
-  <script type="module" src="observatory-3d.js?v=20260817-23"></script>
+  <script type="module" src="observatory-3d.js?v=20260820-19"></script>
 </body>
 </html>

@@ -9,9 +9,8 @@ const interactionSurface = document.querySelector("#observatory-interaction-laye
 const loadingLabel = document.querySelector("#observatory-loading span");
 const effectButtons = [...document.querySelectorAll("[data-model-effect]")];
 const NATIVE_RUNTIME = Boolean(window.__TAURI__?.core?.invoke);
-// The compact web model relies exclusively on EXT_texture_webp. Some native
-// WebView builds load its geometry but silently omit extension-only textures,
-// so Tauri uses the equivalent core glTF model with embedded PNG textures.
+// The compact web model uses the browser's supported WebP glTF extension;
+// native uses the equivalent core glTF model with embedded PNG textures.
 const MODEL_SOURCE = NATIVE_RUNTIME ? "external-png" : "webp-extension";
 const MODEL_URL = NATIVE_RUNTIME
   ? "./assets/models/observatory-native.glb?v=20260819-1"
@@ -326,10 +325,13 @@ if (stage && canvas) {
     const width = Math.max(canvas.clientWidth, 1);
     const height = Math.max(canvas.clientHeight, 1);
     const mobile = window.matchMedia("(max-width: 620px)").matches;
+    const stageExpansion = Math.max(0, Number.parseFloat(getComputedStyle(stage).getPropertyValue("--stage-height-expansion")) || 0);
+    const baseHeight = Math.max(height - stageExpansion, 1);
+    const baseFov = mobile ? 34 : 30;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.1 : 1.3));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.fov = mobile ? 34 : 30;
+    camera.fov = 2 * Math.atan((height / baseHeight) * Math.tan(baseFov * Math.PI / 360)) * 180 / Math.PI;
     camera.updateProjectionMatrix();
   }
 

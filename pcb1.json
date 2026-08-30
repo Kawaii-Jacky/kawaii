@@ -1,0 +1,2860 @@
+{
+  "doc": {
+    "documentType": 3,
+    "uuid": "6fc7801775fc49deab80485bc1333fee",
+    "tabId": "6fc7801775fc49deab80485bc1333fee@caf377cb391c4d9fa1502396845721d2",
+    "parentProjectUuid": "caf377cb391c4d9fa1502396845721d2"
+  },
+  "counts": {
+    "components": 206,
+    "pads": 582,
+    "lines": 946,
+    "vias": 742,
+    "pours": 34,
+    "nets": 116
+  },
+  "components": [
+    {
+      "id": "e0",
+      "designator": "C14",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 565,
+      "y": 505
+    },
+    {
+      "id": "e2",
+      "designator": "R22",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 560,
+      "y": 870
+    },
+    {
+      "id": "e12",
+      "designator": "C59",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 4252.88,
+      "y": -1443.4224
+    },
+    {
+      "id": "e13",
+      "designator": "C60",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 4247.88,
+      "y": -1528.4224
+    },
+    {
+      "id": "e14",
+      "designator": "C61",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 4349.286,
+      "y": -1679.8344
+    },
+    {
+      "id": "e16",
+      "designator": "C62",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 4460,
+      "y": -1845
+    },
+    {
+      "id": "e17",
+      "designator": "C63",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 4459.286,
+      "y": -1954.8344
+    },
+    {
+      "id": "e18",
+      "designator": "R21",
+      "name": "5k",
+      "footprint": "R0603",
+      "x": 565,
+      "y": 360
+    },
+    {
+      "id": "e20",
+      "designator": "R23",
+      "name": "5k",
+      "footprint": "R0603",
+      "x": 562.281,
+      "y": 740.7910000000002
+    },
+    {
+      "id": "e21",
+      "designator": "C15",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 560,
+      "y": 675
+    },
+    {
+      "id": "e30",
+      "designator": "R28",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 2170,
+      "y": 235
+    },
+    {
+      "id": "e31",
+      "designator": "L6",
+      "name": "={Value}",
+      "footprint": "L0603",
+      "x": 4349.286,
+      "y": -1554.8344
+    },
+    {
+      "id": "e32",
+      "designator": "R74",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 2909.1944999999996,
+      "y": -1672.696
+    },
+    {
+      "id": "e33",
+      "designator": "L7",
+      "name": "={Value}",
+      "footprint": "L0603",
+      "x": 4349.286,
+      "y": -1804.8344
+    },
+    {
+      "id": "e38",
+      "designator": "L8",
+      "name": "={Value}",
+      "footprint": "L0603",
+      "x": 4350,
+      "y": -1930
+    },
+    {
+      "id": "e44",
+      "designator": "R29",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 2105,
+      "y": 235
+    },
+    {
+      "id": "e49",
+      "designator": "R94",
+      "name": "={Value}",
+      "footprint": "R0603",
+      "x": 4252.88,
+      "y": -1358.4224
+    },
+    {
+      "id": "e50",
+      "designator": "U46",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL",
+      "x": 4522.3525,
+      "y": -1392.8989
+    },
+    {
+      "id": "e51",
+      "designator": "Q28",
+      "name": "={Manufacturer Part}",
+      "footprint": "TO-247AC-3_L15.8-W5.0-P5.46-L",
+      "x": 615,
+      "y": 1050
+    },
+    {
+      "id": "e52",
+      "designator": "U47",
+      "name": "={Manufacturer Part}",
+      "footprint": "ANT-TH_GSM",
+      "x": 4345,
+      "y": -2020
+    },
+    {
+      "id": "e53",
+      "designator": "Q29",
+      "name": "={Manufacturer Part}",
+      "footprint": "TO-247AC-3_L15.8-W5.0-P5.46-L",
+      "x": 2300,
+      "y": 1050
+    },
+    {
+      "id": "e54",
+      "designator": "R32",
+      "name": "10",
+      "footprint": "R0603",
+      "x": 4700,
+      "y": 200
+    },
+    {
+      "id": "e55",
+      "designator": "X2",
+      "name": "={Value}",
+      "footprint": "HC-49S_L11.4-W4.8-LS12.7",
+      "x": 4545,
+      "y": -1090
+    },
+    {
+      "id": "e56",
+      "designator": "Q30",
+      "name": "={Manufacturer Part}",
+      "footprint": "TO-247AC-3_L15.8-W5.0-P5.46-L",
+      "x": 1460,
+      "y": 1050
+    },
+    {
+      "id": "e60",
+      "designator": "X1",
+      "name": "={Value}",
+      "footprint": "CRYSTAL-SMD_4P-L3.2-W2.5-BL",
+      "x": 3306.766,
+      "y": -1383.383
+    },
+    {
+      "id": "e77",
+      "designator": "C49",
+      "name": "0.1u",
+      "footprint": "C0603",
+      "x": 4955,
+      "y": -1470
+    },
+    {
+      "id": "e78",
+      "designator": "C50",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 4780,
+      "y": 575
+    },
+    {
+      "id": "e79",
+      "designator": "C51",
+      "name": "100nF",
+      "footprint": "CAP 0603",
+      "x": 3540,
+      "y": -415
+    },
+    {
+      "id": "e80",
+      "designator": "C52",
+      "name": "10uf",
+      "footprint": "C0805",
+      "x": 3690,
+      "y": -830.582
+    },
+    {
+      "id": "e81",
+      "designator": "C53",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 3770,
+      "y": -845
+    },
+    {
+      "id": "e82",
+      "designator": "LED2",
+      "name": "FL",
+      "footprint": "LED0603-RD",
+      "x": 560,
+      "y": 805
+    },
+    {
+      "id": "e83",
+      "designator": "R33",
+      "name": "10",
+      "footprint": "R0603",
+      "x": 4760,
+      "y": 200
+    },
+    {
+      "id": "e84",
+      "designator": "CN10",
+      "name": "NTC",
+      "footprint": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "x": 5240,
+      "y": -1135
+    },
+    {
+      "id": "e87",
+      "designator": "R25",
+      "name": "15",
+      "footprint": "R0603",
+      "x": 2295,
+      "y": 530
+    },
+    {
+      "id": "e89",
+      "designator": "CN11",
+      "name": "NTC",
+      "footprint": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "x": 3815,
+      "y": 50
+    },
+    {
+      "id": "e90",
+      "designator": "CN12",
+      "name": "路由器",
+      "footprint": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "x": 3905,
+      "y": 1035
+    },
+    {
+      "id": "e91",
+      "designator": "R24",
+      "name": "18-20",
+      "footprint": "R0603",
+      "x": 1705,
+      "y": 525
+    },
+    {
+      "id": "e92",
+      "designator": "D4",
+      "name": "SS310",
+      "footprint": "SMA_L4.3-W2.6-LS5.2-RD",
+      "x": 1595,
+      "y": 590
+    },
+    {
+      "id": "e93",
+      "designator": "D17",
+      "name": "ZMM3V6",
+      "footprint": "LL-34_L3.5-W1.5-RD",
+      "x": 3850,
+      "y": -840
+    },
+    {
+      "id": "e94",
+      "designator": "D5",
+      "name": "SS310",
+      "footprint": "SMA_L4.3-W2.6-LS5.2-RD",
+      "x": 2400,
+      "y": 590
+    },
+    {
+      "id": "e95",
+      "designator": "R52",
+      "name": "91k",
+      "footprint": "R0603",
+      "x": 3265,
+      "y": 960
+    },
+    {
+      "id": "e96",
+      "designator": "R26",
+      "name": "10k",
+      "footprint": "RES-0603",
+      "x": 1705,
+      "y": 660
+    },
+    {
+      "id": "e97",
+      "designator": "D18",
+      "name": "ZMM5V6",
+      "footprint": "LL-34_L3.5-W1.5-RD",
+      "x": 3921.978,
+      "y": -1495.018
+    },
+    {
+      "id": "e98",
+      "designator": "R27",
+      "name": "10k",
+      "footprint": "RES-0603",
+      "x": 2295,
+      "y": 660
+    },
+    {
+      "id": "e99",
+      "designator": "R51",
+      "name": "20k",
+      "footprint": "R0603",
+      "x": 3265,
+      "y": 1080
+    },
+    {
+      "id": "e100",
+      "designator": "C16",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 2020,
+      "y": 235
+    },
+    {
+      "id": "e101",
+      "designator": "D20",
+      "name": "={Manufacturer Part}",
+      "footprint": "LL-34_L3.5-W1.5-RD-2",
+      "x": 4160,
+      "y": 640
+    },
+    {
+      "id": "e102",
+      "designator": "DC12V1",
+      "name": "={Manufacturer Part}",
+      "footprint": "DC-IN-TH_DC-005-A200",
+      "x": 4500,
+      "y": 850
+    },
+    {
+      "id": "e103",
+      "designator": "DC12V2",
+      "name": "={Manufacturer Part}",
+      "footprint": "DC-IN-TH_DC-005-A200",
+      "x": 5045,
+      "y": 850
+    },
+    {
+      "id": "e105",
+      "designator": "L5",
+      "name": "4.7uH",
+      "footprint": "IND-SMD_L8.0-W8.0_SMNR8040",
+      "x": 3870,
+      "y": -430
+    },
+    {
+      "id": "e109",
+      "designator": "Q31",
+      "name": "AO3401",
+      "footprint": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+      "x": 4925,
+      "y": 595
+    },
+    {
+      "id": "e110",
+      "designator": "Q32",
+      "name": "8550M-D",
+      "footprint": "SOT-23-3_L3.0-W1.7-P0.95-LS2.9-BR",
+      "x": 5160,
+      "y": 430
+    },
+    {
+      "id": "e111",
+      "designator": "Q34",
+      "name": "8550M-D",
+      "footprint": "SOT-23-3_L3.0-W1.7-P0.95-LS2.9-BR",
+      "x": 3911.978,
+      "y": -1280.018
+    },
+    {
+      "id": "e112",
+      "designator": "R75",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 5225,
+      "y": -870
+    },
+    {
+      "id": "e113",
+      "designator": "R76",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 4885,
+      "y": 200
+    },
+    {
+      "id": "e114",
+      "designator": "R77",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 5250,
+      "y": 400
+    },
+    {
+      "id": "e115",
+      "designator": "R78",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 4785,
+      "y": 410
+    },
+    {
+      "id": "e116",
+      "designator": "R79",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 5050,
+      "y": 410
+    },
+    {
+      "id": "e125",
+      "designator": "R44",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 3025,
+      "y": 1050
+    },
+    {
+      "id": "e135",
+      "designator": "R10",
+      "name": "2-5",
+      "footprint": "R0603",
+      "x": 2105,
+      "y": 665
+    },
+    {
+      "id": "e136",
+      "designator": "R80",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 5190,
+      "y": 530
+    },
+    {
+      "id": "e137",
+      "designator": "R81",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 5040,
+      "y": 590
+    },
+    {
+      "id": "e138",
+      "designator": "L3",
+      "name": "60uH",
+      "footprint": "功率电感",
+      "x": 1445,
+      "y": 175
+    },
+    {
+      "id": "e139",
+      "designator": "R38",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 3860,
+      "y": 710
+    },
+    {
+      "id": "e140",
+      "designator": "C24",
+      "name": "4.7uF/100v",
+      "footprint": "C1206",
+      "x": 1785,
+      "y": 630
+    },
+    {
+      "id": "e142",
+      "designator": "R53",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 2515,
+      "y": -1860
+    },
+    {
+      "id": "e144",
+      "designator": "CN5",
+      "name": "VCC",
+      "footprint": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "x": 2855,
+      "y": -140
+    },
+    {
+      "id": "e145",
+      "designator": "R54",
+      "name": "5.1k",
+      "footprint": "R0603",
+      "x": 2580,
+      "y": -1860
+    },
+    {
+      "id": "e146",
+      "designator": "D3",
+      "name": "DSS310",
+      "footprint": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "x": 2805,
+      "y": 0
+    },
+    {
+      "id": "e148",
+      "designator": "FH1",
+      "name": "XF-508P-A",
+      "footprint": "FUSE-TH_L19.8-W7.0_XF-508P-A",
+      "x": 450.20089999999993,
+      "y": -759.5149000000001
+    },
+    {
+      "id": "e149",
+      "designator": "R55",
+      "name": "5.1k",
+      "footprint": "R0603",
+      "x": 471.4585,
+      "y": -1633.2561
+    },
+    {
+      "id": "e150",
+      "designator": "FH2",
+      "name": "XF-508P-A",
+      "footprint": "FUSE-TH_L19.8-W7.0_XF-508P-A",
+      "x": 2104.7158,
+      "y": -654.314
+    },
+    {
+      "id": "e152",
+      "designator": "F1",
+      "name": "40A",
+      "footprint": "40A32V",
+      "x": 2104.7158,
+      "y": -679.314
+    },
+    {
+      "id": "e153",
+      "designator": "R56",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 591.4585,
+      "y": -1633.2561
+    },
+    {
+      "id": "e154",
+      "designator": "F2",
+      "name": "40A",
+      "footprint": "40A32V",
+      "x": 425.20089999999993,
+      "y": -759.5149000000001
+    },
+    {
+      "id": "e171",
+      "designator": "R31",
+      "name": "0.002Ω",
+      "footprint": "R2512",
+      "x": 775,
+      "y": -1710
+    },
+    {
+      "id": "e172",
+      "designator": "R57",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 1391.4585,
+      "y": -1631.185
+    },
+    {
+      "id": "e176",
+      "designator": "R58",
+      "name": "5.1k",
+      "footprint": "R0603",
+      "x": 1271.4585,
+      "y": -1631.185
+    },
+    {
+      "id": "e179",
+      "designator": "D10",
+      "name": "SMBJ100A_C353408",
+      "footprint": "SMB_L4.6-W3.6-LS5.3-RD",
+      "x": 2085,
+      "y": -275
+    },
+    {
+      "id": "e180",
+      "designator": "R67",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 5015,
+      "y": 200
+    },
+    {
+      "id": "e181",
+      "designator": "U2",
+      "name": "MP9486AGN-Z",
+      "footprint": "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL-EP3.1",
+      "x": 2730,
+      "y": 350
+    },
+    {
+      "id": "e183",
+      "designator": "L1",
+      "name": "47uH",
+      "footprint": "IND-SMD_L8.0-W8.0_SMNR8040",
+      "x": 2840,
+      "y": 745
+    },
+    {
+      "id": "e184",
+      "designator": "R68",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 4825,
+      "y": 200
+    },
+    {
+      "id": "e185",
+      "designator": "C23",
+      "name": "100nF",
+      "footprint": "CAP 0603",
+      "x": 2900,
+      "y": 295
+    },
+    {
+      "id": "e187",
+      "designator": "D12",
+      "name": "DSS310",
+      "footprint": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "x": 3075,
+      "y": 595
+    },
+    {
+      "id": "e194",
+      "designator": "R82",
+      "name": "51K",
+      "footprint": "R0603",
+      "x": 3610,
+      "y": -825
+    },
+    {
+      "id": "e195",
+      "designator": "R83",
+      "name": "6.8K",
+      "footprint": "R0603",
+      "x": 3515,
+      "y": -742.806
+    },
+    {
+      "id": "e203",
+      "designator": "R69",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 4215,
+      "y": -440
+    },
+    {
+      "id": "e204",
+      "designator": "C37",
+      "name": "68nF",
+      "footprint": "CAP 0603",
+      "x": 3045,
+      "y": 420
+    },
+    {
+      "id": "e206",
+      "designator": "C38",
+      "name": "2.2uF",
+      "footprint": "CAP 0603",
+      "x": 2760,
+      "y": 1050
+    },
+    {
+      "id": "e207",
+      "designator": "R62",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 4280,
+      "y": -735
+    },
+    {
+      "id": "e208",
+      "designator": "C29",
+      "name": "100nF",
+      "footprint": "CAP 0603",
+      "x": 2900,
+      "y": 417
+    },
+    {
+      "id": "e210",
+      "designator": "R47",
+      "name": "22K",
+      "footprint": "RES-0603",
+      "x": 2975,
+      "y": 420
+    },
+    {
+      "id": "e212",
+      "designator": "C39",
+      "name": "10nF",
+      "footprint": "CAP 0603",
+      "x": 2975,
+      "y": 295
+    },
+    {
+      "id": "e214",
+      "designator": "C33",
+      "name": "10uF",
+      "footprint": "CAP-0805",
+      "x": 2925,
+      "y": 120
+    },
+    {
+      "id": "e216",
+      "designator": "C26",
+      "name": "47uF",
+      "footprint": "CAP-TH_BD8.0-P3.50-D0.6-FD",
+      "x": 2955,
+      "y": 195
+    },
+    {
+      "id": "e233",
+      "designator": "R84",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 3665,
+      "y": -565
+    },
+    {
+      "id": "e263",
+      "designator": "C20",
+      "name": "100nF",
+      "footprint": "CAP 0603",
+      "x": 2925,
+      "y": 60
+    },
+    {
+      "id": "e314",
+      "designator": "C8",
+      "name": "100uF",
+      "footprint": "CAP-TH_BD8.0-P3.50-D0.6-FD",
+      "x": 3070,
+      "y": 805
+    },
+    {
+      "id": "e316",
+      "designator": "C11",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 2075,
+      "y": -155
+    },
+    {
+      "id": "e318",
+      "designator": "C31",
+      "name": "47uF",
+      "footprint": "CAP-0805",
+      "x": 575,
+      "y": 430
+    },
+    {
+      "id": "e320",
+      "designator": "D2",
+      "name": "DSS310",
+      "footprint": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "x": 2720,
+      "y": 0
+    },
+    {
+      "id": "e322",
+      "designator": "D7",
+      "name": "DSS310",
+      "footprint": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "x": 2635,
+      "y": 0
+    },
+    {
+      "id": "e338",
+      "designator": "U35",
+      "name": "={Manufacturer Part}",
+      "footprint": "CONN-SMD_T31000",
+      "x": 460,
+      "y": -1380
+    },
+    {
+      "id": "e340",
+      "designator": "U36",
+      "name": "={Manufacturer Part}",
+      "footprint": "CONN-SMD_T31000",
+      "x": 830.9554,
+      "y": -1380.965
+    },
+    {
+      "id": "e342",
+      "designator": "U37",
+      "name": "={Manufacturer Part}",
+      "footprint": "CONN-SMD_T31000",
+      "x": 1319.5384,
+      "y": -1381.87
+    },
+    {
+      "id": "e344",
+      "designator": "U38",
+      "name": "={Manufacturer Part}",
+      "footprint": "CONN-SMD_T31000",
+      "x": 1744.5384,
+      "y": -1382.775
+    },
+    {
+      "id": "e345",
+      "designator": "C9",
+      "name": "100nF",
+      "footprint": "CAP 0603",
+      "x": 2700,
+      "y": 1050
+    },
+    {
+      "id": "e346",
+      "designator": "R35",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 2981.5524,
+      "y": -1672.696
+    },
+    {
+      "id": "e347",
+      "designator": "R18",
+      "name": "590k",
+      "footprint": "RES-0603",
+      "x": 3115,
+      "y": 420
+    },
+    {
+      "id": "e349",
+      "designator": "R19",
+      "name": "10k",
+      "footprint": "RES-0603",
+      "x": 3045,
+      "y": 295
+    },
+    {
+      "id": "e350",
+      "designator": "R36",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 3385,
+      "y": -1670
+    },
+    {
+      "id": "e351",
+      "designator": "Q8",
+      "name": "SI2306",
+      "footprint": "SOT-23-3L_L2.9-W1.6-P1.90-LS2.8-BL",
+      "x": 435,
+      "y": 355
+    },
+    {
+      "id": "e359",
+      "designator": "R37",
+      "name": "33k",
+      "footprint": "R0603",
+      "x": 2445,
+      "y": -1860
+    },
+    {
+      "id": "e371",
+      "designator": "C18",
+      "name": "100ZLJ470MGC18X25",
+      "footprint": "CAP-TH_BD18.0-P7.50-D0.8-FD",
+      "x": 745,
+      "y": -25
+    },
+    {
+      "id": "e372",
+      "designator": "R43",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 3305,
+      "y": -1670
+    },
+    {
+      "id": "e373",
+      "designator": "C17",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 665,
+      "y": -155
+    },
+    {
+      "id": "e375",
+      "designator": "D8",
+      "name": "SMBJ100A_C353408",
+      "footprint": "SMB_L4.6-W3.6-LS5.3-RD",
+      "x": 705,
+      "y": -280
+    },
+    {
+      "id": "e376",
+      "designator": "R39",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 3470,
+      "y": -1820
+    },
+    {
+      "id": "e377",
+      "designator": "R30",
+      "name": "0.002Ω",
+      "footprint": "R2512",
+      "x": 1565,
+      "y": -1710
+    },
+    {
+      "id": "e379",
+      "designator": "C30",
+      "name": "100ZLJ470MGC18X25",
+      "footprint": "CAP-TH_BD18.0-P7.50-D0.8-FD",
+      "x": 2165,
+      "y": -30
+    },
+    {
+      "id": "e380",
+      "designator": "R41",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 3545,
+      "y": -1820
+    },
+    {
+      "id": "e384",
+      "designator": "R40",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 3225,
+      "y": -1820
+    },
+    {
+      "id": "e385",
+      "designator": "C22",
+      "name": "4.7nF",
+      "footprint": "CAP-TH_L12.0-W5.0-P10.00-D1.0",
+      "x": 1880,
+      "y": 900
+    },
+    {
+      "id": "e387",
+      "designator": "R34",
+      "name": "5-20",
+      "footprint": "RES-SMD_L6.4-W3.2-R2512",
+      "x": 1160,
+      "y": 700
+    },
+    {
+      "id": "e389",
+      "designator": "C19",
+      "name": "4.7nF",
+      "footprint": "CAP-TH_L12.0-W5.0-P10.00-D1.0",
+      "x": 1040,
+      "y": 780
+    },
+    {
+      "id": "e391",
+      "designator": "U3",
+      "name": "STI3470",
+      "footprint": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL",
+      "x": 3150,
+      "y": 1035
+    },
+    {
+      "id": "e393",
+      "designator": "L4",
+      "name": "4.7uH",
+      "footprint": "IND-SMD_L8.0-W8.0_SMNR8040",
+      "x": 3430,
+      "y": 710
+    },
+    {
+      "id": "e397",
+      "designator": "C40",
+      "name": "100nF",
+      "footprint": "CAP 0603",
+      "x": 3195,
+      "y": 890
+    },
+    {
+      "id": "e401",
+      "designator": "R87",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 3896.978,
+      "y": -1165.018
+    },
+    {
+      "id": "e402",
+      "designator": "C6",
+      "name": "10uf",
+      "footprint": "C0805",
+      "x": 3810,
+      "y": 345
+    },
+    {
+      "id": "e403",
+      "designator": "R88",
+      "name": "10k",
+      "footprint": "R0603",
+      "x": 3921.978,
+      "y": -1410.018
+    },
+    {
+      "id": "e404",
+      "designator": "D9",
+      "name": "ZMM3V6",
+      "footprint": "LL-34_L3.5-W1.5-RD",
+      "x": 3720,
+      "y": 360
+    },
+    {
+      "id": "e405",
+      "designator": "R89",
+      "name": "100k",
+      "footprint": "R0603",
+      "x": 4011.978,
+      "y": -1315.018
+    },
+    {
+      "id": "e406",
+      "designator": "C5",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 3895,
+      "y": 330
+    },
+    {
+      "id": "e408",
+      "designator": "C7",
+      "name": "10uf",
+      "footprint": "C0805",
+      "x": 2912.8235,
+      "y": 1047.8065
+    },
+    {
+      "id": "e410",
+      "designator": "D6",
+      "name": "SS320B",
+      "footprint": "SMB_L4.6-W3.6-LS5.3-RD",
+      "x": 1920,
+      "y": 460
+    },
+    {
+      "id": "e412",
+      "designator": "D11",
+      "name": "ES2DF",
+      "footprint": "SMAF_L3.5-W2.6-LS4.7-RD",
+      "x": 2140,
+      "y": 925
+    },
+    {
+      "id": "e414",
+      "designator": "U11",
+      "name": "EG2104S",
+      "footprint": "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL",
+      "x": 2115,
+      "y": 455
+    },
+    {
+      "id": "e418",
+      "designator": "D13",
+      "name": "BZT52C12_C271259",
+      "footprint": "SOD-123_L2.8-W1.8-LS3.7-RD",
+      "x": 2830,
+      "y": 1050
+    },
+    {
+      "id": "e419",
+      "designator": "S1",
+      "name": "={Manufacturer Part}",
+      "footprint": "SENSOR-TH_AM2302",
+      "x": 5125,
+      "y": -1690
+    },
+    {
+      "id": "e420",
+      "designator": "R8",
+      "name": "5-20",
+      "footprint": "RES-SMD_L6.4-W3.2-R2512",
+      "x": 2086.44,
+      "y": 780
+    },
+    {
+      "id": "e426",
+      "designator": "CN1",
+      "name": "FAN",
+      "footprint": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "x": 3480,
+      "y": 1070
+    },
+    {
+      "id": "e428",
+      "designator": "D14",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOD-123FL_L2.8-W1.8-LS3.7-RD",
+      "x": 3755,
+      "y": 910
+    },
+    {
+      "id": "e430",
+      "designator": "U28",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+      "x": 3735.2419,
+      "y": 706.7705
+    },
+    {
+      "id": "e432",
+      "designator": "C21",
+      "name": "10uF",
+      "footprint": "C0603",
+      "x": 3725,
+      "y": 825
+    },
+    {
+      "id": "e436",
+      "designator": "U42",
+      "name": "SS8050-MS",
+      "footprint": "SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR",
+      "x": 4935,
+      "y": 410
+    },
+    {
+      "id": "e438",
+      "designator": "C41",
+      "name": "0.1u",
+      "footprint": "C0603",
+      "x": 2655,
+      "y": -1740
+    },
+    {
+      "id": "e440",
+      "designator": "U30",
+      "name": "INA226AIDGSR",
+      "footprint": "MSOP-10_L3.0-W3.0-P0.50-LS5.0-BL",
+      "x": 2470,
+      "y": -1710
+    },
+    {
+      "id": "e442",
+      "designator": "C42",
+      "name": "0.1u",
+      "footprint": "C0603",
+      "x": 535,
+      "y": -1850
+    },
+    {
+      "id": "e443",
+      "designator": "U43",
+      "name": "STI3470",
+      "footprint": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL",
+      "x": 3540,
+      "y": -535
+    },
+    {
+      "id": "e445",
+      "designator": "U44",
+      "name": "SS8050-MS",
+      "footprint": "SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR",
+      "x": 3766.978,
+      "y": -1405.018
+    },
+    {
+      "id": "e452",
+      "designator": "C43",
+      "name": "0.1u",
+      "footprint": "C0603",
+      "x": 1330,
+      "y": -1850
+    },
+    {
+      "id": "e454",
+      "designator": "U31",
+      "name": "INA226AIDGSR",
+      "footprint": "MSOP-10_L3.0-W3.0-P0.50-LS5.0-BL",
+      "x": 1330,
+      "y": -1740
+    },
+    {
+      "id": "e456",
+      "designator": "U32",
+      "name": "INA226AIDGSR",
+      "footprint": "MSOP-10_L3.0-W3.0-P0.50-LS5.0-BL",
+      "x": 535,
+      "y": -1740
+    },
+    {
+      "id": "e458",
+      "designator": "D1",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOD-123_L2.6-W1.7-LS3.5-RD",
+      "x": 530,
+      "y": -1560
+    },
+    {
+      "id": "e460",
+      "designator": "D15",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOD-123_L2.6-W1.7-LS3.5-RD",
+      "x": 1330,
+      "y": -1555
+    },
+    {
+      "id": "e462",
+      "designator": "D16",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOD-123_L2.6-W1.7-LS3.5-RD",
+      "x": 2655,
+      "y": -1895
+    },
+    {
+      "id": "e464",
+      "designator": "R59",
+      "name": "200k",
+      "footprint": "RES-0603",
+      "x": 2570,
+      "y": 125
+    },
+    {
+      "id": "e466",
+      "designator": "R60",
+      "name": "30.1k",
+      "footprint": "RES-0603",
+      "x": 2570,
+      "y": 290
+    },
+    {
+      "id": "e468",
+      "designator": "R61",
+      "name": "NC",
+      "footprint": "RES-0603",
+      "x": 2520,
+      "y": 290
+    },
+    {
+      "id": "e470",
+      "designator": "U33",
+      "name": "ESP32-S",
+      "footprint": "WIRELM-SMD_ESP32-S",
+      "x": 4700,
+      "y": -370
+    },
+    {
+      "id": "e476",
+      "designator": "C44",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 5155,
+      "y": 160
+    },
+    {
+      "id": "e480",
+      "designator": "C45",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 4945,
+      "y": 200
+    },
+    {
+      "id": "e488",
+      "designator": "LED4",
+      "name": "LED",
+      "footprint": "LED0603-RD",
+      "x": 4215,
+      "y": -575
+    },
+    {
+      "id": "e496",
+      "designator": "CN7",
+      "name": "NTC",
+      "footprint": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "x": 3455,
+      "y": 50
+    },
+    {
+      "id": "e498",
+      "designator": "C47",
+      "name": "10uF",
+      "footprint": "CAP-SMD_L3.2-W1.6-RD",
+      "x": 5230,
+      "y": 185
+    },
+    {
+      "id": "e508",
+      "designator": "KEY1",
+      "name": "K2-3.66.1_SMD",
+      "footprint": "KEY-SMD_2P-L6.2-W3.6-LS8.0",
+      "x": 3745,
+      "y": -185
+    },
+    {
+      "id": "e534",
+      "designator": "U5",
+      "name": "PV",
+      "footprint": "CONN-TH_2P-P9.50_DBT50G-9.5-2P",
+      "x": 665,
+      "y": -1385
+    },
+    {
+      "id": "e536",
+      "designator": "U4",
+      "name": "BAT",
+      "footprint": "CONN-TH_2P-P9.50_DBT50G-9.5-2P",
+      "x": 1550,
+      "y": -1380
+    },
+    {
+      "id": "e538",
+      "designator": "U12",
+      "name": "B1212S",
+      "footprint": "PWRM-TH_BXXXXS-1W",
+      "x": 450,
+      "y": 625
+    },
+    {
+      "id": "e556",
+      "designator": "U34",
+      "name": "LTC4357HMS8#PBF",
+      "footprint": "MSOP-8_L3.0-W3.0-P0.65-LS4.9-BL",
+      "x": 2732.585,
+      "y": -765.5896
+    },
+    {
+      "id": "e558",
+      "designator": "R71",
+      "name": "1K",
+      "footprint": "R0603_NEW",
+      "x": 2762.585,
+      "y": -625.5896
+    },
+    {
+      "id": "e560",
+      "designator": "C48",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 2832.585,
+      "y": -625.5896
+    },
+    {
+      "id": "e564",
+      "designator": "R72",
+      "name": "1K",
+      "footprint": "R0603_NEW",
+      "x": 2697.585,
+      "y": -625.5896
+    },
+    {
+      "id": "e566",
+      "designator": "R73",
+      "name": "1M",
+      "footprint": "R0603_NEW",
+      "x": 2632.585,
+      "y": -625.5896
+    },
+    {
+      "id": "e625",
+      "designator": "F4",
+      "name": "40A",
+      "footprint": "40A32V",
+      "x": 2105,
+      "y": -940
+    },
+    {
+      "id": "e631",
+      "designator": "Q3",
+      "name": "AO3401",
+      "footprint": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+      "x": 3100,
+      "y": -1670
+    },
+    {
+      "id": "e633",
+      "designator": "U6",
+      "name": "SS8050-MS",
+      "footprint": "SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR",
+      "x": 3345,
+      "y": -1820
+    },
+    {
+      "id": "e635",
+      "designator": "C4",
+      "name": "100nF",
+      "footprint": "C0603",
+      "x": 3225,
+      "y": -1670
+    },
+    {
+      "id": "e639",
+      "designator": "Q14",
+      "name": "8550M-D",
+      "footprint": "SOT-23-3_L3.0-W1.7-P0.95-LS2.9-BR",
+      "x": 3505,
+      "y": -1665
+    },
+    {
+      "id": "e641",
+      "designator": "LED5",
+      "name": "D-G080508G1",
+      "footprint": "LED0603-RD",
+      "x": 2375,
+      "y": -1860
+    },
+    {
+      "id": "e645",
+      "designator": "U22",
+      "name": "Vout",
+      "footprint": "CONN-TH_2P-P9.50_DBT50G-9.5-2P",
+      "x": 2405,
+      "y": -1380
+    },
+    {
+      "id": "e659",
+      "designator": "R70",
+      "name": "0.002Ω",
+      "footprint": "R2512",
+      "x": 2225,
+      "y": -1740
+    },
+    {
+      "id": "e661",
+      "designator": "FH3",
+      "name": "XF-508P-A",
+      "footprint": "FUSE-TH_L19.8-W7.0_XF-508P-A",
+      "x": 2105,
+      "y": -965
+    },
+    {
+      "id": "e887",
+      "designator": "C54",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 3049.621,
+      "y": -1391.1965
+    },
+    {
+      "id": "e888",
+      "designator": "C55",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 3045,
+      "y": -845
+    },
+    {
+      "id": "e889",
+      "designator": "C56",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 2955,
+      "y": -845
+    },
+    {
+      "id": "e890",
+      "designator": "C57",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 3125,
+      "y": -1390
+    },
+    {
+      "id": "e891",
+      "designator": "C58",
+      "name": "={Value}",
+      "footprint": "C0603",
+      "x": 3475,
+      "y": -1380
+    },
+    {
+      "id": "e892",
+      "designator": "Q35",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+      "x": 3229.1505,
+      "y": -850.04
+    },
+    {
+      "id": "e893",
+      "designator": "Q36",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+      "x": 3369.1505,
+      "y": -770.04
+    },
+    {
+      "id": "e894",
+      "designator": "R90",
+      "name": "={Value}",
+      "footprint": "R0603",
+      "x": 3510,
+      "y": -1285
+    },
+    {
+      "id": "e895",
+      "designator": "R91",
+      "name": "={Value}",
+      "footprint": "R0603",
+      "x": 3520,
+      "y": -1085
+    },
+    {
+      "id": "e896",
+      "designator": "R92",
+      "name": "={Value}",
+      "footprint": "R0603",
+      "x": 3369.1505,
+      "y": -885.04
+    },
+    {
+      "id": "e897",
+      "designator": "R93",
+      "name": "={Value}",
+      "footprint": "R0603",
+      "x": 3226.3015,
+      "y": -735.8495
+    },
+    {
+      "id": "e898",
+      "designator": "U45",
+      "name": "={Manufacturer Part}",
+      "footprint": "SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL",
+      "x": 3160,
+      "y": -1105
+    },
+    {
+      "id": "e899",
+      "designator": "USB2",
+      "name": ".。。。",
+      "footprint": "USB-C-SMD_TYPE-C-6PIN-2MD-073",
+      "x": 3850,
+      "y": -1925
+    },
+    {
+      "id": "e1142",
+      "designator": "U39",
+      "name": "={Manufacturer Part}",
+      "footprint": "CONN-SMD_T31000",
+      "x": 2169.349,
+      "y": -1380.965
+    },
+    {
+      "id": "e1144",
+      "designator": "U40",
+      "name": "={Manufacturer Part}",
+      "footprint": "CONN-SMD_T31000",
+      "x": 2542.932,
+      "y": -1380.06
+    },
+    {
+      "id": "e3816",
+      "designator": "R96",
+      "name": "={Value}",
+      "footprint": "R1206",
+      "x": 3720,
+      "y": -1670
+    },
+    {
+      "id": "e4829",
+      "designator": "R97",
+      "name": "0.002Ω",
+      "footprint": "R2512",
+      "x": 3980,
+      "y": -915
+    },
+    {
+      "id": "e7638",
+      "designator": "R97",
+      "name": "0.002Ω",
+      "footprint": "R2512",
+      "x": 4011.978,
+      "y": -1303.9046000000003
+    },
+    {
+      "id": "e39436",
+      "designator": "Q1",
+      "name": "={Manufacturer Part}",
+      "footprint": "H-PSOF-8_L9.8-W11.7-P1.20-BL",
+      "x": 1901.685,
+      "y": -1699.145
+    },
+    {
+      "id": "e39440",
+      "designator": "Q26",
+      "name": "={Manufacturer Part}",
+      "footprint": "H-PSOF-8_L9.8-W11.7-P1.20-BL",
+      "x": 1482.655,
+      "y": -621.75
+    },
+    {
+      "id": "e39442",
+      "designator": "Q27",
+      "name": "={Manufacturer Part}",
+      "footprint": "H-PSOF-8_L9.8-W11.7-P1.20-BL",
+      "x": 1482.655,
+      "y": -1080.635
+    }
+  ],
+  "nets": [
+    "PGND",
+    "GND",
+    "PV",
+    "VBAT",
+    "VBAT_OUT",
+    "12V",
+    "GPIO27",
+    "3.3V",
+    "SDA",
+    "SCL",
+    "GPIO14",
+    "GPIO23",
+    "GPIO34",
+    "EN",
+    "GPIO32",
+    "GPIO33",
+    "GPIO12",
+    "GPIO17",
+    "GPIO0",
+    "GPIO19",
+    "GPIO18",
+    "GPIO13",
+    "GPIO16",
+    "GPIO4",
+    "GPIO26",
+    "GPIO25",
+    "GPIO35",
+    "GPIO15"
+  ],
+  "drc": [
+    {
+      "name": "Clearance Error",
+      "list": [
+        {
+          "name": "Plane Zone to TH Pad",
+          "list": [
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Plane Zone to TH Pad",
+              "ruleName": "Default",
+              "ruleTypeName": "Safe Spacing",
+              "obj1": {
+                "typeName": "Plane Zone",
+                "suffix": "(GND): e-1"
+              },
+              "obj2": {
+                "typeName": "TH Pad",
+                "suffix": ": S1_3"
+              },
+              "layer": "GND",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0.155mm",
+                  "shouldBe": ">= 0.254mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err1",
+                  "position": {
+                    "x": 512.5,
+                    "y": -170.939785
+                  },
+                  "name": "Default",
+                  "obj1": "e1990",
+                  "obj1Type": "Plane Zone",
+                  "obj2": "e419e17",
+                  "obj2Type": "TH Pad",
+                  "minDistance": 0.6084299999999985,
+                  "clearance": 1,
+                  "errorType": "Safe Spacing",
+                  "layerIds": [
+                    15
+                  ],
+                  "obj1Suffix": "(GND): e-1",
+                  "obj2Suffix": ": S1_3"
+                }
+              },
+              "objs": [
+                "e1990",
+                "e419e17"
+              ],
+              "globalIndex": "err1",
+              "pos": {
+                "x": 512.5,
+                "y": -170.939785
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Plane Zone to TH Pad"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Plane Zone to TH Pad",
+              "ruleName": "Default",
+              "ruleTypeName": "Safe Spacing",
+              "obj1": {
+                "typeName": "Plane Zone",
+                "suffix": "(PGND): e-1"
+              },
+              "obj2": {
+                "typeName": "TH Pad",
+                "suffix": ": S1_3"
+              },
+              "layer": "pGND",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0.155mm",
+                  "shouldBe": ">= 0.254mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err2",
+                  "position": {
+                    "x": 512.5,
+                    "y": -170.939785
+                  },
+                  "name": "Default",
+                  "obj1": "e2044",
+                  "obj1Type": "Plane Zone",
+                  "obj2": "e419e17",
+                  "obj2Type": "TH Pad",
+                  "minDistance": 0.6084299999999985,
+                  "clearance": 1,
+                  "errorType": "Safe Spacing",
+                  "layerIds": [
+                    16
+                  ],
+                  "obj1Suffix": "(PGND): e-1",
+                  "obj2Suffix": ": S1_3"
+                }
+              },
+              "objs": [
+                "e2044",
+                "e419e17"
+              ],
+              "globalIndex": "err2",
+              "pos": {
+                "x": 512.5,
+                "y": -170.939785
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Plane Zone to TH Pad"
+            }
+          ],
+          "count": 2,
+          "title": [
+            "Plane Zone",
+            "to",
+            "TH Pad",
+            "(2)"
+          ],
+          "visible": true
+        },
+        {
+          "name": "Hole to Hole",
+          "list": [
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VBAT): e6122"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VBAT): e6103"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err3",
+                  "position": {
+                    "x": 176.93701000000001,
+                    "y": -90.124015
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e6122",
+                  "obj1Type": "Hole",
+                  "obj2": "e6103",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 176.3464632691861,
+                      "y": -90.124015
+                    },
+                    "_end": {
+                      "x": 177.52755673081393,
+                      "y": -90.124015
+                    }
+                  },
+                  "obj1Suffix": "(VBAT): e6122",
+                  "obj2Suffix": "(VBAT): e6103"
+                }
+              },
+              "objs": [
+                "e6122",
+                "e6103"
+              ],
+              "globalIndex": "err3",
+              "pos": {
+                "x": 176.93701000000001,
+                "y": -90.124015
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VBAT): e6129"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VBAT): e6109"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err4",
+                  "position": {
+                    "x": 169.06298999999999,
+                    "y": -90.124015
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e6129",
+                  "obj1Type": "Hole",
+                  "obj2": "e6109",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 168.47244326918607,
+                      "y": -90.124015
+                    },
+                    "_end": {
+                      "x": 169.6535367308139,
+                      "y": -90.124015
+                    }
+                  },
+                  "obj1Suffix": "(VBAT): e6129",
+                  "obj2Suffix": "(VBAT): e6109"
+                }
+              },
+              "objs": [
+                "e6129",
+                "e6109"
+              ],
+              "globalIndex": "err4",
+              "pos": {
+                "x": 169.06298999999999,
+                "y": -90.124015
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VBUS1): C18_1"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VBUS1): e5763"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0.048mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err5",
+                  "position": {
+                    "x": 57.464134709749416,
+                    "y": -1.5678953805734324
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e371e3",
+                  "obj1Type": "Hole",
+                  "obj2": "e5763",
+                  "obj2Type": "Hole",
+                  "minDistance": 0.18741131012405185,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 57.37744352683374,
+                      "y": -1.532323079617713
+                    },
+                    "_end": {
+                      "x": 57.55082589266509,
+                      "y": -1.6034676815291515
+                    }
+                  },
+                  "obj1Suffix": "(VBUS1): C18_1",
+                  "obj2Suffix": "(VBUS1): e5763"
+                }
+              },
+              "objs": [
+                "e371e3",
+                "e5763"
+              ],
+              "globalIndex": "err5",
+              "pos": {
+                "x": 57.464134709749416,
+                "y": -1.5678953805734324
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VBUS2): e2789"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VBUS2): L3_2"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err6",
+                  "position": {
+                    "x": 174.0278,
+                    "y": 26
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e2789",
+                  "obj1Type": "Hole",
+                  "obj2": "e138e6",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 174.0278,
+                      "y": 26
+                    },
+                    "_end": {
+                      "x": 174.0278,
+                      "y": 26
+                    }
+                  },
+                  "obj1Suffix": "(VBUS2): e2789",
+                  "obj2Suffix": "(VBUS2): L3_2"
+                }
+              },
+              "objs": [
+                "e2789",
+                "e138e6"
+              ],
+              "globalIndex": "err6",
+              "pos": {
+                "x": 174.0278,
+                "y": 26
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VS): e2790"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VS): L3_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err7",
+                  "position": {
+                    "x": 126.52780000000001,
+                    "y": 26
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e2790",
+                  "obj1Type": "Hole",
+                  "obj2": "e138e5",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 126.52780000000001,
+                      "y": 26
+                    },
+                    "_end": {
+                      "x": 126.52780000000001,
+                      "y": 26
+                    }
+                  },
+                  "obj1Suffix": "(VS): e2790",
+                  "obj2Suffix": "(VS): L3_1"
+                }
+              },
+              "objs": [
+                "e2790",
+                "e138e5"
+              ],
+              "globalIndex": "err7",
+              "pos": {
+                "x": 126.52780000000001,
+                "y": 26
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(GND): U5_1"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(GND): U36_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err8",
+                  "position": {
+                    "x": 88.94099999999999,
+                    "y": -138.5
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e534e7",
+                  "obj1Type": "Hole",
+                  "obj2": "e340e10",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 88.94099999999999,
+                      "y": -138.5
+                    },
+                    "_end": {
+                      "x": 88.94099999999999,
+                      "y": -138.5
+                    }
+                  },
+                  "obj1Suffix": "(GND): U5_1",
+                  "obj2Suffix": "(GND): U36_1"
+                }
+              },
+              "objs": [
+                "e534e7",
+                "e340e10"
+              ],
+              "globalIndex": "err8",
+              "pos": {
+                "x": 88.94099999999999,
+                "y": -138.5
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(PV): U5_2"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(PV): U35_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err9",
+                  "position": {
+                    "x": 51.5394,
+                    "y": -138.5
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e534e8",
+                  "obj1Type": "Hole",
+                  "obj2": "e338e10",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 51.5394,
+                      "y": -138.5
+                    },
+                    "_end": {
+                      "x": 51.5394,
+                      "y": -138.5
+                    }
+                  },
+                  "obj1Suffix": "(PV): U5_2",
+                  "obj2Suffix": "(PV): U35_1"
+                }
+              },
+              "objs": [
+                "e534e8",
+                "e338e10"
+              ],
+              "globalIndex": "err9",
+              "pos": {
+                "x": 51.5394,
+                "y": -138.5
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VIN2+): U4_1"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VIN2+): U38_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err10",
+                  "position": {
+                    "x": 177.44099999999997,
+                    "y": -138
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e536e7",
+                  "obj1Type": "Hole",
+                  "obj2": "e344e10",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 177.44099999999997,
+                      "y": -138
+                    },
+                    "_end": {
+                      "x": 177.44099999999997,
+                      "y": -138
+                    }
+                  },
+                  "obj1Suffix": "(VIN2+): U4_1",
+                  "obj2Suffix": "(VIN2+): U38_1"
+                }
+              },
+              "objs": [
+                "e536e7",
+                "e344e10"
+              ],
+              "globalIndex": "err10",
+              "pos": {
+                "x": 177.44099999999997,
+                "y": -138
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(VBAT_OUT): U4_2"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(VBAT_OUT): U37_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err11",
+                  "position": {
+                    "x": 140.0394,
+                    "y": -138
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e536e8",
+                  "obj1Type": "Hole",
+                  "obj2": "e342e10",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 140.0394,
+                      "y": -138
+                    },
+                    "_end": {
+                      "x": 140.0394,
+                      "y": -138
+                    }
+                  },
+                  "obj1Suffix": "(VBAT_OUT): U4_2",
+                  "obj2Suffix": "(VBAT_OUT): U37_1"
+                }
+              },
+              "objs": [
+                "e536e8",
+                "e342e10"
+              ],
+              "globalIndex": "err11",
+              "pos": {
+                "x": 140.0394,
+                "y": -138
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "($3N1724): U22_1"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "($3N1724): U40_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err12",
+                  "position": {
+                    "x": 262.94100000000003,
+                    "y": -138
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e645e11",
+                  "obj1Type": "Hole",
+                  "obj2": "e1144e10",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 262.94100000000003,
+                      "y": -138
+                    },
+                    "_end": {
+                      "x": 262.94100000000003,
+                      "y": -138
+                    }
+                  },
+                  "obj1Suffix": "($3N1724): U22_1",
+                  "obj2Suffix": "($3N1724): U40_1"
+                }
+              },
+              "objs": [
+                "e645e11",
+                "e1144e10"
+              ],
+              "globalIndex": "err12",
+              "pos": {
+                "x": 262.94100000000003,
+                "y": -138
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            },
+            {
+              "visible": true,
+              "errorType": "Clearance Error",
+              "errorObjType": "Hole to Hole",
+              "ruleName": "otherClearance",
+              "ruleTypeName": "Other Spacing",
+              "obj1": {
+                "typeName": "Hole",
+                "suffix": "(OUT2): U22_2"
+              },
+              "obj2": {
+                "typeName": "Hole",
+                "suffix": "(OUT2): U39_1"
+              },
+              "layer": "Multi-Layer",
+              "explanation": {
+                "str": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+                "param": {
+                  "minDistance": "0mm",
+                  "shouldBe": ">= 0.3mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "ClearanceError"
+                },
+                "errData": {
+                  "globalIndex": "err13",
+                  "position": {
+                    "x": 225.5394,
+                    "y": -138
+                  },
+                  "name": "otherClearance",
+                  "obj1": "e645e12",
+                  "obj1Type": "Hole",
+                  "obj2": "e1142e10",
+                  "obj2Type": "Hole",
+                  "minDistance": 0,
+                  "clearance": 1.1800000000000002,
+                  "errorType": "Other Spacing",
+                  "layerIds": [
+                    12
+                  ],
+                  "line": {
+                    "_start": {
+                      "x": 225.5394,
+                      "y": -138
+                    },
+                    "_end": {
+                      "x": 225.5394,
+                      "y": -138
+                    }
+                  },
+                  "obj1Suffix": "(OUT2): U22_2",
+                  "obj2Suffix": "(OUT2): U39_1"
+                }
+              },
+              "objs": [
+                "e645e12",
+                "e1142e10"
+              ],
+              "globalIndex": "err13",
+              "pos": {
+                "x": 225.5394,
+                "y": -138
+              },
+              "parentId": "DRCTab|_|Errors|_|Clearance Error|_|Hole to Hole"
+            }
+          ],
+          "count": 11,
+          "title": [
+            "Hole",
+            "to",
+            "Hole",
+            "(11)"
+          ],
+          "visible": true
+        }
+      ],
+      "visible": true,
+      "count": 13,
+      "title": [
+        "Clearance Error",
+        "(13)"
+      ]
+    },
+    {
+      "name": "Differential Pair Error",
+      "list": [
+        {
+          "name": "Track to Track",
+          "list": [
+            {
+              "visible": true,
+              "errorType": "Differential Pair Error",
+              "errorObjType": "Track to Track",
+              "ruleName": "differentialPair",
+              "ruleTypeName": "Differential Pair",
+              "obj1": {
+                "suffix": "(SDA)",
+                "typeName": "Track"
+              },
+              "obj2": {
+                "suffix": "(SCL)",
+                "typeName": "Track"
+              },
+              "explanation": {
+                "str": "{obj1} to {obj2} length tolerance is {width}, should be {shouldBe}",
+                "param": {
+                  "width": "1.725mm",
+                  "shouldBe": "<=0.254mm",
+                  "obj1": "Object 1",
+                  "obj2": "object 2",
+                  "type": "DifferentPairLengthError"
+                },
+                "errData": {
+                  "globalIndex": "err0",
+                  "position": {
+                    "x": 269.71275,
+                    "y": -123.22831499999998
+                  },
+                  "name": "differentialPair",
+                  "net_P": "SDA",
+                  "net_N": "SCL",
+                  "toleranceScope": 1,
+                  "value_P": 511.35287028943975,
+                  "value_N": 518.1431629254758
+                }
+              },
+              "objs": [
+                "SDA",
+                "SCL"
+              ],
+              "globalIndex": "err0",
+              "globalIndexIsNet": true,
+              "pos": {
+                "x": 269.71275,
+                "y": -123.22831499999998
+              },
+              "parentId": "DRCTab|_|Errors|_|Differential Pair Error|_|Track to Track"
+            }
+          ],
+          "count": 1,
+          "title": [
+            "Track",
+            "to",
+            "Track",
+            "(1)"
+          ],
+          "visible": true
+        }
+      ],
+      "visible": true,
+      "count": 1,
+      "title": [
+        "Differential Pair Error",
+        "(1)"
+      ]
+    },
+    {
+      "name": "Connection Error",
+      "list": [
+        {
+          "name": "GND",
+          "list": [
+            {
+              "visible": true,
+              "errorType": "Connection Error",
+              "errorObjType": "Copper Region(Filled)",
+              "ruleName": "Common",
+              "obj1": {
+                "typeName": "Copper Region(Filled)",
+                "suffix": "(GND): e33575e30"
+              },
+              "isFree": true,
+              "net": "GND",
+              "explanation": {
+                "str": "{obj1} is a free copper region",
+                "param": {
+                  "obj1": "Object 1",
+                  "type": "ConnectError"
+                },
+                "errData": {
+                  "globalIndex": "err15",
+                  "errorType": "No Connection",
+                  "name": "Common",
+                  "obj1": "e2065",
+                  "obj1Type": "Copper Region(Filled)",
+                  "net": "GND",
+                  "obj1Suffix": "(GND): e33575e30"
+                }
+              },
+              "objs": [
+                "e2065"
+              ],
+              "globalIndex": "err15",
+              "pos": {
+                "x": 284.3358074190939,
+                "y": -83.7041273426596
+              },
+              "parentId": "DRCTab|_|Errors|_|Connection Error|_|GND"
+            },
+            {
+              "visible": true,
+              "errorType": "Connection Error",
+              "errorObjType": "Copper Region(Filled)",
+              "ruleName": "Common",
+              "obj1": {
+                "typeName": "Copper Region(Filled)",
+                "suffix": "(GND): e33575e30"
+              },
+              "isFree": true,
+              "net": "GND",
+              "explanation": {
+                "str": "{obj1} is a free copper region",
+                "param": {
+                  "obj1": "Object 1",
+                  "type": "ConnectError"
+                },
+                "errData": {
+                  "globalIndex": "err16",
+                  "errorType": "No Connection",
+                  "name": "Common",
+                  "obj1": "e2066",
+                  "obj1Type": "Copper Region(Filled)",
+                  "net": "GND",
+                  "obj1Suffix": "(GND): e33575e30"
+                }
+              },
+              "objs": [
+                "e2066"
+              ],
+              "globalIndex": "err16",
+              "pos": {
+                "x": 262.2396131842433,
+                "y": 25.115779358785854
+              },
+              "parentId": "DRCTab|_|Errors|_|Connection Error|_|GND"
+            },
+            {
+              "visible": true,
+              "errorType": "Connection Error",
+              "errorObjType": "Copper Region(Filled)",
+              "ruleName": "Common",
+              "obj1": {
+                "typeName": "Copper Region(Filled)",
+                "suffix": "(GND): e33575e30"
+              },
+              "isFree": true,
+              "net": "GND",
+              "explanation": {
+                "str": "{obj1} is a free copper region",
+                "param": {
+                  "obj1": "Object 1",
+                  "type": "ConnectError"
+                },
+                "errData": {
+                  "globalIndex": "err17",
+                  "errorType": "No Connection",
+                  "name": "Common",
+                  "obj1": "e2069",
+                  "obj1Type": "Copper Region(Filled)",
+                  "net": "GND",
+                  "obj1Suffix": "(GND): e33575e30"
+                }
+              },
+              "objs": [
+                "e2069"
+              ],
+              "globalIndex": "err17",
+              "pos": {
+                "x": 410.33858499999997,
+                "y": -90.911415
+              },
+              "parentId": "DRCTab|_|Errors|_|Connection Error|_|GND"
+            },
+            {
+              "visible": true,
+              "errorType": "Connection Error",
+              "errorObjType": "Copper Region(Filled)",
+              "ruleName": "Common",
+              "obj1": {
+                "typeName": "Copper Region(Filled)",
+                "suffix": "(GND): e33575e30"
+              },
+              "isFree": true,
+              "net": "GND",
+              "explanation": {
+                "str": "{obj1} is a free copper region",
+                "param": {
+                  "obj1": "Object 1",
+                  "type": "ConnectError"
+                },
+                "errData": {
+                  "globalIndex": "err18",
+                  "errorType": "No Connection",
+                  "name": "Common",
+                  "obj1": "e2070",
+                  "obj1Type": "Copper Region(Filled)",
+                  "net": "GND",
+                  "obj1Suffix": "(GND): e33575e30"
+                }
+              },
+              "objs": [
+                "e2070"
+              ],
+              "globalIndex": "err18",
+              "pos": {
+                "x": 431.25130648484435,
+                "y": -80.80722725910556
+              },
+              "parentId": "DRCTab|_|Errors|_|Connection Error|_|GND"
+            }
+          ],
+          "doNotTranslate": true,
+          "count": 4,
+          "title": "GND (4)",
+          "visible": true
+        }
+      ],
+      "visible": true,
+      "count": 4,
+      "title": [
+        "Connection Error",
+        "(4)"
+      ]
+    },
+    {
+      "name": "Netlist Error",
+      "list": [
+        {
+          "name": "Netlist Error",
+          "list": [
+            {
+              "visible": true,
+              "errorType": "Netlist Error",
+              "errorObjType": "Netlist Error",
+              "ruleName": "Import Changes",
+              "ruleTypeName": "Import Changes",
+              "obj1": {
+                "typeName": "Schematic Netlist",
+                "suffix": ""
+              },
+              "obj2": {
+                "typeName": "PCB Netlist",
+                "suffix": ""
+              },
+              "objs": [
+                "err14"
+              ],
+              "explanation": {
+                "str": "PCB and schematic netlist does not match. You can click on the rule name \"Import Changes\" to view the difference.",
+                "param": {}
+              },
+              "globalIndex": "err14",
+              "parentId": "DRCTab|_|Errors|_|Netlist Error|_|Netlist Error"
+            }
+          ],
+          "count": 1,
+          "title": [
+            "Netlist Error",
+            "(1)"
+          ],
+          "visible": true
+        }
+      ],
+      "visible": true,
+      "count": 1,
+      "title": [
+        "Netlist Error",
+        "(1)"
+      ]
+    }
+  ]
+}

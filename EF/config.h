@@ -5,8 +5,9 @@
 #define WIFI_PASSWORD "CHANGE_ME_WIFI_PASSWORD"
 #define MQTT_URI "wss://mqtt.astroy.xyz/mqtt"
 #define MQTT_CLIENT_ID "ef-001"
-#define MQTT_USERNAME "esp32-001"
-#define MQTT_PASSWORD "CHANGE_ME_MQTT_PASSWORD"
+#define MQTT_USERNAME "ef-001"
+// Set a unique password for this device; do not reuse another device's credential.
+#define MQTT_PASSWORD "40XuOzMF-xbUUK6_VCySj6cONkQpHJnU"
 #define MQTT_ROOT "devices/ef-001"
 #define MQTT_TELEMETRY MQTT_ROOT "/telemetry"
 #define MQTT_STATUS MQTT_ROOT "/status"

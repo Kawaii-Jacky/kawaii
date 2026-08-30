@@ -10,10 +10,15 @@ if ([string]::IsNullOrWhiteSpace($Output)) {
     $Output = Join-Path $root $Output
 }
 
-$sourceRoots = @("remote-astro-service", "remote-observatory-frontend", "server")
+$sourceRoots = @("remote-astro-service", "remote-observatory-frontend", "apps", "server", "loT", "ESP32_MPPT", "EF")
 $rootPrefix = $root.TrimEnd("\") + "\"
-$blockedSegments = @(".git", ".venv", ".secrets", "backups", "data", "__pycache__")
+$blockedSegments = @(".git", ".venv", ".secrets", "backups", "data", "__pycache__", "node_modules", "target", "gen")
 $blockedNames = @(".env", "*.secret", "*.secrets", "*.token", "*.key", "*.pem", "passwd*", "*secrets-checklist*.md", "*.bak", "*.backup")
+$sanitizedFirmwareHeaders = @(
+    "loT/loT/device_config.h",
+    "ESP32_MPPT/mppt_config.h",
+    "EF/config.h"
+)
 
 function Test-BlockedPath([string]$RelativePath) {
     $segments = $RelativePath -split "[\\/]"
@@ -38,9 +43,21 @@ try {
         Get-ChildItem -LiteralPath $source -Recurse -File | ForEach-Object {
             $relative = $_.FullName.Substring($rootPrefix.Length).Replace("\", "/")
             if (-not (Test-BlockedPath $relative)) {
-                [IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
-                    $archive, $_.FullName, $relative, [IO.Compression.CompressionLevel]::Optimal
-                ) | Out-Null
+                if ($sanitizedFirmwareHeaders -contains $relative) {
+                    $content = Get-Content -LiteralPath $_.FullName -Raw
+                    $content = [regex]::Replace(
+                        $content,
+                        '(?m)^(\s*#define\s+\w*(?:PASSWORD|SECRET|TOKEN)\w*\s+)"[^"]*"',
+                        '$1"CHANGE_ME"'
+                    )
+                    $entry = $archive.CreateEntry($relative, [IO.Compression.CompressionLevel]::Optimal)
+                    $writer = New-Object IO.StreamWriter($entry.Open(), (New-Object Text.UTF8Encoding($false)))
+                    try { $writer.Write($content) } finally { $writer.Dispose() }
+                } else {
+                    [IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                        $archive, $_.FullName, $relative, [IO.Compression.CompressionLevel]::Optimal
+                    ) | Out-Null
+                }
             }
         }
     }
@@ -49,5 +66,23 @@ try {
     $stream.Dispose()
 }
 
+$verification = [IO.Compression.ZipFile]::OpenRead($temporary)
+try {
+    foreach ($relative in $sanitizedFirmwareHeaders) {
+        $entry = $verification.GetEntry($relative)
+        if (-not $entry) { continue }
+        $reader = New-Object IO.StreamReader($entry.Open())
+        try { $content = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        if ($content -match '(?m)^\s*#define\s+\w*(?:PASSWORD|SECRET|TOKEN)\w*\s+"(?!CHANGE_ME")[^"]+"') {
+            throw "Release verification found a literal firmware credential in $relative"
+        }
+    }
+} finally {
+    $verification.Dispose()
+}
+
 Move-Item -LiteralPath $temporary -Destination $Output -Force
+$hash = (Get-FileHash -LiteralPath $Output -Algorithm SHA256).Hash.ToLowerInvariant()
+Set-Content -LiteralPath "$Output.sha256" -Value "$hash  $(Split-Path $Output -Leaf)" -Encoding ascii
 Write-Output $Output
+Write-Output "$Output.sha256"

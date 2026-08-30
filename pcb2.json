@@ -1,0 +1,309 @@
+{
+  "doc": {
+    "documentType": 3,
+    "uuid": "a25748e71c6f481bb60ba75ff6dc70c4",
+    "tabId": "a25748e71c6f481bb60ba75ff6dc70c4@caf377cb391c4d9fa1502396845721d2",
+    "parentProjectUuid": "caf377cb391c4d9fa1502396845721d2"
+  },
+  "counts": {
+    "components": 162,
+    "pads": 452,
+    "lines": 624,
+    "vias": 935,
+    "pours": 40,
+    "nets": 86
+  },
+  "nets": [
+    "PGND",
+    "PV1",
+    "GND",
+    "VBAT",
+    "VBAT_OUT",
+    "PV",
+    "12V",
+    "GPIO27",
+    "3.3V",
+    "GPIO16",
+    "SDA",
+    "SCL",
+    "GPIO23",
+    "GPIO19",
+    "GPIO18",
+    "GPIO17",
+    "GPIO0",
+    "GPIO33",
+    "GPIO32",
+    "GPIO35",
+    "GPIO34",
+    "EN",
+    "GPIO4"
+  ],
+  "drcSummary": [
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Copper Region(Filled) to Track",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(GND): e173e0",
+      "suffix2": "(VGS): e324"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Copper Region(Filled) to SMD Pad",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(GND): e173e0",
+      "suffix2": "(VGS): R74_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(GND): e7277",
+      "suffix2": "(GND): e7070"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(GPIO16): e14496",
+      "suffix2": "(GPIO16): e14493"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(PV): U35_1",
+      "suffix2": "(PV): e13875"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(PV): U35_1",
+      "suffix2": "(PV): e13876"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(PV): U35_1",
+      "suffix2": "(PV): e13878"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(PV): U35_1",
+      "suffix2": "(PV): e13881"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(PV): U5_2",
+      "suffix2": "(PV): U35_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(PV): U5_2",
+      "suffix2": "(PV): e13878"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VOUT): 降压跳线2_1",
+      "suffix2": "(VOUT): e14077"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VOUT): 降压跳线2_1",
+      "suffix2": "(VOUT): e14083"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VOUT): 降压跳线2_1",
+      "suffix2": "(VOUT): e14087"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14311"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14312"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14315"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14320"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14321"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14323"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14324"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U38_1",
+      "suffix2": "(VIN2+): e14326"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U4_1",
+      "suffix2": "(VIN2+): U38_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U4_1",
+      "suffix2": "(VIN2+): e14323"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VIN2+): U4_1",
+      "suffix2": "(VIN2+): e14324"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBAT): 降压跳线1_2",
+      "suffix2": "(VBAT): e14878"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBAT): 降压跳线1_2",
+      "suffix2": "(VBAT): e14879"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBAT): 降压跳线1_2",
+      "suffix2": "(VBAT): e14904"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBAT): 升压跳线1_2",
+      "suffix2": "(VBAT): e14895"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBAT): 升压跳线1_2",
+      "suffix2": "(VBAT): e14900"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBUS2): e2789",
+      "suffix2": "(VBUS2): L3_2"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VS): e2790",
+      "suffix2": "(VS): L3_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VBAT_OUT): 降压跳线2_2",
+      "suffix2": "(VBAT_OUT): 升压跳线2_2"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(GND): U5_1",
+      "suffix2": "(GND): U36_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(VOUT): U4_2",
+      "suffix2": "(VOUT): U37_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "($3N1724): U22_1",
+      "suffix2": "($3N1724): U40_1"
+    },
+    {
+      "errorType": "Clearance Error",
+      "errorObjType": "Hole to Hole",
+      "explanation": "{obj1} to {obj2} distance is {minDistance}, should be {shouldBe}",
+      "suffix1": "(OUT2): U22_2",
+      "suffix2": "(OUT2): U39_1"
+    },
+    {
+      "errorType": "Differential Pair Error",
+      "errorObjType": "Track to Track",
+      "explanation": "{obj1} to {obj2} length tolerance is {width}, should be {shouldBe}",
+      "suffix1": "(SDA)",
+      "suffix2": "(SCL)"
+    },
+    {
+      "errorType": "Netlist Error",
+      "errorObjType": "Netlist Error",
+      "explanation": "PCB and schematic netlist does not match. You can click on the rule name \"Import Changes\" to view the difference.",
+      "suffix1": "",
+      "suffix2": ""
+    }
+  ]
+}

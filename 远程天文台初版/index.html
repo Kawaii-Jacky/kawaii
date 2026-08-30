@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>远程天文�?· 控制 App 设计</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  #root { height: 100%; }
+  .frame {
+    width: 100%; height: 100%;
+    border: 0; display: block; background: #0A0B0E;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>window.ASTROY_API_BASE = window.ASTROY_API_BASE || "http://localhost:8080"; window.ASTROY_API_KEY = window.ASTROY_API_KEY || "dev-api-key";</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel">
+  const Frame = ({ src }) => (
+    <iframe className="frame" src={src}/>
+  );
+
+  const Note = ({ children }) => (
+    <DCPostIt>{children}</DCPostIt>
+  );
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <DesignCanvas
+      title="远程天文�?· 控制 App"
+      subtitle="基于 ESP32 + Blynk 硬件 · 2 个风格变�?× 桌面 + 手机 · 内含 5 个页面（登录 / 控制大屏 / 传感�?/ 高级设置 / 个人中心�?
+    >
+      <DCSection
+        id="eclipse"
+        title="Eclipse · 锐利极简"
+        subtitle="近黑�?+ 冰蓝高光 · 4px 锐角 · 紧凑栅格 · 工程仪表�?
+      >
+        <DCArtboard id="ecl-desktop" label="桌面 · 控制大屏" width={1440} height={900}>
+          <Frame src="observatory-eclipse.html#dashboard"/>
+        </DCArtboard>
+        <DCArtboard id="ecl-mobile" label="手机 · 控制大屏" width={390} height={844}>
+          <Frame src="observatory-eclipse.html#dashboard"/>
+        </DCArtboard>
+        <DCArtboard id="ecl-sensors" label="桌面 · 传感器历�? width={1440} height={900}>
+          <Frame src="observatory-eclipse.html#sensors"/>
+        </DCArtboard>
+        <DCArtboard id="ecl-advanced" label="桌面 · 高级设置" width={1440} height={900}>
+          <Frame src="observatory-eclipse.html#advanced"/>
+        </DCArtboard>
+        <DCArtboard id="ecl-profile" label="桌面 · 个人中心" width={1440} height={900}>
+          <Frame src="observatory-eclipse.html#profile"/>
+        </DCArtboard>
+        <DCArtboard id="ecl-login" label="登录�? width={1440} height={900}>
+          <Frame src="observatory-eclipse.html"/>
+        </DCArtboard>
+        <DCPostIt>
+          所有页面共用一套交互逻辑�?          点击侧栏可在 5 个页面间切换�?          点击右上角放大镜可全屏聚焦�?        </DCPostIt>
+      </DCSection>
+
+      <DCSection
+        id="nebula"
+        title="Nebula · 玻璃星云"
+        subtitle="深空底色 + 星云辉光 + glassmorphism · 电气�?· 18px 柔角 · 呼吸感更�?
+      >
+        <DCArtboard id="neb-desktop" label="桌面 · 控制大屏" width={1440} height={900}>
+          <Frame src="observatory-nebula.html#dashboard"/>
+        </DCArtboard>
+        <DCArtboard id="neb-mobile" label="手机 · 控制大屏" width={390} height={844}>
+          <Frame src="observatory-nebula.html#dashboard"/>
+        </DCArtboard>
+        <DCArtboard id="neb-sensors" label="桌面 · 传感器历�? width={1440} height={900}>
+          <Frame src="observatory-nebula.html#sensors"/>
+        </DCArtboard>
+        <DCArtboard id="neb-advanced" label="桌面 · 高级设置" width={1440} height={900}>
+          <Frame src="observatory-nebula.html#advanced"/>
+        </DCArtboard>
+        <DCArtboard id="neb-profile" label="桌面 · 个人中心" width={1440} height={900}>
+          <Frame src="observatory-nebula.html#profile"/>
+        </DCArtboard>
+        <DCArtboard id="neb-login" label="登录�? width={1440} height={900}>
+          <Frame src="observatory-nebula.html"/>
+        </DCArtboard>
+        <DCPostIt>
+          所有页面共用一套交互逻辑�?          卡片采用 backdrop-blur 玻璃质感�?          底色有星云辉光，建议在大屏上观看�?        </DCPostIt>
+      </DCSection>
+    </DesignCanvas>
+  );
+</script>
+</body>
+</html>

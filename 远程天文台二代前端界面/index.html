@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101110" />
+  <meta name="description" content="远程天文台控制中心：环境、电源、屋顶、赤道仪与平场板统一监控。" />
+  <title>ASTRA / 远程天文台</title>
+    <link rel="stylesheet" href="app.css?v=20260818-71" />
+  <link rel="preload" href="./assets/models/observatory-web-v3.glb?v=20260817-1" as="fetch" type="model/gltf-binary" crossorigin="anonymous" fetchpriority="high" />
+  <link rel="preload" href="./assets/observatory-cutout-solid.webp" as="image" type="image/webp" fetchpriority="high" />
+</head>
+<body>
+  <div class="app-preloader" id="app-preloader" role="status" aria-live="polite" aria-busy="true">
+    <div class="app-preloader-card">
+      <span class="app-preloader-mark">A</span>
+      <span class="app-preloader-kicker">ASTRA / REMOTE OBSERVATORY</span>
+      <strong id="app-preloader-title">加载天文台模型</strong>
+      <div class="app-preloader-bar" aria-hidden="true"><i id="app-preloader-progress"></i></div>
+      <small id="app-preloader-status">正在准备三维场景…</small>
+    </div>
+  </div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="#overview" aria-label="ASTRA 首页">
+        <span class="brand-mark">A</span>
+        <span><b>ASTRA</b><small>REMOTE OBSERVATORY</small></span>
+      </a>
+
+      <nav class="nav-list">
+        <p>工作台</p>
+        <button class="nav-item active" data-route="overview"><span class="nav-icon">⌂</span><span>观测总览</span></button>
+        <button class="nav-item" data-route="power"><span class="nav-icon">ϟ</span><span>能源系统</span></button>
+        <button class="nav-item" data-route="environment"><span class="nav-icon">◎</span><span>环境与屋顶</span></button>
+        <button class="nav-item" data-route="flat"><span class="nav-icon">◫</span><span>电动平场板</span></button>
+        <p>账户</p>
+        <button class="nav-item" data-route="profile"><span class="nav-icon">●</span><span>个人中心</span></button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="side-status offline"><span class="status-dot"></span><div><b>0 / 3 设备在线</b><small id="side-last-sync">实时通道未连接</small></div></div>
+        <button class="operator" data-route-jump="login"><span>--</span><div><b>未登录</b><small>Guest</small></div><i>›</i></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="pages">
+        <section class="page active" id="page-overview" data-page="overview">
+          <div class="overview-grid">
+            <article class="hero-card dark-card">
+              <button class="outline-button connection-entry hero-connection" data-open-settings><span>••</span> 连接设置 ↗</button>
+              <div class="hero-copy">
+                <span class="label-invert">OBSERVATORY 01</span>
+                <h2 class="hero-title" aria-label="羊牌 天文控制台"><span class="brand-word" data-text="羊牌">羊牌</span><span class="console-word">天文控制台</span></h2>
+                <p>专为迷你个人远程天文设计打造</p>
+              </div>
+              <div class="observatory-art" id="observatory-stage">
+                <div class="observatory-model-viewport">
+                <canvas id="observatory-canvas" aria-label="可旋转查看的远程天文台三维模型"></canvas>
+                <img class="observatory-fallback" src="assets/observatory-cutout-solid.webp" alt="远程天文台三维模型加载备用图" fetchpriority="high" decoding="async" />
+                <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+                <div class="model-loading" id="observatory-loading"><i></i><span>加载三维模型</span></div>
+                <span class="orbiting-statuses orbiting-statuses-front" aria-label="天文台状态">
+                  <span id="hero-solar" class="stage-indicator solar-indicator offline" role="img" aria-label="能源设备离线" title="能源设备离线">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 7.1h13.6l1.7 9.2H3.5l1.7-9.2Z"/><path d="M8.7 7.1 8 16.3m7.3-9.2.7 9.2M4.4 11.7h15.2M9.7 19h4.6M12 16.3V19"/></svg>
+                  </span>
+                  <span id="hero-temperature-icon" class="stage-indicator temperature-indicator offline" role="img" aria-label="温度数据离线" title="温度数据离线">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14.8V5.5a3 3 0 0 1 6 0v9.3a5 5 0 1 1-6 0Z"/><path d="M12 7v9.2"/><circle cx="12" cy="17.5" r="1.8"/></svg>
+                  </span>
+                  <span id="hero-rain-icon" class="stage-indicator rain-indicator offline" role="img" aria-label="雨水传感器离线" title="雨水传感器离线">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 15.3a4.2 4.2 0 0 1 .6-8.4A5.7 5.7 0 0 1 17.6 9a3.2 3.2 0 0 1 .2 6.3H6.2Z"/><path d="m8.5 18-1 2m5-2-1 2m5-2-1 2"/></svg>
+                  </span>
+                </span>
+                <span class="orbiting-statuses orbiting-statuses-rear" aria-hidden="true">
+                  <span class="stage-indicator solar-indicator idle" data-status-clone="hero-solar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 7.1h13.6l1.7 9.2H3.5l1.7-9.2Z"/><path d="M8.7 7.1 8 16.3m7.3-9.2.7 9.2M4.4 11.7h15.2M9.7 19h4.6M12 16.3V19"/></svg></span>
+                  <span class="stage-indicator temperature-indicator offline" data-status-clone="hero-temperature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14.8V5.5a3 3 0 0 1 6 0v9.3a5 5 0 1 1-6 0Z"/><path d="M12 7v9.2"/><circle cx="12" cy="17.5" r="1.8"/></svg></span>
+                  <span class="stage-indicator rain-indicator offline" data-status-clone="hero-rain-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 15.3a4.2 4.2 0 0 1 .6-8.4A5.7 5.7 0 0 1 17.6 9a3.2 3.2 0 0 1 .2 6.3H6.2Z"/><path d="m8.5 18-1 2m5-2-1 2m5-2-1 2"/></svg></span>
+                </span>
+                </div>
+                <div class="observatory-interaction-layer" id="observatory-interaction-layer" aria-hidden="true"></div>
+              </div>
+            </article>
+
+          </div>
+
+          <div class="metric-strip">
+            <button class="metric-card" data-route-jump="environment"><span>环境温度</span><strong id="overview-temp">--<sup>°C</sup></strong><small id="overview-temp-note"><i>—</i> 设备离线</small></button>
+            <button class="metric-card" data-route-jump="environment"><span>相对湿度</span><strong id="overview-humidity">--<sup>%</sup></strong><small id="overview-humidity-note"><i>—</i> 设备离线</small></button>
+            <button class="metric-card" data-route-jump="power"><span>电池电量</span><strong id="overview-battery-card">--<sup>%</sup></strong><small id="overview-battery-note"><i>—</i> 设备离线</small></button>
+            <button class="metric-card" data-route-jump="environment"><span>系统负载</span><strong id="overview-load">--<sup>W</sup></strong><small id="overview-load-note"><i>—</i> 设备离线</small></button>
+          </div>
+
+          <div class="overview-lower">
+            <article class="card device-overview">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="network"></i></span><h3>节点状态</h3></div></header>
+              <div class="device-table">
+                <div class="device-row"><span class="device-symbol"><i data-lucide="cpu" aria-hidden="true"></i></span><p><b>主控与环境</b><small>esp32-001 · 环境 / 屋顶 / OnStep</small></p><span class="device-data"><b id="node-main-value">--</b><small>环境温度</small></span><em class="online-badge offline">OFFLINE</em></div>
+                <div class="device-row"><span class="device-symbol"><i data-lucide="battery-charging" aria-hidden="true"></i></span><p><b>MPPT 能源</b><small>mppt-001 · 光伏 / 电池 / 负载</small></p><span class="device-data"><b id="node-power-value">--</b><small>电池电量</small></span><em class="online-badge offline">OFFLINE</em></div>
+                <div class="device-row"><span class="device-symbol"><i data-lucide="circle-dot" aria-hidden="true"></i></span><p><b>电动平场板</b><small>ef-001 · 舵机 / LED / 加热</small></p><span class="device-data"><b id="node-flat-value">--</b><small>当前角度</small></span><em class="online-badge offline">OFFLINE</em></div>
+              </div>
+            </article>
+            <article class="card quick-controls">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="sliders-horizontal"></i></span><h3>快捷控制</h3></div></header>
+              <div class="quick-grid">
+                <button class="quick-toggle" data-toggle="camera"><span class="quick-icon"><i data-lucide="camera" aria-hidden="true"></i></span><p><b>拍摄系统</b><small>相机供电</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="heater"><span class="quick-icon"><i data-lucide="flame" aria-hidden="true"></i></span><p><b>除露加热</b><small>主控加热片</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="fan"><span class="quick-icon"><i data-lucide="fan" aria-hidden="true"></i></span><p><b>机箱风扇</b><small>手动控制</small></p><i></i></button>
+                <button class="quick-toggle" data-toggle="flatLed"><span class="quick-icon"><i data-lucide="lightbulb" aria-hidden="true"></i></span><p><b>平场板灯</b><small id="quick-flat-led-state">设备离线</small></p><i></i></button>
+              </div>
+            </article>
+            <div class="terminal-slot" data-terminal-default="esp32-001" data-terminal-number="04"></div>
+          </div>
+        </section>
+
+        <section class="page" id="page-power" data-page="power">
+          <div class="page-intro"><div><h2>能源系统</h2><p>光伏输入、电池状态与充电算法统一监测。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
+          <div class="power-hero">
+            <article class="battery-card dark-card">
+              <div><span class="label-invert">BATTERY RESERVE</span><h3>剩余电量</h3><strong id="battery-big">--<sup>%</sup></strong><p><span class="status-dot"></span><b id="charge-state">设备离线</b></p></div>
+              <div class="battery-gauge"><span id="battery-fill"></span><i></i><i></i><i></i><i></i><i></i></div>
+              <footer><span>最低电压 <b id="battery-min">--</b></span><span>满电电压 <b id="battery-max">--</b></span></footer>
+            </article>
+            <article class="power-flow-card card">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="workflow"></i></span><h3>能量流</h3></div></header>
+              <div class="power-flow">
+                <div><span>☀</span><b id="flow-input">--</b><small>光伏输入</small></div><i>→</i><div class="flow-core"><span>ϟ</span><b id="flow-efficiency">--</b><small>转换效率</small></div><i>→</i><div><span>▣</span><b id="flow-output">--</b><small>系统输出</small></div>
+              </div>
+            </article>
+          </div>
+          <div class="dense-metrics" id="power-metrics">
+            <div><span>光伏电压</span><b id="p-vin">--</b><small>VOLT</small></div><div><span>光伏电流</span><b id="p-iin">--</b><small>AMP</small></div><div><span>降压电压</span><b id="p-vout">--</b><small>VOLT</small></div><div><span>充电电流</span><b id="p-iout">--</b><small>AMP</small></div><div><span>MOS 温度</span><b id="p-temp">--</b><small>°CELSIUS</small></div><div><span>PWM</span><b id="p-pwm">--</b><small>PERCENT</small></div><div><span>今日发电</span><b id="p-daily">--</b><small>KWH</small></div><div><span>累计发电</span><b id="p-total">--</b><small>WH</small></div>
+          </div>
+          <article class="chart-card power-trend-card dark-card">
+            <header class="chart-header"><div><span class="section-icon"><i data-lucide="chart-line"></i></span><div><h3>能源趋势</h3><p>光伏电流 / 充电电流 / 电池电量</p></div></div><div class="chart-actions"><button class="mini-link" id="export-data">导出 CSV ↗</button></div></header>
+            <div class="power-trend-toolbar">
+              <div><span>横轴时间</span><button data-range="30">30m</button><button data-range="60">1h</button><button data-range="360" class="active">6h</button><button data-range="1440">1d</button><button data-range="10080">1w</button></div>
+              <div><span>纵轴范围</span><button class="active" data-power-y-range="auto">自动</button><button data-power-y-range="nominal">常用</button><button data-power-y-range="full">全量</button></div>
+            </div>
+            <div class="legend"><button class="active" data-series="solar"><i></i>光伏电流</button><button class="active" data-series="charge"><i></i>充电电流</button><button class="active" data-series="battery"><i></i>电池电量</button></div>
+            <div class="chart-wrap"><canvas id="energy-chart"></canvas></div>
+          </article>
+          <div class="two-column-panels">
+            <article class="card settings-card">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="battery-charging"></i></span><h3>充电策略</h3></div></header>
+              <div class="form-grid">
+                <label>电池截止电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-min" value="" placeholder="--" data-min="8" data-max="20" data-step="0.1" aria-label="电池截止电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池截止电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池截止电压">−</button></span></span></label>
+                <label>电池满电电压 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-battery-max" value="" placeholder="--" data-min="12" data-max="48" data-step="0.1" aria-label="电池满电电压" /><span class="stepper-unit">V</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加电池满电电压">+</button><button type="button" data-step-direction="-1" aria-label="减小电池满电电压">−</button></span></span></label>
+                <label>最大充电电流 <span class="number-stepper" data-number-stepper><input type="text" inputmode="decimal" id="set-charge-current" value="" placeholder="--" data-min="0.1" data-max="20" data-step="0.1" aria-label="最大充电电流" /><span class="stepper-unit">A</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加最大充电电流">+</button><button type="button" data-step-direction="-1" aria-label="减小最大充电电流">−</button></span></span></label>
+                <label>风扇启动温度 <span class="number-stepper" data-number-stepper><input type="text" inputmode="numeric" id="set-fan-temp" value="" placeholder="--" data-min="20" data-max="80" data-step="1" aria-label="风扇启动温度" /><span class="stepper-unit">°C</span><span class="stepper-buttons"><button type="button" data-step-direction="1" aria-label="增加风扇启动温度">+</button><button type="button" data-step-direction="-1" aria-label="减小风扇启动温度">−</button></span></span></label>
+              </div>
+              <button class="primary-button" id="save-power-settings">保存充电参数 <span>↗</span></button>
+            </article>
+            <article class="card control-card">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="power"></i></span><h3>运行控制</h3></div></header>
+              <button class="control-row" data-mppt-toggle="mode"><span class="control-icon"><i data-lucide="chart-spline"></i></span><p><b>MPPT 算法</b><small>最大功率点追踪</small></p><i></i></button>
+              <button class="control-row" data-mppt-toggle="enable_fan"><span class="control-icon"><i data-lucide="thermometer-sun"></i></span><p><b>自动散热</b><small>按温度阈值启停</small></p><i></i></button>
+              <button class="control-row" data-mppt-toggle="fan"><span class="control-icon"><i data-lucide="fan"></i></span><p><b>风扇强制开启</b><small>手动覆盖自动策略</small></p><i></i></button>
+            </article>
+          </div>
+          <div class="terminal-slot" data-terminal-default="mppt-001" data-terminal-number="05"></div>
+        </section>
+
+        <section class="page" id="page-environment" data-page="environment">
+          <div class="page-intro"><div><h2>环境与屋顶</h2><p>气象安全、拍摄供电、屋顶电机与 OnStep 联动。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
+          <div class="weather-grid">
+            <article class="temperature-card dark-card">
+              <div class="temperature-current"><div><p>当前温度</p><strong id="weather-temp">--<sup>°C</sup></strong></div><div><p>当前湿度</p><strong id="weather-humidity-primary">--<sup>%</sup></strong></div></div>
+              <div class="environment-live-toolbar">
+                 <div><span>横轴时间</span><button data-env-live-range="60">1h</button><button class="active" data-env-live-range="360">6h</button><button data-env-live-range="720">12h</button><button data-env-live-range="1440">24h</button><button data-env-live-range="10080">1周</button><button data-env-live-range="43200">1月</button></div>
+                <div><span>纵轴范围</span><button class="active" data-env-y-range="auto">自动</button><button data-env-y-range="comfort">舒适</button><button data-env-y-range="full">全量</button></div>
+              </div>
+              <div class="environment-live-legend"><span><i></i>实测温度 °C</span><span><i></i>实测湿度 %</span><span class="dewpoint-legend"><i></i>实测露点 °C</span><span class="forecast-temperature-legend"><i></i>预报温度</span><span class="forecast-humidity-legend"><i></i>预报湿度</span></div>
+              <div class="environment-live-chart"><div class="environment-live-empty" id="environment-live-empty">暂无真实温湿度数据</div><canvas id="environment-live-chart"></canvas></div>
+            </article>
+            <article class="weather-stat card humidity-stat"><span>相对湿度</span><strong id="weather-humidity">--<sup>%</sup></strong><p>露点安全距离 <b id="dewpoint-distance">--</b></p><div class="micro-line humidity-sparkline" role="img" aria-label="暂无真实湿度历史"><svg viewBox="0 0 240 38" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path id="humidity-spark-area"></path><polyline id="humidity-spark-line"></polyline><circle id="humidity-spark-point" r="2.1"></circle></svg></div></article>
+            <article class="weather-stat card"><span>雨水传感器</span><strong id="weather-rain">离线</strong><p>原始值 <b id="weather-rain-analog">--</b></p><div class="rain-icon">☂</div></article>
+          </div>
+          <article class="card forecast-card">
+            <header class="card-header"><div><span class="section-icon"><i data-lucide="cloud-sun"></i></span><h3>在线天文天气预报</h3></div></header>
+            <div class="forecast-location-bar">
+              <div class="location-search-box">
+                <span>⌖</span><input id="weather-location-search" value="" placeholder="搜索城市、区县或观测地点" autocomplete="off" role="combobox" aria-controls="weather-location-results" aria-expanded="false" />
+                <div class="location-search-actions">
+                  <button type="button" id="weather-location-current" class="location-current-button" aria-label="使用当前位置" title="使用当前位置"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2"/><circle cx="10" cy="10" r="4.5"/><circle cx="10" cy="10" r="1.5"/></svg><span>当前位置</span></button>
+                  <button type="button" id="weather-location-submit">查找地点</button>
+                </div>
+                <div class="location-results" id="weather-location-results" role="listbox" aria-label="地点搜索结果" hidden></div>
+              </div>
+              <div class="selected-location"><span>当前地点</span><b id="forecast-location-name">尚未选择预报地点</b><small id="forecast-location-coords">--</small></div>
+            </div>
+            <div class="forecast-summary">
+              <div><span>温度</span><b id="forecast-temp">--</b><small>°C</small></div><div><span>湿度</span><b id="forecast-humidity">--</b><small>%</small></div><div><span>云量</span><b id="forecast-cloud">--</b><small>%</small></div><div><span>降水</span><b id="forecast-rain">--</b><small>mm</small></div><div><span id="forecast-seeing-title">视宁度参考</span><b id="forecast-seeing">--</b><small id="forecast-seeing-unit">/ 100</small></div><div><span id="forecast-clear-title">晴朗程度</span><b id="forecast-clear">--</b><small>/ 100</small></div>
+            </div>
+            <div class="forecast-controls">
+              <div class="forecast-range"><span>预报范围</span><button class="active" data-forecast-range="24">24h</button><button data-forecast-range="72">3d</button><button data-forecast-range="168">7d</button></div>
+              <div class="forecast-range"><span>纵轴范围</span><button class="active" data-forecast-y-range="auto">自动</button><button data-forecast-y-range="comfort">舒适</button><button data-forecast-y-range="full">全景</button></div>
+            </div>
+            <div class="forecast-chart-grid">
+              <article><header><b>云量与降水预报</b></header><div class="astro-chart-legend forecast-chart-legend"><span class="legend-cloud"><i></i>云量</span><span class="legend-rain"><i></i>降水</span></div><canvas id="forecast-sky-chart"></canvas></article>
+              <article class="astro-quality-chart openmeteo-chart"><header><b>Open-Meteo 观测预报</b><span class="forecast-source-chip">基于气象数据推算</span></header><div class="astro-chart-legend"><span><i></i>视宁度参考评分</span><span><i></i>晴朗程度</span></div><div class="astro-chart-empty" id="forecast-astro-empty">请选择预报地点</div><canvas id="forecast-astro-chart" hidden></canvas></article>
+              <article class="astro-quality-chart seventimer-chart"><header><b>7Timer 天文预报</b><i class="forecast-status-dot" id="seven-timer-status" role="status" aria-label="7Timer 暂无数据"></i><div class="forecast-range seven-timer-range"><span>时间范围</span><button class="active" data-seven-timer-range="24">24h</button><button data-seven-timer-range="48">48h</button><button data-seven-timer-range="72">72h</button></div></header><div class="astro-chart-legend"><span><i></i>视宁度</span><span><i></i>大气透明度</span></div><div class="astro-chart-empty" id="forecast-seven-empty">请选择预报地点</div><canvas id="forecast-seven-chart" hidden></canvas></article>
+            </div>
+            <footer id="forecast-source-note">Open-Meteo 为气象要素推算的观测参考评分；7Timer 为独立 GFS 天文预报，视宁度越低越好，透明度评分越高越好。</footer>
+          </article>
+          <div class="environment-main">
+            <div class="environment-left-stack">
+            <article class="card roof-card">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="house"></i></span><h3>滑动屋顶</h3></div><span class="state-chip" id="roof-state-chip">离线</span></header>
+              <div class="roof-visual">
+                <div class="roof-diagram" aria-hidden="true">
+                  <span class="roof-open-zone">OPEN</span>
+                  <div class="roof-rail"><i></i><i></i><i></i></div>
+                  <div class="roof-house"><i class="roof-panel"></i><span class="roof-body"><b></b><b></b></span></div>
+                  <span class="roof-limit roof-limit-closed">0</span><span class="roof-limit roof-limit-open">100</span>
+                </div>
+                <div><span>CURRENT POSITION</span><strong id="roof-position">--</strong><p id="roof-detail">设备离线 · 暂无遥测</p></div>
+              </div>
+              <div class="roof-controls"><button data-roof="open">开启屋顶 <span>→</span></button><button data-roof="stop">停止</button><button data-roof="close">关闭屋顶 <span>←</span></button></div>
+              <p class="safety-note"><span>!</span> 开启屋顶前请确认无雨、风速安全且赤道仪已解除停放。</p>
+            </article>
+            <div class="terminal-slot" data-terminal-default="esp32-001" data-terminal-number="03"></div>
+            </div>
+            <article class="card control-card env-controls">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="plug-zap"></i></span><h3>设备供电</h3></div></header>
+              <div class="env-control-grid">
+                <section class="device-control-group camera-group">
+                  <button class="control-row" data-toggle="camera"><span class="control-icon"><i data-lucide="camera"></i></span><p><b>ZWO 拍摄系统</b></p><i></i></button>
+                  <div class="device-config camera-timer-config"><span>到点自动关闭</span><div class="duration-presets"><button type="button" data-camera-duration="180">3 小时</button><button type="button" data-camera-duration="360">6 小时</button><button type="button" data-camera-duration="540">9 小时</button><button type="button" data-camera-duration="720">12 小时</button></div><div class="custom-duration"><label><input id="camera-hours" type="number" min="0" max="23" value="" aria-label="小时数，可上下拖动调整" /> 小时</label><label><input id="camera-minutes" type="number" min="0" max="59" value="" aria-label="分钟数，可上下拖动调整" /> 分钟</label><button type="button" id="apply-camera-duration">应用</button></div></div>
+                </section>
+                <section class="device-control-group">
+                  <button class="control-row" data-toggle="heater"><span class="control-icon"><i data-lucide="flame"></i></span><p><b>除露加热片</b><small id="heater-mode-state">设备离线</small></p><i></i></button>
+                  <div class="device-config mode-config"><span>运行模式</span><div class="mode-segments"><button type="button" data-device-mode="heater" data-mode-value="auto">自动</button><button type="button" data-device-mode="heater" data-mode-value="manual">手动</button></div></div>
+                </section>
+                <section class="device-control-group">
+                  <button class="control-row" data-toggle="fan"><span class="control-icon"><i data-lucide="fan"></i></span><p><b>机箱风扇</b></p><i></i></button>
+                  <div class="device-config fan-config"><div class="mode-config"><span>运行模式</span><div class="mode-segments"><button type="button" data-device-mode="fan" data-mode-value="auto">自动</button><button type="button" data-device-mode="fan" data-mode-value="manual">手动</button></div></div><label class="range-control"><span><b>自动开启温度</b><em id="fan-threshold-value">--</em></span><input type="range" id="fan-threshold" min="20" max="80" value="20" /></label></div>
+                </section>
+              <section class="device-control-group onstep-group">
+                <header class="control-row onstep-group-header"><span class="control-icon"><i data-lucide="telescope"></i></span><p><b>OnStep 赤道仪</b></p><div class="onstep-header-actions"><button type="button" class="onstep-bluetooth-status" id="onstep-bluetooth-status" aria-label="连接蓝牙" aria-pressed="false"><i data-lucide="bluetooth"></i><span>蓝牙</span><em aria-hidden="true"></em></button></div></header>
+                <div class="onstep-actions"><button data-onstep="1"><span>01</span>同步时间</button><button data-onstep="2"><span>02</span>PARK</button><button data-onstep="3"><span>03</span>UNPARK</button><button data-onstep="4"><span>04</span>HOME</button><button data-onstep="5"><span>05</span>设为 HOME</button><button data-onstep="6"><span>06</span>设为 PARK</button></div>
+              </section>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-flat" data-page="flat">
+          <div class="page-intro"><div><h2>电动平场板</h2><p>舵机开合、LED 亮度与湿度联动加热。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
+          <div class="flat-layout">
+            <article class="flat-hero dark-card">
+              <div class="flat-visual"><div class="panel-disc telemetry-offline" id="panel-disc"></div><div class="angle-limit-control" id="angle-limit-control" style="--limit-progress:0%"><header><span>最大展开角度</span><b id="servo-limit-value">--</b></header><input type="range" id="servo-limit-range" min="0" max="300" value="0" aria-label="最大展开限位角度" /><span class="limit-track"></span><span class="limit-drag-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m7 6-4 4 4 4m6-8 4 4-4 4"/></svg></span><div><i>0°</i><i>150°</i><i>300°</i></div></div></div>
+              <div class="flat-copy"><span class="label-invert">平场板角度</span><strong id="flat-angle-big">--<sup>°</sup></strong><p id="flat-position-label">设备离线 · 暂无角度遥测</p><div class="flat-hero-actions"><button class="light-button" id="toggle-flat-led" data-flat-toggle="led">设备离线 <span>—</span></button><button class="ghost-button" id="toggle-panel">设备离线 <span>—</span></button></div></div>
+            </article>
+            <div class="flat-control-stack">
+              <article class="card flat-controls advanced-card heating-card">
+                <header class="card-header"><div><span class="section-icon"><i data-lucide="settings"></i></span><h3>高级设置</h3></div></header>
+                <label class="range-control"><span><b>LED 亮度</b><em id="brightness-value">--</em></span><input type="range" id="brightness" min="0" max="100" value="0" /></label>
+                <button class="control-row" data-flat-toggle="heater_mode"><span class="control-icon"><i data-lucide="thermometer-sun" aria-hidden="true"></i></span><p><b>自动加热</b><small>根据湿度阈值启停</small></p><i></i></button>
+                <label class="range-control"><span><b>湿度阈值</b><em id="humidity-threshold-value">--</em></span><input type="range" id="humidity-threshold" min="0" max="100" value="0" /></label>
+                <label class="range-control"><span><b>加热功率</b><em id="heater-power-value">--</em></span><input type="range" id="heater-power" min="0" max="100" value="0" /></label>
+              </article>
+            </div>
+          </div>
+          <div class="flat-lower single-terminal"><div class="terminal-slot" data-terminal-default="ef-001" data-terminal-number="02"></div></div>
+        </section>
+
+        <section class="page auth-page" id="page-login" data-page="login">
+          <div class="auth-page-shell">
+            <div class="auth-page-copy">
+              <span class="eyebrow">ASTRA SECURE ACCESS</span>
+              <h2>登录天文控制台</h2>
+              <p>验证账户后进入个人中心。密码和验证码只提交给 ASTRA 认证服务，会话由安全 Cookie 保持。</p>
+              <div class="auth-trust-list"><span>HTTPS 会话</span><span>短信 / 邮箱验证</span><span>HttpOnly Cookie</span></div>
+            </div>
+            <article class="card auth-card" id="account-card">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="shield-check"></i></span><h3>账户验证</h3></div><span class="auth-status-chip" id="auth-status-chip">检查会话</span></header>
+              <div class="auth-layout">
+                <div class="auth-login-heading"><span>ASTRA · REMOTE OBSERVATORY</span><h2 id="auth-title">登录</h2><p id="auth-subtitle">使用邮箱或手机号进入控制台</p></div>
+                <section class="auth-account-summary" id="auth-account-summary" hidden>
+                  <span class="auth-account-mark" id="auth-account-mark">--</span>
+                  <div><span>AUTHENTICATED SESSION</span><h3 id="auth-account-name">检查会话</h3><p id="auth-account-detail">正在读取真实账户信息</p></div>
+                  <div class="auth-account-actions"><button class="primary-button" id="auth-enter-profile" type="button">进入个人中心</button><button class="outline-button" id="auth-logout" type="button">退出登录</button><button class="outline-button danger-outline" id="auth-logout-all" type="button">退出所有设备</button></div>
+                </section>
+                <form class="auth-form" id="auth-form" novalidate>
+                  <div class="auth-channel" id="auth-channel" hidden>
+                    <span>验证方式</span>
+                    <div><button class="active" type="button" data-auth-channel="phone">手机短信</button><button type="button" data-auth-channel="email">电子邮箱</button></div>
+                  </div>
+                  <label class="auth-field" id="auth-display-field" hidden><span>显示名称</span><input id="auth-display-name" maxlength="40" autocomplete="nickname" placeholder="例如：天文台值守员" /></label>
+                  <label class="auth-field" id="auth-identifier-field"><span>邮箱或手机号</span><input id="auth-identifier" autocomplete="username" placeholder="请输入登录账户" /></label>
+                  <label class="auth-field" id="auth-target-field" hidden><span id="auth-target-label">手机号码</span><input id="auth-target" autocomplete="tel" inputmode="tel" placeholder="请输入中国内地手机号" /></label>
+                  <div class="auth-code-row" id="auth-code-row" hidden>
+                    <label class="auth-field"><span>验证码</span><input id="auth-code" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="6 位验证码" /></label>
+                    <button class="outline-button" id="auth-send-code" type="button">发送验证码</button>
+                  </div>
+                  <label class="auth-field"><span id="auth-password-label">密码</span><input id="auth-password" type="password" minlength="9" maxlength="128" autocomplete="current-password" placeholder="请输入密码（至少 9 位）" /></label>
+                  <label class="auth-field" id="auth-confirm-field" hidden><span>确认密码</span><input id="auth-password-confirm" type="password" minlength="9" maxlength="128" autocomplete="new-password" placeholder="再次输入密码" /></label>
+                  <button class="primary-button auth-submit" id="auth-submit" type="submit">登录</button>
+                  <p class="auth-message" id="auth-message" role="status" aria-live="polite">登录后可在不同设备间安全使用控制台。</p>
+                  <div class="auth-tabs" role="tablist" aria-label="账户操作">
+                    <button class="active" type="button" data-auth-mode="login">登录</button>
+                    <button type="button" data-auth-mode="register">注册</button>
+                    <button type="button" data-auth-mode="recover">找回密码</button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-profile" data-page="profile">
+          <div class="page-intro"><div><h2>个人中心</h2><p>管理控制台外观、字体显示与本机偏好。</p></div><button class="outline-button connection-entry" data-open-settings><span>••</span> 连接设置 ↗</button></div>
+          <article class="profile-hero dark-card">
+            <button class="profile-avatar" type="button" aria-label="上传头像"><span class="profile-avatar-initials">--</span><span class="profile-avatar-upload" aria-hidden="true"><i data-lucide="camera"></i></span></button>
+            <div><span>ACCOUNT</span><h2>检查会话</h2><p>正在读取真实账户信息</p></div>
+            <div class="profile-session" aria-label="三台设备实时在线情况">
+              <p><b>设备在线情况</b><small id="profile-device-summary">0 / 3 在线</small></p>
+              <div class="profile-device-statuses">
+                <span data-profile-device="esp32-001"><i></i><b>主控</b><small>离线</small></span>
+                <span data-profile-device="mppt-001"><i></i><b>能源</b><small>离线</small></span>
+                <span data-profile-device="ef-001"><i></i><b>平场板</b><small>离线</small></span>
+              </div>
+            </div>
+          </article>
+          <article class="chart-card profile-device-history-card dark-card">
+            <header class="chart-header"><div><span class="section-icon"><i data-lucide="activity"></i></span><div><h3>设备在线历史</h3><p id="device-history-note">来自后端设备状态与离线告警记录</p></div></div></header>
+            <div class="device-history-toolbar"><span>时间范围</span><button data-device-history-range="10">10m</button><button data-device-history-range="30">30m</button><button data-device-history-range="60">1h</button><button data-device-history-range="360" class="active">6h</button><button data-device-history-range="1440">24h</button><button data-device-history-range="10080">1w</button><button data-device-history-range="43200">1个月</button></div>
+            <div class="device-history-legend"><span><i style="--series-color:#54d79a"></i>主控 · esp32-001</span><span><i style="--series-color:#7fc8ff"></i>能源 · mppt-001</span><span><i style="--series-color:#f2a14b"></i>平场板 · ef-001</span></div>
+            <div class="chart-wrap device-history-wrap"><div class="device-history-empty" id="device-history-empty">正在读取真实设备历史</div><canvas id="device-history-chart" hidden></canvas></div>
+          </article>
+          <div class="profile-grid">
+            <article class="card preference-panel">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="palette"></i></span><h3>主题颜色</h3></div></header>
+              <div class="preference-body">
+                <div class="preference-copy"><b>全局主题色</b><p>主题色将应用到导航、卡片、按钮、表单、图表和状态控件。</p></div>
+                <div class="theme-options" role="group" aria-label="主题颜色">
+                  <button class="active" data-theme-color="black" style="--swatch:#111210"><i></i><span>黑色</span></button>
+                  <button data-theme-color="ink-green" style="--swatch:#469665"><i></i><span>墨绿</span></button>
+                  <button data-theme-color="deep-blue" style="--swatch:#183a64"><i></i><span>深蓝</span></button>
+                  <button data-theme-color="amber" style="--swatch:#b86d21"><i></i><span>日珀</span></button>
+                  <button data-theme-color="star-pink" style="--swatch:#d48da5"><i></i><span>星粉</span></button>
+                </div>
+                <div class="mode-preference"><div><b>明暗模式</b><p>亮色使用主题色＋白色＋黑字，暗色使用主题色＋黑色＋白字。</p></div><div class="color-mode-options" role="group" aria-label="明暗模式"><button class="active" data-color-mode="light"><span>☼</span>亮色</button><button data-color-mode="dark"><span>☾</span>暗色</button></div></div>
+              </div>
+            </article>
+            <article class="card preference-panel">
+              <header class="card-header"><div><span class="section-icon"><i data-lucide="type"></i></span><h3>字体大小</h3></div></header>
+              <div class="preference-body">
+                <div class="preference-copy"><b>信息密度</b><p>调节界面主要标题、数据、按钮和说明文字大小。</p></div>
+                <div class="font-options" role="group" aria-label="字体大小">
+                  <button class="active" data-font-size="small"><b>小</b><small>紧凑</small></button>
+                  <button data-font-size="medium"><b>中</b><small>标准</small></button>
+                  <button data-font-size="large"><b>大</b><small>舒适</small></button>
+                </div>
+                <div class="font-preview"><span>PREVIEW</span><h3>羊牌天文控制台</h3><p>设备状态以真实遥测为准。</p></div>
+              </div>
+            </article>
+          </div>
+          <article class="card password-change-card account-settings-card" id="account-settings-card">
+            <header class="card-header"><div><span class="section-icon"><i data-lucide="user-cog"></i></span><h3>账户设置</h3></div><span class="auth-status-chip" id="profile-auth-status">检查会话</span></header>
+            <div class="account-settings-actions">
+              <button class="outline-button" id="open-password-modal" type="button">修改密码</button>
+              <button class="outline-button danger-outline" id="profile-logout" type="button">退出登录</button>
+            </div>
+            <form class="password-change-form" id="password-change-form" novalidate>
+              <label class="auth-field"><span>当前密码</span><input id="current-password" type="password" maxlength="128" autocomplete="current-password" placeholder="请输入当前密码" /></label>
+              <label class="auth-field"><span>新密码</span><input id="new-password" type="password" minlength="9" maxlength="128" autocomplete="new-password" placeholder="至少 9 个字符" /></label>
+              <label class="auth-field"><span>确认新密码</span><input id="new-password-confirm" type="password" minlength="9" maxlength="128" autocomplete="new-password" placeholder="再次输入新密码" /></label>
+              <div class="password-change-actions"><p class="auth-message" id="password-change-message" role="status" aria-live="polite">修改后，其他设备上的登录会话将自动失效。</p><button class="primary-button" id="password-change-submit" type="submit">更新密码</button></div>
+            </form>
+          </article>
+        </section>
+      </div>
+    </main>
+
+    <nav class="mobile-nav" aria-label="移动端导航">
+      <button class="active" data-route="overview"><span>⌂</span>总览</button><button data-route="power"><span>ϟ</span>能源</button><button data-route="environment"><span>◎</span>环境</button><button data-route="flat"><span>◫</span>平场板</button><button data-route="profile"><span>●</span>我的</button>
+    </nav>
+  </div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="settings-drawer" id="settings-drawer" aria-hidden="true">
+    <header><div><span>CONNECTION</span><h2>连接设置</h2></div><button id="close-settings" aria-label="关闭连接设置"><i data-lucide="panel-right-close" aria-hidden="true"></i></button></header>
+    <div class="drawer-content">
+      <div class="simulation-option"><div><b>测试数据注入</b><small>仅用于界面测试；默认关闭，模拟值不会伪装成真实设备</small></div><button type="button" id="simulation-toggle" role="switch" aria-checked="false"><span>关闭</span><i></i></button></div>
+      <div class="connection-form" id="connection-form"><p id="controller-connection-status">登录后会自动分配可用的硬件套组。</p><div id="controller-header-configs" hidden></div></div>
+      <div class="topic-map device-online-map"><h3>设备在线情况</h3><div data-drawer-device="esp32-001"><span>主控 · esp32-001</span><code>离线</code></div><div data-drawer-device="mppt-001"><span>能源 · mppt-001</span><code>离线</code></div><div data-drawer-device="ef-001"><span>平场板 · ef-001</span><code>离线</code></div></div>
+    </div>
+    <footer><p id="connection-hint"><span class="status-dot"></span> 登录后自动连接后端实时通道。</p><button class="primary-button" id="apply-connection">重新连接 <span>↗</span></button></footer>
+  </aside>
+
+  <div class="modal-backdrop" id="confirm-modal" aria-hidden="true">
+    <div class="confirm-box"><span class="confirm-mark">!</span><p class="eyebrow">CRITICAL COMMAND</p><h2 id="confirm-title">确认执行操作？</h2><p id="confirm-copy">此操作将驱动实体设备，请确认现场环境安全。</p><div><button class="outline-button" id="confirm-cancel">取消</button><button class="primary-button danger" id="confirm-accept">确认执行</button></div></div>
+  </div>
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+  <script src="vendor/lucide/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu"></script>
+  <script src="app.js?v=20260819-09"></script>
+  <script type="importmap">
+    {"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}
+  </script>
+  <script type="module" src="observatory-3d.js?v=20260817-23"></script>
+</body>
+</html>

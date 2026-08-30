@@ -1,62 +1,53 @@
 (() => {
   "use strict";
 
+  let modelGateReady = false;
+  let modelGateError = false;
+  const modelGateWaiters = [];
+
   function initModelGate() {
     const gate = document.querySelector("#app-preloader");
-    const shell = document.querySelector(".app-shell");
-    if (!gate || !shell) return;
-    if (window.__TAURI__?.core?.invoke) {
-      document.documentElement.classList.add("model-gate-ready");
-      document.documentElement.dataset.nativeModelPreload = "background";
-      gate.remove();
-      return;
-    }
-    let revealed = false;
+    if (!gate) return;
     const title = document.querySelector("#app-preloader-title");
     const status = document.querySelector("#app-preloader-status");
-    const reveal = (message) => {
-      if (revealed) return;
-      revealed = true;
-      if (message && status) status.textContent = message;
-      document.documentElement.classList.add("model-gate-ready");
-      gate.classList.add("is-complete");
+    const finish = (message, error = false) => {
+      modelGateReady = !error;
+      modelGateError = error;
+      if (title) title.textContent = error ? "使用备用天文台图像" : "天文台模型就绪";
+      if (status) status.textContent = message;
       gate.setAttribute("aria-busy", "false");
-      window.setTimeout(() => gate.remove(), 420);
+      const waiters = modelGateWaiters.splice(0);
+      window.setTimeout(() => { gate.hidden = true; gate.classList.remove("is-complete"); waiters.forEach(resolve => resolve()); }, 180);
     };
-    window.addEventListener("observatory:model-progress", (event) => {
+    window.addEventListener("observatory:model-progress", event => {
       const progress = Number(event.detail?.progress);
       const bar = document.querySelector("#app-preloader-progress");
       const track = document.querySelector(".app-preloader-bar");
-      if (track && Number.isFinite(progress)) track.classList.remove("indeterminate");
-      if (track && !Number.isFinite(progress)) track.classList.add("indeterminate");
+      if (track) track.classList.toggle("indeterminate", !Number.isFinite(progress));
       if (bar && Number.isFinite(progress)) bar.style.width = `${Math.max(4, Math.min(100, progress))}%`;
       if (status) status.textContent = Number.isFinite(progress) ? `正在加载三维场景 ${Math.round(progress)}%` : "正在接收模型数据…";
     });
-    window.addEventListener("observatory:model-ready", () => {
-      const bar = document.querySelector("#app-preloader-progress");
-      const track = document.querySelector(".app-preloader-bar");
-      if (bar) bar.style.width = "100%";
-      if (track) track.classList.remove("indeterminate");
-      if (title) title.textContent = "天文台模型就绪";
-      reveal("正在进入控制台…");
-    }, { once: true });
-    window.addEventListener("observatory:model-error", () => {
-      if (title) title.textContent = "使用备用天文台图像";
-      reveal("三维模型暂不可用，已切换备用图");
-    }, { once: true });
-    window.setTimeout(() => {
-      if (!revealed) {
-        if (title) title.textContent = "模型加载超时";
-        reveal("网络响应较慢，已切换备用图");
-      }
-    }, 9000);
+    window.addEventListener("observatory:model-ready", () => finish("正在进入控制台…"), { once:true });
+    window.addEventListener("observatory:model-error", () => finish("模型不可用，已切换备用图。", true), { once:true });
+    window.setTimeout(() => { if (!modelGateReady && !modelGateError) finish("网络响应较慢，已切换备用图。", true); }, 9000);
+  }
+
+  function waitForModelReady() {
+    if (modelGateReady || modelGateError) return Promise.resolve();
+    const gate = document.querySelector("#app-preloader");
+    if (gate) {
+      gate.hidden = false;
+      gate.classList.remove("is-complete");
+      gate.setAttribute("aria-busy", "true");
+    }
+    return new Promise(resolve => modelGateWaiters.push(resolve));
   }
 
   initModelGate();
 
   function initPwa() {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("./sw.js?v=20260820-03", { scope: "./" }).then(registration => {
+    navigator.serviceWorker.register("./sw.js?v=20260820-20", { scope: "./" }).then(registration => {
       registration.addEventListener("updatefound", () => {
         const worker = registration.installing;
         if (!worker) return;
@@ -230,6 +221,7 @@
 
   function routeTo(route) {
     if (!routeMeta[route]) route = "overview";
+    if (route === "login" && state.auth.user) route = state.auth.returnRoute || "profile";
     if (route !== "login" && !state.auth.user) {
       state.auth.returnRoute = route;
       route = "login";
@@ -245,16 +237,29 @@
     requestAnimationFrame(drawCharts);
   }
 
+  let settingsHistoryActive = false;
+
   function openSettings() {
-    $("#settings-drawer").classList.add("open");
-    $("#settings-drawer").setAttribute("aria-hidden", "false");
+    const drawer = $("#settings-drawer");
+    if (!drawer.classList.contains("open")) {
+      history.pushState({ ...(history.state || {}), astraOverlay:"settings" }, "", location.href);
+      settingsHistoryActive = true;
+    }
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
     $("#drawer-backdrop").classList.add("open");
     if (state.auth.user) loadControllerConnection();
   }
-  function closeSettings() {
-    $("#settings-drawer").classList.remove("open");
-    $("#settings-drawer").setAttribute("aria-hidden", "true");
+  function closeSettings(options) {
+    const drawer = $("#settings-drawer");
+    const wasOpen = drawer.classList.contains("open");
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
     $("#drawer-backdrop").classList.remove("open");
+    if (wasOpen && settingsHistoryActive && options?.fromHistory !== true) {
+      settingsHistoryActive = false;
+      history.back();
+    }
   }
 
   function selectConnectionMode() {
@@ -265,12 +270,43 @@
     renderSeeingSource();
   }
 
-  function downloadControllerHeader(device) {
-    if (!device?.header_content) return;
-    const blob = new Blob([device.header_content], { type:"text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a"); link.href = url; link.download = device.header_file || `${device.device_id}.h`;
-    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  async function copyControllerHeader(device) {
+    const content = device?.header_content || device?.content;
+    if (!content) return;
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(content);
+      else {
+        const textarea = document.createElement("textarea");
+        textarea.value = content;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand("copy");
+        textarea.remove();
+        if (!copied) throw new Error("clipboard unavailable");
+      }
+      toast("头文件已复制", `${controllerDeviceLabel(device.device_id)}配置已写入剪贴板。`, "ok");
+    } catch (_) {
+      toast("复制失败", "请允许浏览器访问剪贴板后重试。", "error");
+    }
+  }
+
+  function controllerDeviceLabel(deviceId) {
+    return ({
+      "esp32-001":"主控与环境",
+      "mppt-001":"MPPT 能源",
+      "ef-001":"电动平场板"
+    })[deviceId] || deviceId;
+  }
+
+  function controllerDeviceCards(data, description) {
+    const cards = (data.devices || []).map(device => {
+      const logicalId = escapeHtml(device.device_id || "");
+      return `<article class="controller-header-card"><header><b>${escapeHtml(controllerDeviceLabel(device.device_id))}</b><button type="button" class="mini-link controller-copy-button" data-copy-controller-header="${logicalId}">复制</button></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre></article>`;
+    }).join("");
+    return `<h3>设备头文件配置</h3><p>${description}逻辑设备 ID 固定用于接口与主题路径；MQTT 身份按套组独立生成，因此尾号可能不同。</p>${cards}`;
   }
 
   function renderControllerConnection() {
@@ -285,7 +321,7 @@
         const data = state.controller.data;
         status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
         list.hidden = false;
-        list.innerHTML = `<h3>设备头文件配置</h3><p>配置包含 MQTT 账号密码，可下载后写入对应硬件。</p>${(data.devices||[]).map(device=>`<article class="controller-header-card"><header><b>${escapeHtml(device.device_id)}</b><small>${escapeHtml(device.header_file||device.filename||"")} · ${escapeHtml(device.client_id||device.username||"")}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${escapeHtml(device.device_id)}">下载头文件</button></article>`).join("")}`;
+        list.innerHTML = controllerDeviceCards(data, "配置包含 MQTT 账号密码，可复制后写入对应硬件。");
         return;
       }
       status.innerHTML = `当前账户尚未分配硬件套组。<button type="button" class="primary-button" id="auto-assign-controller">自动分配并连接</button>`;
@@ -299,7 +335,7 @@
       const data = state.controller.data;
       status.textContent = `当前套组：${data.name} · ${data.controller_id} · 已授权三台设备`;
       form.hidden = true; list.hidden = false;
-      list.innerHTML = `<h3>设备头文件配置</h3><p>这些配置包含 MQTT 账号密码，仅用于写入对应硬件文件。</p>${(data.devices||[]).map(device=>`<article class="controller-header-card"><header><b>${escapeHtml(device.device_id)}</b><small>${escapeHtml(device.header_file||"")} · ${escapeHtml(device.client_id||device.username||"")}</small></header><pre>${escapeHtml(device.content||device.header_content||"")}</pre><button type="button" class="outline-button" data-download-controller-header="${escapeHtml(device.device_id)}">下载头文件</button></article>`).join("")}`;
+      list.innerHTML = controllerDeviceCards(data, "这些配置包含 MQTT 账号密码，仅用于复制到对应硬件文件。");
       return;
     }
     const pending = state.controller.requests.find(item => item.status === "pending");
@@ -336,6 +372,10 @@
       if (!loaded) {
         console.warn("Unable to load controller authorization", lastError);
         state.controller.error = "授权信息暂时无法读取，请检查网络后点击重新连接。";
+      }
+      if (loaded && state.auth.user?.role !== "admin" && !state.controller.configured) {
+        await autoAssignController();
+        loaded = Boolean(state.controller.configured);
       }
     } finally { state.controller.loading = false; renderControllerConnection(); }
     return loaded;
@@ -841,6 +881,19 @@
     const canControl = canControlDevices();
     const mainMap = { camera:mainOnline&&state.main.camera, heater:mainOnline&&state.main.heater, fan:mainOnline&&state.main.fan, mosfet:mainOnline&&state.main.mosfet, flatLed:flatOnline&&state.flat.led };
     $$('[data-toggle]').forEach(button => { const key=button.dataset.toggle,source=key==="flatLed"?state.flat:state.main,field=key==="flatLed"?"led":key,online=key==="flatLed"?flatOnline:mainOnline,known=online&&source[field]!==null&&source[field]!==undefined,on=known&&!!mainMap[key];button.classList.toggle("on",on);button.classList.toggle("unknown",online&&!known);button.setAttribute("aria-pressed",known?String(on):"false");button.disabled=!canControl||!known });
+    const quickRoof = $('[data-quick-roof]');
+    if (quickRoof) {
+      const roofState = state.main.roof;
+      const known = mainOnline && ["open", "closed", "moving"].includes(roofState);
+      const action = !known ? "" : roofState === "moving" ? "stop" : roofState === "open" ? "close" : "open";
+      quickRoof.dataset.roofAction = action;
+      quickRoof.classList.toggle("on", known && roofState === "open");
+      quickRoof.classList.toggle("moving", known && roofState === "moving");
+      quickRoof.setAttribute("aria-pressed", known ? String(roofState === "open") : "false");
+      quickRoof.disabled = !canControl || !known;
+      setText("[data-quick-roof-title]", !known ? "开关屋顶" : roofState === "moving" ? "停止屋顶" : roofState === "open" ? "关闭屋顶" : "开启屋顶");
+      setText("[data-quick-roof-state]", !mainOnline ? "设备离线" : !known ? "状态未知" : roofState === "moving" ? "运行中 · 点击停止" : roofState === "open" ? "已开启 · 点击关闭" : "已关闭 · 点击开启");
+    }
     $$('[data-mppt-toggle]').forEach(button=>{const known=powerOnline&&state.power[button.dataset.mpptToggle]!==null&&state.power[button.dataset.mpptToggle]!==undefined;button.classList.toggle("on",known&&bool(state.power[button.dataset.mpptToggle]));button.classList.toggle("unknown",powerOnline&&!known);button.disabled=!canControl||!known});
     const algorithmKnown=powerOnline&&state.power.mode!==null&&state.power.mode!==undefined,mpptEnabled=algorithmKnown&&bool(state.power.mode);
     setText("#mppt-algorithm-title",algorithmKnown?(mpptEnabled?"MPPT 算法":"PWM 算法"):"算法状态未知");
@@ -853,9 +906,7 @@
     setText("#mppt-fan-state-subtitle",fanModeKnown?(automaticFan?"自动策略控制":"手动开关"):"等待控制模式遥测");
     if(fanSwitch)fanSwitch.disabled=!canControl||!fanKnown||automaticFan;
     $("#set-fan-temp")?.toggleAttribute("disabled",!canControl||!powerOnline||!fanModeKnown||!automaticFan);
-    $("#apply-mppt-fan-temp")?.toggleAttribute("disabled",!canControl||!powerOnline||!fanModeKnown||!automaticFan);
     $$('[data-flat-toggle]').forEach(button=>{const field=button.dataset.flatToggle==="led"?"led":"heater_mode",known=flatOnline&&state.flat[field]!==null&&state.flat[field]!==undefined;button.classList.toggle("on",known&&bool(state.flat[field]));button.classList.toggle("unknown",flatOnline&&!known);button.disabled=!canControl||!known});
-    $("#save-power-settings")?.toggleAttribute("disabled",!canControl||!powerOnline);
     $("#toggle-panel")?.toggleAttribute("disabled",!canControl||!flatOnline||state.flat.servo===null||state.flat.servo===undefined);
     $$('[data-roof]').forEach(button=>button.disabled=!canControl||!mainOnline||typeof state.main.roof!=="string");
     $$('[data-onstep],[data-camera-duration],#apply-camera-duration,#fan-threshold').forEach(button=>button.disabled=!canControl||!mainOnline);
@@ -994,11 +1045,52 @@
     input.dispatchEvent(new Event("input", { bubbles:true }));
   }
 
+  let powerAutoSaveTimer = 0;
+  const pendingPowerAutoSave = new Set();
+
+  function queuePowerAutoSave(input, delay = 520) {
+    const scope = input?.id === "set-fan-temp" ? "fan" : ["set-battery-min", "set-battery-max", "set-charge-current"].includes(input?.id) ? "charge" : "";
+    if (!scope) return;
+    pendingPowerAutoSave.add(scope);
+    clearTimeout(powerAutoSaveTimer);
+    powerAutoSaveTimer = window.setTimeout(flushPowerAutoSave, delay);
+  }
+
+  function flushPowerAutoSave() {
+    clearTimeout(powerAutoSaveTimer);
+    powerAutoSaveTimer = 0;
+    if (!pendingPowerAutoSave.size) return;
+    const scopes = new Set(pendingPowerAutoSave);
+    pendingPowerAutoSave.clear();
+    const payload = {};
+    if (scopes.has("charge")) {
+      const minInput = $("#set-battery-min"), maxInput = $("#set-battery-max"), currentInput = $("#set-charge-current");
+      [minInput, maxInput, currentInput].forEach(normalizeStepper);
+      const min = Number(minInput.value), max = Number(maxInput.value), current = Number(currentInput.value);
+      if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(current) || min < 8 || min > 20 || max < 12 || max > 48 || max - min < .5 || current < .1 || current > 20) {
+        toast("充电参数无效", "满电电压需比截止电压高至少 0.5V。", "error");
+        return;
+      }
+      Object.assign(payload, { voltage_battery_min:min, voltage_battery_max:max, current_charging:current });
+    }
+    if (scopes.has("fan")) {
+      const input = $("#set-fan-temp");
+      const temperature = normalizeStepper(input);
+      if (!Number.isFinite(temperature) || temperature < 20 || temperature > 80) {
+        toast("温度阈值无效", "请输入 20 至 80°C。", "error");
+        return;
+      }
+      payload.temperature_fan = temperature;
+    }
+    if (Object.keys(payload).length) sendCommand("mppt-001", payload, scopes.size > 1 ? "自动保存能源参数" : scopes.has("fan") ? "自动保存风扇阈值" : "自动保存充电参数");
+  }
+
   function bindNumberSteppers() {
     $$('[data-number-stepper]').forEach(stepper => {
       const input = $("input", stepper);
       if (!input) return;
-      input.addEventListener("blur", () => normalizeStepper(input));
+      input.addEventListener("input", () => queuePowerAutoSave(input));
+      input.addEventListener("blur", () => { normalizeStepper(input); queuePowerAutoSave(input, 80); });
       input.addEventListener("keydown", event => {
         if (event.key === "ArrowUp" || event.key === "ArrowDown") {
           event.preventDefault(); adjustStepper(input, event.key === "ArrowUp" ? 1 : -1);
@@ -1006,16 +1098,18 @@
         if (event.key === "Enter") { event.preventDefault(); normalizeStepper(input); input.blur(); }
       });
       $$('[data-step-direction]', stepper).forEach(button => {
-        let holdDelay = 0, repeatTimer = 0, repeatCount = 0;
+        let holdDelay = 0, repeatTimer = 0, repeatCount = 0, active = false;
         const direction = Number(button.dataset.stepDirection) || 1;
-        const stop = () => {
+        const stop = (commit = true) => {
           clearTimeout(holdDelay); clearInterval(repeatTimer);
           holdDelay = 0; repeatTimer = 0; repeatCount = 0;
           button.classList.remove("pressing");
+          if (active && commit) queuePowerAutoSave(input, 100);
+          active = false;
         };
         button.addEventListener("pointerdown", event => {
-          if (event.button !== 0) return;
-          event.preventDefault(); stop();
+          if (event.button !== 0 || button.disabled || input.disabled) return;
+          event.preventDefault(); stop(false); active = true;
           button.classList.add("pressing");
           button.setPointerCapture?.(event.pointerId);
           input.focus({ preventScroll:true });
@@ -1028,20 +1122,11 @@
             }, 90);
           }, 380);
         });
-        ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => button.addEventListener(type, stop));
+        ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => button.addEventListener(type, () => stop(true)));
         button.addEventListener("click", event => { if (event.detail === 0) adjustStepper(input, direction); });
         button.addEventListener("contextmenu", event => event.preventDefault());
       });
     });
-  }
-
-  function savePowerSettings() {
-    $$('[data-number-stepper] input').forEach(normalizeStepper);
-    const min = number($("#set-battery-min").value), max = number($("#set-battery-max").value), current = number($("#set-charge-current").value), temp = number($("#set-fan-temp").value);
-    if (min < 8 || min > 20 || max < 12 || max > 48 || max - min < .5 || current < .1 || current > 20 || temp < 20 || temp > 80) {
-      toast("参数无效", "请检查阈值范围，满电电压需比截止电压高至少 0.5V。", "error"); return;
-    }
-    sendCommand("mppt-001", { voltage_battery_min:min, voltage_battery_max:max, current_charging:current, temperature_fan:temp }, "保存充电参数");
   }
 
   function togglePanel() {
@@ -1589,27 +1674,32 @@
     return max > min ? [min, max] : [Math.max(minLimit, min - minimumSpan), Math.min(maxLimit, max + minimumSpan)];
   }
 
+  function forecastStartIndex(labels) {
+    const now = Date.now();
+    const index = labels.findIndex(value => chartPointTime(value) >= now);
+    return index < 0 ? labels.length : index;
+  }
+
   function drawAstronomyChart() {
     renderSeeingSource();
     const openData = state.forecast.hourly, sevenData = state.sevenTimer;
-    let sharedNowMarkerFraction = NaN;
     if (openData?.seeing?.length) {
-      const count = Math.min(state.forecastRange, openData.time.length);
-      const firstTime = chartPointTime(openData.time[0]), lastTime = chartPointTime(openData.time[count - 1]), now = Date.now();
-      if (Number.isFinite(firstTime) && Number.isFinite(lastTime) && now >= firstTime && now <= lastTime) sharedNowMarkerFraction = clamp((now - firstTime) / Math.max(lastTime - firstTime, 1), 0, 1);
+      const start = forecastStartIndex(openData.time), count = Math.min(state.forecastRange, openData.time.length - start);
+      if (!count) return;
+      const visibleSeeing = openData.seeing.slice(start, start + count), visibleClear = openData.clear.slice(start, start + count);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
       const axisRanges = fullRange ? { left:[0,100], right:[0,100] } : comfortRange ? { left:[50,100], right:[50,100] } : {
-        left:forecastAutoRange(openData.seeing.slice(0, count), 0, 100, 10),
-        right:forecastAutoRange(openData.clear.slice(0, count), 0, 100, 10)
+        left:forecastAutoRange(visibleSeeing, 0, 100, 10),
+        right:forecastAutoRange(visibleClear, 0, 100, 10)
       };
       drawLineChart($("#forecast-astro-chart"), [
-        { key:"forecastSeeing", data:openData.seeing, color:seeingSourceMeta.openmeteo.color, axis:"left" },
-        { key:"forecastClear", data:openData.clear, color:"#f3d369", axis:"right" }
-      ], openData.time, { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, mirrorNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"分", rightAxisSuffix:"%", axisFontWeight:600 });
+        { key:"forecastSeeing", data:visibleSeeing, color:seeingSourceMeta.openmeteo.color, axis:"left" },
+        { key:"forecastClear", data:visibleClear, color:"#f3d369", axis:"right" }
+      ], openData.time.slice(start, start + count), { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"分", rightAxisSuffix:"%", axisFontWeight:600 });
     }
     if (sevenData?.seeing?.length) {
-      const sevenCount = Math.min(Math.ceil(state.sevenTimerRange / 3), sevenData.labels.length);
-      const visibleSeeing = sevenData.seeing.slice(0, sevenCount), visibleTransparency = sevenData.transparency.slice(0, sevenCount);
+      const start = forecastStartIndex(sevenData.labels), sevenCount = Math.min(Math.ceil(state.sevenTimerRange / 3), sevenData.labels.length - start);
+      const visibleSeeing = sevenData.seeing.slice(start, start + sevenCount), visibleTransparency = sevenData.transparency.slice(start, start + sevenCount);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
       const axisMax = Math.max(5, Math.ceil(Math.max(0, ...visibleSeeing)));
       const axisRanges = fullRange ? { left:[0,axisMax], right:[0,100] } : comfortRange ? { left:[0,3], right:[50,100] } : {
@@ -1619,20 +1709,20 @@
       drawLineChart($("#forecast-seven-chart"), [
         { key:"sevenTimerSeeing", data:sevenData.seeing, color:seeingSourceMeta.seventimer.color, axis:"left" },
         { key:"sevenTimerTransparency", data:sevenData.transparency, color:"#f3d369", axis:"right" }
-      ], sevenData.labels, { visibleCount:sevenCount, fromStart:true, ignoreVisibility:true, showNowMarker:true, nowMarkerFraction:sharedNowMarkerFraction, mirrorNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"″", rightAxisSuffix:"%", axisFontWeight:600 });
+      ], sevenData.labels.slice(start, start + sevenCount), { visibleCount:sevenCount, fromStart:true, ignoreVisibility:true, showNowMarker:false, axisRanges, showYAxisLabels:true, leftAxisSuffix:"″", rightAxisSuffix:"%", axisFontWeight:600 });
     }
   }
 
   function drawForecastCharts() {
     const f = state.forecast.hourly;
     if (f.time.length) {
-      const count = Math.min(state.forecastRange, f.time.length);
-      const common = { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:true, mirrorNowMarker:false };
-      const rainValues = f.precipitation.slice(0, count).map(Number).filter(Number.isFinite);
+      const start = forecastStartIndex(f.time), count = Math.min(state.forecastRange, f.time.length - start), labels = f.time.slice(start, start + count);
+      const common = { visibleCount:count, fromStart:true, ignoreVisibility:true, showNowMarker:false };
+      const visibleTemperature = f.temperature.slice(start, start + count), visibleHumidity = f.humidity.slice(start, start + count), visibleCloud = f.cloud.slice(start, start + count), visiblePrecipitation = f.precipitation.slice(start, start + count);
+      const rainValues = visiblePrecipitation.map(Number).filter(Number.isFinite);
       const rainMax = Math.max(0, ...rainValues);
       const rainAxisMax = Math.max(0.4, Math.ceil(rainMax * 12) / 10);
       const fullRange = state.forecastYRange === "full", comfortRange = state.forecastYRange === "comfort";
-      const visibleTemperature = f.temperature.slice(0, count), visibleHumidity = f.humidity.slice(0, count), visibleCloud = f.cloud.slice(0, count);
       const temperatureMin = Math.min(0, ...visibleTemperature.filter(Number.isFinite)), temperatureMax = Math.max(0, ...visibleTemperature.filter(Number.isFinite));
       const temperatureRanges = fullRange ? {
         left:[Math.min(-40, Math.floor(temperatureMin / 10) * 10), Math.max(50, Math.ceil(temperatureMax / 10) * 10)], right:[0,100]
@@ -1645,13 +1735,13 @@
         left:forecastAutoRange(visibleCloud, 0, 100, 10), right:[0,rainAxisMax]
       };
       drawLineChart($("#forecast-temperature-chart"), [
-        { key:"forecastTemp", data:f.temperature, color:"#ff9f43", axis:"left" },
-        { key:"forecastHumidity", data:f.humidity, color:"#66c7f2", axis:"right" }
-      ], f.time, { ...common, axisRanges:temperatureRanges, showYAxisLabels:true, leftAxisSuffix:"°", rightAxisSuffix:"%", axisFontWeight:600 });
+        { key:"forecastTemp", data:visibleTemperature, color:"#ff9f43", axis:"left" },
+        { key:"forecastHumidity", data:visibleHumidity, color:"#66c7f2", axis:"right" }
+      ], labels, { ...common, axisRanges:temperatureRanges, showYAxisLabels:true, leftAxisSuffix:"°", rightAxisSuffix:"%", axisFontWeight:600 });
       drawLineChart($("#forecast-sky-chart"), [
-        { key:"forecastCloud", data:f.cloud, color:"#a6a8b1", axis:"left" },
-        { key:"forecastRain", data:f.precipitation, color:"#4ab8e8", axis:"right" }
-      ], f.time, { ...common, axisRanges:skyRanges, showYAxisLabels:true, leftAxisSuffix:"%", rightAxisSuffix:"mm", axisFontWeight:600 });
+        { key:"forecastCloud", data:visibleCloud, color:"#a6a8b1", axis:"left" },
+        { key:"forecastRain", data:visiblePrecipitation, color:"#4ab8e8", axis:"right" }
+      ], labels, { ...common, axisRanges:skyRanges, showYAxisLabels:true, leftAxisSuffix:"%", rightAxisSuffix:"mm", axisFontWeight:600 });
     } else {
       drawLineChart($("#forecast-sky-chart"),[],[],{ignoreVisibility:true,showYAxisLabels:true,leftAxisSuffix:"%",rightAxisSuffix:"mm",axisFontWeight:600});
     }
@@ -2212,6 +2302,20 @@
     return user?.email || user?.phone || "已验证账户";
   }
 
+  function commitBrowserSession(handoff) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/api/v1/auth/browser/session/commit";
+    form.hidden = true;
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "handoff";
+    input.value = handoff;
+    form.append(input);
+    document.body.append(form);
+    form.submit();
+  }
+
   function authRoleLabel(role) {
     return ({ admin:"Administrator", operator:"Operator", user:"User", viewer:"Viewer" })[role] || "Member";
   }
@@ -2219,6 +2323,49 @@
   function profileAvatarStorageKey(user=state.auth.user){
     const identity=user?.id||user?.email||user?.phone;
     return identity?`astra.profileAvatar.${identity}`:"";
+  }
+
+  const migratedAvatarUsers = new Set();
+  function profileAvatarValue(user=state.auth.user) {
+    if (user?.avatar_data) return user.avatar_data;
+    const key = profileAvatarStorageKey(user);
+    return key ? localStorage.getItem(key) || "" : "";
+  }
+
+  function resizeAvatar(source) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        const scale = Math.min(1, 320 / Math.max(image.naturalWidth, image.naturalHeight));
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d", { alpha:true }).drawImage(image, 0, 0, width, height);
+        let result = canvas.toDataURL("image/webp", .82);
+        if (!result.startsWith("data:image/webp")) result = canvas.toDataURL("image/jpeg", .84);
+        resolve(result);
+      };
+      image.onerror = () => reject(new Error("Avatar image cannot be decoded"));
+      image.src = source;
+    });
+  }
+
+  async function migrateLegacyProfileAvatar(user=state.auth.user) {
+    const key = profileAvatarStorageKey(user);
+    if (!user?.id || user.avatar_data || !key || migratedAvatarUsers.has(user.id)) return;
+    const legacy = localStorage.getItem(key);
+    if (!legacy) return;
+    migratedAvatarUsers.add(user.id);
+    try {
+      const avatarData = await resizeAvatar(legacy);
+      const result = await authApi("/profile/avatar", { method:"PUT", body:JSON.stringify({ avatar_data:avatarData }) });
+      state.auth.user = result.user;
+      localStorage.setItem(key, avatarData);
+      renderAuthIdentity();
+    } catch (_) {
+      migratedAvatarUsers.delete(user.id);
+    }
   }
 
   function renderAuthIdentity() {
@@ -2231,18 +2378,19 @@
     const operatorName = $(".operator b");
     const operatorRole = $(".operator small");
     if (user) {
+      migrateLegacyProfileAvatar(user);
       const name = user.display_name || "ASTRA 用户";
       const mark = name.trim().slice(0, 2).toUpperCase() || "A";
       if (profileName) profileName.textContent = name;
       if (profileDetail) profileDetail.textContent = `账号 · ${authContact(user)}`;
       if (avatar) {
-        const avatarKey=profileAvatarStorageKey(user),savedAvatar=avatarKey?localStorage.getItem(avatarKey):"";
+        const savedAvatar=profileAvatarValue(user);
         if (avatarInitials) avatarInitials.textContent = savedAvatar ? "" : mark;
         avatar.style.backgroundImage = savedAvatar ? `url("${savedAvatar}")` : "";
         avatar.classList.toggle("has-image", Boolean(savedAvatar));
       }
       if (operatorAvatar) {
-        const avatarKey=profileAvatarStorageKey(user),savedAvatar=avatarKey?localStorage.getItem(avatarKey):"";
+        const savedAvatar=profileAvatarValue(user);
         operatorAvatar.textContent = savedAvatar ? "" : mark;
         operatorAvatar.style.backgroundImage = savedAvatar ? `url("${savedAvatar}")` : "";
         operatorAvatar.classList.toggle("has-image", Boolean(savedAvatar));
@@ -2294,29 +2442,36 @@
     const avatarInput = document.createElement("input");
     avatarInput.type = "file";
     avatarInput.id = "profile-avatar-input";
-    avatarInput.accept = "image/png,image/jpeg,image/webp,image/gif";
+    avatarInput.accept = "image/png,image/jpeg,image/webp";
     avatarInput.hidden = true;
     avatarInput.setAttribute("aria-label", "上传头像");
     hero.append(avatarInput);
     avatar.title = "点击上传头像";
     avatar.addEventListener("click", () => avatarInput.click());
-    avatarInput.addEventListener("change", () => {
+    avatarInput.addEventListener("change", async () => {
       const file = avatarInput.files?.[0];
       if (!file) return;
-      if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
-        toast("头像上传失败", "请选择 2 MB 以内的图片。", "error");
+      if (!/^image\/(png|jpeg|webp)$/i.test(file.type) || file.size > 5 * 1024 * 1024) {
+        toast("头像上传失败", "请选择 5 MB 以内的 PNG、JPEG 或 WebP 图片。", "error");
         avatarInput.value = "";
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
+      const source = URL.createObjectURL(file);
+      try {
+        const avatarData = await resizeAvatar(source);
         const avatarKey=profileAvatarStorageKey();
-        if(!avatarKey){toast("头像上传失败","当前账户信息不可用。","error","background");return}
-        localStorage.setItem(avatarKey, String(reader.result));
+        if(!avatarKey) throw new Error("当前账户信息不可用。");
+        const result = await authApi("/profile/avatar", { method:"PUT", body:JSON.stringify({ avatar_data:avatarData }) });
+        state.auth.user = result.user;
+        localStorage.setItem(avatarKey, avatarData);
         renderAuthIdentity();
-        toast("头像已更新", "图片已保存在当前浏览器。", "ok");
-      };
-      reader.readAsDataURL(file);
+        toast("头像已更新", "头像已同步到此账户的全部登录会话。", "ok");
+      } catch (error) {
+        toast("头像上传失败", authErrorMessage(error), "error");
+      } finally {
+        URL.revokeObjectURL(source);
+        avatarInput.value = "";
+      }
     });
 
     const passwordModal = document.createElement("div");
@@ -2402,22 +2557,16 @@
     const mode = state.auth.mode;
     const channel = state.auth.channel;
     const form = $("#auth-form");
-    const summary = $("#auth-account-summary");
     const status = $("#auth-status-chip");
     const profileStatus=$("#profile-auth-status");
     if (form) form.hidden = loggedIn;
     if (form) form.dataset.authMode = mode;
-    if (summary) summary.hidden = !loggedIn;
     if (status) {
       status.textContent = state.auth.loading ? "检查会话" : (loggedIn ? "已验证 · 在线" : "未登录");
       status.classList.toggle("online", loggedIn);
     }
     if(profileStatus){profileStatus.textContent=state.auth.loading?"检查会话":loggedIn?"已登录会话":"未登录";profileStatus.classList.toggle("online",loggedIn)}
     if (loggedIn) {
-      const user = state.auth.user;
-      setText("#auth-account-name", user.display_name || "ASTRA 用户");
-      setText("#auth-account-detail", `${authRoleLabel(user.role)} · ${authContact(user)}`);
-      setText("#auth-account-mark", (user.display_name || "A").trim().slice(0, 2).toUpperCase());
       renderAuthIdentity();
       return;
     }
@@ -2490,6 +2639,7 @@
       if (state.auth.user && state.route === "login") {
         const target = state.auth.returnRoute || "overview";
         state.auth.returnRoute = null;
+        await waitForModelReady();
         routeTo(target);
       } else if (!state.auth.user && state.route !== "login") {
         routeTo("login");
@@ -2565,6 +2715,11 @@
             result = await authApi("/me", { method:"GET" });
           } catch (error) {
             if (error.status === 401) {
+              if (result.browser_handoff) {
+                setAuthMessage("正在建立 Safari 登录会话…", "ok");
+                commitBrowserSession(result.browser_handoff);
+                return;
+              }
               const cookieError = new Error("Browser did not retain session cookie");
               cookieError.status = 401;
               throw cookieError;
@@ -2581,6 +2736,7 @@
         toast(mode === "register" ? "账户创建成功" : "登录成功", "账户会话已安全建立。", "ok");
         const target = state.auth.returnRoute || "profile";
         state.auth.returnRoute = null;
+        await waitForModelReady();
         routeTo(target);
       }
     } catch (error) {
@@ -2625,31 +2781,6 @@
         serverSessionEnded ? "当前浏览器会话已经结束。" : "服务端暂时不可用，将在下次打开时继续完成退出。",
         serverSessionEnded ? "ok" : "warn"
       );
-    }
-  }
-
-  async function logoutAllAuth() {
-    const button = $("#auth-logout-all");
-    if (!button) return;
-    const original = button.textContent;
-    if (!window.confirm("这会退出当前账户在所有设备上的登录，会继续吗？")) return;
-    button.disabled = true;
-    button.textContent = "正在退出…";
-    try {
-      await authApi("/logout-all", { method:"POST" });
-      if (isNativeRuntime()) await nativeInvoke("clear_native_token").catch(() => {});
-      state.auth.user = null;
-      disconnectEventStream();
-      buildHistory(); drawPowerHistoryChart(); drawEnvironmentLiveChart();
-      state.deviceHistory.devices = []; state.deviceHistory.alerts = []; state.deviceHistory.labels = []; state.deviceHistory.series = {};
-      drawDeviceHistoryChart();
-      state.auth.loading = false;
-      routeTo("login");
-      toast("已退出所有设备", "所有登录会话已经失效。", "ok");
-    } catch (error) {
-      toast("退出失败", authErrorMessage(error), "error");
-      button.disabled = false;
-      button.textContent = original;
     }
   }
 
@@ -2724,10 +2855,14 @@
     if (card) card.hidden = false;
     const input = $("#native-server-url");
     const message = $("#server-settings-message");
+    const normalizeServer = value => new URL(value.trim()).origin.replace(/\/$/, "");
     const saved = localStorage.getItem("astra.nativeServerUrl") || "https://astroy.xyz";
-    if (input) input.value = saved;
+    let activeServer = "https://astroy.xyz";
+    try { activeServer = normalizeServer(saved); }
+    catch (_) { localStorage.setItem("astra.nativeServerUrl", activeServer); }
+    if (input) input.value = activeServer;
     try {
-      await nativeInvoke("set_server", { server: saved });
+      await nativeInvoke("set_server", { server: activeServer });
       await nativeRequest("/health");
       if (message) { message.textContent = "服务器连接正常"; message.className = "auth-message ok"; }
     } catch (error) {
@@ -2735,15 +2870,18 @@
     }
     $("#server-settings-form")?.addEventListener("submit", async event => {
       event.preventDefault();
-      const server = input?.value.trim() || "";
       try {
-        await nativeInvoke("set_server", { server });
+        const server = normalizeServer(input?.value || "");
         localStorage.setItem("astra.nativeServerUrl", server);
-        await nativeInvoke("clear_native_token").catch(() => {});
-        disconnectEventStream();
-        state.auth.user = null;
-        if (message) { message.textContent = "服务器已切换，请重新登录。"; message.className = "auth-message ok"; }
-        routeTo("login");
+        if (state.auth.user && server !== activeServer) {
+          if (input) input.value = server;
+          if (message) { message.textContent = "服务器地址已保存，当前会话保持连接；下次启动时应用新地址。"; message.className = "auth-message ok"; }
+          return;
+        }
+        await nativeInvoke("set_server", { server });
+        activeServer = server;
+        await nativeRequest("/health");
+        if (message) { message.textContent = state.auth.user ? "服务器连接正常，当前会话保持登录。" : "服务器连接正常，地址已保存。"; message.className = "auth-message ok"; }
       } catch (error) {
         if (message) { message.textContent = error?.message || "服务器地址无效"; message.className = "auth-message error"; }
       }
@@ -2756,32 +2894,63 @@
     $$('[data-auth-channel]').forEach(button => button.addEventListener("click", () => { state.auth.channel = button.dataset.authChannel; setAuthMessage(state.auth.channel === "phone" ? "验证码将通过阿里云短信认证发送。" : "验证码将发送到指定邮箱。"); renderAuth(); }));
     $("#auth-send-code")?.addEventListener("click", requestAuthCode);
     $("#auth-form")?.addEventListener("submit", submitAuth);
-    $("#auth-logout")?.addEventListener("click", logoutAuth);
     $("#profile-logout")?.addEventListener("click", logoutAuth);
-    $("#auth-logout-all")?.addEventListener("click", logoutAllAuth);
-    $("#auth-enter-profile")?.addEventListener("click", () => routeTo("profile"));
     $("#password-change-form")?.addEventListener("submit", changeAccountPassword);
-    $$('[data-route]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.route)));
+    let routeTouchAt = 0;
+    const activateRoute = event => {
+      if (event.type === "touchend") {
+        event.preventDefault();
+        routeTouchAt = Date.now();
+      } else if (Date.now() - routeTouchAt < 700) return;
+      routeTo(event.currentTarget.dataset.route);
+    };
+    $$('[data-route]').forEach(button => {
+      button.addEventListener("click", activateRoute);
+      button.addEventListener("touchend", activateRoute, { passive:false });
+    });
     $$('[data-route-jump]').forEach(button => button.addEventListener("click", () => routeTo(button.dataset.routeJump)));
     $$('[data-open-settings]').forEach(button => button.addEventListener("click", openSettings));
     $("#close-settings").addEventListener("click", closeSettings); $("#drawer-backdrop").addEventListener("click", closeSettings);
+    window.addEventListener("popstate", () => {
+      if (!$("#settings-drawer")?.classList.contains("open")) return;
+      settingsHistoryActive = false;
+      closeSettings({ fromHistory:true });
+    });
+    const settingsDrawer = $("#settings-drawer");
+    let settingsSwipeStart = null;
+    settingsDrawer?.addEventListener("touchstart", event => {
+      const touch = event.touches[0];
+      settingsSwipeStart = touch ? { x:touch.clientX, y:touch.clientY, at:Date.now() } : null;
+    }, { passive:true });
+    settingsDrawer?.addEventListener("touchend", event => {
+      if (!settingsSwipeStart) return;
+      const touch = event.changedTouches[0];
+      const dx = touch ? touch.clientX - settingsSwipeStart.x : 0;
+      const dy = touch ? touch.clientY - settingsSwipeStart.y : 0;
+      const elapsed = Date.now() - settingsSwipeStart.at;
+      settingsSwipeStart = null;
+      if (dx < -64 && Math.abs(dx) > Math.abs(dy) * 1.25 && elapsed < 900) closeSettings();
+    }, { passive:true });
+    settingsDrawer?.addEventListener("touchcancel", () => { settingsSwipeStart = null; }, { passive:true });
     $("#controller-request-form")?.addEventListener("submit", submitControllerRequest);
-    $("#controller-header-configs")?.addEventListener("click", event => { const button = event.target.closest?.("[data-download-controller-header]"); if (!button || !state.controller.data) return; const device = (state.controller.data.devices || []).find(item => item.device_id === button.dataset.downloadControllerHeader); downloadControllerHeader(device); });
+    $("#controller-header-configs")?.addEventListener("click", event => { const button = event.target.closest?.("[data-copy-controller-header]"); if (!button || !state.controller.data) return; const device = (state.controller.data.devices || []).find(item => item.device_id === button.dataset.copyControllerHeader); copyControllerHeader(device); });
     $$('[data-connection-mode]').forEach(button => button.addEventListener("click", () => selectConnectionMode(button.dataset.connectionMode)));
     $("#apply-connection").addEventListener("click", applyConnection);
     $("#simulation-toggle")?.addEventListener("click",()=>setSimulationEnabled(!state.simulationEnabled));
     $("#onstep-bluetooth-status")?.addEventListener("click",requestBluetoothToggle);
     bindVerticalNumberDrag($("#camera-hours"));bindVerticalNumberDrag($("#camera-minutes"));
     $$('[data-toggle]').forEach(button => button.addEventListener("click", () => toggleMain(button.dataset.toggle)));
+    $('[data-quick-roof]')?.addEventListener("click", event => {
+      const action = event.currentTarget.dataset.roofAction;
+      if (action) roofCommand(action);
+    });
     $$('[data-mppt-toggle]').forEach(button => button.addEventListener("click", () => toggleMppt(button.dataset.mpptToggle)));
     $$('[data-mppt-fan-mode]').forEach(button=>button.addEventListener("click",()=>{const automatic=button.dataset.mpptFanMode==="auto";sendCommand("mppt-001",{enable_fan:automatic},automatic?"风扇切换为自动模式":"风扇切换为手动模式")}));
-    $("#apply-mppt-fan-temp")?.addEventListener("click",()=>{const value=Number($("#set-fan-temp")?.value);if(!Number.isFinite(value)||value<20||value>80){toast("温度阈值无效","请输入 20 至 80°C。","error");return}sendCommand("mppt-001",{temperature_fan:value},`设置风扇阈值 ${Math.round(value)}°C`)});
     $$('[data-flat-toggle]').forEach(button => button.addEventListener("click", () => toggleFlat(button.dataset.flatToggle)));
     $$('[data-roof]').forEach(button => button.addEventListener("click", () => roofCommand(button.dataset.roof)));
     $$('[data-onstep]').forEach(button => button.addEventListener("click", () => sendCommand("esp32-001", {command:"onstep",action:Number(button.dataset.onstep)}, `OnStep 操作 ${button.textContent.trim()}`)));
     $$('[data-command-debug]').forEach(button => button.addEventListener("click", () => sendCommand(button.dataset.commandDebug, {debug:true}, "请求诊断")));
     bindNumberSteppers();
-    $("#save-power-settings").addEventListener("click", savePowerSettings);
     $("#toggle-panel").addEventListener("click", togglePanel);
     $("#confirm-cancel").addEventListener("click", closeConfirm); $("#confirm-accept").addEventListener("click", () => state.pendingConfirm?.());
     $("#confirm-modal").addEventListener("click", event => { if(event.target.id==="confirm-modal") closeConfirm(); });
@@ -2860,7 +3029,7 @@
       rendered_icons:$$('svg.lucide').length,
       initial_route:state.route,
       login_visible:Boolean($("#page-login")?.classList.contains("active")),
-      model_preloader_blocking:Boolean($("#app-preloader"))
+      model_preloader_blocking:Boolean($("#app-preloader") && !$("#app-preloader").hidden)
     };
     window.__astraIconHealth = Object.freeze({ ...iconHealth });
     if (isNativeRuntime()) {

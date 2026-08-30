@@ -66,3 +66,6 @@ ASTRA-secrets-checklist.md
 **/*secrets-checklist*.md
 *.secret
 *.secrets
+server/scripts/*credentials*.json
+server/scripts/*credentials*.yaml
+server/scripts/*credentials*.yml

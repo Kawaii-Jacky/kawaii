@@ -1,0 +1,778 @@
+{
+  "count": 193,
+  "parts": [
+    {
+      "d": "U5",
+      "n": "PV",
+      "foot": "CONN-TH_2P-P9.50_DBT50G-9.5-2P",
+      "uid": "gge1"
+    },
+    {
+      "d": "U12",
+      "n": "B1212S",
+      "foot": "PWRM-TH_BXXXXS-1W",
+      "uid": "gge3"
+    },
+    {
+      "d": "R21",
+      "n": "5k",
+      "foot": "R0603",
+      "uid": "gge4"
+    },
+    {
+      "d": "R23",
+      "n": "5k",
+      "foot": "R0603",
+      "uid": "gge9"
+    },
+    {
+      "d": "C14",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge5"
+    },
+    {
+      "d": "C15",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge6"
+    },
+    {
+      "d": "C16",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge17"
+    },
+    {
+      "d": "C23",
+      "n": "100nF",
+      "foot": "CAP 0603",
+      "uid": "gge34"
+    },
+    {
+      "d": "C29",
+      "n": "100nF",
+      "foot": "CAP 0603",
+      "uid": "gge38"
+    },
+    {
+      "d": "C20",
+      "n": "100nF",
+      "foot": "CAP 0603",
+      "uid": "gge43"
+    },
+    {
+      "d": "C11",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge45"
+    },
+    {
+      "d": "C17",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge54"
+    },
+    {
+      "d": "C5",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge70"
+    },
+    {
+      "d": "C44",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge103"
+    },
+    {
+      "d": "R22",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge7"
+    },
+    {
+      "d": "R28",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge18"
+    },
+    {
+      "d": "R29",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge19"
+    },
+    {
+      "d": "R38",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge79"
+    },
+    {
+      "d": "R53",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge84"
+    },
+    {
+      "d": "R56",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge90"
+    },
+    {
+      "d": "R57",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge91"
+    },
+    {
+      "d": "R67",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge104"
+    },
+    {
+      "d": "R68",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge106"
+    },
+    {
+      "d": "R69",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge108"
+    },
+    {
+      "d": "R62",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge110"
+    },
+    {
+      "d": "R75",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge106_1"
+    },
+    {
+      "d": "R76",
+      "n": "10k",
+      "foot": "R0603",
+      "uid": "gge106_2"
+    },
+    {
+      "d": "LED2",
+      "n": "FL",
+      "foot": "LED0603-RD",
+      "uid": "gge8"
+    },
+    {
+      "d": "D4",
+      "n": "SS310",
+      "foot": "SMA_L4.3-W2.6-LS5.2-RD",
+      "uid": "gge13"
+    },
+    {
+      "d": "D5",
+      "n": "SS310",
+      "foot": "SMA_L4.3-W2.6-LS5.2-RD",
+      "uid": "gge14"
+    },
+    {
+      "d": "R26",
+      "n": "10k",
+      "foot": "RES-0603",
+      "uid": "gge15"
+    },
+    {
+      "d": "R27",
+      "n": "10k",
+      "foot": "RES-0603",
+      "uid": "gge16"
+    },
+    {
+      "d": "R19",
+      "n": "10k",
+      "foot": "RES-0603",
+      "uid": "gge51"
+    },
+    {
+      "d": "R60",
+      "n": "30.1k",
+      "foot": "RES-0603",
+      "uid": "gge100"
+    },
+    {
+      "d": "R61",
+      "n": "NC",
+      "foot": "RES-0603",
+      "uid": "gge101"
+    },
+    {
+      "d": "L3",
+      "n": "60uH",
+      "foot": "功率电感",
+      "uid": "gge20"
+    },
+    {
+      "d": "C24",
+      "n": "4.7uF/100v",
+      "foot": "C1206",
+      "uid": "gge21"
+    },
+    {
+      "d": "CN5",
+      "n": "VCC",
+      "foot": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "uid": "gge22"
+    },
+    {
+      "d": "D3",
+      "n": "DSS310",
+      "foot": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "uid": "gge23"
+    },
+    {
+      "d": "D12",
+      "n": "DSS310",
+      "foot": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "uid": "gge35"
+    },
+    {
+      "d": "D2",
+      "n": "DSS310",
+      "foot": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "uid": "gge47"
+    },
+    {
+      "d": "D7",
+      "n": "DSS310",
+      "foot": "SOD-123FL_L2.7-W1.8-LS3.8-RD",
+      "uid": "gge48"
+    },
+    {
+      "d": "FH1",
+      "n": "XF-508P-A",
+      "foot": "FUSE-TH_L19.8-W7.0_XF-508P-A",
+      "uid": "gge24"
+    },
+    {
+      "d": "FH2",
+      "n": "XF-508P-A",
+      "foot": "FUSE-TH_L19.8-W7.0_XF-508P-A",
+      "uid": "gge25"
+    },
+    {
+      "d": "F1",
+      "n": "40A",
+      "foot": "40A32V",
+      "uid": "gge26"
+    },
+    {
+      "d": "F2",
+      "n": "40A",
+      "foot": "40A32V",
+      "uid": "gge27"
+    },
+    {
+      "d": "R31",
+      "n": "0.002Ω",
+      "foot": "R2512",
+      "uid": "gge28"
+    },
+    {
+      "d": "R30",
+      "n": "0.002Ω",
+      "foot": "R2512",
+      "uid": "gge56"
+    },
+    {
+      "d": "R32",
+      "n": "10",
+      "foot": "R0603",
+      "uid": "gge29"
+    },
+    {
+      "d": "R33",
+      "n": "10",
+      "foot": "R0603",
+      "uid": "gge30"
+    },
+    {
+      "d": "R10",
+      "n": "2-5",
+      "foot": "R0603",
+      "uid": "gge78"
+    },
+    {
+      "d": "D10",
+      "n": "SMBJ100A_C353408",
+      "foot": "SMB_L4.6-W3.6-LS5.3-RD",
+      "uid": "gge31"
+    },
+    {
+      "d": "D8",
+      "n": "SMBJ100A_C353408",
+      "foot": "SMB_L4.6-W3.6-LS5.3-RD",
+      "uid": "gge55"
+    },
+    {
+      "d": "U2",
+      "n": "MP9486AGN-Z",
+      "foot": "SOIC-8_L4.9-W3.9-P1.27-LS6.0-BL-EP3.1",
+      "uid": "gge32"
+    },
+    {
+      "d": "L1",
+      "n": "47uH",
+      "foot": "IND-SMD_L8.0-W8.0_SMNR8040",
+      "uid": "gge33"
+    },
+    {
+      "d": "C37",
+      "n": "68nF",
+      "foot": "CAP 0603",
+      "uid": "gge36"
+    },
+    {
+      "d": "C38",
+      "n": "2.2uF",
+      "foot": "CAP 0603",
+      "uid": "gge37"
+    },
+    {
+      "d": "R47",
+      "n": "22K",
+      "foot": "RES-0603",
+      "uid": "gge39"
+    },
+    {
+      "d": "C39",
+      "n": "10nF",
+      "foot": "CAP 0603",
+      "uid": "gge40"
+    },
+    {
+      "d": "C33",
+      "n": "10uF",
+      "foot": "CAP-0805",
+      "uid": "gge41"
+    },
+    {
+      "d": "C26",
+      "n": "47uF",
+      "foot": "CAP-TH_BD8.0-P3.50-D0.6-FD",
+      "uid": "gge42"
+    },
+    {
+      "d": "C8",
+      "n": "100uF",
+      "foot": "CAP-TH_BD8.0-P3.50-D0.6-FD",
+      "uid": "gge44"
+    },
+    {
+      "d": "C31",
+      "n": "47uF",
+      "foot": "CAP-0805",
+      "uid": "gge46"
+    },
+    {
+      "d": "C9",
+      "n": "100nF",
+      "foot": "CAP 0603",
+      "uid": "gge49"
+    },
+    {
+      "d": "C40",
+      "n": "100nF",
+      "foot": "CAP 0603",
+      "uid": "gge66"
+    },
+    {
+      "d": "R18",
+      "n": "590k",
+      "foot": "RES-0603",
+      "uid": "gge50"
+    },
+    {
+      "d": "R59",
+      "n": "200k",
+      "foot": "RES-0603",
+      "uid": "gge99"
+    },
+    {
+      "d": "Q8",
+      "n": "SI2306",
+      "foot": "SOT-23-3L_L2.9-W1.6-P1.90-LS2.8-BL",
+      "uid": "gge52"
+    },
+    {
+      "d": "C18",
+      "n": "100ZLJ470MGC18X25",
+      "foot": "CAP-TH_BD18.0-P7.50-D0.8-FD",
+      "uid": "gge53"
+    },
+    {
+      "d": "C30",
+      "n": "100ZLJ470MGC18X25",
+      "foot": "CAP-TH_BD18.0-P7.50-D0.8-FD",
+      "uid": "gge57"
+    },
+    {
+      "d": "R25",
+      "n": "15",
+      "foot": "R0603",
+      "uid": "gge58"
+    },
+    {
+      "d": "R24",
+      "n": "18-20",
+      "foot": "R0603",
+      "uid": "gge59"
+    },
+    {
+      "d": "C22",
+      "n": "4.7nF",
+      "foot": "CAP-TH_L12.0-W5.0-P10.00-D1.0",
+      "uid": "gge60"
+    },
+    {
+      "d": "C19",
+      "n": "4.7nF",
+      "foot": "CAP-TH_L12.0-W5.0-P10.00-D1.0",
+      "uid": "gge62"
+    },
+    {
+      "d": "R34",
+      "n": "5-20",
+      "foot": "RES-SMD_L6.4-W3.2-R2512",
+      "uid": "gge61"
+    },
+    {
+      "d": "R8",
+      "n": "5-20",
+      "foot": "RES-SMD_L6.4-W3.2-R2512",
+      "uid": "gge77"
+    },
+    {
+      "d": "U3",
+      "n": "STI3470",
+      "foot": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL",
+      "uid": "gge63"
+    },
+    {
+      "d": "L4",
+      "n": "4.7uH",
+      "foot": "IND-SMD_L8.0-W8.0_SMNR8040",
+      "uid": "gge64"
+    },
+    {
+      "d": "R52",
+      "n": "91k",
+      "foot": "R0603",
+      "uid": "gge65"
+    },
+    {
+      "d": "R51",
+      "n": "20k",
+      "foot": "R0603",
+      "uid": "gge67"
+    },
+    {
+      "d": "C6",
+      "n": "10uf",
+      "foot": "C0805",
+      "uid": "gge68"
+    },
+    {
+      "d": "C7",
+      "n": "10uf",
+      "foot": "C0805",
+      "uid": "gge71"
+    },
+    {
+      "d": "D9",
+      "n": "ZMM3V6",
+      "foot": "LL-34_L3.5-W1.5-RD",
+      "uid": "gge69"
+    },
+    {
+      "d": "D6",
+      "n": "SS320B",
+      "foot": "SMB_L4.6-W3.6-LS5.3-RD",
+      "uid": "gge72"
+    },
+    {
+      "d": "D11",
+      "n": "ES2DF",
+      "foot": "SMAF_L3.5-W2.6-LS4.7-RD",
+      "uid": "gge73"
+    },
+    {
+      "d": "U11",
+      "n": "EG2104S",
+      "foot": "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL",
+      "uid": "gge74"
+    },
+    {
+      "d": "R44",
+      "n": "100k",
+      "foot": "R0603",
+      "uid": "gge75"
+    },
+    {
+      "d": "D13",
+      "n": "BZT52C12_C271259",
+      "foot": "SOD-123_L2.8-W1.8-LS3.7-RD",
+      "uid": "gge76"
+    },
+    {
+      "d": "D14",
+      "n": "={Manufacturer Part}",
+      "foot": "SOD-123FL_L2.8-W1.8-LS3.7-RD",
+      "uid": "gge81"
+    },
+    {
+      "d": "U28",
+      "n": "={Manufacturer Part}",
+      "foot": "SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR",
+      "uid": "gge82"
+    },
+    {
+      "d": "C21",
+      "n": "10uF",
+      "foot": "C0603",
+      "uid": "gge83"
+    },
+    {
+      "d": "R54",
+      "n": "5.1k",
+      "foot": "R0603",
+      "uid": "gge85"
+    },
+    {
+      "d": "R55",
+      "n": "5.1k",
+      "foot": "R0603",
+      "uid": "gge89"
+    },
+    {
+      "d": "R58",
+      "n": "5.1k",
+      "foot": "R0603",
+      "uid": "gge92"
+    },
+    {
+      "d": "C41",
+      "n": "0.1u",
+      "foot": "C0603",
+      "uid": "gge86"
+    },
+    {
+      "d": "C42",
+      "n": "0.1u",
+      "foot": "C0603",
+      "uid": "gge88"
+    },
+    {
+      "d": "C43",
+      "n": "0.1u",
+      "foot": "C0603",
+      "uid": "gge93"
+    },
+    {
+      "d": "C49",
+      "n": "0.1u",
+      "foot": "C0603",
+      "uid": "gge86_1"
+    },
+    {
+      "d": "U30",
+      "n": "INA226AIDGSR",
+      "foot": "MSOP-10_L3.0-W3.0-P0.50-LS5.0-BL",
+      "uid": "gge87"
+    },
+    {
+      "d": "U31",
+      "n": "INA226AIDGSR",
+      "foot": "MSOP-10_L3.0-W3.0-P0.50-LS5.0-BL",
+      "uid": "gge94"
+    },
+    {
+      "d": "U32",
+      "n": "INA226AIDGSR",
+      "foot": "MSOP-10_L3.0-W3.0-P0.50-LS5.0-BL",
+      "uid": "gge95"
+    },
+    {
+      "d": "D1",
+      "n": "={Manufacturer Part}",
+      "foot": "SOD-123_L2.6-W1.7-LS3.5-RD",
+      "uid": "gge96"
+    },
+    {
+      "d": "D15",
+      "n": "={Manufacturer Part}",
+      "foot": "SOD-123_L2.6-W1.7-LS3.5-RD",
+      "uid": "gge97"
+    },
+    {
+      "d": "D16",
+      "n": "={Manufacturer Part}",
+      "foot": "SOD-123_L2.6-W1.7-LS3.5-RD",
+      "uid": "gge98"
+    },
+    {
+      "d": "U33",
+      "n": "ESP32-S",
+      "foot": "WIRELM-SMD_ESP32-S",
+      "uid": "gge102"
+    },
+    {
+      "d": "C45",
+      "n": "100nF",
+      "foot": "C0603",
+      "uid": "gge105"
+    },
+    {
+      "d": "LED4",
+      "n": "LED",
+      "foot": "LED0603-RD",
+      "uid": "gge109"
+    },
+    {
+      "d": "C47",
+      "n": "10uF",
+      "foot": "CAP-SMD_L3.2-W1.6-RD",
+      "uid": "gge114"
+    },
+    {
+      "d": "KEY1",
+      "n": "K2-3.66.1_SMD",
+      "foot": "KEY-SMD_2P-L6.2-W3.6-LS8.0",
+      "uid": "gge119"
+    },
+    {
+      "d": "U4",
+      "n": "BAT",
+      "foot": "CONN-TH_2P-P9.50_DBT50G-9.5-2P",
+      "uid": "gge2"
+    },
+    {
+      "d": "CN7",
+      "n": "NTC",
+      "foot": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "uid": "gge113"
+    },
+    {
+      "d": "CN10",
+      "n": "NTC",
+      "foot": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "uid": "gge113_1"
+    },
+    {
+      "d": "CN11",
+      "n": "NTC",
+      "foot": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "uid": "gge113_2"
+    },
+    {
+      "d": "CN1",
+      "n": "FAN",
+      "foot": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "uid": "gge80"
+    },
+    {
+      "d": "CN12",
+      "n": "路由器",
+      "foot": "CONN-TH_2P-P2.50_HCTL_XH-2A-X",
+      "uid": "gge80_1"
+    },
+    {
+      "d": "U35",
+      "n": "={Manufacturer Part}",
+      "foot": "CONN-SMD_T31000",
+      "uid": "gge155"
+    },
+    {
+      "d": "U36",
+      "n": "={Manufacturer Part}",
+      "foot": "CONN-SMD_T31000",
+      "uid": "gge156"
+    },
+    {
+      "d": "U37",
+      "n": "={Manufacturer Part}",
+      "foot": "CONN-SMD_T31000",
+      "uid": "gge157"
+    },
+    {
+      "d": "U38",
+      "n": "={Manufacturer Part}",
+      "foot": "CONN-SMD_T31000",
+      "uid": "gge158"
+    },
+    {
+      "d": "Q28",
+      "n": "={Manufacturer Part}",
+      "foot": "TO-247AC-3_L15.8-W5.0-P5.46-L",
+      "uid": "gge161"
+    },
+    {
+      "d": "Q29",
+      "n": "={Manufacturer Part}",
+      "foot": "TO-247AC-3_L15.8-W5.0-P5.46-L",
+      "uid": "gge162"
+    },
+    {
+      "d": "Q30",
+      "n": "={Manufacturer Part}",
+      "foot": "TO-247AC-3_L15.8-W5.0-P5.46-L",
+      "uid": "gge163"
+    },
+    {
+      "d": "S1",
+      "n": "={Manufacturer Part}",
+      "foot": "SENSOR-TH_AM2302",
+      "uid": "gge166"
+    },
+    {
+      "d": "DC1",
+      "n": "={Manufacturer Part}",
+      "foot": "DC-IN-TH_DC-005-5A-2.0",
+      "uid": ""
+    }
+  ],
+  "ports": [
+    "12V",
+    "3.3V",
+    "EN",
+    "GPIO0",
+    "GPIO12",
+    "GPIO13",
+    "GPIO14",
+    "GPIO15",
+    "GPIO16",
+    "GPIO17",
+    "GPIO18",
+    "GPIO19",
+    "GPIO23",
+    "GPIO25",
+    "GPIO26",
+    "GPIO27",
+    "GPIO32",
+    "GPIO33",
+    "GPIO34",
+    "GPIO35",
+    "GPIO4",
+    "RX",
+    "SCL",
+    "SDA",
+    "TX",
+    "VBAT",
+    "VBAT_OUT"
+  ]
+}
