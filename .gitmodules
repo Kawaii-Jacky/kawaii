@@ -1,0 +1,3 @@
+[submodule "video-2-text"]
+	path = video-2-text
+	url = https://github.com/XamHans/video-2-text.git
