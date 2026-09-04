@@ -21,6 +21,12 @@ Windows 发布包分别为 `ASTRA-Setup-<version>-x64.exe` 和
 可用命令：`status.sh`、`logs.sh`、`update.sh`、`backup.sh`、`restore.sh`、
 `uninstall.sh`。只有 `uninstall.sh --purge-data` 才删除持久卷。
 
+Windows + WSL 的 server 发布包还包含后台开机自启动入口：以管理员身份运行
+`server/scripts/install-autostart.ps1` 注册计划任务。该任务只启动 Docker、
+PostgreSQL、Mosquitto、短信网关、service-control、API 和管理后台，不打开浏览器
+或前端软件；API 和管理服务默认仅监听 `127.0.0.1:8080`、`127.0.0.1:8100`，
+日志写入 `server/logs/autostart.log`。
+
 ## Apple 安装
 
 用 Safari 打开正式站点，点击分享 → 添加到主屏幕。Chrome/微信内置浏览器需要

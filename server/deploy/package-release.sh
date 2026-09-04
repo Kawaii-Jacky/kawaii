@@ -9,10 +9,18 @@ tar -czf "$out" -C "$root" \
   --exclude='./server/backups' --exclude='*/__pycache__' --exclude='*/node_modules' \
   --exclude='*/target' --exclude='*/gen' --exclude='*.env' --exclude='*.pem' \
   --exclude='*.key' --exclude='*.token' --exclude='*/passwd*' \
-  server/docker-compose.release.yml server/Dockerfile server/Dockerfile.admin \
+  server/docker-compose.release.yml server/docker-compose.server-only.yml \
+  server/Dockerfile server/Dockerfile.admin \
   server/Dockerfile.web server/nginx.release.conf server/mosquitto \
   server/app server/requirements.txt server/.env.example server/deploy \
+  server/wsl-start-docker.sh \
+  server/scripts/install-autostart.ps1 \
+  server/scripts/start-astra-on-boot.ps1 \
+  server/scripts/start-astra-server-wsl.sh \
   remote-observatory-frontend ASTRA_RELEASE.md
-sha256sum "$out" > "$out.sha256"
+(
+  cd "$(dirname "$out")"
+  sha256sum "$(basename "$out")"
+) > "$out.sha256"
 echo "$out"
 echo "$out.sha256"
