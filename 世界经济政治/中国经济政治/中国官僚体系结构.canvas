@@ -1,7 +1,6 @@
 {
 	"nodes":[
 		{"id":"zfw-sec","type":"text","text":"书记   **陈文清**\n","x":397,"y":-20,"width":207,"height":90,"color":"1"},
-		{"id":"zfw-mem-title","type":"text","text":"委员","x":449,"y":240,"width":102,"height":50,"color":"6"},
 		{"id":"zfw-dep","type":"text","text":"副书记   **王小洪**","x":388,"y":110,"width":225,"height":90,"color":"2"},
 		{"id":"zfw-title","type":"text","text":"# 中央政法委员会\n政法委结构图","x":358,"y":-140,"width":284,"height":60,"color":"6"},
 		{"id":"e9e2281d9819b92d","type":"file","file":"世界经济政治/中国经济政治/attachments/Pasted image 20260616162248.png","x":-600,"y":-1040,"width":1068,"height":560},
@@ -11,7 +10,6 @@
 		{"id":"zfw-mem-zhangjun","type":"text","text":"张军","x":123,"y":426,"width":135,"height":90,"color":"3"},
 		{"id":"zfw-mem-yingyong","type":"text","text":"应勇","x":273,"y":426,"width":135,"height":90,"color":"3"},
 		{"id":"zfw-mem-yanbai","type":"text","text":"闫柏\n兼秘书长","x":423,"y":426,"width":155,"height":90,"color":"3"},
-		{"id":"zfw-depsec-title","type":"text","text":"## 副秘书长","x":320,"y":580,"width":360,"height":50,"color":"6"},
 		{"id":"zfw-ds-sun","type":"text","text":"孙晓芳","x":511,"y":740,"width":135,"height":90,"color":"4"},
 		{"id":"zfw-ds-teng","type":"text","text":"滕维国","x":661,"y":740,"width":135,"height":90,"color":"4"},
 		{"id":"zfw-ds-wang","type":"text","text":"王贻星","x":360,"y":740,"width":135,"height":90,"color":"4"},
@@ -19,7 +17,7 @@
 		{"id":"ccp-title","type":"text","text":"# 党中央结构关系网\n根据新增图片整理","x":-1080,"y":-760,"width":430,"height":70,"color":"6"},
 		{"id":"ccp-congress","type":"text","text":"## 中国共产党\n## 全国代表大会","x":-925,"y":-400,"width":280,"height":155,"color":"1"},
 		{"id":"ccp-politburo","type":"text","text":"## 中央政治局\n委员：丁薛祥、习近平、马兴瑞、王毅\n王沪宁、尹力、石泰峰、刘国中\n李希、李强、李干杰、李书磊、李鸿忠\n何立峰、张又侠、张国清\n陈文清、陈吉宁、陈敏尔、赵乐际、袁家军、黄坤明、蔡奇","x":-505,"y":-426,"width":480,"height":465,"color":"2"},
-		{"id":"ccp-military-commission","type":"text","text":"## 中央军事委员会\n主席：习近平\n副主席：张又侠、张升民\n委员：刘振立","x":-1090,"y":382,"width":260,"height":298,"color":"4"},
+		{"id":"ccp-military-commission","type":"text","text":"## 中央军事委员会\n主席：习近平\n副主席：张又侠、张升民\n委员：刘振立","x":-1090,"y":382,"width":260,"height":358,"color":"4"},
 		{"id":"9c84b7cac22dff5a","type":"file","file":"世界经济政治/中国经济政治/attachments/Pasted image 20260616161530.png","x":811,"y":-340,"width":508,"height":605},
 		{"id":"e6fed97f562f5c7b","type":"text","text":"## 中央纪律检查委员会","x":-1590,"y":-184,"width":343,"height":54,"color":"1"},
 		{"id":"f834badba9684725","type":"text","text":"副书记：刘金国、张升民、肖培\n喻红秋、傅奎、孙新阳、刘学新、张福海","x":-1775,"y":70,"width":357,"height":209,"color":"5"},
@@ -28,8 +26,10 @@
 		{"id":"ccp-general-secretary","type":"text","text":"## 中央委员会总书记\n习近平","x":-1310,"y":39,"width":230,"height":200,"color":"2"},
 		{"id":"e2f2d442867ecd09","type":"file","file":"世界经济政治/中国经济政治/attachments/Pasted image 20260616165948.png","x":920,"y":389,"width":1115,"height":703},
 		{"id":"ccp-secretariat","type":"text","text":"## 中央书记处\n书记：蔡奇、石泰峰、李干杰\n李书磊、陈文清、刘金国\n王小洪","x":-410,"y":53,"width":290,"height":329,"color":"3"},
-		{"id":"ccp-politburo-standing","type":"text","text":"## 中央政治局常务委员会\n习近平、李强、赵乐际\n王沪宁、蔡奇、丁薛祥、李希","x":-765,"y":375,"width":260,"height":313,"color":"2"},
-		{"id":"f5fe523366c6c332","type":"text","text":"公安部部长  王小洪","x":-352,"y":605,"width":327,"height":86,"color":"5"}
+		{"id":"ccp-politburo-standing","type":"text","text":"## 中央政治局常务委员会\n习近平、李强、赵乐际\n王沪宁、蔡奇、丁薛祥、李希","x":-765,"y":375,"width":260,"height":410,"color":"2"},
+		{"id":"f5fe523366c6c332","type":"text","text":"公安部部长  王小洪","x":-352,"y":605,"width":327,"height":86,"color":"5"},
+		{"id":"zfw-mem-title","type":"text","text":"委员","x":388,"y":240,"width":231,"height":50,"color":"6"},
+		{"id":"zfw-depsec-title","type":"text","text":"## 副秘书长","x":405,"y":580,"width":191,"height":50,"color":"6"}
 	],
 	"edges":[
 		{"id":"zfw-e-title-sec","fromNode":"zfw-title","fromSide":"bottom","toNode":"zfw-sec","toSide":"top"},
