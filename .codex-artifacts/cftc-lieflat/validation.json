@@ -1,0 +1,115 @@
+{
+  "checks": [
+    {
+      "mode": "all",
+      "period": "all",
+      "count": 5,
+      "start": "2006-06-13",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "all",
+      "period": "original",
+      "count": 5,
+      "start": "2006-06-13",
+      "end": "2023-12-26",
+      "invalid": false
+    },
+    {
+      "mode": "all",
+      "period": "recent",
+      "count": 5,
+      "start": "2021-01-05",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "core",
+      "period": "all",
+      "count": 3,
+      "start": "2006-06-13",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "core",
+      "period": "original",
+      "count": 3,
+      "start": "2006-06-13",
+      "end": "2023-12-26",
+      "invalid": false
+    },
+    {
+      "mode": "core",
+      "period": "recent",
+      "count": 3,
+      "start": "2021-01-05",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "original",
+      "period": "all",
+      "count": 2,
+      "start": "2006-06-13",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "original",
+      "period": "original",
+      "count": 2,
+      "start": "2006-06-13",
+      "end": "2023-12-26",
+      "invalid": false
+    },
+    {
+      "mode": "original",
+      "period": "recent",
+      "count": 2,
+      "start": "2021-01-05",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "gross",
+      "period": "all",
+      "count": 3,
+      "start": "2006-06-13",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "mode": "gross",
+      "period": "original",
+      "count": 3,
+      "start": "2006-06-13",
+      "end": "2023-12-26",
+      "invalid": false
+    },
+    {
+      "mode": "gross",
+      "period": "recent",
+      "count": 3,
+      "start": "2021-01-05",
+      "end": "2026-09-29",
+      "invalid": false
+    },
+    {
+      "slider": "报告日 2006-08-22 · 已固定"
+    },
+    {
+      "replay": "报告日 2026-09-29"
+    },
+    {
+      "mobile": {
+        "width": 390,
+        "documentWidth": 390,
+        "legendItems": 5
+      }
+    }
+  ],
+  "failures": [],
+  "network": []
+}

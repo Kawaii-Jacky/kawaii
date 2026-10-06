@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光学镜头模拟器</title>
+  <style>
+    :root {
+      --surface-0: #05070C;
+      --surface-1: #0A0D12;
+      --surface-2: #0F131C;
+      --surface-3: #161D2B;
+      --surface-4: #1E2636;
+      --accent: #38BDF8;
+      --accent-muted: #6EE7B7;
+      --text-primary: #E5E7EB;
+      --text-secondary: #9CA3AF;
+      --radius-full: 999px;
+      --radius-lg: 1rem;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+
+      --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--surface-0);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-lg);
+      padding: var(--spacing-xl);
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      letter-spacing: -0.02em;
+      margin-bottom: var(--spacing-lg);
+      color: var(--accent);
+    }
+
+    .panel {
+      background: var(--surface-2);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      border: 1px solid var(--surface-4);
+    }
+
+    .panel-title {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      margin-bottom: var(--spacing-md);
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-lg);
+      background: var(--surface-1);
+    }
+
+    #viewer3d {
+      height: 500px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--surface-3);
+      outline: none;
+      appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--surface-0);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--surface-0);
+    }
+
+    .value-display {
+      font-size: 0.875rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    button {
+      background: var(--accent);
+      color: var(--surface-0);
+      border: none;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+
+    .stat-card {
+      background: var(--surface-3);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--surface-4);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: var(--spacing-xs);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>光学镜头模拟器</h1>
+
+    <div class="panel">
+      <h2 class="panel-title">镜头结构与光路追踪</h2>
+      <canvas id="viewer3d"></canvas>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>焦距 (mm) <span class="value-display" id="focalLengthValue">50</span></label>
+          <input type="range" id="focalLength" min="20" max="200" value="50" step="5">
+        </div>
+        <div class="control-group">
+          <label>光圈 (f/) <span class="value-display" id="apertureValue">2.8</span></label>
+          <input type="range" id="aperture" min="1.4" max="16" value="2.8" step="0.2">
+        </div>
+        <div class="control-group">
+          <label>光线数量 <span class="value-display" id="rayCountValue">9</span></label>
+          <input type="range" id="rayCount" min="5" max="21" value="9" step="2">
+        </div>
+        <div class="control-group">
+          <label>视场角 (°) <span class="value-display" id="fieldAngleValue">0</span></label>
+          <input type="range" id="fieldAngle" min="-20" max="20" value="0" step="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h2 class="panel-title">像差分析</h2>
+        <canvas id="aberrationChart" width="600" height="400"></canvas>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">球差</div>
+            <div class="stat-value" id="sphericalAberration">0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">慧差</div>
+            <div class="stat-value" id="comaAberration">0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">像散</div>
+            <div class="stat-value" id="astigmatism">0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">MTF 曲线</h2>
+        <canvas id="mtfChart" width="600" height="400"></canvas>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">MTF50</div>
+            <div class="stat-value" id="mtf50">0.85</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">分辨率</div>
+            <div class="stat-value" id="resolution">120</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+// === 光学系统类 ===
+class OpticalSystem {
+  constructor() {
+    this.focalLength = 50;
+    this.aperture = 2.8;
+    this.lensElements = [];
+    this.buildLensSystem();
+  }
+
+  buildLensSystem() {
+    this.lensElements = [
+      { z: 0, radius: 25, thickness: 8, n: 1.52, curv1: 0.03, curv2: -0.02, type: 'biconvex' },
+      { z: 12, radius: 20, thickness: 3, n: 1.62, curv1: -0.025, curv2: 0.015, type: 'meniscus' },
+      { z: 18, radius: 18, thickness: 2, n: 1.0, curv1: 0, curv2: 0, type: 'aperture' },
+      { z: 24, radius: 22, thickness: 6, n: 1.58, curv1: 0.02, curv2: -0.025, type: 'biconvex' },
+      { z: 35, radius: 24, thickness: 5, n: 1.65, curv1: -0.018, curv2: 0.022, type: 'meniscus' }
+    ];
+  }
+
+  traceRay(startY, angle) {
+    let y = startY;
+    let theta = angle;
+    const path = [{ x: -20, y: startY }];
+
+    for (let elem of this.lensElements) {
+      const dist = elem.z - (path[path.length - 1].x + 20);
+      y += Math.tan(theta) * dist;
+      path.push({ x: elem.z - 20, y });
+
+      if (elem.type !== 'aperture') {
+        const n1 = path.length === 2 ? 1.0 : this.lensElements[Math.floor(path.length / 2) - 1].n || 1.0;
+        const n2 = elem.n;
+
+        const incidentAngle = theta - elem.curv1 * y;
+        const refractAngle = Math.asin((n1 / n2) * Math.sin(incidentAngle));
+        theta = refractAngle + elem.curv1 * y;
+
+        y += Math.tan(theta) * elem.thickness;
+        path.push({ x: elem.z + elem.thickness - 20, y });
+
+        const exitAngle = theta - elem.curv2 * y;
+        theta = Math.asin((n2 / 1.0) * Math.sin(exitAngle)) + elem.curv2 * y;
+      }
+    }
+
+    const finalDist = 80;
+    y += Math.tan(theta) * finalDist;
+    path.push({ x: 60, y });
+
+    return { path, finalY: y, angle: theta };
+  }
+
+  calculateAberrations(rayCount, fieldAngle) {
+    const rays = [];
+    const maxHeight = this.lensElements[0].radius * 0.8;
+
+    for (let i = 0; i < rayCount; i++) {
+      const y = (i / (rayCount - 1) - 0.5) * 2 * maxHeight;
+      const angle = fieldAngle * Math.PI / 180;
+      rays.push(this.traceRay(y, angle));
+    }
+
+    const centerY = rays[Math.floor(rayCount / 2)].finalY;
+    const deviations = rays.map(r => Math.abs(r.finalY - centerY));
+
+    const spherical = deviations.reduce((a, b) => a + b, 0) / rayCount;
+    const coma = Math.abs(fieldAngle) * spherical * 0.3;
+    const astigmatism = Math.pow(fieldAngle / 20, 2) * 2.5;
+
+    return { spherical, coma, astigmatism, rays };
+  }
+
+  calculateMTF(frequency) {
+    const aberrationEffect = Math.exp(-this.spherical * 0.1);
+    const diffraction = 1 / (1 + Math.pow(frequency / (1000 / this.aperture), 2));
+    return aberrationEffect * diffraction;
+  }
+}
+
+// === Three.js 3D 渲染器 ===
+class LensViewer3D {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(45, this.canvas.width / this.canvas.height, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+
+    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+    this.renderer.setClearColor(0x0A0D12, 1);
+
+    this.camera.position.set(0, 40, 100);
+    this.camera.lookAt(0, 0, 0);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    this.scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0x38BDF8, 0.8);
+    directionalLight.position.set(50, 50, 50);
+    this.scene.add(directionalLight);
+
+    const backLight = new THREE.DirectionalLight(0x6EE7B7, 0.3);
+    backLight.position.set(-50, 20, -50);
+    this.scene.add(backLight);
+
+    this.lensGroup = new THREE.Group();
+    this.scene.add(this.lensGroup);
+
+    this.rayGroup = new THREE.Group();
+    this.scene.add(this.rayGroup);
+
+    this.animate();
+  }
+
+  createLensElement(element, z) {
+    const segments = 32;
+    const material = new THREE.MeshPhysicalMaterial({
+      color: 0x38BDF8,
+      transparent: true,
+      opacity: 0.4,
+      metalness: 0.1,
+      roughness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.1
+    });
+
+    if (element.type === 'aperture') {
+      const geometry = new THREE.CylinderGeometry(element.radius * 0.5, element.radius * 0.5, 1, segments);
+      const aperture = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+        color: 0x1E2636,
+        metalness: 0.8,
+        roughness: 0.2
+      }));
+      aperture.rotation.z = Math.PI / 2;
+      aperture.position.x = z;
+      return aperture;
+    }
+
+    const geometry = new THREE.SphereGeometry(element.radius, segments, segments, 0, Math.PI * 2, 0, Math.PI);
+    const lens = new THREE.Mesh(geometry, material);
+    lens.rotation.z = Math.PI / 2;
+    lens.position.x = z;
+    lens.scale.x = element.thickness / element.radius;
+
+    const edgeGeometry = new THREE.TorusGeometry(element.radius, 0.3, 16, segments);
+    const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0x6EE7B7, metalness: 0.6, roughness: 0.3 });
+    const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+    edge.rotation.y = Math.PI / 2;
+    edge.position.x = z;
+
+    const group = new THREE.Group();
+    group.add(lens);
+    group.add(edge);
+    return group;
+  }
+
+  updateLenses(opticalSystem) {
+    this.lensGroup.clear();
+
+    opticalSystem.lensElements.forEach(elem => {
+      const lensObj = this.createLensElement(elem, elem.z - 20);
+      this.lensGroup.add(lensObj);
+    });
+
+    const axisGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-30, 0, 0),
+      new THREE.Vector3(70, 0, 0)
+    ]);
+    const axisMaterial = new THREE.LineBasicMaterial({ color: 0x4B5563, linewidth: 1 });
+    const axis = new THREE.Line(axisGeometry, axisMaterial);
+    this.lensGroup.add(axis);
+  }
+
+  updateRays(rays) {
+    this.rayGroup.clear();
+
+    rays.forEach((ray, idx) => {
+      const points = ray.path.map(p => new THREE.Vector3(p.x, p.y, 0));
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+      const hue = (idx / rays.length) * 0.6;
+      const color = new THREE.Color().setHSL(0.5 + hue * 0.3, 0.8, 0.6);
+      const material = new THREE.LineBasicMaterial({ color, linewidth: 2, opacity: 0.8, transparent: true });
+
+      const line = new THREE.Line(geometry, material);
+      this.rayGroup.add(line);
+    });
+  }
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    this.lensGroup.rotation.y += 0.002;
+    this.renderer.render(this.scene, this.camera);
+  }
+}
+
+// === 像差图表渲染器 ===
+class AberrationChart {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
+  }
+
+  clear() {
+    this.ctx.fillStyle = '#0A0D12';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+  }
+
+  drawGrid() {
+    this.ctx.strokeStyle = '#1E2636';
+    this.ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 10; i++) {
+      const x = (this.width * 0.1) + (this.width * 0.8 * i / 10);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, this.height * 0.1);
+      this.ctx.lineTo(x, this.height * 0.9);
+      this.ctx.stroke();
+
+      const y = this.height * 0.1 + (this.height * 0.8 * i / 10);
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.width * 0.1, y);
+      this.ctx.lineTo(this.width * 0.9, y);
+      this.ctx.stroke();
+    }
+
+    this.ctx.strokeStyle = '#38BDF8';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.width * 0.1, this.height * 0.5);
+    this.ctx.lineTo(this.width * 0.9, this.height * 0.5);
+    this.ctx.stroke();
+  }
+
+  drawSpotDiagram(rays) {
+    this.clear();
+    this.drawGrid();
+
+    const centerX = this.width * 0.5;
+    const centerY = this.height * 0.5;
+    const scale = 8;
+
+    this.ctx.fillStyle = '#38BDF8';
+    rays.forEach(ray => {
+      const x = centerX + ray.finalY * scale;
+      const y = centerY + ray.angle * 1000 * scale;
+
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, 3, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+
+    this.ctx.strokeStyle = '#6EE7B7';
+    this.ctx.lineWidth = 2;
+    this.ctx.setLineDash([5, 5]);
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+
+    this.ctx.fillStyle = '#9CA3AF';
+    this.ctx.font = '12px var(--font-body)';
+    this.ctx.fillText('点列图 (Spot Diagram)', this.width * 0.1, this.height * 0.05);
+    this.ctx.fillText('理想聚焦', centerX - 30, centerY + 50);
+  }
+
+  drawFieldCurvature(aberrations) {
+    this.clear();
+    this.drawGrid();
+
+    const points = [];
+    for (let field = -20; field <= 20; field += 2) {
+      const coma = Math.abs(field) * 0.05;
+      const astig = Math.pow(field / 20, 2) * 3;
+      points.push({ field, value: coma + astig });
+    }
+
+    this.ctx.strokeStyle = '#38BDF8';
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+
+    points.forEach((p, i) => {
+      const x = this.width * 0.1 + (this.width * 0.8) * (p.field + 20) / 40;
+      const y = this.height * 0.9 - (this.height * 0.8) * (p.value / 5);
+
+      if (i === 0) this.ctx.moveTo(x, y);
+      else this.ctx.lineTo(x, y);
+    });
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = '#9CA3AF';
+    this.ctx.font = '12px var(--font-body)';
+    this.ctx.fillText('场曲 (Field Curvature)', this.width * 0.1, this.height * 0.05);
+    this.ctx.fillText('视场角 (°)', this.width * 0.5 - 30, this.height * 0.95);
+
+    this.ctx.save();
+    this.ctx.translate(this.width * 0.05, this.height * 0.5);
+    this.ctx.rotate(-Math.PI / 2);
+    this.ctx.fillText('像差 (μm)', 0, 0);
+    this.ctx.restore();
+  }
+}
+
+// === MTF 图表渲染器 ===
+class MTFChart {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
+  }
+
+  clear() {
+    this.ctx.fillStyle = '#0A0D12';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+  }
+
+  drawGrid() {
+    this.ctx.strokeStyle = '#1E2636';
+    this.ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 10; i++) {
+      const x = (this.width * 0.1) + (this.width * 0.8 * i / 10);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, this.height * 0.1);
+      this.ctx.lineTo(x, this.height * 0.9);
+      this.ctx.stroke();
+
+      const y = this.height * 0.1 + (this.height * 0.8 * i / 10);
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.width * 0.1, y);
+      this.ctx.lineTo(this.width * 0.9, y);
+      this.ctx.stroke();
+    }
+  }
+
+  drawMTF(opticalSystem) {
+    this.clear();
+    this.drawGrid();
+
+    const maxFreq = 200;
+    const sagittal = [];
+    const tangential = [];
+
+    for (let freq = 0; freq <= maxFreq; freq += 2) {
+      const mtf = opticalSystem.calculateMTF(freq);
+      sagittal.push({ freq, mtf });
+      tangential.push({ freq, mtf: mtf * 0.9 });
+    }
+
+    this.drawCurve(sagittal, '#38BDF8', '径向');
+    this.drawCurve(tangential, '#6EE7B7', '切向');
+
+    this.ctx.strokeStyle = '#E5E7EB';
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([3, 3]);
+    const mtf50y = this.height * 0.9 - (this.height * 0.8 * 0.5);
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.width * 0.1, mtf50y);
+    this.ctx.lineTo(this.width * 0.9, mtf50y);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+
+    this.ctx.fillStyle = '#9CA3AF';
+    this.ctx.font = '12px var(--font-body)';
+    this.ctx.fillText('MTF 曲线', this.width * 0.1, this.height * 0.05);
+    this.ctx.fillText('空间频率 (lp/mm)', this.width * 0.5 - 50, this.height * 0.95);
+
+    this.ctx.save();
+    this.ctx.translate(this.width * 0.05, this.height * 0.5);
+    this.ctx.rotate(-Math.PI / 2);
+    this.ctx.fillText('对比度', 0, 0);
+    this.ctx.restore();
+
+    this.ctx.fillStyle = '#38BDF8';
+    this.ctx.fillRect(this.width * 0.7, this.height * 0.15, 15, 3);
+    this.ctx.fillStyle = '#9CA3AF';
+    this.ctx.fillText('径向', this.width * 0.7 + 20, this.height * 0.17);
+
+    this.ctx.fillStyle = '#6EE7B7';
+    this.ctx.fillRect(this.width * 0.7, this.height * 0.19, 15, 3);
+    this.ctx.fillStyle = '#9CA3AF';
+    this.ctx.fillText('切向', this.width * 0.7 + 20, this.height * 0.21);
+  }
+
+  drawCurve(data, color, label) {
+    const maxFreq = 200;
+
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+
+    data.forEach((point, i) => {
+      const x = this.width * 0.1 + (this.width * 0.8) * (point.freq / maxFreq);
+      const y = this.height * 0.9 - (this.height * 0.8) * point.mtf;
+
+      if (i === 0) this.ctx.moveTo(x, y);
+      else this.ctx.lineTo(x, y);
+    });
+
+    this.ctx.stroke();
+  }
+}
+
+// === 主应用 ===
+const opticalSystem = new OpticalSystem();
+const viewer3d = new LensViewer3D('viewer3d');
+const aberrationChart = new AberrationChart('aberrationChart');
+const mtfChart = new MTFChart('mtfChart');
+
+function updateSimulation() {
+  opticalSystem.focalLength = parseFloat(document.getElementById('focalLength').value);
+  opticalSystem.aperture = parseFloat(document.getElementById('aperture').value);
+  const rayCount = parseInt(document.getElementById('rayCount').value);
+  const fieldAngle = parseFloat(document.getElementById('fieldAngle').value);
+
+  document.getElementById('focalLengthValue').textContent = opticalSystem.focalLength;
+  document.getElementById('apertureValue').textContent = opticalSystem.aperture.toFixed(1);
+  document.getElementById('rayCountValue').textContent = rayCount;
+  document.getElementById('fieldAngleValue').textContent = fieldAngle;
+
+  const result = opticalSystem.calculateAberrations(rayCount, fieldAngle);
+
+  viewer3d.updateLenses(opticalSystem);
+  viewer3d.updateRays(result.rays);
+
+  aberrationChart.drawSpotDiagram(result.rays);
+  mtfChart.drawMTF(opticalSystem);
+
+  document.getElementById('sphericalAberration').textContent = result.spherical.toFixed(2);
+  document.getElementById('comaAberration').textContent = result.coma.toFixed(2);
+  document.getElementById('astigmatism').textContent = result.astigmatism.toFixed(2);
+
+  const mtf50 = opticalSystem.calculateMTF(50);
+  document.getElementById('mtf50').textContent = mtf50.toFixed(2);
+  document.getElementById('resolution').textContent = Math.floor(mtf50 * 150);
+
+  opticalSystem.spherical = result.spherical;
+}
+
+document.getElementById('focalLength').addEventListener('input', updateSimulation);
+document.getElementById('aperture').addEventListener('input', updateSimulation);
+document.getElementById('rayCount').addEventListener('input', updateSimulation);
+document.getElementById('fieldAngle').addEventListener('input', updateSimulation);
+
+window.addEventListener('resize', () => {
+  viewer3d.renderer.setSize(viewer3d.canvas.clientWidth, viewer3d.canvas.clientHeight);
+  viewer3d.camera.aspect = viewer3d.canvas.clientWidth / viewer3d.canvas.clientHeight;
+  viewer3d.camera.updateProjectionMatrix();
+});
+
+updateSimulation();
+
+  </script>
+</body>
+</html>

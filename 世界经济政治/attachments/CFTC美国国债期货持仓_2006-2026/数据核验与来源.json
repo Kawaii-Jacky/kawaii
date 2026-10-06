@@ -1,0 +1,120 @@
+{
+  "retrieved_at": "2026-10-03T15:59:58.238159+00:00",
+  "cutoff": "2026-10-03",
+  "query_url": "https://publicreporting.cftc.gov/resource/gpe5-46if.csv?%24where=commodity_subgroup_name%3D%27Interest+Rates+-+U.S.+Treasury%27+AND+report_date_as_yyyy_mm_dd+%3C%3D+%272026-10-03T23%3A59%3A59%27&%24order=report_date_as_yyyy_mm_dd%2Ccftc_contract_market_code&%24limit=50000",
+  "raw_sha256": "fbdd355c9a84447c6e653fc83a57c747a59d9c8b0f5d5942ba4a9310fdf29847",
+  "raw_rows": 5921,
+  "included_rows": 5656,
+  "raw_report_dates": 1060,
+  "weekly_rows": 1058,
+  "first_date": "2006-06-13",
+  "last_date": "2026-09-29",
+  "latest": {
+    "date": "2026-09-29",
+    "contracts_included": 6,
+    "asset_manager_net_usd": 1087156500000,
+    "asset_manager_net_usd_bn": 1087.1565,
+    "other_reportables_net_usd": 13751300000,
+    "other_reportables_net_usd_bn": 13.7513,
+    "leveraged_money_net_usd": -774291500000,
+    "leveraged_money_net_usd_bn": -774.2915,
+    "dealer_net_usd": -348749100000,
+    "dealer_net_usd_bn": -348.7491,
+    "nonreportable_net_usd": 22132800000,
+    "nonreportable_net_usd_bn": 22.1328
+  },
+  "coverage": [
+    {
+      "contract_code": "020601",
+      "contract_name_zh": "传统长期国债",
+      "face_value_usd": 100000,
+      "first_date": "2006-06-13",
+      "last_date": "2026-09-29",
+      "rows": 1060
+    },
+    {
+      "contract_code": "020604",
+      "contract_name_zh": "超长期国债",
+      "face_value_usd": 100000,
+      "first_date": "2010-03-02",
+      "last_date": "2026-09-29",
+      "rows": 866
+    },
+    {
+      "contract_code": "042601",
+      "contract_name_zh": "2年期国债",
+      "face_value_usd": 200000,
+      "first_date": "2006-06-13",
+      "last_date": "2026-09-29",
+      "rows": 1060
+    },
+    {
+      "contract_code": "043602",
+      "contract_name_zh": "10年期国债",
+      "face_value_usd": 100000,
+      "first_date": "2006-06-13",
+      "last_date": "2026-09-29",
+      "rows": 1060
+    },
+    {
+      "contract_code": "043607",
+      "contract_name_zh": "超10年期国债",
+      "face_value_usd": 100000,
+      "first_date": "2016-03-08",
+      "last_date": "2026-09-29",
+      "rows": 550
+    },
+    {
+      "contract_code": "044601",
+      "contract_name_zh": "5年期国债",
+      "face_value_usd": 100000,
+      "first_date": "2006-06-13",
+      "last_date": "2026-09-29",
+      "rows": 1060
+    }
+  ],
+  "excluded": [
+    [
+      "04360Y",
+      "MICRO 10 YEAR YIELD",
+      "(1000 x Index Points)"
+    ],
+    [
+      "04360Y",
+      "MICRO 10 YEAR YIELD",
+      "1000 x Index Points"
+    ],
+    [
+      "045L2T",
+      "DTCC Repo-US Treasury <30 YR",
+      "'(CONTRACTS OF $5,000,000)'"
+    ]
+  ],
+  "gaps_over_eight_days": [
+    {
+      "previous": "2016-03-08",
+      "next": "2016-03-22",
+      "days": 14
+    },
+    {
+      "previous": "2016-03-22",
+      "next": "2016-04-05",
+      "days": 14
+    }
+  ],
+  "net_positions_zero_sum": true,
+  "incomplete_dates_omitted_from_aggregate": [
+    {
+      "date": "2016-03-15",
+      "missing_codes": [
+        "043607"
+      ]
+    },
+    {
+      "date": "2016-03-29",
+      "missing_codes": [
+        "043607"
+      ]
+    }
+  ]
+}
