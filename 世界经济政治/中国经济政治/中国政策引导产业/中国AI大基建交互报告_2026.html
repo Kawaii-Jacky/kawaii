@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>算力为基 · 机器为躯 —— 中国 AI 大基建交互报告（2024–2026）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --bg2:#0d1117; --panel:#10161f; --panel2:#131b26;
+  --line:rgba(120,150,180,.14); --line2:rgba(34,211,238,.22);
+  --cyan:#22d3ee; --cyan-dim:#0e7490; --gold:#f0b429; --gold-dim:#b8860b;
+  --red:#ef4444; --green:#34d399; --violet:#a78bfa; --pink:#f472b6;
+  --ink:#e6edf3; --muted:#8b98a9; --faint:#5b6a7d;
+  --serif:'Noto Serif SC',serif; --sans:'Noto Sans SC',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-weight:300; line-height:1.85; overflow-x:hidden;
+  background-image:
+    linear-gradient(rgba(34,211,238,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(34,211,238,.035) 1px,transparent 1px);
+  background-size:56px 56px;
+}
+::selection{background:rgba(34,211,238,.28)}
+a{color:var(--cyan);text-decoration:none}
+.num, .stat-num, .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ============ HERO ============ */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(34,211,238,.07),transparent 60%),
+             radial-gradient(ellipse 60% 50% at 80% 90%,rgba(240,180,41,.05),transparent 60%);}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.55}
+.hero-inner{position:relative;z-index:2;text-align:center;padding:80px 24px 60px;width:100%}
+.hero-kicker{font-family:var(--sans);letter-spacing:.55em;color:var(--gold);font-size:14px;font-weight:500;margin-bottom:26px}
+.hero-title{font-family:var(--serif);font-weight:900;font-size:clamp(44px,7.2vw,96px);line-height:1.18;letter-spacing:.06em;
+  background:linear-gradient(135deg,#f5fbff 20%,var(--cyan) 55%,var(--gold) 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero-title2{font-family:var(--serif);font-weight:900;font-size:clamp(20px,2.6vw,34px);color:var(--ink);letter-spacing:.35em;margin-top:22px}
+.hero-sub{margin-top:26px;color:var(--muted);font-size:clamp(13px,1.3vw,16px);letter-spacing:.28em}
+.hero-sub b{color:var(--cyan);font-weight:500}
+.hero-date{margin-top:34px;display:flex;align-items:center;justify-content:center;gap:18px;color:var(--faint);font-size:14px;letter-spacing:.3em}
+.hero-date::before,.hero-date::after{content:"";width:70px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));display:block}
+.hero-date::after{background:linear-gradient(90deg,var(--gold),transparent)}
+.vside{position:absolute;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-family:var(--serif);font-weight:700;
+  font-size:clamp(18px,2vw,28px);letter-spacing:.9em;color:rgba(230,237,243,.14);z-index:1;user-select:none}
+.vside.l{left:3.2vw}.vside.r{right:3.2vw;color:rgba(34,211,238,.16)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1080px;margin:64px auto 0;position:relative;z-index:2}
+.stat-card{background:linear-gradient(160deg,rgba(19,27,38,.85),rgba(13,17,23,.9));border:1px solid var(--line);border-top:2px solid var(--cyan);
+  padding:26px 18px 22px;text-align:left;position:relative;transition:transform .35s,border-color .35s;backdrop-filter:blur(4px)}
+.stat-card:hover{transform:translateY(-6px);border-top-color:var(--gold)}
+.stat-card:nth-child(2){border-top-color:var(--gold)} .stat-card:nth-child(2):hover{border-top-color:var(--cyan)}
+.stat-num{font-size:clamp(30px,3.2vw,46px);font-weight:700;color:#fff;line-height:1.1;font-family:var(--sans)}
+.stat-num .unit{font-size:.42em;color:var(--gold);font-weight:500;margin-left:4px;letter-spacing:.05em}
+.stat-label{margin-top:10px;font-size:14px;color:var(--ink);font-weight:500;letter-spacing:.06em}
+.stat-src{margin-top:6px;font-size:11.5px;color:var(--faint);line-height:1.6}
+.scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--faint);font-size:12px;letter-spacing:.4em;z-index:2;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,9px)}}
+
+/* ============ SECTIONS ============ */
+section.chapter{padding:110px 0 70px;position:relative}
+.sec-head{display:flex;align-items:flex-start;gap:26px;margin-bottom:14px}
+.sec-no{writing-mode:vertical-rl;font-family:var(--serif);font-weight:900;font-size:44px;color:var(--gold);line-height:1;
+  border:1px solid rgba(240,180,41,.4);padding:14px 8px;background:rgba(240,180,41,.05)}
+.sec-title{font-family:var(--serif);font-weight:900;font-size:clamp(28px,3.6vw,46px);letter-spacing:.1em;line-height:1.25}
+.sec-title small{display:block;font-family:var(--sans);font-weight:400;font-size:13px;letter-spacing:.3em;color:var(--cyan);margin-top:10px}
+.sec-rule{height:1px;background:linear-gradient(90deg,var(--gold),rgba(240,180,41,.06) 60%,transparent);margin:26px 0 40px}
+.lede{color:var(--muted);font-size:15.5px;max-width:860px;margin-bottom:36px}
+.lede b,.lede strong{color:var(--ink);font-weight:500}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.22,.7,.3,1),transform .8s cubic-bezier(.22,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.src{color:var(--faint);font-size:.82em;font-style:normal}
+.src::before{content:"（"} .src::after{content:"）"}
+
+/* panels & charts */
+.panel{background:linear-gradient(170deg,var(--panel),var(--bg2));border:1px solid var(--line);padding:26px 26px 18px;position:relative}
+.panel::before{content:"";position:absolute;top:0;left:0;width:44px;height:2px;background:var(--cyan)}
+.panel.gold::before{background:var(--gold)}
+.panel h4{font-family:var(--serif);font-weight:700;font-size:19px;letter-spacing:.08em;margin-bottom:4px}
+.panel .sub{font-size:12.5px;color:var(--faint);margin-bottom:10px}
+.chart{width:100%;height:400px}
+.chart-tall{height:460px}
+.chart-sm{height:320px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pillar-tag{display:inline-block;font-size:12px;letter-spacing:.35em;color:var(--gold);border:1px solid rgba(240,180,41,.4);padding:5px 14px 4px 18px;margin:54px 0 20px}
+.pillar-title{font-family:var(--serif);font-weight:900;font-size:clamp(22px,2.6vw,32px);letter-spacing:.12em;margin-bottom:8px}
+.pillar-title em{font-style:normal;color:var(--cyan)}
+.note{font-size:12.5px;color:var(--faint);line-height:1.7;margin-top:8px}
+.note::before{content:"※ ";color:var(--gold)}
+.krow{display:flex;flex-wrap:wrap;gap:14px;margin:18px 0 6px}
+.kchip{border:1px solid var(--line);background:rgba(19,27,38,.6);padding:12px 18px;min-width:150px;flex:1}
+.kchip .kv{font-size:24px;font-weight:700;color:var(--cyan)}
+.kchip .kv.g{color:var(--gold)} .kchip .kv.r{color:var(--red)}
+.kchip .kl{font-size:12px;color:var(--muted);margin-top:2px}
+</style>
+<style>
+/* ============ TIMELINE ============ */
+.tl-wrap{position:relative;margin-top:10px}
+.tl-hint{font-size:12px;color:var(--faint);letter-spacing:.2em;margin-bottom:14px}
+.tl-scroll{overflow-x:auto;cursor:grab;padding:34px 6px 20px;scrollbar-width:thin;scrollbar-color:var(--cyan-dim) transparent}
+.tl-scroll.grabbing{cursor:grabbing}
+.tl-track{display:flex;gap:0;min-width:max-content;position:relative;padding-top:10px}
+.tl-track::before{content:"";position:absolute;left:0;right:0;top:14px;height:1px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--cyan));opacity:.5}
+.tl-node{width:230px;flex:0 0 auto;position:relative;padding:26px 18px 0 0}
+.tl-dot{position:absolute;top:8px;left:0;width:13px;height:13px;border-radius:50%;border:2px solid var(--cyan);background:var(--bg);transition:all .3s}
+.tl-node:hover .tl-dot,.tl-node.active .tl-dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 14px rgba(240,180,41,.7)}
+.tl-date{font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:.08em}
+.tl-node:hover .tl-date,.tl-node.active .tl-date{color:var(--gold)}
+.tl-cap{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;padding-right:8px}
+.tl-node.active .tl-cap{color:var(--ink)}
+.tl-detail{margin-top:26px;border:1px solid var(--line2);background:linear-gradient(160deg,rgba(34,211,238,.06),rgba(13,17,23,.9));padding:24px 28px;min-height:120px}
+.tl-detail h5{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:8px}
+.tl-detail p{font-size:14.5px;color:var(--ink);max-width:920px}
+.tl-detail .tag{display:inline-block;font-size:11px;color:var(--cyan);border:1px solid var(--line2);padding:1px 10px;margin-right:8px;letter-spacing:.15em}
+
+/* ============ GLOSSARY ============ */
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.gcard{perspective:1200px;height:250px;cursor:pointer}
+.gcard-in{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.3,.7,.3,1);transform-style:preserve-3d}
+.gcard.flipped .gcard-in{transform:rotateY(180deg)}
+.gface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--line);padding:24px;display:flex;flex-direction:column;justify-content:center}
+.gface.front{background:linear-gradient(160deg,var(--panel2),var(--bg2));align-items:center;text-align:center}
+.gface.front .gt{font-family:var(--serif);font-weight:900;font-size:26px;letter-spacing:.15em;color:var(--ink)}
+.gface.front .ge{font-size:12px;color:var(--cyan);letter-spacing:.25em;margin-top:10px}
+.gface.front .gflip{position:absolute;bottom:14px;font-size:11px;color:var(--faint);letter-spacing:.2em}
+.gface.back{background:linear-gradient(160deg,rgba(34,211,238,.09),var(--bg2));transform:rotateY(180deg);border-color:var(--line2)}
+.gface.back p{font-size:13px;color:var(--ink);line-height:1.8}
+.gface.back .gs{margin-top:8px;font-size:11px;color:var(--faint)}
+.gcard:hover .gface.front{border-color:var(--gold)}
+
+/* ============ FORMULA & CHAIN ============ */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.fcard{border:1px solid var(--line);background:linear-gradient(165deg,var(--panel),var(--bg2));padding:26px}
+.fcard h5{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:14px}
+.fcard .katex-box{background:rgba(10,14,20,.7);border:1px solid var(--line2);padding:18px 14px;text-align:center;font-size:19px;overflow-x:auto}
+.fcard .fnote{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.75}
+.fcard .fnote b{color:var(--cyan);font-weight:500}
+.chain{display:flex;align-items:stretch;gap:0;margin-top:8px;flex-wrap:nowrap}
+.chain-node{flex:1;border:1px solid var(--line);background:var(--panel);padding:20px 14px;text-align:center;cursor:pointer;position:relative;transition:all .3s;min-width:0}
+.chain-node:not(:last-child){margin-right:26px}
+.chain-node:not(:last-child)::after{content:"";position:absolute;right:-22px;top:50%;transform:translateY(-50%);width:18px;height:18px;
+  background:linear-gradient(135deg,transparent 46%,var(--cyan) 46%,var(--cyan) 54%,transparent 54%);opacity:.7}
+.chain-node .cn-i{font-family:var(--serif);font-size:13px;color:var(--gold);letter-spacing:.2em}
+.chain-node .cn-t{font-size:14.5px;font-weight:500;margin-top:6px;line-height:1.5}
+.chain-node:hover{border-color:var(--cyan)}
+.chain-node.active{border-color:var(--gold);background:linear-gradient(170deg,rgba(240,180,41,.1),var(--bg2));box-shadow:0 0 22px rgba(240,180,41,.12)}
+.chain-detail{margin-top:20px;border-left:3px solid var(--gold);background:rgba(19,27,38,.7);padding:20px 24px;font-size:14px;min-height:96px}
+.chain-detail h6{font-size:15px;color:var(--gold);font-weight:700;margin-bottom:6px;letter-spacing:.08em}
+.chain-detail p{color:var(--ink)}
+
+/* ============ SANDBOX ============ */
+.sandbox{display:grid;grid-template-columns:minmax(300px,5fr) 7fr;gap:26px;align-items:stretch}
+.sb-controls{border:1px solid var(--line);background:var(--panel);padding:28px}
+.sb-controls h5{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--cyan);margin-bottom:20px;letter-spacing:.08em}
+.ctl{margin-bottom:26px}
+.ctl label{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-bottom:10px}
+.ctl label output{color:var(--gold);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--cyan) var(--fill,50%),#1e293b var(--fill,50%));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);border:3px solid #0a0e14;box-shadow:0 0 0 2px var(--gold);cursor:grab}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--gold);border:3px solid #0a0e14;box-shadow:0 0 0 2px var(--gold);cursor:grab}
+.sb-out{border:1px solid var(--line2);background:linear-gradient(170deg,rgba(34,211,238,.05),var(--bg2));padding:26px 30px;display:flex;flex-direction:column}
+.sb-nums{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}
+.sb-num{flex:1;min-width:170px}
+.sb-num .v{font-size:clamp(26px,2.6vw,38px);font-weight:700;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums}
+.sb-num .v span{font-size:.45em;color:var(--cyan);font-weight:500;margin-left:3px}
+.sb-num .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+.sb-chart{flex:1;min-height:210px}
+.sb-warn{font-size:12px;color:var(--faint);border-top:1px dashed var(--line);padding-top:12px;margin-top:6px;line-height:1.7}
+.sb-warn b{color:var(--red);font-weight:500}
+
+/* ============ FUTURE ============ */
+.mile{position:relative;padding-left:56px}
+.mile::before{content:"";position:absolute;left:20px;top:52px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--gold),var(--cyan),rgba(34,211,238,.1))}
+.rocket{position:absolute;left:2px;top:0;width:38px;height:44px}
+.mile-item{position:relative;margin-bottom:34px}
+.mile-item::before{content:"";position:absolute;left:-43px;top:8px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--gold);box-shadow:0 0 12px rgba(240,180,41,.5)}
+.mile-item.c2::before{border-color:var(--cyan);box-shadow:0 0 12px rgba(34,211,238,.5)}
+.mile-item.c3::before{border-color:var(--red);box-shadow:0 0 12px rgba(239,68,68,.5)}
+.mile-card{border:1px solid var(--line);background:linear-gradient(165deg,var(--panel2),var(--bg2));padding:22px 26px;transition:transform .3s,border-color .3s}
+.mile-card:hover{transform:translateX(8px);border-color:var(--gold)}
+.mile-year{font-family:var(--serif);font-size:24px;font-weight:900;color:var(--gold);letter-spacing:.1em}
+.mile-item.c2 .mile-year{color:var(--cyan)} .mile-item.c3 .mile-year{color:var(--red)}
+.mile-card h5{font-size:16px;font-weight:500;margin:6px 0 6px;letter-spacing:.04em}
+.mile-card p{font-size:13.5px;color:var(--muted)}
+
+/* ============ SOURCES / DETAILS ============ */
+details.fold{border:1px solid var(--line);background:var(--panel);margin-bottom:14px}
+details.fold summary{cursor:pointer;list-style:none;padding:18px 24px;font-family:var(--serif);font-weight:700;font-size:16.5px;letter-spacing:.08em;color:var(--gold);display:flex;justify-content:space-between;align-items:center}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold summary::after{content:"＋";color:var(--cyan);font-size:18px;transition:transform .3s}
+details.fold[open] summary::after{transform:rotate(45deg)}
+details.fold .fold-body{padding:4px 24px 22px;font-size:13.5px;color:var(--muted);line-height:1.9}
+details.fold .fold-body b{color:var(--ink);font-weight:500}
+details.fold ul{list-style:none}
+details.fold li{padding:6px 0 6px 20px;position:relative;border-bottom:1px dashed rgba(120,150,180,.1)}
+details.fold li::before{content:"▸";position:absolute;left:0;color:var(--cyan)}
+
+/* ============ FOOTER ============ */
+footer{border-top:1px solid var(--line);margin-top:60px;padding:56px 0 70px;text-align:center;position:relative}
+.seal{display:inline-flex;align-items:center;justify-content:center;width:96px;height:96px;border:3px solid var(--red);color:var(--red);
+  font-family:var(--serif);font-weight:900;font-size:24px;line-height:1.3;letter-spacing:.1em;transform:rotate(-4deg);
+  writing-mode:vertical-rl;border-radius:6px;box-shadow:0 0 24px rgba(239,68,68,.18),inset 0 0 18px rgba(239,68,68,.12);margin-bottom:22px}
+footer .fline{color:var(--faint);font-size:12.5px;letter-spacing:.25em;margin-top:8px}
+footer .ftitle{font-family:'ZCOOL XiaoWei',var(--serif);font-size:20px;color:var(--muted);letter-spacing:.4em}
+
+.cold{border:1px solid rgba(167,139,250,.35);background:linear-gradient(165deg,rgba(167,139,250,.07),var(--bg2));padding:24px 26px}
+.cold h5{color:var(--violet);font-family:var(--serif);font-size:17px;font-weight:700;letter-spacing:.1em;margin-bottom:10px}
+.cold h5::before{content:"❄ ";font-size:14px}
+.cold p{font-size:13.5px;color:var(--muted);margin-bottom:8px}
+.cold b{color:var(--ink);font-weight:500}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:960px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .grid2,.grid3,.fgrid,.ggrid{grid-template-columns:1fr}
+  .sandbox{grid-template-columns:1fr}
+  .chain{flex-direction:column}
+  .chain-node:not(:last-child){margin-right:0;margin-bottom:26px}
+  .chain-node:not(:last-child)::after{right:auto;left:50%;top:auto;bottom:-22px;transform:translateX(-50%) rotate(90deg)}
+  .vside{display:none}
+  .gcard{height:280px}
+}
+@media (max-width:560px){
+  .stat-grid{grid-template-columns:1fr}
+  .sec-no{font-size:32px}
+  .hero-kicker{letter-spacing:.3em}
+  .hero-title{font-size:33px;letter-spacing:.02em}
+  .hero-title2{letter-spacing:.18em}
+  .chart{height:340px}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="vside l">算力为基</div>
+  <div class="vside r">机器为躯</div>
+  <div class="hero-inner">
+    <div class="hero-kicker">中国 AI 大基建交互报告 · 2024–2026</div>
+    <h1 class="hero-title">算力为基 · 机器为躯</h1>
+    <div class="hero-title2">中 国 A I 大 基 建 交 互 报 告</div>
+    <div class="hero-sub"><b>政策</b> · <b>资本</b> · <b>算力</b> · <b>机器</b> · <b>出口</b> · <b>未来</b></div>
+    <div class="hero-date">二〇二六年十月 谨制</div>
+    <div class="stat-grid">
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="1.2" data-dec="1">0</span><span class="unit">万亿元</span></div>
+        <div class="stat-label">AI 核心产业规模</div>
+        <div class="stat-src">2025 年“突破 1.2 万亿” · 信通院口径</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="1590" data-dec="0">0</span><span class="unit">EFLOPS</span></div>
+        <div class="stat-label">智能算力规模</div>
+        <div class="stat-src">2025 年底 · 国家数据局《数字中国发展报告(2025)》· FP16 口径</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="77.3" data-dec="1">0</span><span class="unit">万套</span></div>
+        <div class="stat-label">工业机器人产量</div>
+        <div class="stat-src">2025 年 · 国家统计局 · 同比 +28.0%</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="600.6" data-dec="1">0</span><span class="unit">亿元</span></div>
+        <div class="stat-label">国家 AI 产业投资基金</div>
+        <div class="stat-src">2025 年 1 月设立 · 存续 13 年 · 落户上海</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">向下滚动 ▾</div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= 壹 · 政策经纬 ================= -->
+<section class="chapter" id="ch1">
+  <div class="sec-head reveal">
+    <div class="sec-no">壹</div>
+    <h2 class="sec-title">政策经纬<small>POLICY · 从“东数西算”到“智能经济新形态”</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">四年之间，中国 AI 大基建完成了一次从<b>工程布局</b>（东数西算）到<b>国家战略</b>（“人工智能+”入政府工作报告、写入“十五五”规划建议）再到<b>经济形态</b>（“打造智能经济新形态”）的三级跳。以下时间线收录 14 个关键节点，<b>点击任一节点</b>可展开详情。</p>
+  <div class="tl-wrap reveal">
+    <div class="tl-hint">◀ 按住左右拖拽 · 点击节点展开详情 ▶</div>
+    <div class="tl-scroll" id="tlScroll"><div class="tl-track" id="tlTrack"></div></div>
+    <div class="tl-detail" id="tlDetail"></div>
+  </div>
+</section>
+
+<!-- ================= 贰 · 三支柱现状 ================= -->
+<section class="chapter" id="ch2">
+  <div class="sec-head reveal">
+    <div class="sec-no">贰</div>
+    <h2 class="sec-title">三支柱现状<small>THREE PILLARS · 投资 × 机器人 × 算力</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">中国 AI 大基建由三根支柱支撑：<b>资本</b>决定能烧多久，<b>机器</b>决定落地多深，<b>算力</b>决定天花板多高。三者互为表里，构成本报告的主体事实层。</p>
+
+  <!-- (a) AI投资 -->
+  <div class="pillar-tag reveal">支柱 Ⅰ</div>
+  <h3 class="pillar-title reveal"><em>AI 投资</em> · 国家意志与民间资本的双重加码</h3>
+  <p class="lede reveal">2025 年，中国 AI 核心产业规模<b>突破 1.2 万亿元</b>（信通院，2026-01 盘点）；AI 企业超过 <b>6000 家</b>；生成式 AI 用户达 <b>5.15 亿</b>（CNNIC，2025-06）；完成备案的大模型 <b>538 款</b>（2025-08）。资本端则呈现“国家队 + 地方队 + 巨头”三层结构。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>AI 核心产业规模</h4><div class="sub">单位：万亿元 · 信通院口径</div><div id="chAiScale" class="chart chart-sm"></div></div>
+    <div class="panel gold reveal"><h4>AI 一级市场投融资额</h4><div class="sub">单位：亿元 · 注意宽窄口径差异</div><div id="chAiFunding" class="chart chart-sm"></div></div>
+  </div>
+  <div class="note reveal">2024 年约 1052.5 亿元为 IT 桔子窄口径统计，2025 年约 4759 亿元为更宽口径统计，2026 上半年 3076.8 亿元已超 2025 全年（宽口径）。三年数据口径不一，<b>不可直接连线比较增速</b>，仅反映量级跃迁。</div>
+  <div class="panel reveal" style="margin-top:22px"><h4>资本分层：从国家基金到企业资本开支</h4><div class="sub">单位：亿元 · 各主体口径与期限不同，图中以标签注明</div><div id="chCapital" class="chart chart-sm"></div></div>
+  <div class="krow reveal">
+    <div class="kchip"><div class="kv g">600.6 亿</div><div class="kl">国家 AI 产业投资基金 · 2025-01 设立 · 存续 13 年</div></div>
+    <div class="kchip"><div class="kv">1000 亿</div><div class="kl">北京市级 AI 产业基金等地方基金代表</div></div>
+    <div class="kchip"><div class="kv g">3800 亿</div><div class="kl">阿里巴巴 3 年云与 AI 硬件基建投入（民企史上最大，2025-02 宣布）</div></div>
+    <div class="kchip"><div class="kv">792 亿</div><div class="kl">腾讯 2025 年资本开支</div></div>
+    <div class="kchip"><div class="kv g">378 亿</div><div class="kl">中国移动 2026 年算力网络投资计划 · 同比 +62.4%</div></div>
+  </div>
+
+  <!-- (b) 机器人 -->
+  <div class="pillar-tag reveal">支柱 Ⅱ</div>
+  <h3 class="pillar-title reveal"><em>机器人</em> · 产量、装机与“人形元年”</h3>
+  <p class="lede reveal">2025 年中国工业机器人产量 <b>77.3 万套</b>、同比 <b>+28.0%</b>（国家统计局）；2024 年装机 29.5 万台、占全球 <b>54%</b>，2025 年装机 35.4 万台、占比升至 <b>59%</b>（IFR）；在役存量 <b>202.7 万台</b>，约为美国的 5 倍。2025 年更被普遍视为<b>人形机器人量产元年</b>。</p>
+  <div class="grid3">
+    <div class="panel reveal"><h4>工业机器人产量</h4><div class="sub">单位：万套 · 国家统计局</div><div id="chRobotOut" class="chart chart-sm"></div></div>
+    <div class="panel gold reveal"><h4>装机量与全球占比</h4><div class="sub">单位：万台 / % · IFR</div><div id="chInstall" class="chart chart-sm"></div></div>
+    <div class="panel reveal"><h4>国产化率</h4><div class="sub">% · IFR · 2024 年首超外资</div><div id="chLocal" class="chart chart-sm"></div></div>
+  </div>
+  <div class="grid2" style="margin-top:22px">
+    <div class="panel gold reveal">
+      <h4>人形机器人：量产元年的市场想象</h4>
+      <div class="sub">市场规模预测 · 单位：亿元 · 中国电子学会（2030 为预测）</div>
+      <div id="chHumanoid" class="chart chart-sm"></div>
+    </div>
+    <div class="panel reveal">
+      <h4>量产元年 · 关键事实</h4>
+      <div class="sub">2025 年人形机器人与具身智能</div>
+      <div class="krow" style="margin-top:6px">
+        <div class="kchip"><div class="kv">1.3–1.8 万台</div><div class="kl">2025 全球出货 · 中国占 80–95%</div></div>
+        <div class="kchip"><div class="kv g">5500+ 台</div><div class="kl">宇树自称 2025 出货（口径存争议）</div></div>
+        <div class="kchip"><div class="kv">500+ 台</div><div class="kl">优必选 Walker S2 交付 · 订单超 14 亿元</div></div>
+        <div class="kchip"><div class="kv g">3500 亿</div><div class="kl">宇树 2026-08-19 科创板上市首日市值（元）</div></div>
+        <div class="kchip"><div class="kv r">400+ 亿</div><div class="kl">2025 年具身智能赛道融资（元）</div></div>
+        <div class="kchip"><div class="kv">202.7 万台</div><div class="kl">中国在役工业机器人存量 · 约为美国 5 倍</div></div>
+      </div>
+      <div class="note">人形机器人市场规模存在 82 亿 / 90 亿 / 15.5 亿等多种口径；“宇树 vs 智元谁是出货第一”各执一词，详见文末【口径与来源】。</div>
+    </div>
+  </div>
+
+  <!-- (c) 算力与数据中心 -->
+  <div class="pillar-tag reveal">支柱 Ⅲ</div>
+  <h3 class="pillar-title reveal"><em>算力与数据中心</em> · 新基建的“钢筋水泥”</h3>
+  <p class="lede reveal">截至 2025 年底，全国在用数据中心机架超 <b>1373 万架</b>，建成 <b>42 个万卡集群</b>、居全球第二；平均 PUE 降至 <b>1.42</b>（2025-06）；算力市场规模约 <b>8351 亿元</b>、同比 +30%（行业测算）。“东数西算”十四五以来带动社会投资<b>超万亿元</b>，仅乌兰察布一地即落地 67 个项目、总投资超 <b>2600 亿元</b>、智算占比超 90%。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>在用数据中心机架规模</h4><div class="sub">单位：万架</div><div id="chRacks" class="chart chart-sm"></div></div>
+    <div class="panel gold reveal"><h4>数据中心耗电量</h4><div class="sub">单位：亿千瓦时（度）· 占全社会用电比重</div><div id="chPower" class="chart chart-sm"></div></div>
+  </div>
+  <div class="panel reveal" style="margin-top:22px">
+    <h4>算力规模 · 两种口径并列表述</h4>
+    <div class="sub">FP32 与 FP16 口径相差近一个数量级，<b style="color:var(--red)">不可连线比较</b> —— 故分列两图，纵轴各自独立</div>
+    <div id="chCompute" class="chart chart-sm"></div>
+  </div>
+  <div class="krow reveal">
+    <div class="kchip"><div class="kv">42 个</div><div class="kl">万卡集群数量 · 全球第二</div></div>
+    <div class="kchip"><div class="kv g">1.42</div><div class="kl">平均 PUE（2025-06）</div></div>
+    <div class="kchip"><div class="kv">8351 亿</div><div class="kl">2025 年算力市场规模 · 同比 +30%（行业测算）</div></div>
+    <div class="kchip"><div class="kv g">超 1 万亿</div><div class="kl">“东数西算”十四五以来带动社会投资（元）</div></div>
+  </div>
+</section>
+
+<!-- ================= 叁 · 宏观拉动 ================= -->
+<section class="chapter" id="ch3">
+  <div class="sec-head reveal">
+    <div class="sec-no">叁</div>
+    <h2 class="sec-title">宏观拉动<small>MACRO · 逆势而上的结构性力量</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">2025 年，在整体固定资产投资<b>同比 -3.8%</b> 的背景下，信息传输、软件和信息技术服务业投资逆势 <b>+8.8%</b>（2025 年一季度一度高达 <b>+34.4%</b>），电力行业投资 <b>+9.1%</b>（国家统计局）——AI 大基建成为宏观账户中最醒目的结构性亮点。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>2025 年：总量与结构的分化</h4><div class="sub">同比增速 % · 国家统计局</div><div id="chMacro" class="chart chart-sm"></div></div>
+    <div class="panel gold reveal"><h4>数字经济核心产业占 GDP 比重</h4><div class="sub">% · 国家数据局 · 2030 为“十五五”目标</div><div id="chDigital" class="chart chart-sm"></div></div>
+  </div>
+  <div class="grid2" style="margin-top:22px">
+    <div class="panel gold reveal">
+      <h4>超长期特别国债：“两重”建设的弹药库</h4>
+      <div class="sub">单位：万亿元 · 数据中心 / 智算中心属“两重”支持范围</div>
+      <div id="chBond" class="chart chart-sm"></div>
+      <div class="note">2024 年 1 万亿中 7000 亿投向“两重”；2025 年 1.3 万亿中 8000 亿支持 1459 个“两重”项目；2026 年拟安排 1.3 万亿。</div>
+    </div>
+    <div class="panel reveal">
+      <h4>运营商：算力收入的显性化</h4>
+      <div class="sub">2025 年财报口径</div>
+      <div class="krow" style="margin-top:8px">
+        <div class="kchip"><div class="kv g">898 亿</div><div class="kl">中国移动 2025 算力服务收入 · +11.1%</div></div>
+        <div class="kchip"><div class="kv r">+279%</div><div class="kl">中国移动智算服务收入增速</div></div>
+        <div class="kchip"><div class="kv">345 亿</div><div class="kl">中国电信 AIDC 收入（元）</div></div>
+        <div class="kchip"><div class="kv g">-9.5%</div><div class="kl">中国移动 2026 总资本开支指引 —— 总量收缩下的结构性加码</div></div>
+      </div>
+      <div class="note">运营商总 capex 在收缩，算力是“减量中的增量”：传统连接投资让位于算力网络投资（移动 2026 算力网络投资 378 亿、+62.4%）。</div>
+    </div>
+  </div>
+  <div class="cold reveal" style="margin-top:22px">
+    <h5>冷思考 · 反向证据</h5>
+    <p>① <b>利用率之问</b>：部分智算中心利用率仅约三成（科技日报，2025-07），“建得起、用不满”的结构性过剩值得警惕。</p>
+    <p>② <b>乘数递减</b>：信通院自认算力对 GDP 的拉动系数逐年递减——算力发展指数每 +1 点，对应 GDP 增量从 1293 亿元降至 1188 亿元。</p>
+    <p>③ <b>总量未扩张</b>：运营商整体资本开支收缩（2026 移动 -9.5%），算力投资是<b>结构性加码</b>而非总量扩张，不宜将局部热度线性外推为全面繁荣。</p>
+  </div>
+</section>
+
+<!-- ================= 肆 · 名词解释 ================= -->
+<section class="chapter" id="ch4">
+  <div class="sec-head reveal">
+    <div class="sec-no">肆</div>
+    <h2 class="sec-title">名词解释<small>GLOSSARY · 点击卡片翻转</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">阅读 AI 大基建新闻前，先统一语言。以下九张词卡覆盖本报告全部关键术语，<b>点击翻转</b>查看释义与口径提醒。</p>
+  <div class="ggrid reveal" id="gGrid"></div>
+</section>
+
+<!-- ================= 伍 · 公式与传导 ================= -->
+<section class="chapter" id="ch5">
+  <div class="sec-head reveal">
+    <div class="sec-no">伍</div>
+    <h2 class="sec-title">公式与传导<small>FORMULA &amp; TRANSMISSION · 一元算力如何变成四元产出</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">“算力拉动经济”不是口号，而是被多家机构量化过的弹性关系。以下四组公式口径各异、精度有限，但共同勾勒出传导链条的数量级。</p>
+  <div class="fgrid">
+    <div class="fcard reveal"><h5>信通院 · 算力投入产出比</h5><div class="katex-box" data-tex="\text{经济产出} = \text{算力投入} \times (3 \sim 4)"></div><div class="fnote">信通院测算：<b>算力每投入 1 元，带动 3~4 元经济产出</b>。为长期平均口径的线性简化，存在时滞与边际递减。</div></div>
+    <div class="fcard reveal"><h5>信通院 · 算力发展指数弹性（2024 版）</h5><div class="katex-box" data-tex="\Delta \text{GDP} = 1188\,\text{亿元} \times \Delta \text{指数}"></div><div class="fnote">算力发展指数每 <b>+1 点 → GDP +1188 亿元</b>（2024 版测算）。早期版本为 1293 亿元，<b>拉动系数逐年递减</b>。</div></div>
+    <div class="fcard reveal"><h5>IDC · 全球计算力指数</h5><div class="katex-box" data-tex="\Delta \text{数字经济} = 3.6\text{‰} \times \Delta \text{指数}, \quad \Delta \text{GDP} = 1.7\text{‰} \times \Delta \text{指数}"></div><div class="fnote">计算力指数每 <b>+1 点 → 数字经济 +3.6‰、GDP +1.7‰</b>（IDC 全球计算力指数评估体系）。</div></div>
+    <div class="fcard reveal"><h5>普华永道 · 远期预测（2017）</h5><div class="katex-box" data-tex="\text{GDP}_{2030}^{CN} \rightarrow +7\,\text{万亿美元}\;(+26.1\%)"></div><div class="fnote">普华永道 2017 年预测：2030 年 AI 将为中国 GDP 贡献 <b>+7 万亿美元（+26.1%）</b>。<b style="color:var(--red)">系 2017 年远期预测，非实证结果</b>，仅供参考。</div></div>
+  </div>
+
+  <h3 class="pillar-title reveal" style="margin-top:60px"><em>传导链条</em> · 从财政到乘数的五级传递</h3>
+  <p class="lede reveal">点击链条任一环节，查看该层级的机制说明与关键数据。</p>
+  <div class="chain reveal" id="chainRow"></div>
+  <div class="chain-detail reveal" id="chainDetail"></div>
+</section>
+
+<!-- ================= 陆 · 交互模型 ================= -->
+<section class="chapter" id="ch6">
+  <div class="sec-head reveal">
+    <div class="sec-no">陆</div>
+    <h2 class="sec-title">交互模型<small>SANDBOX · 两个可推演的沙盘</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">数字不只看，更要算。以下两个沙盘将前文的关键弹性系数交到你手中——<b>拖动滑块</b>，实时推演算力投资的宏观拉动与人形机器人的产值空间。</p>
+
+  <h3 class="pillar-title reveal"><em>沙盘 A</em> · 算力投资乘数推演</h3>
+  <div class="sandbox reveal">
+    <div class="sb-controls">
+      <h5>参数调节</h5>
+      <div class="ctl">
+        <label>年算力投资额 <output id="oInvest">8351 亿元</output></label>
+        <input type="range" id="rInvest" min="2000" max="15000" step="1" value="8351">
+      </div>
+      <div class="ctl">
+        <label>投入产出乘数 <output id="oMult">3.5 ×</output></label>
+        <input type="range" id="rMult" min="2" max="4.5" step="0.1" value="3.5">
+      </div>
+      <div class="sb-warn" style="border-top:none;padding-top:0;margin-top:0">乘数区间取自信通院“1 元算力带动 3~4 元经济产出”的测算，上下各留了余量。</div>
+    </div>
+    <div class="sb-out">
+      <div class="sb-nums">
+        <div class="sb-num"><div class="v" id="vOutput">2.92<span>万亿元</span></div><div class="l">估算经济产出拉动</div></div>
+        <div class="sb-num"><div class="v" id="vPct">2.09<span>%</span></div><div class="l">相当于 2025 年 GDP 比重（基准：约 140 万亿元，估算）</div></div>
+        <div class="sb-num"><div class="v" id="vGrow">2.09<span>pt</span></div><div class="l">对 GDP 增速的等效贡献（百分点）</div></div>
+      </div>
+      <div class="sb-chart" id="sbChartA"></div>
+      <div class="sb-warn"><b>免责声明</b>：本模型基于信通院“1 元带动 3~4 元”的线性简化，实际传导存在 1–3 年时滞与边际递减；结果为数量级示意，不构成任何投资或政策建议。</div>
+    </div>
+  </div>
+
+  <h3 class="pillar-title reveal" style="margin-top:64px"><em>沙盘 B</em> · 人形机器人渗透推演</h3>
+  <div class="sandbox reveal">
+    <div class="sb-controls">
+      <h5>参数调节</h5>
+      <div class="ctl">
+        <label>2030 年全球出货量 <output id="oShip">50 万台</output></label>
+        <input type="range" id="rShip" min="10" max="500" step="5" value="50">
+      </div>
+      <div class="ctl">
+        <label>中国份额 <output id="oShare">85 %</output></label>
+        <input type="range" id="rShare" min="30" max="100" step="1" value="85">
+      </div>
+      <div class="ctl">
+        <label>平均单价 <output id="oPrice">20 万元</output></label>
+        <input type="range" id="rPrice" min="5" max="80" step="1" value="20">
+      </div>
+      <div class="sb-warn" style="border-top:none;padding-top:0;margin-top:0">份额默认 85%，对应 2025 年中国占全球出货 80–95% 的现实区间。</div>
+    </div>
+    <div class="sb-out">
+      <div class="sb-nums">
+        <div class="sb-num"><div class="v" id="vHuVal">850<span>亿元</span></div><div class="l">2030 年中国人形机器人产值估算</div></div>
+        <div class="sb-num"><div class="v" id="vHuGap">-7850<span>亿元</span></div><div class="l">与中国电子学会 2030 年 8700 亿预测之差</div></div>
+      </div>
+      <div class="sb-chart" id="sbChartB"></div>
+      <div class="sb-warn"><b>对照提示</b>：中国电子学会预测 2030 年市场规模达 8700 亿元。若你的推演低于该值，说明机构预测<b>隐含了更高的出货量或均价</b>（或计入了整机之外的零部件与服务）。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 柒 · 出海新叙事 ================= -->
+<section class="chapter" id="ch7">
+  <div class="sec-head reveal">
+    <div class="sec-no">柒</div>
+    <h2 class="sec-title">出海新叙事<small>EXPORT · 从“世界工厂”到“算力与机器的出口国”</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">2026 年 1 月，海关总署宣布：中国工业机器人出口<b>首次超过进口</b>，成为净出口国。这并非孤例——从光模块到扫地机器人，从服务器到集成电路，“AI 大基建”的产能正在改写中国的出口结构。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>工业机器人出口</h4><div class="sub">左轴：出口值（亿元）· 右轴：同比增速（%）· 海关总署</div><div id="chExport" class="chart chart-sm"></div></div>
+    <div class="panel gold reveal"><h4>集成电路出口</h4><div class="sub">第一大出口单品 · 海关总署</div><div id="chIC" class="chart chart-sm"></div></div>
+  </div>
+  <div class="krow reveal" style="margin-top:22px">
+    <div class="kchip"><div class="kv g">+90%</div><div class="kl">2026 年 4 月单月机器人出口破 2.5 万台、同比近 +90%</div></div>
+    <div class="kchip"><div class="kv">全球第 2</div><div class="kl">2024 年机器人出口值 80.6 亿元 · 超越德国</div></div>
+    <div class="kchip"><div class="kv g">382.4 亿</div><div class="kl">中际旭创 2025 营收 · +60% · 境外占比 90.6%</div></div>
+    <div class="kchip"><div class="kv">23.4%</div><div class="kl">中际旭创光模块全球市占率 · 连续三年第一</div></div>
+    <div class="kchip"><div class="kv g">54.5%</div><div class="kl">2025 扫地机器人全球前五均为中国品牌 · 合计份额</div></div>
+    <div class="kchip"><div class="kv">84.7%</div><div class="kl">中国占全球商用服务机器人出货比重</div></div>
+  </div>
+  <div class="panel reveal" style="margin-top:22px">
+    <h4>案例 · 算力出海的第一船</h4>
+    <div class="sub">从卖设备到卖“算力基建”</div>
+    <p style="font-size:14.5px;color:var(--ink)">浙江企业向泰国出口 <b>812 台算力服务器</b>（货值 3.17 亿元），配套项目预计超 <b>15 亿元</b>——中国出口的不再只是硬件，而是整套智算中心的建设能力，与“东数西算”积累的工程经验同源同构。</p>
+  </div>
+</section>
+
+<!-- ================= 捌 · 未来坐标 ================= -->
+<section class="chapter" id="ch8">
+  <div class="sec-head reveal">
+    <div class="sec-no">捌</div>
+    <h2 class="sec-title">未来坐标<small>ROADMAP · 2027 → 2030 → 2035</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">国发〔2025〕11 号《关于深入实施“人工智能+”行动的意见》给出三阶段坐标：从<b>普及</b>，到<b>增长极</b>，再到<b>智能经济社会新阶段</b>。里程碑如下，金色为官方目标，青色为行动计划，红色为媒体/机构测算。</p>
+  <div class="mile reveal">
+    <svg class="rocket" viewBox="0 0 40 46" fill="none">
+      <path d="M20 2 C27 8 30 17 28 26 L24 32 L16 32 L12 26 C10 17 13 8 20 2 Z" fill="rgba(240,180,41,.15)" stroke="#f0b429" stroke-width="1.6"/>
+      <circle cx="20" cy="16" r="4" fill="none" stroke="#22d3ee" stroke-width="1.6"/>
+      <path d="M12 22 L5 30 L12 28 M28 22 L35 30 L28 28" stroke="#f0b429" stroke-width="1.6" fill="none"/>
+      <path d="M17 33 C17 38 20 40 20 44 C20 40 23 38 23 33" stroke="#ef4444" stroke-width="1.8" fill="none"/>
+    </svg>
+    <div class="mile-item"><div class="mile-card">
+      <div class="mile-year">2027</div><h5>智能终端 / 智能体普及率超 70%</h5>
+      <p>国发〔2025〕11 号三阶段目标之一：新一代智能终端、智能体等应用普及率超 70%。</p>
+    </div></div>
+    <div class="mile-item c2"><div class="mile-card">
+      <div class="mile-year">2028</div><h5>算力互联互通行动计划节点</h5>
+      <p>《算力互联互通行动计划》2028 年目标：基本实现全国公共算力标准化互联，形成智能感知、实时发现的算力互联网。</p>
+    </div></div>
+    <div class="mile-item"><div class="mile-card">
+      <div class="mile-year">2030</div><h5>普及率超 90% · 智能经济成为重要增长极</h5>
+      <p>国发〔2025〕11 号：智能终端 / 智能体普及率超 90%，智能经济成为我国经济发展的重要增长极。同期“十五五”目标：<b>数字经济核心产业占 GDP 比重达 12.5%</b>。</p>
+    </div></div>
+    <div class="mile-item c2"><div class="mile-card">
+      <div class="mile-year">2026 →</div><h5>人形机器人量产爬坡</h5>
+      <p>工信部：2026 年中国整机人形机器人产量有望突破 <b>10 万台</b>，从“量产元年”进入规模化放量。</p>
+    </div></div>
+    <div class="mile-item c3"><div class="mile-card">
+      <div class="mile-year">十五五</div><h5>算力产业总投资预期超 3 万亿元</h5>
+      <p>媒体测算口径，<b>非官方目标</b>：若兑现，相当于再造一个“东数西算”级别的投资周期。</p>
+    </div></div>
+    <div class="mile-item"><div class="mile-card">
+      <div class="mile-year">2035</div><h5>全面步入智能经济社会新阶段</h5>
+      <p>国发〔2025〕11 号终局坐标：我国全面步入智能经济和智能社会发展新阶段。</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ================= 玖 · 口径与来源 ================= -->
+<section class="chapter" id="ch9">
+  <div class="sec-head reveal">
+    <div class="sec-no">玖</div>
+    <h2 class="sec-title">口径与来源<small>METHODOLOGY &amp; SOURCES · 诚实是数据的第一美德</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+
+  <details class="fold reveal" open>
+    <summary>口径警示 · 阅读本报告前必读</summary>
+    <div class="fold-body">
+      <ul>
+        <li><b>FP32 vs FP16</b>：算力规模存在 FP32 与 FP16 两种精度口径，相差近一个数量级（如 2024 底智算 FP32 约 90 EFLOPS，而 2025 底智算 FP16 达 1590 EFLOPS）。两者<b>不可连线比较</b>，本报告已分列两图。</li>
+        <li><b>投融资宽窄口径</b>：2024 年约 1052.5 亿元为 IT 桔子窄口径，2025 年约 4759 亿元为宽口径，统计范围不同，不能直接比较增速。</li>
+        <li><b>人形机器人市场规模</b>：存在 82 亿 / 90 亿 / 15.5 亿等多种口径（统计范围、是否含零部件与服务不同），本报告图表采用中国电子学会口径并在沙盘 B 中提供对照。</li>
+        <li><b>机器人密度口径变化</b>：IFR 调整统计口径后，中国机器人密度排名从第 3 位变为第 22 位——排名变化主要是口径变化，而非现实倒退。</li>
+        <li><b>出货第一之争</b>：2025 年人形机器人出货第一，宇树（自称 5500+ 台）与智元各执一词，尚待第三方审计数据。</li>
+        <li><b>远期预测非实证</b>：普华永道“2030 年 AI 为中国 GDP +7 万亿美元”系 <b>2017 年</b>发布的远期预测；信通院“1 元带动 3~4 元”为线性简化。本报告沙盘基于此，仅作数量级示意。</li>
+        <li><b>非官方测算</b>：“十五五算力产业总投资超 3 万亿”为媒体测算，非官方目标。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="fold reveal">
+    <summary>完整来源列表 · 机构与时点</summary>
+    <div class="fold-body">
+      <ul>
+        <li><b>中国信息通信研究院（信通院）</b>：AI 核心产业规模（2024 超 9000 亿 / 2025 突破 1.2 万亿，2026-01 盘点）；算力投入产出比“1 元带动 3~4 元”；算力发展指数弹性（指数每 +1 点 → GDP +1188 亿元，2024 版；早期 1293 亿元）。</li>
+        <li><b>国家数据局《数字中国发展报告(2025)》</b>：2025 年底智能算力 1590 EFLOPS（FP16 口径）；数字经济核心产业数据。</li>
+        <li><b>国家统计局</b>：工业机器人产量（2024 55.6 万套 +14.2% / 2025 77.3 万套 +28.0%）；2025 年 GDP +5.0%、信息传输软件业增加值 +11.1%（70599 亿元）、固定资产投资 -3.8%、信息传输软件业投资 +8.8%（2025Q1 曾达 +34.4%）、电力行业投资 +9.1%。</li>
+        <li><b>IFR（国际机器人联合会）</b>：装机量与全球占比（2024 29.5 万台 / 54% → 2025 35.4 万台 / 59%）；国产化率（2023 47% → 2024 57%）；在役存量 202.7 万台。</li>
+        <li><b>海关总署</b>：工业机器人出口（2024 +45.2% / 2025 +48.7% / 2026-01 宣布首超进口 / 2026-04 单月破 2.5 万台近 +90%）；出口值 2017 年 19.8 亿 → 2024 年 80.6 亿元；集成电路出口 2025 年 14442 亿元（+27%）、2026 年前 7 月 2160 亿美元（+99.5%）。</li>
+        <li><b>CNNIC</b>：生成式 AI 用户 5.15 亿（2025-06）。</li>
+        <li><b>国务院</b>：国发〔2025〕11 号《关于深入实施“人工智能+”行动的意见》（2025-08-26），三阶段目标；政府工作报告（2024-03 首提“人工智能+”；2025-03-05 首提“具身智能”；2026-03-05 首提“打造智能经济新形态”）。</li>
+        <li><b>六部门《算力基础设施高质量发展行动计划》</b>（2023-10）：2025 算力 &gt;300 EFLOPS、智算占比 35%。</li>
+        <li><b>国家发改委 / 财政部</b>：超长期特别国债（2024 1 万亿含 7000 亿“两重” / 2025 1.3 万亿含 8000 亿支持 1459 个两重项目 / 2026 拟 1.3 万亿）。</li>
+        <li><b>二十届四中全会</b>（2025-10-23）：“全面实施‘人工智能+’行动”写入“十五五”规划建议。</li>
+        <li><b>上海市</b>：6 亿算力券 + 3 亿模型券（2025-07-28，算力租金最高 100% 补贴）。</li>
+        <li><b>IDC</b>：全球计算力指数（指数每 +1 点 → 数字经济 +3.6‰、GDP +1.7‰）。</li>
+        <li><b>普华永道</b>（2017）：2030 年 AI 为中国 GDP +7 万亿美元（+26.1%），远期预测。</li>
+        <li><b>中国电子学会</b>：人形机器人市场规模预测（2025 约 82 亿 → 2030 8700 亿元）。</li>
+        <li><b>公司公告 / 公开披露</b>：阿里巴巴（2025-02-24，3 年 3800 亿）；腾讯（2025 资本开支 792 亿）；中国移动（2025 算力服务收入 898 亿 +11.1%、智算服务 +279%、2026 算力网络投资 378 亿 +62.4%、总 capex -9.5%）；中国电信（AIDC 收入 345 亿）；中际旭创（2025 营收 382.4 亿 +60%、境外占比 90.6%、光模块全球市占率 23.4%）；优必选（Walker S2 交付 500+ 台、订单超 14 亿）；宇树科技（自称 2025 出货 5500+ 台、2026-08-19 科创板上市首日市值破 3500 亿）。</li>
+        <li><b>科技日报</b>（2025-07）：部分智算中心利用率仅约三成。</li>
+        <li><b>IT 桔子</b>：2024 年 AI 一级市场投融资约 1052.5 亿元（窄口径）。</li>
+        <li><b>行业测算</b>：2025 年算力市场规模 8351 亿元（+30%）；乌兰察布 67 个项目总投资超 2600 亿；“东数西算”十四五以来带动社会投资超万亿。</li>
+      </ul>
+      <div class="note" style="margin-top:14px">本报告所有数据均来自上述公开来源的二次整理，时点以括号内标注为准；个别数据存在口径差异，已在正文与上方警示中注明。</div>
+    </div>
+  </details>
+</section>
+</main>
+
+<footer>
+  <div class="seal">算力为基</div>
+  <div class="ftitle">算力为基 · 机器为躯</div>
+  <div class="fline">中国 AI 大基建交互报告 · 2024–2026 · 二〇二六年十月 谨制</div>
+  <div class="fline" style="margin-top:14px;letter-spacing:.1em">本报告仅供研究参考，不构成投资建议 · 数据口径以文末【口径与来源】为准</div>
+</footer>
+
+<script>
+/* ============================================================
+   公共：ECharts 深色主题基底
+============================================================ */
+var PALETTE = ['#22d3ee','#f0b429','#ef4444','#34d399','#a78bfa','#f472b6'];
+var FONT = "'Noto Sans SC', sans-serif";
+var SERIF = "'Noto Serif SC', serif";
+function baseOpt(){
+  return {
+    color: PALETTE,
+    textStyle:{fontFamily:FONT, color:'#8b98a9'},
+    tooltip:{
+      backgroundColor:'rgba(13,17,23,.94)', borderColor:'rgba(34,211,238,.4)', borderWidth:1,
+      textStyle:{color:'#e6edf3', fontFamily:FONT, fontSize:13},
+      extraCssText:'box-shadow:0 6px 24px rgba(0,0,0,.5);border-radius:4px;padding:10px 14px;'
+    },
+    grid:{left:56,right:30,top:44,bottom:36,containLabel:true}
+  };
+}
+function axStyle(){
+  return {
+    axisLine:{lineStyle:{color:'rgba(120,150,180,.3)'}},
+    axisLabel:{color:'#8b98a9',fontSize:12},
+    splitLine:{lineStyle:{color:'rgba(120,150,180,.1)'}},
+    axisTick:{show:false}
+  };
+}
+var CHARTS = [];
+function mk(id, option){
+  var el = document.getElementById(id);
+  if(!el || typeof echarts === 'undefined') return null;
+  var c = echarts.init(el, null, {renderer:'canvas'});
+  c.setOption(option);
+  CHARTS.push(c);
+  return c;
+}
+window.addEventListener('resize', function(){ CHARTS.forEach(function(c){ c.resize(); }); });
+
+/* ============================================================
+   Hero：轻量电路粒子 canvas
+============================================================ */
+(function(){
+  var cv = document.getElementById('heroCanvas');
+  if(!cv) return;
+  var ctx = cv.getContext('2d'), W, H, pts = [], N = 70;
+  function resize(){
+    W = cv.width = cv.offsetWidth * (window.devicePixelRatio||1);
+    H = cv.height = cv.offsetHeight * (window.devicePixelRatio||1);
+  }
+  resize(); window.addEventListener('resize', resize);
+  for(var i=0;i<N;i++){
+    pts.push({x:Math.random(), y:Math.random(),
+      vx:(Math.random()-.5)*.0006, vy:(Math.random()-.5)*.0006,
+      r:Math.random()*1.8+.6, gold:Math.random()<.22});
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    var i,j,a,b,dx,dy,d;
+    for(i=0;i<N;i++){
+      a=pts[i]; a.x+=a.vx; a.y+=a.vy;
+      if(a.x<0||a.x>1)a.vx*=-1; if(a.y<0||a.y>1)a.vy*=-1;
+    }
+    for(i=0;i<N;i++){
+      for(j=i+1;j<N;j++){
+        a=pts[i]; b=pts[j];
+        dx=(a.x-b.x)*W; dy=(a.y-b.y)*H; d=Math.sqrt(dx*dx+dy*dy);
+        if(d<130){
+          ctx.strokeStyle = 'rgba(34,211,238,'+(0.14*(1-d/130)).toFixed(3)+')';
+          ctx.lineWidth=1;
+          ctx.beginPath();
+          ctx.moveTo(a.x*W,a.y*H);
+          ctx.lineTo(a.x*W,b.y*H); /* 直角电路走线 */
+          ctx.lineTo(b.x*W,b.y*H);
+          ctx.stroke();
+        }
+      }
+    }
+    for(i=0;i<N;i++){
+      a=pts[i];
+      ctx.fillStyle = a.gold ? 'rgba(240,180,41,.8)' : 'rgba(34,211,238,.7)';
+      ctx.beginPath(); ctx.arc(a.x*W,a.y*H,a.r,0,Math.PI*2); ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ============================================================
+   滚动淡入 + 数字 count-up
+============================================================ */
+(function(){
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  var cio = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting) return;
+      cio.unobserve(e.target);
+      var el = e.target, target = parseFloat(el.dataset.target), dec = parseInt(el.dataset.dec||'0',10);
+      var t0 = null, dur = 1800;
+      function step(ts){
+        if(!t0) t0 = ts;
+        var p = Math.min((ts-t0)/dur, 1);
+        var ease = 1 - Math.pow(1-p, 3);
+        el.textContent = (target*ease).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }, {threshold:.4});
+  document.querySelectorAll('.count').forEach(function(el){ cio.observe(el); });
+
+  /* 保险机制：若 IntersectionObserver 回调因任何原因未触发（无头渲染、
+     低端设备、极端刷新场景），1.2 秒后无条件显现全部内容并落定计数终值，
+     确保首屏主体内容不依赖滚动或动画时序。 */
+  setTimeout(function(){
+    document.querySelectorAll('.reveal:not(.in)').forEach(function(el){ el.classList.add('in'); });
+    document.querySelectorAll('.count').forEach(function(el){
+      var t = parseFloat(el.dataset.target), dec = parseInt(el.dataset.dec||'0',10);
+      if(!isNaN(t)) el.textContent = t.toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    });
+  }, 1200);
+})();
+
+/* ============================================================
+   贰(a) AI 投资
+============================================================ */
+mk('chAiScale', (function(){
+  var o = baseOpt();
+  o.tooltip.trigger='axis';
+  o.tooltip.formatter=function(p){ var d=p[0]; return d.name+'<br/>AI 核心产业规模：<b style="color:#22d3ee">'+(d.dataIndex===0?'超 9000 亿元':'突破 1.2 万亿元')+'</b><br/><span style="color:#8b98a9;font-size:11px">信通院口径</span>'; };
+  o.xAxis=[Object.assign({type:'category',data:['2024','2025']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'万亿元',nameTextStyle:{color:'#8b98a9'}},axStyle())];
+  o.series=[{type:'bar',barWidth:'42%',data:[
+      {value:0.9,itemStyle:{color:'#0e7490'}},
+      {value:1.2,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.dataIndex===0?'超 9000 亿':'突破 1.2 万亿';}}}];
+  return o;
+})());
+
+mk('chAiFunding', (function(){
+  var o = baseOpt();
+  o.tooltip.trigger='axis';
+  o.tooltip.formatter=function(p){ var d=p[0]; var k=['窄口径（IT 桔子）','宽口径','宽口径 · 仅上半年'][d.dataIndex];
+    return d.name+'<br/>投融资额：<b style="color:#f0b429">'+d.value+' 亿元</b><br/><span style="color:#ef4444;font-size:11px">口径：'+k+'</span>'; };
+  o.xAxis=[Object.assign({type:'category',data:['2024','2025','2026 H1']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿元',nameTextStyle:{color:'#8b98a9'}},axStyle())];
+  o.series=[{type:'bar',barWidth:'44%',data:[
+      {value:1052.5,itemStyle:{color:'#0e7490'}},
+      {value:4759,itemStyle:{color:'#b8860b'}},
+      {value:3076.8,itemStyle:{color:'#f0b429'}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString();}}}];
+  return o;
+})());
+
+mk('chCapital', (function(){
+  var o = baseOpt();
+  var names=['中国移动 2026 算力网络投资','国家 AI 产业投资基金','腾讯 2025 资本开支','北京市级 AI 基金','阿里 3 年云与 AI 基建'];
+  var vals=[378,600.6,792,1000,3800];
+  var tips=['2026 年计划 · 同比 +62.4%','2025-01 设立 · 存续 13 年 · 落户上海','2025 全年资本开支','地方基金代表 · 规模目标','2025-02 宣布 · 民企史上最大 · 3 年总额'];
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];return d.name+'<br/>规模：<b style="color:#22d3ee">'+d.value.toLocaleString()+' 亿元</b><br/><span style="color:#8b98a9;font-size:11px">'+tips[d.dataIndex]+'</span>';}};
+  o.grid={left:10,right:70,top:16,bottom:16,containLabel:true};
+  o.xAxis=[Object.assign({type:'value',name:'亿元',nameTextStyle:{color:'#8b98a9'}},axStyle())];
+  o.yAxis=[Object.assign(axStyle(),{type:'category',data:names,axisLabel:{color:'#c9d4e0',fontSize:12.5}})];
+  o.series=[{type:'bar',barWidth:'52%',data:vals.map(function(v,i){
+      var c=['#34d399','#ef4444','#22d3ee','#a78bfa','#f0b429'][i];
+      return {value:v,itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:'#131b26'},{offset:1,color:c}]}}};
+    }),
+    label:{show:true,position:'right',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString()+' 亿';}}}];
+  return o;
+})());
+
+/* ============================================================
+   贰(b) 机器人
+============================================================ */
+mk('chRobotOut', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['产量（万套）','同比增速（%）'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2024','2025']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'万套'},axStyle()),Object.assign({type:'value',name:'%',splitLine:{show:false}},axStyle())];
+  o.series=[
+    {name:'产量（万套）',type:'bar',barWidth:'40%',data:[55.6,77.3],itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}},label:{show:true,position:'top',color:'#e6edf3'}},
+    {name:'同比增速（%）',type:'line',yAxisIndex:1,data:[14.2,28.0],lineStyle:{color:'#f0b429',width:2.5},itemStyle:{color:'#f0b429'},label:{show:true,position:'bottom',color:'#f0b429',formatter:'+{c}%'}}
+  ];
+  return o;
+})());
+
+mk('chInstall', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['装机量（万台）','全球占比（%）'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2024','2025']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'万台'},axStyle()),Object.assign({type:'value',name:'%',max:70,splitLine:{show:false}},axStyle())];
+  o.series=[
+    {name:'装机量（万台）',type:'bar',barWidth:'40%',data:[29.5,35.4],itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}},label:{show:true,position:'top',color:'#e6edf3'}},
+    {name:'全球占比（%）',type:'line',yAxisIndex:1,data:[54,59],lineStyle:{color:'#22d3ee',width:2.5},itemStyle:{color:'#22d3ee'},label:{show:true,position:'bottom',color:'#22d3ee',formatter:'{c}%'}}
+  ];
+  return o;
+})());
+
+mk('chLocal', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){return p[0].name+'<br/>国产化率：<b style="color:#34d399">'+p[0].value+'%</b>'+(p[0].dataIndex===1?'<br/><span style="color:#f0b429;font-size:11px">首超外资品牌</span>':'');}};
+  o.xAxis=[Object.assign({type:'category',data:['2023','2024']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'%',max:70},axStyle())];
+  o.series=[{type:'line',data:[47,57],lineStyle:{color:'#34d399',width:3},itemStyle:{color:'#34d399'},symbolSize:10,
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(52,211,153,.3)'},{offset:1,color:'rgba(52,211,153,0)'}]}},
+    label:{show:true,position:'top',color:'#34d399',formatter:'{c}%'},
+    markLine:{data:[{yAxis:50,label:{formatter:'50% 分界线',color:'#ef4444',fontFamily:FONT}}],lineStyle:{color:'#ef4444',type:'dashed'}}}];
+  return o;
+})());
+
+mk('chHumanoid', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){return p[0].name+'<br/>市场规模：<b style="color:#f0b429">'+p[0].value+' 亿元</b><br/><span style="color:#8b98a9;font-size:11px">中国电子学会'+(p[0].dataIndex===1?'（预测）':'')+'</span>';}};
+  o.xAxis=[Object.assign({type:'category',data:['2025','2030（预测）']},axStyle())];
+  o.yAxis=[Object.assign({type:'log',name:'亿元（对数轴）',nameTextStyle:{color:'#8b98a9'}},axStyle())];
+  o.series=[{type:'bar',barWidth:'42%',data:[
+      {value:82,itemStyle:{color:'#0e7490'}},
+      {value:8700,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',formatter:function(p){return p.value.toLocaleString()+' 亿';}}}];
+  return o;
+})());
+</script>
+<script>
+/* ============================================================
+   贰(c) 算力与数据中心
+============================================================ */
+mk('chRacks', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){return p[0].name+'<br/>在用机架：<b style="color:#22d3ee">'+(p[0].dataIndex===3?'超 ':'')+p[0].value+' 万架</b>';}};
+  o.xAxis=[Object.assign({type:'category',data:['2024 底','2025-06','2025-09','2025 底'],boundaryGap:false},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'万架',min:600},axStyle())];
+  o.series=[{type:'line',data:[880,1085,1250,1373],lineStyle:{color:'#22d3ee',width:3},itemStyle:{color:'#22d3ee'},symbolSize:9,smooth:true,
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(34,211,238,.32)'},{offset:1,color:'rgba(34,211,238,0)'}]}},
+    label:{show:true,position:'top',color:'#e6edf3',formatter:function(p){return p.dataIndex===3?'超 1373':p.value;}}}];
+  return o;
+})());
+
+mk('chPower', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['耗电量（亿度）','占全社会用电（%）'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2019','2024','2030（预测）']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿度'},axStyle()),Object.assign({type:'value',name:'%',max:8,splitLine:{show:false}},axStyle())];
+  o.series=[
+    {name:'耗电量（亿度）',type:'bar',barWidth:'36%',data:[824,1660,null],itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}},label:{show:true,position:'top',color:'#e6edf3'}},
+    {name:'占全社会用电（%）',type:'line',yAxisIndex:1,data:[null,1.68,5.4],lineStyle:{color:'#ef4444',width:2.5,type:'dashed'},itemStyle:{color:'#ef4444'},symbolSize:9,
+      label:{show:true,position:'top',color:'#ef4444',formatter:function(p){return p.dataIndex===2?'4.8–6%':p.value+'%';}}}
+  ];
+  return o;
+})());
+
+mk('chCompute', (function(){
+  var o = baseOpt();
+  o.title=[
+    {text:'FP32 口径（2024 底）',left:'22%',top:6,textAlign:'center',textStyle:{color:'#22d3ee',fontSize:14,fontFamily:FONT,fontWeight:500}},
+    {text:'FP16 口径 · 智能算力',left:'74%',top:6,textAlign:'center',textStyle:{color:'#f0b429',fontSize:14,fontFamily:FONT,fontWeight:500}}
+  ];
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.grid=[
+    {left:56,right:'56%',top:44,bottom:36,containLabel:true},
+    {left:'52%',right:30,top:44,bottom:36,containLabel:true}
+  ];
+  o.xAxis=[
+    Object.assign({type:'category',gridIndex:0,data:['2024 底']},axStyle()),
+    Object.assign({type:'category',gridIndex:1,data:['2025-06','2025 底','2026-06'],boundaryGap:false},axStyle())
+  ];
+  o.yAxis=[
+    Object.assign({type:'value',gridIndex:0,name:'EFLOPS',nameTextStyle:{color:'#8b98a9'}},axStyle()),
+    Object.assign({type:'value',gridIndex:1,name:'EFLOPS',nameTextStyle:{color:'#8b98a9'}},axStyle())
+  ];
+  o.series=[
+    {name:'FP32 总算力',type:'bar',xAxisIndex:0,yAxisIndex:0,barWidth:'26%',data:[280],itemStyle:{color:'#0e7490'},label:{show:true,position:'top',color:'#e6edf3'}},
+    {name:'FP32 智算',type:'bar',xAxisIndex:0,yAxisIndex:0,barWidth:'26%',data:[90],itemStyle:{color:'#22d3ee'},label:{show:true,position:'top',color:'#e6edf3'}},
+    {name:'FP16 智算',type:'line',xAxisIndex:1,yAxisIndex:1,data:[788,1590,2185],lineStyle:{color:'#f0b429',width:3},itemStyle:{color:'#f0b429'},symbolSize:9,
+      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(240,180,41,.28)'},{offset:1,color:'rgba(240,180,41,0)'}]}},
+      label:{show:true,position:'top',color:'#e6edf3',formatter:function(p){return p.dataIndex===2?p.value+'（+177%）':p.value;}}}
+  ];
+  o.graphic=[{type:'text',left:'center',bottom:2,style:{text:'⚠ 两种精度口径相差近一个数量级，不可连线比较',fill:'#ef4444',fontSize:12,fontFamily:FONT}}];
+  return o;
+})());
+
+/* ============================================================
+   叁 · 宏观拉动
+============================================================ */
+mk('chMacro', (function(){
+  var o = baseOpt();
+  var names=['GDP','信息传输软件业增加值','整体固定资产投资','信息传输软件业投资','电力行业投资'];
+  var vals=[5.0,11.1,-3.8,8.8,9.1];
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];var extra=d.dataIndex===1?'（增加值 70599 亿元）':(d.dataIndex===3?'（2025Q1 曾达 +34.4%）':'');
+      return d.name+'<br/>2025 同比：<b style="color:'+(d.value<0?'#ef4444':'#22d3ee')+'">'+(d.value>0?'+':'')+d.value+'%</b><br/><span style="color:#8b98a9;font-size:11px">'+extra+'国家统计局</span>';}};
+  o.grid={left:56,right:30,top:30,bottom:60,containLabel:true};
+  o.xAxis=[Object.assign(axStyle(),{type:'category',data:names,axisLabel:{color:'#c9d4e0',fontSize:11.5,interval:0,rotate:16}})];
+  o.yAxis=[Object.assign({type:'value',name:'%'},axStyle())];
+  o.series=[{type:'bar',barWidth:'48%',data:vals.map(function(v){
+      return {value:v,itemStyle:{color:v<0?'#ef4444':{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}};
+    }),
+    label:{show:true,position:'top',color:'#e6edf3',formatter:function(p){return (p.value>0?'+':'')+p.value+'%';}},
+    markLine:{data:[{yAxis:0}],lineStyle:{color:'rgba(120,150,180,.4)'},label:{show:false}}}];
+  return o;
+})());
+
+mk('chDigital', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['占 GDP 比重（%）','核心产业规模（万亿元）'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2020','2024','2025','十五五目标']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'%',max:15},axStyle()),Object.assign({type:'value',name:'万亿元',splitLine:{show:false}},axStyle())];
+  o.series=[
+    {name:'占 GDP 比重（%）',type:'bar',barWidth:'40%',data:[7.8,10.5,null,{value:12.5,itemStyle:{color:'#b8860b',borderColor:'#f0b429',borderWidth:1,borderType:'dashed'}}],
+      itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}},
+      label:{show:true,position:'top',color:'#e6edf3',formatter:function(p){return p.dataIndex===3?'12.5%（目标）':p.value+'%';}}},
+    {name:'核心产业规模（万亿元）',type:'line',yAxisIndex:1,data:[null,14.09,14.7,null],lineStyle:{color:'#f0b429',width:2.5},itemStyle:{color:'#f0b429'},symbolSize:9,
+      label:{show:true,position:'bottom',color:'#f0b429',formatter:function(p){return p.dataIndex===2?'超 14.7 万亿':p.value+' 万亿';}}}
+  ];
+  return o;
+})());
+
+mk('chBond', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['发行规模','其中“两重”建设'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2024','2025','2026（拟）']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'万亿元',max:1.6},axStyle())];
+  o.series=[
+    {name:'发行规模',type:'bar',barWidth:'44%',data:[1.0,1.3,1.3],barGap:'-100%',
+      itemStyle:{color:'rgba(34,211,238,.18)',borderColor:'#22d3ee',borderWidth:1.5,borderType:'dashed'},
+      label:{show:true,position:'top',color:'#e6edf3',formatter:function(p){return p.dataIndex===2?'拟 '+p.value+' 万亿':p.value.toFixed(1)+' 万亿';}}},
+    {name:'其中“两重”建设',type:'bar',barWidth:'44%',data:[0.7,0.8,null],
+      itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}},
+      label:{show:true,position:'insideTop',color:'#0a0e14',fontWeight:700,formatter:function(p){return p.value+' 万亿';}}}
+  ];
+  return o;
+})());
+
+/* ============================================================
+   柒 · 出海
+============================================================ */
+mk('chExport', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['出口值（亿元）','出口增速（%）'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2017','2024','2025','2026-04 单月']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle()),Object.assign({type:'value',name:'%',splitLine:{show:false}},axStyle())];
+  o.series=[
+    {name:'出口值（亿元）',type:'bar',barWidth:'38%',data:[19.8,80.6,null,null],
+      itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}},
+      label:{show:true,position:'top',color:'#e6edf3'}},
+    {name:'出口增速（%）',type:'line',yAxisIndex:1,data:[null,45.2,48.7,90],lineStyle:{color:'#f0b429',width:2.5},itemStyle:{color:'#f0b429'},symbolSize:9,
+      label:{show:true,position:'top',distance:8,color:'#f0b429',formatter:function(p){return p.dataIndex===3?'近 +90%':'+'+p.value+'%';}}}
+  ];
+  o.graphic=[{type:'text',right:24,bottom:56,style:{text:'2026-01：出口首超进口 · 成为净出口国\n2024 年超越德国 · 全球第二大出口国',fill:'#f0b429',fontSize:12,fontFamily:FONT,lineHeight:20,textAlign:'right'}}];
+  return o;
+})());
+
+mk('chIC', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.xAxis=[Object.assign({type:'category',data:['2026 前 7 月','2025 全年']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle())];
+  o.series=[{type:'bar',barWidth:'42%',data:[null,14442],
+    itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}},
+    label:{show:true,position:'top',color:'#e6edf3',formatter:'14,442 亿元（+27%）'}}];
+  o.graphic=[{type:'text',left:'19%',top:'34%',style:{text:'2026 年前 7 月\n2,160 亿美元（+99.5%）\n已超 2025 全年\n第一大出口单品',fill:'#22d3ee',fontSize:14,fontFamily:FONT,lineHeight:26,textAlign:'left'}}];
+  return o;
+})());
+</script>
+<script>
+/* ============================================================
+   壹 · 政策经纬：时间线数据与交互
+============================================================ */
+var TL = [
+  {d:'2022-02', c:'“东数西算”全面启动', t:'“东数西算”工程全面启动', tag:'工程布局', x:'京津冀、长三角、粤港澳、成渝、内蒙古、贵州、甘肃、宁夏 8 大枢纽、10 大数据中心集群全面启动，将东部算力需求有序引导至西部，拉开全国一体化算力网序幕。'},
+  {d:'2023-10', c:'算力高质量发展行动计划', t:'六部门《算力基础设施高质量发展行动计划》', tag:'顶层规划', x:'提出到 2025 年算力规模超过 300 EFLOPS、智能算力占比达 35% 的量化目标，算力首次有了“五年计划”式的硬指标。'},
+  {d:'2024-03', c:'“人工智能+”首入政府工作报告', t:'“人工智能+”首次写入政府工作报告', tag:'国家战略', x:'2024 年全国两会，“人工智能+”行动首次写入《政府工作报告》，AI 从产业议题升格为国家行动。'},
+  {d:'2024-12-26', c:'DeepSeek-V3 开源', t:'DeepSeek-V3 开源发布', tag:'技术奇点', x:'以极低成本训练出对标国际一线的开源模型，为一个月后的“DeepSeek 时刻”埋下伏笔，也改写了“算力军备竞赛”的叙事。'},
+  {d:'2025-01-17', c:'国家 AI 产业投资基金成立', t:'国家人工智能产业投资基金成立', tag:'国家队', x:'总规模 600.6 亿元、存续期 13 年、落户上海，AI 领域迎来“国家队”耐心资本。'},
+  {d:'2025-01-20', c:'DeepSeek-R1 与“Sputnik 时刻”', t:'DeepSeek-R1 发布 · 英伟达单日暴跌约 17%', tag:'技术奇点', x:'R1 发布后全球震动；1 月 27 日英伟达单日暴跌约 17%、市值蒸发近 6000 亿美元，被称作“AI 的 Sputnik 时刻”——低成本路线冲击了“堆卡即正义”的信仰。'},
+  {d:'2025-02-24', c:'阿里 3 年 3800 亿投 AI 基建', t:'阿里巴巴宣布 3 年 3800 亿投云与 AI 硬件基建', tag:'巨头加码', x:'中国民营企业史上最大规模科技基建投资计划，标志民间资本正式接过算力投资的第二棒。'},
+  {d:'2025-03-05', c:'政府工作报告首提“具身智能”', t:'2025 年政府工作报告首提“具身智能”', tag:'国家战略', x:'“具身智能”与“6G”等一同写入政府工作报告，人形机器人从展会明星变成政策关键词。'},
+  {d:'2025-07-28', c:'上海 6 亿算力券 + 3 亿模型券', t:'上海发放算力券与模型券', tag:'地方落地', x:'上海推出 6 亿元算力券 + 3 亿元模型券，算力租金最高补贴 100%，以“消费券”逻辑降低中小企业用算门槛。'},
+  {d:'2025-08-26', c:'国发〔2025〕11 号发布', t:'国务院《关于深入实施“人工智能+”行动的意见》', tag:'顶层设计', x:'首个系统性顶层设计文件，提出 2027 / 2030 / 2035 三阶段目标：智能终端与智能体普及率超 70%、超 90%，直至全面步入智能经济社会新阶段。'},
+  {d:'2025-10-23', c:'写入“十五五”规划建议', t:'二十届四中全会：“全面实施‘人工智能+’行动”', tag:'国家战略', x:'“全面实施‘人工智能+’行动”写入“十五五”规划建议，AI 大基建锁定下一个五年的国家议程。'},
+  {d:'2026-01', c:'2025 年盘点：产业超 1.2 万亿', t:'2025 年成绩单', tag:'里程碑', x:'AI 核心产业规模突破 1.2 万亿元；AI 企业超 6000 家；工业机器人出口首次超过进口，成为净出口国。'},
+  {d:'2026-03-05', c:'首提“打造智能经济新形态”', t:'2026 年政府工作报告', tag:'国家战略', x:'首次提出“打造智能经济新形态”；“十五五”目标同步明确：数字经济核心产业占 GDP 比重达 12.5%。'},
+  {d:'2026-04', c:'算力网纳入国家“六张网”', t:'算力网列入战略性基础设施阵列', tag:'里程碑', x:'算力网被纳入国家“六张网”战略性基础设施阵列，与电网、交通网等传统大基建并列，算力正式成为“国之重器”。'}
+];
+(function(){
+  var track = document.getElementById('tlTrack'), detail = document.getElementById('tlDetail'), scroll = document.getElementById('tlScroll');
+  if(!track) return;
+  TL.forEach(function(ev, i){
+    var n = document.createElement('div');
+    n.className = 'tl-node';
+    n.innerHTML = '<div class="tl-dot"></div><div class="tl-date">'+ev.d+'</div><div class="tl-cap">'+ev.c+'</div>';
+    n.addEventListener('click', function(){
+      track.querySelectorAll('.tl-node').forEach(function(x){ x.classList.remove('active'); });
+      n.classList.add('active');
+      detail.innerHTML = '<span class="tag">'+ev.tag+'</span><span class="tag">'+ev.d+'</span><h5 style="margin-top:10px">'+ev.t+'</h5><p>'+ev.x+'</p>';
+    });
+    track.appendChild(n);
+  });
+  track.children[9].click(); /* 默认选中“十五五”节点 */
+  /* 拖拽滚动 */
+  var down=false, sx=0, sl=0, moved=false;
+  scroll.addEventListener('pointerdown', function(e){ down=true; moved=false; sx=e.clientX; sl=scroll.scrollLeft; scroll.classList.add('grabbing'); });
+  window.addEventListener('pointermove', function(e){ if(!down) return; var dx=e.clientX-sx; if(Math.abs(dx)>4) moved=true; scroll.scrollLeft=sl-dx; });
+  window.addEventListener('pointerup', function(){ down=false; scroll.classList.remove('grabbing'); });
+  scroll.addEventListener('click', function(e){ if(moved){ e.stopPropagation(); e.preventDefault(); } }, true);
+})();
+
+/* ============================================================
+   肆 · 名词解释：词卡
+============================================================ */
+var GLOSSARY = [
+  {t:'EFLOPS', e:'算力单位', d:'每秒百亿亿次浮点运算。务必注意精度口径：FP32（单精度）与 FP16（半精度）相差近一个数量级——2024 底全国智算 FP32 约 90 EFLOPS，而 2025 底智算 FP16 达 1590 EFLOPS，两者不可直接比较。'},
+  {t:'PUE', e:'电能利用效率', d:'数据中心总耗电 ÷ IT 设备耗电，越接近 1 越省电。2025-06 全国平均 PUE 降至 1.42；“东数西算”要求西部集群 PUE 更低，液冷与绿电是关键路径。'},
+  {t:'东数西算', e:'国家算力工程', d:'2022 年 2 月启动，8 大枢纽、10 大集群，将东部算力需求引导至西部可再生能源富集区。十四五以来带动社会投资超万亿元。'},
+  {t:'算力券', e:'需求侧补贴', d:'地方政府向企业发放的算力消费补贴。2025-07 上海发放 6 亿元算力券 + 3 亿元模型券，算力租金最高补贴 100%，降低中小企业用算门槛。'},
+  {t:'具身智能', e:'Embodied AI', d:'拥有物理身体、能与真实世界交互的智能——人形机器人是其最受关注的载体。2025 年 3 月首次写入政府工作报告。'},
+  {t:'万卡集群', e:'万张 GPU 互联', d:'由上万张 AI 加速卡组成的训练集群，是大模型时代的“国之重器”。截至 2025 年底中国建成 42 个万卡集群，数量居全球第二。'},
+  {t:'两重建设', e:'国债投向', d:'“国家重大战略实施 + 重点领域安全能力建设”，超长期特别国债的核心投向；数据中心 / 智算中心被纳入支持范围（2024 年 7000 亿、2025 年 8000 亿）。'},
+  {t:'智算中心', e:'AIDC', d:'以 AI 训练 / 推理为主要负载的数据中心，区别于通用 IDC。隐忧：部分智算中心利用率仅约三成（科技日报，2025-07），结构性过剩值得警惕。'},
+  {t:'数字经济数据口径', e:'核心 vs 全口径', d:'“数字经济核心产业”占 GDP 约 10.5%（2024），而包含产业数字化的全口径数字经济占比约 33.1%——两个数字都正确，差在统计范围，引用时务必注明。'}
+];
+(function(){
+  var g = document.getElementById('gGrid');
+  if(!g) return;
+  GLOSSARY.forEach(function(it){
+    var c = document.createElement('div');
+    c.className = 'gcard';
+    c.innerHTML = '<div class="gcard-in"><div class="gface front"><div class="gt">'+it.t+'</div><div class="ge">'+it.e+'</div><div class="gflip">点击翻转 ⟲</div></div><div class="gface back"><p>'+it.d+'</p></div></div>';
+    c.addEventListener('click', function(){ c.classList.toggle('flipped'); });
+    g.appendChild(c);
+  });
+})();
+
+/* ============================================================
+   伍 · KaTeX 公式渲染
+============================================================ */
+(function(){
+  if(typeof katex === 'undefined') return;
+  document.querySelectorAll('.katex-box').forEach(function(el){
+    try{ katex.render(el.dataset.tex, el, {throwOnError:false, displayMode:true}); }catch(e){ el.textContent = el.dataset.tex; }
+  });
+})();
+
+/* ============================================================
+   伍 · 传导链条
+============================================================ */
+var CHAIN = [
+  {i:'第壹层', t:'财政 + 企业资本', d:'超长期特别国债（2025 年 1.3 万亿、其中 8000 亿投“两重”）与国家 AI 产业投资基金（600.6 亿）打底；阿里 3 年 3800 亿、腾讯年资本开支 792 亿等民间资本跟进，形成“国家队 + 巨头”双引擎。'},
+  {i:'第贰层', t:'直接算力投资', d:'资金首先落地为智算中心与数据中心：2025 年算力市场规模约 8351 亿元（+30%），在用机架超 1373 万架，建成 42 个万卡集群，平均 PUE 降至 1.42。'},
+  {i:'第叁层', t:'产业链拉动', d:'订单沿产业链向上游传导：AI 芯片 → 服务器 → 光模块（中际旭创全球市占率 23.4% 连续三年第一）→ 液冷温控 → 电力与绿电（2025 年电力行业投资 +9.1%）。'},
+  {i:'第肆层', t:'宏观账户显影', d:'2025 年信息传输、软件和信息技术服务业增加值 +11.1%（70599 亿元），远超 GDP 整体 +5.0%；在固投整体 -3.8% 中，信息业投资逆势 +8.8%。'},
+  {i:'第伍层', t:'乘数与出口外溢', d:'信通院测算“1 元算力带动 3~4 元经济产出”（线性简化，存时滞与递减）；同时产能外溢为出口——机器人成净出口国、集成电路 2025 年出口 14442 亿元（+27%）。'}
+];
+(function(){
+  var row = document.getElementById('chainRow'), det = document.getElementById('chainDetail');
+  if(!row) return;
+  CHAIN.forEach(function(c, i){
+    var n = document.createElement('div');
+    n.className = 'chain-node';
+    n.innerHTML = '<div class="cn-i">'+c.i+'</div><div class="cn-t">'+c.t+'</div>';
+    n.addEventListener('click', function(){
+      row.querySelectorAll('.chain-node').forEach(function(x){ x.classList.remove('active'); });
+      n.classList.add('active');
+      det.innerHTML = '<h6>'+c.i+' · '+c.t+'</h6><p>'+c.d+'</p>';
+    });
+    row.appendChild(n);
+  });
+  row.children[0].click();
+})();
+</script>
+<script>
+/* ============================================================
+   陆 · 交互模型：两个沙盘
+============================================================ */
+function fillSlider(r){
+  var p = (r.value - r.min) / (r.max - r.min) * 100;
+  r.style.setProperty('--fill', p + '%');
+}
+
+/* ---- 沙盘 A：算力投资乘数 ---- */
+(function(){
+  var rI = document.getElementById('rInvest'), rM = document.getElementById('rMult');
+  if(!rI) return;
+  var GDP = 1400000; /* 2025 年 GDP 约 140 万亿元 = 1,400,000 亿元（估算基准） */
+  var chart = mk('sbChartA', (function(){
+    var o = baseOpt();
+    o.series=[{type:'gauge',min:0,max:8,startAngle:210,endAngle:-30,radius:'100%',center:['50%','62%'],
+      axisLine:{lineStyle:{width:14,color:[[0.25,'#0e7490'],[0.6,'#22d3ee'],[0.85,'#f0b429'],[1,'#ef4444']]}},
+      pointer:{length:'58%',width:4,itemStyle:{color:'#f0b429'}},
+      axisTick:{distance:-14,length:5,lineStyle:{color:'#8b98a9',width:1}},
+      splitLine:{distance:-14,length:14,lineStyle:{color:'#8b98a9',width:2}},
+      axisLabel:{distance:-36,color:'#8b98a9',fontSize:11,fontFamily:FONT},
+      anchor:{show:true,size:10,itemStyle:{color:'#f0b429'}},
+      title:{show:true,offsetCenter:[0,'32%'],color:'#8b98a9',fontSize:12,fontFamily:FONT},
+      detail:{valueAnimation:true,offsetCenter:[0,'58%'],fontSize:26,color:'#fff',fontFamily:FONT,formatter:function(v){return v.toFixed(2)+' %';}},
+      data:[{value:2.09,name:'占 2025 年 GDP 比重'}]}];
+    return o;
+  })());
+  function upd(){
+    var I = parseFloat(rI.value), m = parseFloat(rM.value);
+    var out = I * m;                 /* 亿元 */
+    var wy = out / 10000;            /* 万亿元 */
+    var pct = out / GDP * 100;
+    document.getElementById('oInvest').textContent = I.toLocaleString() + ' 亿元';
+    document.getElementById('oMult').textContent = m.toFixed(1) + ' ×';
+    document.getElementById('vOutput').innerHTML = wy.toFixed(2) + '<span>万亿元</span>';
+    document.getElementById('vPct').innerHTML = pct.toFixed(2) + '<span>%</span>';
+    document.getElementById('vGrow').innerHTML = pct.toFixed(2) + '<span>pt</span>';
+    if(chart) chart.setOption({series:[{data:[{value:Math.min(pct,8),name:'占 2025 年 GDP 比重'}]}]});
+    fillSlider(rI); fillSlider(rM);
+  }
+  rI.addEventListener('input', upd); rM.addEventListener('input', upd);
+  upd();
+})();
+
+/* ---- 沙盘 B：人形机器人渗透 ---- */
+(function(){
+  var rS = document.getElementById('rShip'), rH = document.getElementById('rShare'), rP = document.getElementById('rPrice');
+  if(!rS) return;
+  var REF = 8700; /* 中国电子学会 2030 年预测（亿元） */
+  var chart = mk('sbChartB', (function(){
+    var o = baseOpt();
+    o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(34,211,238,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+    o.grid={left:56,right:30,top:34,bottom:30,containLabel:true};
+    o.xAxis=[Object.assign({type:'category',data:['你的推演','电子学会 2030 预测']},axStyle())];
+    o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle())];
+    o.series=[{type:'bar',barWidth:'44%',data:[
+        {value:850,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+        {value:REF,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+      ],
+      label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString()+' 亿';}}}];
+    return o;
+  })());
+  function upd(){
+    var n = parseFloat(rS.value), s = parseFloat(rH.value), p = parseFloat(rP.value);
+    var val = n * (s/100) * p; /* 万台 × 万元/台 = 亿元 */
+    var gap = val - REF;
+    document.getElementById('oShip').textContent = n.toLocaleString() + ' 万台';
+    document.getElementById('oShare').textContent = s + ' %';
+    document.getElementById('oPrice').textContent = p + ' 万元';
+    document.getElementById('vHuVal').innerHTML = Math.round(val).toLocaleString() + '<span>亿元</span>';
+    var gEl = document.getElementById('vHuGap');
+    gEl.innerHTML = (gap>=0?'+':'−') + Math.abs(Math.round(gap)).toLocaleString() + '<span>亿元</span>';
+    gEl.style.color = gap >= 0 ? '#34d399' : '#f0b429';
+    if(chart) chart.setOption({series:[{data:[
+      {value:Math.round(val),itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+      {value:REF,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+    ]}]});
+    fillSlider(rS); fillSlider(rH); fillSlider(rP);
+  }
+  rS.addEventListener('input', upd); rH.addEventListener('input', upd); rP.addEventListener('input', upd);
+  upd();
+})();
+</script>
+</body>
+</html>

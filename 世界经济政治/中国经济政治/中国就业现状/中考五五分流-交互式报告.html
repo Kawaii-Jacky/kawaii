@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五五分流：一场被人口终结的实验 · 交互式深度报告</title>
+<style>
+/* ============================================================
+   EDITORIAL LUXURY · 编辑级排版设计系统
+   宣纸暖白 / 墨黑 / 朱砂 / 黛青 / 赭金 / 深墨暗章
+   ============================================================ */
+:root{
+  --paper:#F6F1E7;
+  --paper-2:#EFE7D8;
+  --card:#FCFAF4;
+  --ink:#191613;
+  --ink-soft:#464035;
+  --ink-faint:#8A8172;
+  --line:#DCD3C0;
+  --red:#A63D2F;
+  --red-deep:#8C3226;
+  --blue:#31505E;
+  --gold:#B08A47;
+  --green:#4E7A55;
+  --dark:#16130F;
+  --dark-2:#1D1913;
+  /* 图表语义色（暗色章节内被覆盖） */
+  --c-red:#A63D2F;
+  --c-blue:#31505E;
+  --c-gold:#B08A47;
+  --c-muted:#C9BFA9;
+  --grid:#E3DAC7;
+  --axis:#C4BAA3;
+  --tick:#8A8172;
+  --val:#464035;
+  --ink-on:#191613;
+  --serif:"Noto Serif SC","Source Han Serif SC","STSong","Songti SC","SimSun",serif;
+  --sans:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Consolas","Courier New",monospace;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.9;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+::selection{background:var(--red);color:var(--paper);}
+
+/* ---------- 布局 ---------- */
+.wrap{max-width:880px;margin:0 auto;padding:0 24px;}
+.wrap-wide{max-width:980px;margin:0 auto;padding:0 24px;}
+section{padding:120px 0 80px;position:relative;}
+
+/* ---------- 章节头 ---------- */
+.sec-head{display:flex;align-items:flex-end;gap:26px;margin-bottom:14px;}
+.sec-big{
+  font-family:var(--serif);font-weight:900;font-size:4rem;line-height:.9;
+  color:var(--gold);opacity:.45;flex:0 0 auto;font-variant-numeric:tabular-nums;
+}
+.sec-no{
+  font-family:var(--mono);font-size:11px;letter-spacing:.32em;
+  color:var(--red);text-transform:uppercase;margin-bottom:12px;
+}
+h2.sec-title{
+  font-family:var(--serif);font-size:clamp(28px,4.4vw,38px);
+  font-weight:900;line-height:1.28;letter-spacing:.01em;
+}
+.sec-rule{width:64px;height:4px;background:var(--red);margin:22px 0 28px;}
+.sec-lede{color:var(--ink-soft);font-size:15.5px;max-width:660px;margin-bottom:44px;}
+
+/* ---------- 明暗交替：暗色章节 ---------- */
+section.dark{
+  background:var(--dark);color:#E9E2D2;
+  --c-red:#CD6048;--c-blue:#6E97AB;--c-gold:#C9A15C;--c-muted:#6B6152;
+  --grid:rgba(255,255,255,.07);--axis:rgba(255,255,255,.22);
+  --tick:#9C937F;--val:#D9D0BE;--ink-on:#F2ECDD;
+}
+section.dark .sec-big{color:var(--gold);opacity:.55;}
+section.dark .sec-no{color:#CD6048;}
+section.dark h2.sec-title{color:#F2ECDD;}
+section.dark .sec-lede{color:#A89E8A;}
+section.dark .sec-rule{background:#CD6048;}
+/* 中屏隐藏 hero 装饰，避免与内容重叠 */
+@media(max-width:1100px){.hero-seal,.hero-vert{display:none;}}
+
+/* ---------- 阅读进度条 ---------- */
+#progress{
+  position:absolute;top:0;left:0;height:2px;width:0%;
+  background:var(--red);z-index:101;transition:width .08s linear;
+}
+
+/* ---------- Sticky 导航（毛玻璃） ---------- */
+nav#topnav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(246,241,231,.78);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+nav#topnav .nav-inner{
+  max-width:980px;margin:0 auto;padding:0 16px;
+  display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+}
+nav#topnav .nav-inner::-webkit-scrollbar{display:none;}
+nav#topnav a{
+  flex:0 0 auto;display:block;padding:15px 14px 13px;
+  font-size:13px;letter-spacing:.06em;color:var(--ink-soft);text-decoration:none;
+  border-bottom:2px solid transparent;white-space:nowrap;
+  transition:color .25s,border-color .25s;
+}
+nav#topnav a:hover{color:var(--red);}
+nav#topnav a.active{color:var(--red);border-bottom-color:var(--red);font-weight:600;}
+
+/* ---------- HERO 全屏 ---------- */
+header.hero{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;padding:100px 0 90px;
+  background:
+    radial-gradient(ellipse 55% 42% at 50% 0%,rgba(166,61,47,.07),transparent 70%),
+    var(--paper);
+}
+.hero-inner{max-width:880px;margin:0 auto;padding:0 24px;text-align:center;position:relative;z-index:2;}
+.hero-kicker{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.42em;
+  color:var(--red);margin-bottom:30px;text-transform:uppercase;
+}
+.hero h1{
+  font-family:var(--serif);font-weight:900;
+  font-size:clamp(3.2rem,8.4vw,5.5rem);line-height:1.18;
+  letter-spacing:.02em;margin-bottom:30px;
+}
+.hero h1 em{font-style:normal;color:var(--red);}
+.hl-line{display:inline-block;opacity:0;transform:translateY(34px);animation:heroUp 1.1s var(--ease) forwards;}
+.hl-line.d2{animation-delay:.18s;}
+@keyframes heroUp{to{opacity:1;transform:none;}}
+.hero-fade{opacity:0;transform:translateY(18px);animation:heroUp 1s var(--ease) forwards;}
+.hero-fade.d1{animation-delay:.35s;}
+.hero-fade.d2{animation-delay:.55s;}
+.hero-fade.d3{animation-delay:.75s;}
+.hero-fade.d4{animation-delay:.95s;}
+.hero .subtitle{
+  font-family:var(--serif);font-size:clamp(16px,2.4vw,20px);
+  color:var(--ink-soft);margin-bottom:34px;letter-spacing:.04em;
+}
+.hero-meta{
+  display:inline-flex;gap:20px;align-items:center;flex-wrap:wrap;justify-content:center;
+  font-size:12.5px;letter-spacing:.12em;color:var(--ink-faint);margin-bottom:46px;
+}
+.hero-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--ink-faint);}
+.hero-abstract{
+  max-width:680px;margin:0 auto;text-align:left;
+  background:var(--card);border:1px solid var(--line);
+  border-left:4px solid var(--red);
+  padding:30px 34px;box-shadow:0 2px 24px rgba(25,22,19,.05);
+}
+.hero-abstract h3{
+  font-family:var(--mono);font-size:11px;color:var(--red);
+  letter-spacing:.3em;margin-bottom:14px;font-weight:400;
+}
+.hero-abstract p{font-size:15px;color:var(--ink-soft);line-height:1.95;}
+.hero-abstract b{color:var(--ink);}
+/* 统计区：4 列 → 880px 以下 2×2 网格 */
+.hero-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  max-width:840px;margin:58px auto 0;
+}
+.hero-stat{padding:6px 20px 2px;border-left:1px solid var(--line);text-align:center;}
+.hero-stat:first-child{border-left:none;}
+.hero-stat .num{
+  font-family:var(--serif);font-weight:900;font-size:clamp(30px,4.6vw,46px);
+  color:var(--red);line-height:1.1;font-variant-numeric:tabular-nums;
+}
+.hero-stat .lbl{font-size:12px;letter-spacing:.08em;color:var(--ink-faint);margin-top:8px;}
+@media(max-width:880px){
+  .hero-stats{grid-template-columns:repeat(2,1fr);row-gap:30px;}
+  .hero-stat:nth-child(3){border-left:none;}
+  .hero-stat:nth-child(n+3){padding-top:26px;border-top:1px solid var(--line);}
+}
+/* 竖排装饰文字 */
+.hero-vert{
+  position:absolute;right:4.5vw;top:50%;transform:translateY(-50%);
+  writing-mode:vertical-rl;font-family:var(--serif);font-size:15px;
+  letter-spacing:.55em;color:var(--ink-faint);opacity:.75;z-index:1;
+  user-select:none;
+}
+.hero-vert::before{content:"";display:block;width:1px;height:64px;background:var(--ink-faint);margin:0 auto 18px;opacity:.5;}
+/* 朱砂印章 */
+.hero-seal{
+  position:absolute;left:5vw;bottom:16vh;z-index:1;
+  width:88px;height:88px;background:var(--red);border-radius:4px;
+  display:grid;grid-template-columns:1fr 1fr;place-items:center;
+  transform:rotate(-5deg);
+  box-shadow:0 6px 20px rgba(166,61,47,.32),inset 0 0 0 3px rgba(246,241,231,.35);
+  padding:8px;
+}
+.hero-seal span{
+  font-family:var(--serif);font-weight:900;font-size:24px;color:#F6F1E7;
+  line-height:1;letter-spacing:0;
+}
+/* 滚动提示 */
+.scroll-hint{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:10px;z-index:2;
+  font-size:10.5px;letter-spacing:.4em;color:var(--ink-faint);font-family:var(--mono);
+}
+.scroll-hint .sh-line{width:1px;height:46px;background:var(--line);position:relative;overflow:hidden;}
+.scroll-hint .sh-line::after{
+  content:"";position:absolute;left:0;top:-16px;width:1px;height:16px;background:var(--red);
+  animation:shDrop 1.8s var(--ease) infinite;
+}
+@keyframes shDrop{0%{top:-16px;}70%{top:46px;}100%{top:46px;}}
+.scroll-hint .sh-arrow{
+  width:8px;height:8px;border-right:1.5px solid var(--ink-faint);border-bottom:1.5px solid var(--ink-faint);
+  transform:rotate(45deg);animation:shFade 1.8s ease infinite;
+}
+@keyframes shFade{0%,100%{opacity:.35;}50%{opacity:1;}}
+
+/* ---------- 时间线 ---------- */
+.timeline{position:relative;padding-left:36px;}
+.timeline::before{
+  content:"";position:absolute;left:8px;top:8px;bottom:8px;width:1px;
+  background:linear-gradient(var(--line),var(--red) 88%);
+}
+.tl-item{position:relative;margin-bottom:16px;}
+.tl-item::before{
+  content:"";position:absolute;left:-32.5px;top:22px;width:9px;height:9px;
+  border-radius:50%;background:var(--paper);border:1.5px solid var(--red);
+  transition:background .25s,transform .25s;
+}
+.tl-item:hover::before{background:var(--red);transform:scale(1.3);}
+.tl-head{
+  display:flex;align-items:baseline;gap:16px;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);
+  padding:18px 24px;transition:transform .25s var(--ease),box-shadow .25s,border-color .25s;
+  user-select:none;
+}
+.tl-head:hover{transform:translateX(4px);border-color:var(--red);box-shadow:0 4px 18px rgba(25,22,19,.07);}
+.tl-year{
+  font-family:var(--serif);font-weight:900;font-size:21px;color:var(--red);
+  flex:0 0 auto;font-variant-numeric:tabular-nums;letter-spacing:.02em;
+}
+.tl-name{font-family:var(--serif);font-weight:700;font-size:16.5px;flex:1;}
+.tl-toggle{
+  font-family:var(--mono);font-size:19px;color:var(--ink-faint);font-weight:300;
+  transition:transform .35s var(--ease),color .25s;flex:0 0 auto;
+}
+.tl-item.open .tl-toggle{transform:rotate(45deg);color:var(--red);}
+.tl-body{max-height:0;overflow:hidden;transition:max-height .5s var(--ease);}
+.tl-item.open .tl-body{max-height:420px;}
+.tl-body-inner{
+  margin:10px 0 4px;padding:18px 24px;font-size:14.5px;color:var(--ink-soft);
+  background:var(--card);border:1px solid var(--line);border-left:3px solid var(--red);
+}
+.tl-body-inner b{color:var(--ink);}
+.tl-tag{
+  display:inline-block;font-size:10.5px;padding:2px 10px;
+  border:1px solid var(--red);color:var(--red);margin-left:10px;vertical-align:2px;
+  letter-spacing:.12em;font-family:var(--mono);
+}
+.tl-tag.blue{border-color:var(--blue);color:var(--blue);}
+.tl-tag.gold{border-color:var(--gold);color:var(--gold);}
+
+/* ---------- 大事件卡片 ---------- */
+.event-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:22px;}
+.event-card{
+  background:var(--card);border:1px solid var(--line);
+  padding:32px 28px;position:relative;
+  transition:transform .3s var(--ease),box-shadow .3s,border-color .3s;
+}
+.event-card:hover{transform:translateY(-5px);box-shadow:0 14px 36px rgba(25,22,19,.10);border-color:#C9BFA9;}
+.event-card::before{
+  content:"";position:absolute;top:0;left:0;width:44px;height:3px;background:var(--red);
+}
+.event-card:nth-child(2)::before{background:var(--blue);}
+.event-card:nth-child(3)::before{background:var(--gold);}
+.event-badge{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.26em;color:var(--red);
+  margin-bottom:16px;text-transform:uppercase;
+}
+.event-card:nth-child(2) .event-badge{color:var(--blue);}
+.event-card:nth-child(3) .event-badge{color:var(--gold);}
+.event-card h3{font-family:var(--serif);font-size:21px;font-weight:900;line-height:1.45;margin-bottom:14px;}
+.event-card p{font-size:14px;color:var(--ink-soft);line-height:1.85;}
+.event-card p b{color:var(--ink);}
+.event-card .big-figure{
+  font-family:var(--serif);font-weight:900;font-size:38px;color:var(--ink);
+  margin:18px 0 6px;font-variant-numeric:tabular-nums;line-height:1.1;
+}
+.event-card .big-figure small{font-size:14px;color:var(--ink-faint);font-weight:400;font-family:var(--sans);}
+.event-src{font-size:11.5px;color:var(--ink-faint);margin-top:18px;padding-top:12px;border-top:1px solid var(--line);letter-spacing:.02em;}
+
+/* ---------- 图表卡片 ---------- */
+.chart-card{
+  background:var(--card);border:1px solid var(--line);
+  padding:36px 36px 26px;margin-bottom:34px;
+  box-shadow:0 1px 12px rgba(25,22,19,.04);
+}
+section.dark .chart-card{
+  background:var(--dark-2);border:1px solid rgba(255,255,255,.09);
+  box-shadow:none;
+}
+.chart-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px;}
+.chart-head h3{font-family:var(--serif);font-size:23px;font-weight:900;letter-spacing:.01em;}
+section.dark .chart-head h3{color:#F2ECDD;}
+.chart-head .chart-id{font-family:var(--mono);font-size:10.5px;color:var(--red);letter-spacing:.26em;text-transform:uppercase;}
+section.dark .chart-head .chart-id{color:#CD6048;}
+.chart-note{font-size:13.5px;color:var(--ink-faint);margin-bottom:22px;max-width:700px;}
+section.dark .chart-note{color:#A89E8A;}
+.chart-note b{color:var(--ink-soft);}
+section.dark .chart-note b{color:#D9D0BE;}
+.chart-svg{width:100%;height:auto;display:block;}
+.chart-src{font-size:11.5px;color:var(--ink-faint);margin-top:16px;padding-top:12px;border-top:1px solid var(--line);letter-spacing:.02em;}
+.chart-src b{color:var(--ink-soft);}
+section.dark .chart-src{color:#8A8172;border-top-color:rgba(255,255,255,.12);}
+section.dark .chart-src b{color:#A89E8A;}
+
+/* SVG 通用（颜色经 CSS 变量，暗色章节自动换肤） */
+.svg-axis{stroke:var(--axis);stroke-width:1;}
+.svg-grid{stroke:var(--grid);stroke-width:1;stroke-dasharray:2 4;}
+.svg-tick{font-family:var(--sans);font-size:11px;fill:var(--tick);letter-spacing:.02em;}
+.svg-val{font-family:var(--serif);font-size:12px;fill:var(--val);font-weight:700;}
+.svg-anno{font-family:var(--serif);font-size:12.5px;fill:var(--c-red);font-weight:700;}
+.svg-strong{font-family:var(--serif);fill:var(--ink-on);font-weight:900;}
+.svg-red{fill:var(--c-red);}
+.svg-gold{fill:var(--c-gold);}
+.fill-red{fill:var(--c-red);}
+.fill-blue{fill:var(--c-blue);}
+.fill-gold{fill:var(--c-gold);}
+.fill-muted{fill:var(--c-muted);}
+.stroke-red{stroke:var(--c-red);}
+.stroke-blue{stroke:var(--c-blue);}
+.stroke-gold{stroke:var(--c-gold);}
+svg text{user-select:none;}
+.chart-svg .bar-rect{transition:opacity .18s;}
+.chart-svg .bar-rect:hover{opacity:.8;}
+.chart-svg .dot-pt{cursor:pointer;transition:r .18s;fill:var(--card);stroke:var(--c-red);stroke-width:2.5;}
+section.dark .chart-svg .dot-pt{fill:var(--dark-2);}
+.chart-svg .dot-pt:hover{r:6.5;}
+
+/* 进场动画：统一 0.9s 编辑级缓出 + 兄弟级 stagger */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s var(--ease),transform .9s var(--ease);transition-delay:var(--d,0s);}
+.reveal.in{opacity:1;transform:none;}
+svg .draw-line{stroke-dasharray:2400;stroke-dashoffset:2400;}
+svg.in .draw-line{animation:dashdraw 2.4s var(--ease) forwards;}
+@keyframes dashdraw{to{stroke-dashoffset:0;}}
+svg .grow-bar{transform:scaleY(0);transform-origin:bottom;transform-box:fill-box;}
+svg.in .grow-bar{animation:bargrow 1s var(--ease) forwards;}
+@keyframes bargrow{to{transform:scaleY(1);}}
+svg .dot-pt, svg .fade-el{opacity:0;transition:opacity .7s ease .55s;}
+svg.in .dot-pt, svg.in .fade-el{opacity:1;}
+svg .donut-arc{transition:stroke-dashoffset 1.5s var(--ease) .25s;}
+
+/* Tooltip：深墨小卡片 + 朱砂边条 */
+#tooltip{
+  position:fixed;z-index:200;pointer-events:none;display:none;
+  background:var(--dark);color:#F2ECDD;font-size:12.5px;line-height:1.7;
+  padding:10px 14px;border-radius:3px;border-left:3px solid var(--red);
+  box-shadow:0 8px 26px rgba(0,0,0,.32);max-width:260px;letter-spacing:.02em;
+}
+#tooltip .tt-title{font-weight:700;color:#C9A15C;margin-bottom:3px;font-family:var(--serif);letter-spacing:.06em;}
+#tooltip b{color:#fff;}
+
+/* ---------- 名词解释手风琴 ---------- */
+.acc{border-top:1px solid var(--line);background:transparent;}
+.acc-item{border-bottom:1px solid var(--line);}
+.acc-head{
+  display:flex;align-items:center;gap:22px;padding:22px 8px;cursor:pointer;
+  transition:background .25s,padding-left .25s;user-select:none;
+}
+.acc-head:hover{background:rgba(252,250,244,.7);padding-left:14px;}
+.acc-idx{
+  font-family:var(--serif);font-size:24px;font-weight:900;color:var(--gold);
+  opacity:.55;flex:0 0 44px;font-variant-numeric:tabular-nums;
+}
+.acc-term{font-family:var(--serif);font-weight:900;font-size:17.5px;flex:1;letter-spacing:.02em;}
+.acc-plus{
+  font-family:var(--mono);font-size:22px;font-weight:300;color:var(--ink-faint);
+  transition:transform .4s var(--ease),color .25s;
+}
+.acc-item.open .acc-plus{transform:rotate(45deg);color:var(--red);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .45s var(--ease);}
+.acc-item.open .acc-body{max-height:360px;}
+.acc-body p{
+  padding:2px 22px 26px 74px;font-size:14.5px;color:var(--ink-soft);line-height:1.9;
+  border-left:2px solid var(--red);margin-left:20px;margin-bottom:6px;
+}
+
+/* ---------- 公式区块 ---------- */
+.formula-card{
+  background:var(--card);border:1px solid var(--line);
+  padding:38px 40px;margin-bottom:26px;position:relative;overflow:hidden;
+}
+.formula-card::after{
+  content:"ƒ";position:absolute;right:24px;top:2px;
+  font-family:var(--serif);font-style:italic;font-size:110px;color:var(--paper-2);
+  line-height:1;pointer-events:none;
+}
+.f-no{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.formula-card h3{font-family:var(--serif);font-size:21px;font-weight:900;margin-bottom:6px;}
+.formula-card .f-sub{font-size:13px;color:var(--ink-faint);margin-bottom:24px;}
+.f-expr{
+  font-family:var(--serif);font-size:clamp(17px,2.7vw,22px);text-align:center;
+  padding:26px 14px;background:var(--paper);border:1px solid var(--line);margin-bottom:20px;
+  display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+}
+.f-var{font-style:italic;font-weight:700;letter-spacing:.02em;}
+.f-op{color:var(--red);font-weight:900;font-style:normal;}
+.f-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;}
+.f-frac .f-num{padding:0 14px;border-bottom:1.5px solid var(--ink);line-height:1.6;}
+.f-frac .f-den{padding:0 14px;line-height:1.6;}
+.f-example{
+  font-size:14px;color:var(--ink-soft);background:rgba(166,61,47,.05);
+  border-left:3px solid var(--red);padding:14px 20px;line-height:1.9;
+}
+.f-example b{color:var(--red);font-variant-numeric:tabular-nums;}
+.f-example .f-step{font-family:var(--mono);font-size:13px;display:block;margin-top:5px;}
+
+/* ---------- 传导链条 ---------- */
+.chain{margin-bottom:56px;}
+.chain-title{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+.chain-title h3{font-family:var(--serif);font-size:21px;font-weight:900;}
+.chain-tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;padding:4px 12px;
+  color:var(--red);border:1.5px solid var(--red);text-transform:uppercase;
+}
+.chain-tag.b{color:var(--blue);border-color:var(--blue);}
+.chain-tag.c{color:var(--gold);border-color:var(--gold);}
+.chain-flow{
+  display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:16px 4px 22px;
+  scrollbar-width:thin;
+}
+.chain-node{
+  flex:0 0 auto;min-width:132px;max-width:160px;background:var(--card);
+  border:1px solid var(--line);padding:15px 14px;
+  font-size:12.5px;line-height:1.65;text-align:center;color:var(--ink-soft);
+  cursor:default;transition:all .25s var(--ease);position:relative;
+}
+.chain-node b{display:block;font-family:var(--serif);font-size:15px;color:var(--ink);margin-bottom:5px;letter-spacing:.02em;}
+.chain-node:hover{
+  border-color:var(--red);transform:translateY(-2px);
+  box-shadow:0 10px 24px rgba(166,61,47,.14);
+}
+.chain-node.hot{border-color:var(--red);background:#fff;}
+.chain-node.hot b{color:var(--red);}
+.chain-arrow{flex:0 0 46px;display:flex;align-items:center;justify-content:center;}
+.chain-arrow svg{width:42px;height:24px;overflow:visible;}
+.chain-arrow line{stroke:var(--red);stroke-width:1.5;stroke-dasharray:5 5;animation:arrowflow 1.2s linear infinite;}
+.chain-arrow polygon{fill:var(--red);}
+@keyframes arrowflow{to{stroke-dashoffset:-10;}}
+
+/* 中德对照链 */
+.dual-chain{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);background:var(--card);}
+.dual-col-head{
+  padding:20px 22px;font-family:var(--serif);font-weight:900;font-size:18px;text-align:center;
+  letter-spacing:.06em;border-bottom:1px solid var(--line);
+}
+.dual-col.de .dual-col-head{color:var(--blue);background:rgba(49,80,94,.06);}
+.dual-col.cn .dual-col-head{color:var(--red);background:rgba(166,61,47,.05);}
+.dual-col.de{border-right:1px solid var(--line);}
+.dual-row{
+  display:flex;align-items:center;gap:14px;padding:19px 24px;
+  border-top:1px solid var(--paper-2);font-size:13.5px;color:var(--ink-soft);
+  transition:background .25s;line-height:1.75;
+}
+.dual-row:hover{background:var(--paper);}
+.dual-row .mark{
+  flex:0 0 24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:13px;color:var(--paper);
+}
+.mark.ok{background:var(--green);}
+.mark.no{background:var(--red);}
+.dual-row b{color:var(--ink);font-family:var(--serif);letter-spacing:.02em;}
+@media(max-width:640px){
+  .dual-chain{grid-template-columns:1fr;}
+  .dual-col.de{border-right:none;border-bottom:1px solid var(--line);}
+}
+
+/* ---------- 交互模型 ---------- */
+.model-card{
+  background:var(--card);border:1px solid var(--line);
+  padding:40px 42px;margin-bottom:36px;
+  box-shadow:0 2px 20px rgba(25,22,19,.05);
+}
+.model-head{display:flex;align-items:baseline;gap:18px;margin-bottom:10px;flex-wrap:wrap;}
+.model-badge{
+  font-family:var(--serif);font-weight:900;font-size:15px;letter-spacing:.24em;
+  color:var(--gold);text-transform:uppercase;flex:0 0 auto;
+}
+.model-head h3{font-family:var(--serif);font-size:24px;font-weight:900;letter-spacing:.01em;}
+.model-desc{font-size:14px;color:var(--ink-soft);margin-bottom:30px;max-width:660px;line-height:1.9;}
+.model-desc b{color:var(--ink);}
+.ctl-row{display:flex;align-items:center;gap:20px;margin-bottom:14px;flex-wrap:wrap;}
+.ctl-row label{font-size:13.5px;font-weight:600;flex:0 0 auto;min-width:120px;letter-spacing:.04em;color:var(--ink-soft);}
+.ctl-val{
+  font-family:var(--serif);font-weight:900;font-size:24px;color:var(--red);
+  font-variant-numeric:tabular-nums;min-width:120px;text-align:right;
+}
+/* 自定义滑块：2px 细轨 + 朱砂圆点白内圈 */
+input[type=range]{
+  flex:1;min-width:160px;-webkit-appearance:none;appearance:none;height:2px;
+  background:linear-gradient(to right,var(--red) var(--fill,50%),var(--line) var(--fill,50%));
+  outline:none;cursor:pointer;border-radius:2px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--red);border:none;
+  box-shadow:inset 0 0 0 3px var(--card),0 2px 7px rgba(25,22,19,.25);
+  cursor:grab;transition:transform .18s var(--ease);
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.22);}
+input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;background:var(--red);border:none;
+  box-shadow:inset 0 0 0 3px var(--card),0 2px 7px rgba(25,22,19,.25);
+  cursor:grab;transition:transform .18s var(--ease);
+}
+input[type=range]::-moz-range-thumb:hover{transform:scale(1.22);}
+.model-out{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;
+  margin:26px 0 8px;
+}
+.out-box{
+  background:var(--paper);border:1px solid var(--line);padding:20px 20px 16px;text-align:center;
+}
+.out-box .ov{
+  font-family:var(--serif);font-weight:900;font-size:clamp(24px,3.4vw,34px);
+  color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2;
+}
+.out-box .ov.red{color:var(--red);}
+.out-box .ov.green{color:var(--green);}
+.out-box .ol{font-size:11.5px;letter-spacing:.1em;color:var(--ink-faint);margin-top:8px;}
+/* 状态印章 */
+#m1Status{
+  display:inline-block;padding:3px 16px;border:2px solid currentColor;border-radius:3px;
+  letter-spacing:.14em;
+}
+.verdict{
+  margin-top:20px;padding:16px 22px;font-size:14.5px;line-height:1.85;
+  font-family:var(--serif);font-weight:700;transition:all .35s;
+  border-left:3px solid;
+}
+.verdict.v-red{background:rgba(166,61,47,.06);border-color:var(--red);color:#7E2A20;}
+.verdict.v-gold{background:rgba(176,138,71,.09);border-color:var(--gold);color:#6E531D;}
+.verdict.v-green{background:rgba(78,122,85,.09);border-color:var(--green);color:#35543A;}
+.warn-strip{
+  margin-top:14px;font-size:13px;color:#7E2A20;background:rgba(166,61,47,.06);
+  border:1px dashed rgba(166,61,47,.45);padding:12px 18px;display:none;line-height:1.8;
+}
+.warn-strip.show{display:block;}
+
+/* 天平 */
+.scale-stage{display:flex;flex-direction:column;align-items:center;padding:14px 0 0;}
+#scaleBeam{transition:transform .55s var(--ease);}
+
+/* ---------- 结语（暗色全宽） ---------- */
+section.finale{padding:130px 0 110px;}
+.finale-quote{
+  font-family:var(--serif);font-size:clamp(22px,3.8vw,32px);font-weight:900;
+  line-height:2;text-align:center;max-width:720px;margin:0 auto 46px;color:#F2ECDD;
+  letter-spacing:.03em;
+}
+.finale-quote .qmark{color:#CD6048;font-size:1.35em;line-height:0;}
+.finale-body{max-width:680px;margin:0 auto;font-size:15.5px;color:#B3A992;line-height:2;}
+.finale-body p{margin-bottom:22px;}
+.finale-body b{color:#F2ECDD;}
+.finale-rule{width:64px;height:3px;background:#CD6048;margin:44px auto;}
+.three-asks{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;
+  margin:44px auto;max-width:780px;
+}
+.ask-card{
+  background:var(--dark-2);border:1px solid rgba(255,255,255,.09);border-top:3px solid #CD6048;
+  padding:26px 22px;text-align:center;
+}
+.ask-card .ask-q{font-family:var(--serif);font-weight:900;font-size:16.5px;margin-bottom:10px;line-height:1.6;color:#F2ECDD;}
+.ask-card .ask-a{font-size:13px;color:#CD6048;font-weight:700;letter-spacing:.04em;}
+.finale-sign{
+  text-align:center;font-size:11px;color:#8A8172;margin-top:56px;
+  font-family:var(--mono);letter-spacing:.24em;text-transform:uppercase;
+}
+
+/* ---------- 页脚 ---------- */
+footer{
+  border-top:1px solid var(--line);padding:44px 0 60px;
+  font-size:12.5px;color:var(--ink-faint);background:var(--paper);
+}
+footer .wrap p{margin-bottom:10px;line-height:1.9;}
+footer b{color:var(--ink-soft);}
+
+/* ---------- 正文通用 ---------- */
+.src-inline{font-size:12px;color:var(--ink-faint);}
+blockquote.pull{
+  border-left:3px solid #CD6048;padding:8px 0 8px 26px;margin:36px auto;max-width:680px;
+  font-family:var(--serif);font-size:20px;font-weight:900;color:#F2ECDD;line-height:1.9;
+}
+.pull small{display:block;font-family:var(--mono);font-size:11px;color:#8A8172;font-weight:400;margin-top:12px;letter-spacing:.2em;}
+
+/* ---------- 响应式 ---------- */
+@media(max-width:720px){
+  body{font-size:16px;}
+  section{padding:80px 0 56px;}
+  .sec-head{gap:18px;}
+  .sec-big{font-size:3rem;}
+  .hero{padding:80px 0 96px;min-height:100svh;}
+  .hero-vert,.hero-seal{display:none;}
+  .formula-card,.model-card{padding:26px 20px;}
+  .chart-card{padding:24px 16px 18px;}
+  .acc-body p{padding:2px 16px 22px 18px;margin-left:8px;}
+  .acc-idx{flex:0 0 34px;font-size:20px;}
+  .chain-node{min-width:116px;max-width:138px;font-size:11.5px;}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
+  html{scroll-behavior:auto;}
+  .hl-line,.hero-fade{opacity:1;transform:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ Sticky 目录 + 阅读进度条 ============ -->
+<nav id="topnav">
+  <div id="progress"></div>
+  <div class="nav-inner">
+    <a href="#hero" data-sec="hero">卷首</a>
+    <a href="#timeline" data-sec="timeline">政策时间线</a>
+    <a href="#events" data-sec="events">大事件</a>
+    <a href="#charts" data-sec="charts">数据图室</a>
+    <a href="#terms" data-sec="terms">名词解释</a>
+    <a href="#formulas" data-sec="formulas">分析公式</a>
+    <a href="#chains" data-sec="chains">传导链条</a>
+    <a href="#models" data-sec="models">交互模型</a>
+    <a href="#finale" data-sec="finale">结语</a>
+  </div>
+</nav>
+
+<!-- ============ HERO 全屏 ============ -->
+<header class="hero" id="hero">
+  <div class="hero-vert">政策 · 人口 · 命运</div>
+  <div class="hero-seal"><span>五</span><span>五</span><span>分</span><span>流</span></div>
+  <div class="hero-inner">
+    <div class="hero-kicker hero-fade d1">深度报道 · 数据交互版 · 第 01 期</div>
+    <h1><span class="hl-line">五五分流：</span><br><span class="hl-line d2">一场<em>被人口终结</em>的实验</span></h1>
+    <p class="subtitle hero-fade d2">中考牌桌上的一半孩子被请下桌——而掀翻这张牌桌的，不是文件，是出生证。</p>
+    <div class="hero-meta hero-fade d3">
+      <span>2026 年 10 月</span><span class="dot"></span>
+      <span>全文约 6500 字 · 阅读约 18 分钟</span><span class="dot"></span>
+      <span>含 5 张图表 · 3 个交互模型</span>
+    </div>
+    <div class="hero-abstract hero-fade d3">
+      <h3>核心结论 · 开门见山</h3>
+      <p>中考"五五分流"的初衷是复制德国双元制，但中国只学来了 <b>50:50 的比例</b>，却丢掉了比例背后的<b>社会契约</b>——企业主导、商会认证、学徒有薪、技工体面。当蓝领岗位给不出体面的工资与尊严，行政强制分流就必然异化为家长眼中的"淘汰"。真正终结这场实验的并非政策纠偏，而是<b>人口断崖</b>：2025 年出生人口仅 792 万，不足十年前的一半。当学位开始抢生源，筛选便失去了物理基础。这是一场惨胜，而真正的出路在校园围墙之外。</p>
+    </div>
+    <div class="hero-stats hero-fade d4">
+      <div class="hero-stat"><div class="num"><span class="count" data-to="792">0</span> 万</div><div class="lbl">2025 年出生人口</div></div>
+      <div class="hero-stat"><div class="num"><span class="count" data-to="1222">0</span> 万</div><div class="lbl">2025 年高校毕业生</div></div>
+      <div class="hero-stat"><div class="num"><span class="count" data-to="1.41" data-dec="2">0</span> 亿</div><div class="lbl">流动 + 留守儿童</div></div>
+      <div class="hero-stat"><div class="num"><span class="count" data-to="48.5" data-dec="1">0</span> h</div><div class="lbl">2025 年周平均工时</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint"><span>SCROLL</span><span class="sh-line"></span><span class="sh-arrow"></span></div>
+</header>
+
+<!-- ============ 01 政策时间线 ============ -->
+<section id="timeline">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-big">01</div>
+      <div>
+        <div class="sec-no">SECTION 01 · TIMELINE</div>
+        <h2 class="sec-title">七年之间：从"同等重要"到"取消选拔"</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">点击任意节点展开详情。一条政策线从 2019 年的宏图出发，七年后在一座海岛上悄然拐了弯。</p>
+    <div class="timeline" id="tlBox">
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2019</span>
+          <span class="tl-name">《国家职业教育改革实施方案》（"职教20条"）<span class="tl-tag">顶层设计</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          国务院印发"职教20条"，首次明确提出<b>职业教育与普通教育是两种不同教育类型，具有同等重要地位</b>。这被视为"职普比大体相当"从口号转向硬约束的起点，地方层面开始把"约一半初中毕业生进中职"作为执行口径。
+          <br><span class="src-inline">来源：国务院文件，2019 年。</span>
+        </div></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2021</span>
+          <span class="tl-name">"双减"政策落地<span class="tl-tag gold">缓冲失败</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          学科类培训被大规模压减，意图给教育军备竞赛降温。但只要"一考定终身"的分流还在，焦虑就不会消失——它只会转入地下：一对一私教、住家教师、异地补课。家长砸进三代积蓄，只为挤进那 50% 的普高名单。<b>减负减不掉筛选，筛选还在，军备竞赛就在。</b>
+        </div></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2022</span>
+          <span class="tl-name">新修订《职业教育法》施行<span class="tl-tag">法律背书</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          新法规定职业学校学生在升学、就业、职业发展等方面与同层次普通学校学生享有平等机会，要求消除就业与升学歧视。法律措辞漂亮，但劳动力市场用真金白银投票：当蓝领底薪紧贴最低工资线，"平等机会"四个字很难说服牌桌上的家长。
+          <br><span class="src-inline">来源：《中华人民共和国职业教育法》（2022 年修订）。</span>
+        </div></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2019–24</span>
+          <span class="tl-name">各地"硬分流"与持续争议<span class="tl-tag gold">执行变形</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          在广东等经济发达地区，往年约四成初中生无缘普通高中；许多地区中考不可复读，一次考试锁定人生赛道。教育部多次表态保持<b>"职普比大体相当"</b>，地方将比例理解为行政指标，分流从"因材施教"异化为"按比例淘汰"，民间争议不断。
+        </div></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2025</span>
+          <span class="tl-name">郑州铁路职业技术学院"本升专"爆火<span class="tl-tag blue">标志性荒诞</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          该校三个专业面向<b>全日制本科应届毕业生</b>特招 135 人，名额瞬间报满。背景是：2024 年该校就业率 96%，80% 毕业生进入铁路系统，50% 被各地铁路局录用，40% 有编制，起薪 5800 元、首年综合年薪 8–12 万元。本科生"回炉"读专科，不是段子，是学历通胀时代的理性选择。
+          <br><span class="src-inline">来源：校方招生信息及媒体报道，2025 年；部分数据为文章转述口径。</span>
+        </div></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2025</span>
+          <span class="tl-name">《教育强国建设规划纲要》措辞软化<span class="tl-tag">风向转变</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          纲要提出<b>"加快扩大高中阶段教育资源供给"</b>。从"职普比大体相当"到"扩大普高供给"，措辞的转向释放出清晰信号：政策开始为"全员普高"时代预留空间。
+        </div></div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-head">
+          <span class="tl-year">2026.01</span>
+          <span class="tl-name">浙江嵊泗县取消中考选拔功能<span class="tl-tag blue">破冰</span></span>
+          <span class="tl-toggle">+</span>
+        </div>
+        <div class="tl-body"><div class="tl-body-inner">
+          2026 年 1 月 22 日，浙江舟山嵊泗县——一座人口持续流失的海岛县——宣布取消中考选拔功能，符合条件的初中毕业生可 <b>100% 升入普通高中</b>。这不是教育理想的胜利，而是人口流失严重地区的"绝地求生"：孩子太少，筛选已无米下锅。
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 大事件卡片 ============ -->
+<section id="events">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-big">02</div>
+      <div>
+        <div class="sec-no">SECTION 02 · EVENTS</div>
+        <h2 class="sec-title">三个切片，看清这场实验</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">一个海岛县的破冰、一所专科的魔幻招生、一群流水线上的"学生工"——宏大政策的褶皱里，藏着最真实的中国。</p>
+    <div class="event-grid">
+
+      <div class="event-card reveal">
+        <div class="event-badge">事件 A · 破冰</div>
+        <h3>嵊泗县：中考第一次不再"筛人"</h3>
+        <p>浙江舟山的海岛小县，人口流失严重。2026 年 1 月 22 日，当地宣布：符合条件的初中毕业生可全部升入普通高中，中考只剩"学业检测"功能。</p>
+        <div class="big-figure">100% <small>普高升学</small></div>
+        <p>它的意义不在于一个小县的教育安排，而在于证明了一件事：<b>当生源少于学位，分流政策会自己瓦解。</b>这是人口逻辑对行政逻辑的第一次公开胜利。</p>
+        <div class="event-src">来源：嵊泗县官方通告，2026 年 1 月；文章转述口径。</div>
+      </div>
+
+      <div class="event-card reveal">
+        <div class="event-badge">事件 B · 魔幻现实</div>
+        <h3>"本升专"：本科生排队回炉读专科</h3>
+        <p>2025 年，郑州铁路职业技术学院三个专业面向全日制本科应届毕业生特招，名额放出即被抢空。同年，全国高校毕业生达 1222 万。</p>
+        <div class="big-figure">135 <small>个名额，瞬间报满</small></div>
+        <p>吸引力来自确定性：2024 年该校就业率 96%，八成进铁路系统，四成带编制，起薪 5800 元、首年综合年薪 8–12 万元，仅郑州铁路局当年就招 1500 多人。<b>不是专科打败了本科，是编制打败了学历。</b></p>
+        <div class="event-src">来源：校方公开数据与媒体报道，2024–2025 年；部分为转述口径。</div>
+      </div>
+
+      <div class="event-card reveal">
+        <div class="event-badge">事件 C · 灰色地带</div>
+        <h3>"顶岗实习"：流水线边的学生工</h3>
+        <p>职业教育法承诺的"真本事"，在部分中职异化为批量输送给工厂的廉价劳动力：专业不对口的流水线、以毕业证为筹码的强制实习、远低于正式工的收入。</p>
+        <div class="big-figure">0–低薪 <small>实习生月报酬区间</small></div>
+        <p>当"实习"变成"用工"，职校的公信力被透支。家长不是歧视职业教育，而是亲眼看见了<b>分流之后的待遇</b>——恐惧因此而生。</p>
+        <div class="event-src">来源：媒体公开报道综述；定性描述，非单一统计口径。</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 数据图室（暗色章节） ============ -->
+<section id="charts" class="dark">
+  <div class="wrap-wide">
+    <div class="sec-head">
+      <div class="sec-big">03</div>
+      <div>
+        <div class="sec-no">SECTION 03 · DATA ROOM</div>
+        <h2 class="sec-title">数据图室：五张图，看懂全局</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">悬停图表任意元素可查看精确数值。所有图形均由原生 SVG 手绘渲染，离线可用。</p>
+
+    <div class="chart-card reveal">
+      <div class="chart-head"><h3>出生人口：十年腰斩</h3><span class="chart-id">CHART 01 · LINE</span></div>
+      <p class="chart-note">2013–2025 年全国出生人口（万人）。2016 年"全面二孩"冲高至约 1786 万后一路下行，2025 年仅 792 万——不到十年，腰斩有余。</p>
+      <svg id="chartBirth" class="chart-svg" viewBox="0 0 900 380" role="img" aria-label="出生人口折线图"></svg>
+      <div class="chart-src"><b>数据来源：</b>国家统计局历年公报，2013–2025 年；2025 年为 792 万（官方数据 / 文章转述口径）。</div>
+    </div>
+
+    <div class="chart-card reveal">
+      <div class="chart-head"><h3>高校毕业生：学历通胀进行时</h3><span class="chart-id">CHART 02 · BAR</span></div>
+      <p class="chart-note">2020–2025 年高校毕业生规模（万人）。五年增长近四成，文凭的"含金量"被供给稀释——这正是"本升专"现象的宏观背景。</p>
+      <svg id="chartGrads" class="chart-svg" viewBox="0 0 900 380" role="img" aria-label="高校毕业生柱状图"></svg>
+      <div class="chart-src"><b>数据来源：</b>教育部历年统计，2020–2025 年。</div>
+    </div>
+
+    <div class="chart-card reveal">
+      <div class="chart-head"><h3>2.98 亿儿童：近一半在流动与留守</h3><span class="chart-id">CHART 03 · DONUT</span></div>
+      <p class="chart-note">中国 0–17 岁儿童约 2.98 亿。其中流动儿童 7109 万、留守儿童 6693 万，合计约 1.41 亿——义务教育经费按户籍拨付，他们中的许多人还没站上分流的起跑线，就已经落后。</p>
+      <svg id="chartKids" class="chart-svg" viewBox="0 0 900 400" role="img" aria-label="儿童构成环形图"></svg>
+      <div class="chart-src"><b>数据来源：</b>联合国儿童基金会与国家统计局基于 2020 年人口普查的联合报告。</div>
+    </div>
+
+    <div class="chart-card reveal">
+      <div class="chart-head"><h3>中德蓝领回报：比例好学，契约难抄</h3><span class="chart-id">CHART 04 · GROUPED BAR</span></div>
+      <p class="chart-note">左侧为德国（欧元/月），右侧为中国（人民币/月）。<b>币种不同，绝对值不可直接比较</b>——请看每组下方关于"体面程度"的注解：差距不在数字，而在数字能买到的生活。</p>
+      <svg id="chartDeCn" class="chart-svg" viewBox="0 0 900 420" role="img" aria-label="中德蓝领回报对比图"></svg>
+      <div class="chart-src"><b>数据来源：</b>德国数据为欧盟机构统计（2024 年，首年学徒法定最低月薪 649€、平均月津贴约 1133€、全职雇员平均月薪超 4600€）；中国数据为深圳市最低工资标准（2022 年调升后约 2520 元）与文章转述口径的职校实习生报酬。</div>
+    </div>
+
+    <div class="chart-card reveal">
+      <div class="chart-head"><h3>周平均工时：48.5 小时的"竞争力"</h3><span class="chart-id">CHART 05 · BAR</span></div>
+      <p class="chart-note">中国就业人员周平均工时 48.5 小时（2025 年），显著高于法定标准工时 40 小时，也远高于德国全职雇员的约 38 小时（约数）。低工资的背面，是长时间。</p>
+      <svg id="chartHours" class="chart-svg" viewBox="0 0 900 340" role="img" aria-label="周平均工时对比图"></svg>
+      <div class="chart-src"><b>数据来源：</b>国家统计局（2025 年，官方数据）；中国法定标准工时依据《劳动法》；德国数值为约数（文章转述口径）。</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 04 名词解释 ============ -->
+<section id="terms">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-big">04</div>
+      <div>
+        <div class="sec-no">SECTION 04 · GLOSSARY</div>
+        <h2 class="sec-title">名词解释：读懂这套话语体系</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">点击展开。十个关键词，串起分流政策的全部语境。</p>
+    <div class="acc" id="accBox">
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">01</span><span class="acc-term">五五分流</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>指初中毕业生中约一半升入普通高中、约一半进入中等职业学校的中考分流格局。它并非某份文件的原话，而是对"职普比大体相当"政策口径的民间概括。在广东等经济发达地区，往年约四成初中生无缘普通高中；许多地区中考不可复读，一次考试即定赛道，因此被家长称为"一考定终身"。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">02</span><span class="acc-term">职普比大体相当</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>教育部多年坚持的政策表述，即中职与普高的招生规模保持大致相等。它是"五五分流"的正式出处。在地方执行中，这一弹性表述常被硬化为行政指标，按比率划分生源，而非按学生的意愿与禀赋分流——这正是争议的根源。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">03</span><span class="acc-term">职教20条</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>2019 年国务院印发的《国家职业教育改革实施方案》的俗称。其核心宣示是"职业教育与普通教育是两种不同教育类型，具有同等重要地位"，并配套提出建设"双师型"教师队伍、产教融合等举措。它拉开了新一轮职教强推的序幕。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">04</span><span class="acc-term">双元制</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>德国职业教育的核心制度：学徒每周 3–4 天在企业接受真实岗位训练，1–2 天在职业学校学习理论。企业是当然的主角，培训内容、考核与录用都由行业深度参与。中国分流政策最想复制的正是这个 50:50 的比例，但制度移植缺失了最关键的器官——企业主体地位。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">05</span><span class="acc-term">IHK（德国工商会）</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>德国工商业联合会，双元制中职业证书的颁发者之一。证书由行业商会而非学校签发，意味着技能标准由用人方定义，证书在全行业通行。这套"行业认证"机制，是中国职校文凭始终缺乏市场公信力的镜像对照。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">06</span><span class="acc-term">双师型教师</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>指既具备理论教学能力、又具备企业实践经验与技能的职业院校教师。"职教20条"将其列为师资建设方向。现实瓶颈在于：职校薪酬与平台难以吸引真正的行业高手，"双师"常常停留在证书意义上的双证，而非能力意义上的双修。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">07</span><span class="acc-term">顶岗实习</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>职业院校学生在毕业前进入企业岗位进行实践的教学环节。制度设计的本意是"工学结合"，但部分学校将其异化为向工厂批量输送廉价劳动力的渠道：流水线、低报酬、专业不对口，甚至以毕业证相要挟。"学生工"乱象是职教公信力流失的重灾区。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">08</span><span class="acc-term">本升专</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>本科毕业生"回炉"报考专科院校的现象。2025 年郑州铁路职业技术学院面向全日制本科应届毕业生特招 135 人、名额瞬间报满，即为标志性案例。其逻辑并不荒诞：当专科背后是 96% 就业率、铁路系统编制与 8–12 万首年年薪，而本科文凭对应的是 1222 万人的就业红海，"降级"恰是理性。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">09</span><span class="acc-term">低人权优势</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>一种对"世界工厂"竞争力的批评性概括：以低工资、长工时、弱劳动保障构成的成本优势，支撑出口导向的增长模式。2025 年中国外汇储备约 3.35 万亿美元、当年贸易顺差接近 1.2 万亿美元，其背后是工资被长期作为"竞争力成本项"压缩的宏观捆绑。在这一结构里，蓝领待遇的改善天然受到抑制。</p></div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-head"><span class="acc-idx">10</span><span class="acc-term">恶意讨薪</span><span class="acc-plus">+</span></div>
+        <div class="acc-body"><p>一个颇具争议的执法话语：劳动者在追讨被拖欠工资时，若采取聚集、爬塔吊等激烈方式，可能被扣上"恶意讨薪"的帽子。这个词的存在本身说明问题——欠薪在先，讨薪被"恶意化"在后。它折射出劳动者缺乏独立工会与集体谈判权时，维权的逼仄处境。</p></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 分析公式 ============ -->
+<section id="formulas">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-big">05</div>
+      <div>
+        <div class="sec-no">SECTION 05 · FORMULAS</div>
+        <h2 class="sec-title">四个公式：把焦虑翻译成算术</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">不是数学建模，而是思维脚手架——用极简的算式，拆开分流困局的受力结构。</p>
+
+    <div class="formula-card reveal">
+      <div class="f-no">FORMULA 01</div>
+      <h3>蓝领的真实价格</h3>
+      <div class="f-sub">底薪紧贴最低工资线时，时薪取决于你愿意卖出多少小时</div>
+      <div class="f-expr">
+        <span class="f-var">实际时薪</span><span class="f-op">=</span>
+        <span class="f-frac"><span class="f-num">底薪 + 加班费</span><span class="f-den">月总工时</span></span>
+      </div>
+      <div class="f-example">
+        代入示例（深圳，2022 年最低工资口径）：
+        <span class="f-step">底薪 2520 元 + 加班费 3000 元 = 月收入 5520 元</span>
+        <span class="f-step">月工时 = 26 天 × 11 小时 ≈ 286 小时</span>
+        <span class="f-step">实际时薪 = 5520 ÷ 286 ≈ <b>19.3 元/小时</b></span>
+        不加班，到手两三千；疯狂加班，才摸到五六千。时薪 19.3 元，就是"分流恐惧"的底价。
+      </div>
+    </div>
+
+    <div class="formula-card reveal">
+      <div class="f-no">FORMULA 02</div>
+      <h3>教育军备竞赛</h3>
+      <div class="f-sub">当门票只有一半概率，投入的极限是三代人的积蓄</div>
+      <div class="f-expr">
+        <span class="f-var">家庭投入</span><span class="f-op">=</span>
+        <span class="f-var">补课费</span><span class="f-op">+</span>
+        <span class="f-var">学区房溢价</span><span class="f-op">+</span>
+        <span class="f-var">机会成本</span>
+        <span class="f-op">vs</span>
+        <span class="f-var">普高门票概率 ≈ 50%</span>
+      </div>
+      <div class="f-example">
+        当奖励（普高门票）稀缺且不可逆，理性家庭的策略是无限加注。"双减"压住了公开补课，却压不住等式的右半边——<b>只要 50% 的分流比例还在，军备竞赛就只是换了个战场</b>。
+      </div>
+    </div>
+
+    <div class="formula-card reveal">
+      <div class="f-no">FORMULA 03</div>
+      <h3>分流焦虑的结构</h3>
+      <div class="f-sub">焦虑不来自分流本身，而来自分流的"赔率"</div>
+      <div class="f-expr">
+        <span class="f-var">分流焦虑</span><span class="f-op">∝</span>
+        <span class="f-frac"><span class="f-num">普职待遇差 × 不可逆性</span><span class="f-den">兜底保障</span></span>
+      </div>
+      <div class="f-example">
+        德国的双元制把分子做小（学徒有薪、技工体面）、把分母做大（行业认证、社会尊重）；中国却把分子拉到极大（职校 = 低薪 + 不可复读的一考定终身），分母又薄（兜底保障薄弱）。<b>焦虑不是家长的非理性，而是这个分数的精确读数。</b>
+      </div>
+    </div>
+
+    <div class="formula-card reveal">
+      <div class="f-no">FORMULA 04</div>
+      <h3>学位供需缺口（示意）</h3>
+      <div class="f-sub">人口是教育政策最迟钝、也最不可抗的变量</div>
+      <div class="f-expr">
+        <span class="f-var">学位供需缺口</span><span class="f-op">=</span>
+        <span class="f-var">高中学位数</span><span class="f-op">−</span>
+        <span class="f-var">15 年前出生人口</span>
+      </div>
+      <div class="f-example">
+        这是下方<b>交互模型一「生源预测器」</b>使用的示意公式：当 15 年前的出生人口持续低于学位供给，缺口由负转正，学校就从"挑学生"变成"抢学生"。嵊泗县的 100% 普高，正是缺口转正后的必然动作。<span class="src-inline">（示意口径，供推演，非官方预测）</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 06 传导链条 ============ -->
+<section id="chains">
+  <div class="wrap-wide">
+    <div class="sec-head">
+      <div class="sec-big">06</div>
+      <div>
+        <div class="sec-no">SECTION 06 · MECHANISMS</div>
+        <h2 class="sec-title">三条传导链：政策如何失效，人口如何翻盘</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">悬停节点查看高亮，箭头持续流动指示传导方向。链条 C 为左右对照，✓/✗ 标注中国缺失的环节。</p>
+
+    <!-- 链条 A -->
+    <div class="chain reveal">
+      <div class="chain-title"><span class="chain-tag">链条 A</span><h3>政策失效链：从顶层设计到资源错配</h3></div>
+      <div class="chain-flow" id="chainA"></div>
+    </div>
+
+    <!-- 链条 B -->
+    <div class="chain reveal">
+      <div class="chain-title"><span class="chain-tag b">链条 B</span><h3>人口倒逼链：断崖如何一级级传导到中考</h3></div>
+      <div class="chain-flow" id="chainB"></div>
+    </div>
+
+    <!-- 链条 C -->
+    <div class="chain reveal">
+      <div class="chain-title"><span class="chain-tag c">链条 C</span><h3>德国契约链 vs 中国缺失环节：同一个 50:50，两套社会地基</h3></div>
+      <div class="dual-chain">
+        <div class="dual-col de">
+          <div class="dual-col-head">德国 · 契约完整</div>
+          <div class="dual-row"><span class="mark ok">✓</span><div><b>企业主体</b>——企业是培训主角，学徒每周 3–4 天在真实岗位受训，1–2 天在校</div></div>
+          <div class="dual-row"><span class="mark ok">✓</span><div><b>商会认证</b>——证书由 IHK 等行业商会颁发，全行业通行，用人方自己定义标准</div></div>
+          <div class="dual-row"><span class="mark ok">✓</span><div><b>学徒有薪</b>——2024 年首年学徒法定最低月薪 649€，平均月津贴约 1133€</div></div>
+          <div class="dual-row"><span class="mark ok">✓</span><div><b>技工体面</b>——全职雇员平均月薪超 4600€（2024），持证技工稳居中产</div></div>
+        </div>
+        <div class="dual-col cn">
+          <div class="dual-col-head">中国 · 环节缺失</div>
+          <div class="dual-row"><span class="mark no">✗</span><div><b>企业缺位</b>——学校是主体，企业多为廉价用工的接收端，"顶岗实习"频现乱象</div></div>
+          <div class="dual-row"><span class="mark no">✗</span><div><b>认证脱节</b>——文凭由学校签发，与行业标准脱节，市场认可度低</div></div>
+          <div class="dual-row"><span class="mark no">✗</span><div><b>实习低薪</b>——实习生报酬 0 至低薪，部分沦为变相"学生工"</div></div>
+          <div class="dual-row"><span class="mark no">✗</span><div><b>蓝领窘迫</b>——深圳最低工资约 2520 元/月（2022），周平均工时 48.5 小时（2025）</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 07 交互模型 ============ -->
+<section id="models">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-big">07</div>
+      <div>
+        <div class="sec-no">SECTION 07 · MODELS</div>
+        <h2 class="sec-title">三个交互模型：亲手推演这场终局</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+    <p class="sec-lede">拖动滑块，所有结果实时重算。模型为示意推演工具，非精确预测。</p>
+
+    <!-- 模型 1：生源预测器 -->
+    <div class="model-card reveal">
+      <div class="model-head"><span class="model-badge">Model 01</span><h3>生源预测器：中考适龄人口推演</h3></div>
+      <p class="model-desc">估算逻辑：<b>某年中考适龄人口 ≈ 15 年前的出生人口</b>（忽略死亡与迁移）。高中学位供给按约 1500 万/年固定示意。拖动年份滑块，观察供需关系何时反转。</p>
+      <div class="ctl-row">
+        <label for="m1Year">中考年份</label>
+        <input type="range" id="m1Year" min="2025" max="2045" step="1" value="2030">
+        <span class="ctl-val" id="m1YearVal">2030 年</span>
+      </div>
+      <svg id="m1Svg" class="chart-svg" viewBox="0 0 880 260" role="img" aria-label="生源预测柱形图"></svg>
+      <div class="model-out">
+        <div class="out-box"><div class="ov" id="m1Cohort">—</div><div class="ol">预计中考适龄人口（万人）</div></div>
+        <div class="out-box"><div class="ov" id="m1Gap">—</div><div class="ol">学位缺口（学位数 − 生源，万人）</div></div>
+        <div class="out-box"><div class="ov" id="m1Status">—</div><div class="ol">学位供需状态</div></div>
+      </div>
+      <div class="verdict v-gold" id="m1Verdict">拖动滑块开始推演。</div>
+      <div class="warn-strip" id="m1Note">⚠ 2041 年后的生源基于 2026–2030 年出生人口的趋势外推，不确定性较高，仅供示意。</div>
+    </div>
+
+    <!-- 模型 2：蓝领收入模拟器 -->
+    <div class="model-card reveal">
+      <div class="model-head"><span class="model-badge">Model 02</span><h3>蓝领收入模拟器：用加班换生活</h3></div>
+      <p class="model-desc">底薪固定为深圳最低工资 2520 元/月（2022 年口径）。基准时薪 = 2520 ÷ 21.75 天 ÷ 8 小时 ≈ 14.48 元；加班费按 1.5 倍基准时薪估算。拖动"月加班小时"，看看要卖多少小时才能摸到"生存线"。</p>
+      <div class="ctl-row">
+        <label for="m2Ot">月加班小时</label>
+        <input type="range" id="m2Ot" min="0" max="120" step="1" value="60">
+        <span class="ctl-val" id="m2OtVal">60 小时</span>
+      </div>
+      <svg id="m2Svg" class="chart-svg" viewBox="0 0 880 300" role="img" aria-label="蓝领收入模拟图"></svg>
+      <div class="model-out">
+        <div class="out-box"><div class="ov red" id="m2Income">—</div><div class="ol">月总收入（元）</div></div>
+        <div class="out-box"><div class="ov" id="m2Hourly">—</div><div class="ol">实际时薪（元/小时）</div></div>
+        <div class="out-box"><div class="ov" id="m2Hours">—</div><div class="ol">月总工时（小时）</div></div>
+      </div>
+      <div class="verdict v-red" id="m2Verdict">—</div>
+      <div class="warn-strip" id="m2Warn">⚠ 劳动法视角：用人单位安排加班每月不得超过 36 小时（《劳动法》第 41 条）。当前设定已越过法律红线——但它正是许多工厂的日常。</div>
+    </div>
+
+    <!-- 模型 3：分流接受度天平 -->
+    <div class="model-card reveal">
+      <div class="model-head"><span class="model-badge">Model 03</span><h3>分流接受度天平：什么条件下，家长会接受分流？</h3></div>
+      <p class="model-desc">分别调高蓝领的<b>起薪</b>、<b>保障</b>与<b>社会尊严</b>，观察天平的倾斜。这复刻的是德国的答案：分流被接受，从来不是因为"分流本身正确"，而是因为分流的另一端足够体面。</p>
+      <div class="ctl-row">
+        <label for="m3Wage">蓝领起薪</label>
+        <input type="range" id="m3Wage" min="2000" max="12000" step="100" value="3500">
+        <span class="ctl-val" id="m3WageVal">3500 元/月</span>
+      </div>
+      <div class="ctl-row">
+        <label for="m3Sec">劳动保障（劳动法落实度）</label>
+        <input type="range" id="m3Sec" min="0" max="100" step="1" value="30">
+        <span class="ctl-val" id="m3SecVal">30 / 100</span>
+      </div>
+      <div class="ctl-row">
+        <label for="m3Dig">社会尊严（职业声望）</label>
+        <input type="range" id="m3Dig" min="0" max="100" step="1" value="25">
+        <span class="ctl-val" id="m3DigVal">25 / 100</span>
+      </div>
+      <div class="scale-stage">
+        <svg id="m3Svg" viewBox="0 0 300 190" width="300" height="190" role="img" aria-label="分流接受度天平"></svg>
+        <div class="out-box" style="min-width:260px;"><div class="ov" id="m3Score">—</div><div class="ol">分流接受度指数（0–100）</div></div>
+      </div>
+      <div class="verdict v-red" id="m3Verdict">—</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 08 结语（暗色全宽） ============ -->
+<section class="finale dark" id="finale">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-big">08</div>
+      <div>
+        <div class="sec-no">SECTION 08 · EPILOGUE</div>
+        <h2 class="sec-title">结语：出路在围墙之外</h2>
+      </div>
+    </div>
+    <div class="sec-rule"></div>
+
+    <div class="finale-quote">
+      <span class="qmark">「</span>分流的失败，从来不是学校的失败，<br>而是校园之外社会结构的失败。<span class="qmark">」</span>
+    </div>
+
+    <div class="three-asks">
+      <div class="ask-card reveal"><div class="ask-q">蓝领能拿到体面高薪吗？</div><div class="ask-a">否。底薪贴着最低工资线。</div></div>
+      <div class="ask-card reveal"><div class="ask-q">职校能教出市场认可的真本事吗？</div><div class="ask-a">难。认证脱节，实习异化。</div></div>
+      <div class="ask-card reveal"><div class="ask-q">技术工人有足够社会尊严吗？</div><div class="ask-a">没有。从"恶意讨薪"就看得出。</div></div>
+    </div>
+
+    <div class="finale-body">
+      <p>三个问题，三个否定答案。只要答案不变，<b>任何强行的比例分流都注定失败</b>——家长会用三代积蓄投票，用脚逃离；而孩子会用"本升专"的荒诞，给学历通胀时代的分流政策写下注脚。</p>
+      <p>中国从德国抄来了 50:50 的比例，却丢掉了比例背后的社会契约：企业是培训的主角、商会为技能背书、学徒带薪、技工体面。<b>比例是果，契约是因；抄果弃因，南橘北枳。</b></p>
+      <p>讽刺的是，终结这场实验的不是上述任何一项改革，而是人口。2025 年出生人口 792 万，不及十年前的一半；幼儿园成批关停，寒潮正向中小学蔓延。当嵊泗县的学位开始等学生，"五五分流"才发现：<b>它筛选的对象正在消失。</b>这是一场被人口断崖倒逼的惨胜。</p>
+      <div class="finale-rule"></div>
+      <p>但惨胜不等于终局。若人口回暖或区域失衡依旧，分流的幽灵仍可能还魂。真正的出路在校园围墙之外：<b>提高蓝领待遇，让工资配得上劳动；落实劳动法，让 48.5 小时的周工时回归法律边界；赋予劳动者集体谈判权，让"讨薪"不再需要冠以"恶意"。</b>当分流的另一端不再可怕，分流才会从"淘汰"变回它本该是的样子——一次自然的职业选择。</p>
+    </div>
+
+    <blockquote class="pull">
+      教育的围墙里修修补补，修不好围墙外的世界；把围墙外的世界修好了，围墙里的焦虑自己会退烧。
+      <small>—— 本报告核心论点</small>
+    </blockquote>
+
+    <div class="finale-sign">FIN · 2026.10 · 本报告为评论文章改写的数据新闻作品</div>
+  </div>
+</section>
+
+<!-- ============ 页脚 ============ -->
+<footer>
+  <div class="wrap">
+    <p><b>数据口径说明：</b>本报告数据来自国家统计局、教育部、欧盟机构统计、联合国儿童基金会与国家统计局联合报告（基于 2020 年人口普查）、《劳动法》《职业教育法》及公开媒体报道；部分事件性数据（郑州铁院招生细节、嵊泗县政策细节、德国工时约数等）为文章转述口径，已在各图表下方逐一标注。</p>
+    <p>币种提示：中德对比图中欧元与人民币数值不可直接比较，请以"体面程度"注解为准。交互模型均为示意推演，非官方预测。</p>
+    <p>本页面为单文件离线作品：所有样式与脚本内联，图表由原生 SVG 手绘渲染，无任何外部依赖。</p>
+  </div>
+</footer>
+
+<div id="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 工具 ================= */
+function $(id){return document.getElementById(id);}
+var NS="http://www.w3.org/2000/svg";
+function svgEl(tag,attrs,parent){
+  var e=document.createElementNS(NS,tag);
+  for(var k in attrs){e.setAttribute(k,attrs[k]);}
+  if(parent)parent.appendChild(e);
+  return e;
+}
+function fmt(n,d){
+  if(d===undefined)d=0;
+  return Number(n).toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+
+/* ---------- 阅读进度条 ---------- */
+var progressBar=$("progress");
+function updateProgress(){
+  var h=document.documentElement;
+  var max=h.scrollHeight-h.clientHeight;
+  var p=max>0?(h.scrollTop||document.body.scrollTop)/max*100:0;
+  progressBar.style.width=p+"%";
+}
+window.addEventListener("scroll",updateProgress,{passive:true});
+window.addEventListener("resize",updateProgress);
+updateProgress();
+
+/* ---------- Tooltip ---------- */
+var tt=$("tooltip");
+function ttShow(html,x,y){
+  tt.innerHTML=html;tt.style.display="block";
+  var r=tt.getBoundingClientRect();
+  var nx=x+16,ny=y+16;
+  if(nx+r.width>window.innerWidth-10)nx=x-r.width-14;
+  if(ny+r.height>window.innerHeight-10)ny=y-r.height-14;
+  tt.style.left=nx+"px";tt.style.top=ny+"px";
+}
+function ttHide(){tt.style.display="none";}
+document.addEventListener("mouseover",function(e){
+  var t=e.target.closest?e.target.closest("[data-tt]"):null;
+  if(t){ttShow(t.getAttribute("data-tt"),e.clientX,e.clientY);}
+});
+document.addEventListener("mousemove",function(e){
+  if(tt.style.display==="block"){
+    var r=tt.getBoundingClientRect();
+    var nx=e.clientX+16,ny=e.clientY+16;
+    if(nx+r.width>window.innerWidth-10)nx=e.clientX-r.width-14;
+    if(ny+r.height>window.innerHeight-10)ny=e.clientY-r.height-14;
+    tt.style.left=nx+"px";tt.style.top=ny+"px";
+  }
+});
+document.addEventListener("mouseout",function(e){
+  var t=e.target.closest?e.target.closest("[data-tt]"):null;
+  if(t)ttHide();
+});
+
+/* ---------- 滑块填充色 ---------- */
+function paintRange(el){
+  var p=(el.value-el.min)/(el.max-el.min)*100;
+  el.style.setProperty("--fill",p+"%");
+}
+document.querySelectorAll("input[type=range]").forEach(function(r){
+  paintRange(r);
+  r.addEventListener("input",function(){paintRange(r);});
+});
+
+/* ---------- 数字滚动 ---------- */
+function countUp(el){
+  var to=parseFloat(el.getAttribute("data-to"));
+  var dec=parseInt(el.getAttribute("data-dec")||"0",10);
+  var t0=null,dur=1600;
+  function step(ts){
+    if(!t0)t0=ts;
+    var p=Math.min((ts-t0)/dur,1);
+    p=1-Math.pow(1-p,3);
+    el.textContent=fmt(to*p,dec);
+    if(p<1)requestAnimationFrame(step);
+    else el.textContent=fmt(to,dec);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- Reveal stagger：同章节兄弟元素 80ms 递增 ---------- */
+document.querySelectorAll("section, header.hero").forEach(function(sec){
+  var items=sec.querySelectorAll(":scope .reveal");
+  items.forEach(function(el,i){
+    el.style.setProperty("--d",(Math.min(i,6)*80)+"ms");
+  });
+});
+
+/* ---------- 进场 & 导航观察 ---------- */
+var revealObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if(en.isIntersecting){
+      en.target.classList.add("in");
+      en.target.querySelectorAll("svg").forEach(function(s){
+        s.classList.add("in");
+        s.querySelectorAll(".donut-arc").forEach(function(a){
+          a.style.strokeDashoffset=a.getAttribute("data-off");
+        });
+      });
+      en.target.querySelectorAll(".count").forEach(function(c){
+        if(!c.dataset.done){c.dataset.done="1";countUp(c);}
+      });
+      revealObs.unobserve(en.target);
+    }
+  });
+},{threshold:0.18});
+document.querySelectorAll(".reveal, header.hero").forEach(function(el){revealObs.observe(el);});
+
+var navLinks=document.querySelectorAll("nav#topnav a");
+var secObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if(en.isIntersecting){
+      var id=en.target.id;
+      navLinks.forEach(function(a){a.classList.toggle("active",a.getAttribute("data-sec")===id);});
+    }
+  });
+},{rootMargin:"-38% 0px -55% 0px"});
+["hero","timeline","events","charts","terms","formulas","chains","models","finale"].forEach(function(id){
+  var el=$(id);if(el)secObs.observe(el);
+});
+
+/* ---------- 时间线 & 手风琴 ---------- */
+document.querySelectorAll(".tl-head").forEach(function(h){
+  h.addEventListener("click",function(){h.parentElement.classList.toggle("open");});
+});
+document.querySelectorAll(".acc-head").forEach(function(h){
+  h.addEventListener("click",function(){h.parentElement.classList.toggle("open");});
+});
+
+/* ================= 数据 ================= */
+var BIRTHS=[ /* 出生人口（万人），国家统计局口径 */
+  {y:2013,v:1640},{y:2014,v:1687},{y:2015,v:1655},{y:2016,v:1786},
+  {y:2017,v:1723},{y:2018,v:1523},{y:2019,v:1465},{y:2020,v:1200},
+  {y:2021,v:1062},{y:2022,v:956},{y:2023,v:902},{y:2024,v:954},{y:2025,v:792}
+];
+var GRADS=[
+  {y:2020,v:874},{y:2021,v:909},{y:2022,v:1076},
+  {y:2023,v:1158},{y:2024,v:1179},{y:2025,v:1222}
+];
+
+/* ================= CHART 01 出生人口折线 ================= */
+(function(){
+  var svg=$("chartBirth");if(!svg)return;
+  var W=900,H=380,L=56,R=24,T=34,B=48;
+  var iw=W-L-R,ih=H-T-B,maxY=1900;
+  function X(i){return L+iw*i/(BIRTHS.length-1);}
+  function Y(v){return T+ih*(1-v/maxY);}
+  [0,500,1000,1500].forEach(function(v){
+    svgEl("line",{x1:L,y1:Y(v),x2:W-R,y2:Y(v),class:"svg-grid"},svg);
+    var t=svgEl("text",{x:L-10,y:Y(v)+4,"text-anchor":"end",class:"svg-tick"},svg);
+    t.textContent=v;
+  });
+  svgEl("line",{x1:L,y1:T,x2:L,y2:H-B,class:"svg-axis"},svg);
+  svgEl("line",{x1:L,y1:H-B,x2:W-R,y2:H-B,class:"svg-axis"},svg);
+  // 面积
+  var dArea="M"+X(0)+" "+Y(BIRTHS[0].v);
+  BIRTHS.forEach(function(p,i){dArea+=" L"+X(i)+" "+Y(p.v);});
+  dArea+=" L"+X(BIRTHS.length-1)+" "+Y(0)+" L"+X(0)+" "+Y(0)+" Z";
+  svgEl("path",{d:dArea,class:"fill-red",opacity:0.09},svg);
+  // 折线
+  var d="M"+X(0)+" "+Y(BIRTHS[0].v);
+  BIRTHS.forEach(function(p,i){d+=" L"+X(i)+" "+Y(p.v);});
+  svgEl("path",{d:d,fill:"none",class:"stroke-red draw-line","stroke-width":3,"stroke-linejoin":"round"},svg);
+  // 点 + 刻度
+  BIRTHS.forEach(function(p,i){
+    var c=svgEl("circle",{cx:X(i),cy:Y(p.v),r:4.5,class:"dot-pt"},svg);
+    c.setAttribute("data-tt","<span class='tt-title'>"+p.y+" 年</span>出生人口 <b>"+fmt(p.v)+"</b> 万人");
+    var tx=svgEl("text",{x:X(i),y:H-B+20,"text-anchor":"middle",class:"svg-tick"},svg);
+    tx.textContent=(i%2===0||i===BIRTHS.length-1)?p.y:"";
+    if(i===3||i===BIRTHS.length-1||i===0){
+      var v=svgEl("text",{x:X(i),y:Y(p.v)-12,"text-anchor":"middle",class:"svg-val fade-el"},svg);
+      v.textContent=fmt(p.v);
+    }
+  });
+  // 腰斩标注
+  var ax=X(BIRTHS.length-1),ay=Y(792);
+  svgEl("line",{x1:ax-120,y1:ay-86,x2:ax-8,y2:ay-14,class:"stroke-red fade-el","stroke-width":1.5},svg);
+  var at=svgEl("text",{x:ax-126,y:ay-94,"text-anchor":"end",class:"svg-anno fade-el"},svg);
+  at.textContent="10 年腰斩：1786 万 → 792 万";
+  var at2=svgEl("text",{x:ax-126,y:ay-78,"text-anchor":"end",class:"svg-tick fade-el"},svg);
+  at2.textContent="2016 → 2025，降幅约 56%";
+})();
+
+/* ================= CHART 02 毕业生柱状 ================= */
+(function(){
+  var svg=$("chartGrads");if(!svg)return;
+  var W=900,H=380,L=56,R=24,T=34,B=48;
+  var iw=W-L-R,ih=H-T-B,maxY=1300;
+  function Y(v){return T+ih*(1-v/maxY);}
+  [0,400,800,1200].forEach(function(v){
+    svgEl("line",{x1:L,y1:Y(v),x2:W-R,y2:Y(v),class:"svg-grid"},svg);
+    var t=svgEl("text",{x:L-10,y:Y(v)+4,"text-anchor":"end",class:"svg-tick"},svg);
+    t.textContent=v;
+  });
+  svgEl("line",{x1:L,y1:H-B,x2:W-R,y2:H-B,class:"svg-axis"},svg);
+  var bw=iw/GRADS.length*0.52;
+  GRADS.forEach(function(p,i){
+    var cx=L+iw*(i+0.5)/GRADS.length;
+    var rect=svgEl("rect",{x:cx-bw/2,y:Y(p.v),width:bw,height:Y(0)-Y(p.v),rx:3,
+      class:"bar-rect grow-bar "+(i===GRADS.length-1?"fill-red":"fill-blue")},svg);
+    rect.style.animationDelay=(i*0.09)+"s";
+    rect.setAttribute("data-tt","<span class='tt-title'>"+p.y+" 年</span>高校毕业生 <b>"+fmt(p.v)+"</b> 万人");
+    var v=svgEl("text",{x:cx,y:Y(p.v)-8,"text-anchor":"middle",class:"svg-val fade-el"},svg);
+    v.textContent=fmt(p.v);
+    var t=svgEl("text",{x:cx,y:H-B+20,"text-anchor":"middle",class:"svg-tick"},svg);
+    t.textContent=p.y;
+  });
+  var an=svgEl("text",{x:L+8,y:T+4,class:"svg-anno fade-el"},svg);
+  an.textContent="五年 +40%：文凭供给持续放量";
+})();
+
+/* ================= CHART 03 儿童构成环形 ================= */
+(function(){
+  var svg=$("chartKids");if(!svg)return;
+  var cx=240,cy=200,r=128,sw=52;
+  var C=2*Math.PI*r;
+  var data=[
+    {name:"流动儿童",v:7109,cls:"stroke-red",fcls:"fill-red",desc:"随父母迁移、在流入地生活，义务教育经费按户籍拨付使其常被流入地视为财政负担"},
+    {name:"留守儿童",v:6693,cls:"stroke-gold",fcls:"fill-gold",desc:"父母外出、隔代抚养，乡村学校撤并与师资流失叠加"},
+    {name:"其他儿童",v:15998,cls:"stroke-blue",fcls:"fill-blue",desc:"2.98 亿儿童总数中的其余部分"}
+  ];
+  var total=29800;
+  svgEl("circle",{cx:cx,cy:cy,r:r,fill:"none",style:"stroke:var(--grid)","stroke-width":sw},svg);
+  var acc=0;
+  data.forEach(function(d){
+    var frac=d.v/total,len=frac*C;
+    var arc=svgEl("circle",{cx:cx,cy:cy,r:r,fill:"none",class:"donut-arc "+d.cls,"stroke-width":sw,
+      "stroke-dasharray":len+" "+(C-len),"stroke-dashoffset":C,
+      transform:"rotate(-90 "+cx+" "+cy+")"},svg);
+    arc.setAttribute("data-off",-acc);
+    arc.setAttribute("data-tt","<span class='tt-title'>"+d.name+"</span>"+fmt(d.v)+" 万人（占 "+(frac*100).toFixed(1)+"%）<br>"+d.desc);
+    arc.style.cursor="pointer";
+    acc+=len;
+  });
+  var t1=svgEl("text",{x:cx,y:cy-12,"text-anchor":"middle",class:"svg-strong fade-el","font-size":40},svg);
+  t1.textContent="2.98 亿";
+  var t2=svgEl("text",{x:cx,y:cy+14,"text-anchor":"middle",class:"svg-tick fade-el"},svg);
+  t2.textContent="全国 0–17 岁儿童（2020 普查）";
+  var t3=svgEl("text",{x:cx,y:cy+34,"text-anchor":"middle",class:"svg-anno fade-el",style:"font-size:11px;letter-spacing:0"},svg);
+  t3.textContent="流动+留守 ≈1.41 亿·近一半";
+  // 图例
+  var lx=460,ly=104;
+  data.forEach(function(d,i){
+    svgEl("rect",{x:lx,y:ly+i*72-14,width:18,height:18,rx:3,class:"fade-el "+d.fcls},svg);
+    var n=svgEl("text",{x:lx+30,y:ly+i*72,class:"svg-val fade-el","font-size":15},svg);
+    n.textContent=d.name+"　"+fmt(d.v)+" 万";
+    var dd=svgEl("text",{x:lx+30,y:ly+i*72+22,class:"svg-tick fade-el","font-size":12},svg);
+    dd.textContent=d.desc.slice(0,26)+"…";
+    [n,dd].forEach(function(e){e.setAttribute("data-tt","<span class='tt-title'>"+d.name+"</span>"+d.desc);});
+  });
+})();
+
+/* ================= CHART 04 中德蓝领回报 ================= */
+(function(){
+  var svg=$("chartDeCn");if(!svg)return;
+  // 左：德国（€）；右：中国（¥）独立刻度
+  function panel(ox,unit,fcls,items,maxV,title,anno){
+    var W=360,H=280,L=64,R=10,T=52,B=66;
+    var iw=W-L-R,ih=H-T-B;
+    function Y(v){return T+ih*(1-v/maxV);}
+    var t=svgEl("text",{x:ox+W/2,y:26,"text-anchor":"middle",class:"svg-strong","font-size":16},svg);
+    t.textContent=title;
+    [0,maxV/2,maxV].forEach(function(v){
+      svgEl("line",{x1:ox+L,y1:Y(v),x2:ox+W-R,y2:Y(v),class:"svg-grid"},svg);
+      var tt2=svgEl("text",{x:ox+L-8,y:Y(v)+4,"text-anchor":"end",class:"svg-tick"},svg);
+      tt2.textContent=(v>=1000?(v/1000)+"k":v)+unit;
+    });
+    svgEl("line",{x1:ox+L,y1:T+ih,x2:ox+W-R,y2:T+ih,class:"svg-axis"},svg);
+    var bw=iw/items.length*0.5;
+    items.forEach(function(p,i){
+      var cx=ox+L+iw*(i+0.5)/items.length;
+      var r=svgEl("rect",{x:cx-bw/2,y:Y(p.v),width:bw,height:Y(0)-Y(p.v),rx:3,class:"bar-rect grow-bar "+fcls},svg);
+      r.style.animationDelay=(i*0.12)+"s";
+      r.setAttribute("data-tt",p.tt);
+      var v=svgEl("text",{x:cx,y:Y(p.v)-8,"text-anchor":"middle",class:"svg-val fade-el"},svg);
+      v.textContent=p.label;
+      var n=svgEl("text",{x:cx,y:T+ih+20,"text-anchor":"middle",class:"svg-tick"},svg);
+      n.textContent=p.name;
+    });
+    var a=svgEl("text",{x:ox+W/2,y:T+ih+46,"text-anchor":"middle",class:"svg-tick fade-el","font-size":12},svg);
+    a.textContent=anno;
+  }
+  panel(20,"€","fill-blue",[
+    {name:"首年学徒（平均）",v:1133,label:"1133€",tt:"<span class='tt-title'>德国学徒</span>2024 年平均月津贴约 <b>1133€</b>；法定最低月薪 649€（首年）。学徒即收入者。"},
+    {name:"全职雇员（平均）",v:4600,label:"4600€+",tt:"<span class='tt-title'>德国全职雇员</span>2024 年平均月薪超 <b>4600€</b>。持证技工可维持体面中产生活。"}
+  ],5000,"德国 · 欧元/月","体面注解：津贴覆盖生活，技工稳居中产");
+  panel(500,"¥","fill-red",[
+    {name:"职校实习生",v:800,label:"0~低薪",tt:"<span class='tt-title'>中国职校实习生</span>报酬区间 <b>0 至低薪</b>（示意取 800 元），部分顶岗实习沦为变相学生工。定性口径。"},
+    {name:"深圳最低工资",v:2520,label:"2520元",tt:"<span class='tt-title'>中国蓝领底薪锚点</span>深圳 2022 年调升后月最低工资约 <b>2520 元</b>，大量工厂底薪紧贴此线。"}
+  ],3000,"中国 · 人民币/月","体面注解：底薪紧贴生存线，体面靠加班换");
+  var warn=svgEl("text",{x:450,y:406,"text-anchor":"middle",class:"svg-anno fade-el","font-size":12},svg);
+  warn.textContent="⚠ 左右币种与购买力不同，柱高不可直接比较——请看体面注解";
+})();
+
+/* ================= CHART 05 工时对比 ================= */
+(function(){
+  var svg=$("chartHours");if(!svg)return;
+  var W=900,H=340,L=56,R=24,T=30,B=66;
+  var iw=W-L-R,ih=H-T-B,maxY=55;
+  var data=[
+    {name:"中国就业人员（2025）",v:48.5,cls:"fill-red",tt:"<span class='tt-title'>中国</span>2025 年就业人员周平均工时 <b>48.5 小时</b>（国家统计局，官方数据）"},
+    {name:"中国法定标准工时",v:40,cls:"fill-gold",tt:"<span class='tt-title'>法定标准</span>《劳动法》：每日不超 8 小时、平均每周不超 <b>44 小时</b>；标准工时制为每周 40 小时"},
+    {name:"德国全职雇员（约数）",v:38,cls:"fill-blue",tt:"<span class='tt-title'>德国</span>全职雇员周工时约 <b>38 小时</b>（约数，文章转述口径）"}
+  ];
+  function Y(v){return T+ih*(1-v/maxY);}
+  [0,20,40].forEach(function(v){
+    svgEl("line",{x1:L,y1:Y(v),x2:W-R,y2:Y(v),class:"svg-grid"},svg);
+    var t=svgEl("text",{x:L-10,y:Y(v)+4,"text-anchor":"end",class:"svg-tick"},svg);
+    t.textContent=v+"h";
+  });
+  svgEl("line",{x1:L,y1:H-B,x2:W-R,y2:H-B,class:"svg-axis"},svg);
+  // 40h 参考线
+  svgEl("line",{x1:L,y1:Y(40),x2:W-R,y2:Y(40),class:"stroke-gold","stroke-width":1.6,"stroke-dasharray":"7 5"},svg);
+  var rl=svgEl("text",{x:W-R,y:Y(40)-8,"text-anchor":"end",class:"svg-tick svg-gold"},svg);
+  rl.textContent="每周 40 小时标准线";
+  var bw=iw/data.length*0.42;
+  data.forEach(function(p,i){
+    var cx=L+iw*(i+0.5)/data.length;
+    var r=svgEl("rect",{x:cx-bw/2,y:Y(p.v),width:bw,height:Y(0)-Y(p.v),rx:3,class:"bar-rect grow-bar "+p.cls},svg);
+    r.style.animationDelay=(i*0.12)+"s";
+    r.setAttribute("data-tt",p.tt);
+    var v=svgEl("text",{x:cx,y:Y(p.v)-10,"text-anchor":"middle",class:"svg-val fade-el","font-size":15},svg);
+    v.textContent=p.v+" h";
+    var n=svgEl("text",{x:cx,y:H-B+22,"text-anchor":"middle",class:"svg-tick","font-size":12.5},svg);
+    n.textContent=p.name;
+  });
+})();
+
+/* ================= 传导链条 A / B ================= */
+function renderChain(id,nodes,hotIdx){
+  var box=$(id);if(!box)return;
+  nodes.forEach(function(n,i){
+    var d=document.createElement("div");
+    d.className="chain-node"+(i===hotIdx?" hot":"");
+    d.innerHTML="<b>"+n.t+"</b>"+n.d;
+    box.appendChild(d);
+    if(i<nodes.length-1){
+      var a=document.createElement("div");
+      a.className="chain-arrow";
+      a.innerHTML='<svg viewBox="0 0 40 24"><line x1="2" y1="12" x2="28" y2="12"/><polygon points="28,5 40,12 28,19"/></svg>';
+      box.appendChild(a);
+    }
+  });
+}
+renderChain("chainA",[
+  {t:"顶层设计",d:"职教20条：职普同等重要"},
+  {t:"硬分流",d:"地方按比例下行政指标"},
+  {t:"军备竞赛",d:"三代积蓄赌 50% 门票"},
+  {t:"学历通胀",d:"1222 万毕业生，考研考公内卷"},
+  {t:"岗位错配",d:"文凭与岗位需求脱节"},
+  {t:"本升专回炉",d:"本科生抢专科编制名额"},
+  {t:"错配加剧",d:"教育资源空转，循环自我强化"}
+],6);
+renderChain("chainB",[
+  {t:"出生断崖",d:"2025 年仅 792 万新生儿"},
+  {t:"幼儿园关停",d:"民办园成批退出"},
+  {t:"小学收缩",d:"乡村撤并、班额缩水"},
+  {t:"学位过剩",d:"寒潮传导至中学"},
+  {t:"抢生源",d:"学校从挑人变成等人"},
+  {t:"筛选失基",d:"分流失去物理基础"},
+  {t:"嵊泗 100% 普高",d:"2026.01 取消选拔功能"},
+  {t:"松动扩散",d:"全员普高时代信号"}
+],6);
+})();
+</script>
+
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+var NS="http://www.w3.org/2000/svg";
+function svgEl(tag,attrs,parent){
+  var e=document.createElementNS(NS,tag);
+  for(var k in attrs){e.setAttribute(k,attrs[k]);}
+  if(parent)parent.appendChild(e);
+  return e;
+}
+function fmt(n,d){if(d===undefined)d=0;return Number(n).toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d});}
+var RED="#A63D2F",GOLD="#B08A47",GREEN="#4E7A55";
+
+/* ============================================================
+   MODEL 01 · 生源预测器
+   ============================================================ */
+var BIRTH_MAP={2010:1588,2011:1604,2012:1635,2013:1640,2014:1687,2015:1655,2016:1786,2017:1723,2018:1523,2019:1465,2020:1200,2021:1062,2022:956,2023:902,2024:954,2025:792,
+  2026:745,2027:705,2028:670,2029:640,2030:615 /* 2026-2030 为趋势外推示意 */};
+var SEATS=1500; /* 高中学位供给示意值（万/年） */
+
+function cohortFor(year){
+  var by=year-15;
+  return BIRTH_MAP[by]!==undefined?BIRTH_MAP[by]:null;
+}
+function m1Status(gap){
+  if(gap<-50)return{txt:"紧缺",cls:"v-red",color:RED};
+  if(gap<=50)return{txt:"紧平衡",cls:"v-gold",color:GOLD};
+  return{txt:"过剩",cls:"v-green",color:GREEN};
+}
+var m1Verdicts={
+  tight:"学位缺口为负：学位不够、考位稀缺——这正是五五分流最硬气的年代，筛选有米下锅。",
+  balance:"供需咬平：分流的筛选功能开始松动，政策只剩惯性。",
+  surplus:"学位过剩：学校开始抢生源，筛选失去物理基础——嵊泗县的 100% 普高就是这一幕的预演。",
+  deepSurplus:"严重过剩：若不撤并学校，'全员普高'将从海岛县的特例变成全国的默认选项。人口已经替政策做完了决定。"
+};
+function renderM1(){
+  var year=parseInt($("m1Year").value,10);
+  $("m1YearVal").textContent=year+" 年";
+  var cohort=cohortFor(year);
+  var gap=SEATS-cohort;
+  var st=m1Status(gap);
+  $("m1Cohort").textContent=fmt(cohort);
+  $("m1Cohort").style.color=st.color;
+  $("m1Gap").textContent=(gap>=0?"+":"")+fmt(gap);
+  $("m1Gap").style.color=st.color;
+  $("m1Status").textContent=st.txt;
+  $("m1Status").style.color=st.color;
+  var v=$("m1Verdict");
+  v.className="verdict "+st.cls;
+  if(gap<-50)v.textContent=m1Verdicts.tight;
+  else if(gap<=50)v.textContent=m1Verdicts.balance;
+  else if(gap<400)v.textContent=m1Verdicts.surplus;
+  else v.textContent=m1Verdicts.deepSurplus;
+  $("m1Note").classList.toggle("show",year>=2041);
+  // 绘图：2025-2045 全部柱形 + 学位线
+  var svg=$("m1Svg");svg.innerHTML="";
+  var W=880,H=260,L=52,R=16,T=26,B=40;
+  var iw=W-L-R,ih=H-T-B,maxY=1900;
+  function Y(v){return T+ih*(1-v/maxY);}
+  [0,500,1000,1500].forEach(function(g){
+    svgEl("line",{x1:L,y1:Y(g),x2:W-R,y2:Y(g),class:"svg-grid"},svg);
+    var t=svgEl("text",{x:L-8,y:Y(g)+4,"text-anchor":"end",class:"svg-tick"},svg);
+    t.textContent=g;
+  });
+  svgEl("line",{x1:L,y1:H-B,x2:W-R,y2:H-B,class:"svg-axis"},svg);
+  // 学位线
+  svgEl("line",{x1:L,y1:Y(SEATS),x2:W-R,y2:Y(SEATS),class:"stroke-gold","stroke-width":1.6,"stroke-dasharray":"7 5"},svg);
+  var sl=svgEl("text",{x:W-R,y:Y(SEATS)-7,"text-anchor":"end",class:"svg-tick svg-gold"},svg);
+  sl.textContent="学位供给 ≈ "+SEATS+" 万/年（示意）";
+  var n=21,bw=iw/n*0.62;
+  for(var yy=2025;yy<=2045;yy++){
+    var c=cohortFor(yy);
+    var cx=L+iw*(yy-2025+0.5)/n;
+    var isSel=yy===year;
+    var cls=isSel?"fill-red":(c>SEATS?"fill-blue":"fill-muted");
+    var r=svgEl("rect",{x:cx-bw/2,y:Y(c),width:bw,height:Y(0)-Y(c),rx:2,class:"bar-rect "+cls,opacity:isSel?1:0.85},svg);
+    var src=yy-15<=2025?"":"（外推）";
+    r.setAttribute("data-tt","<span class='tt-title'>"+yy+" 年中考</span>适龄人口 ≈ "+fmt(c)+" 万"+src+"<br>学位缺口 "+((SEATS-c)>=0?"+":"")+fmt(SEATS-c)+" 万");
+    if(yy%5===0||yy===2045){
+      var t=svgEl("text",{x:cx,y:H-B+16,"text-anchor":"middle",class:"svg-tick","font-size":10},svg);
+      t.textContent=yy;
+    }
+    if(isSel){
+      var vt=svgEl("text",{x:cx,y:Y(c)-8,"text-anchor":"middle",class:"svg-val svg-red","font-size":12},svg);
+      vt.textContent=fmt(c);
+      r.setAttribute("class","bar-rect fill-red stroke-red");
+      r.setAttribute("stroke-width","1.5");
+    }
+  }
+  var cap=svgEl("text",{x:L,y:H-6,class:"svg-tick","font-size":11},svg);
+  cap.textContent="适龄人口 ≈ 15 年前出生人口；深色柱 = 生源高于学位（筛选年代），浅色柱 = 生源低于学位（过剩年代）";
+}
+$("m1Year").addEventListener("input",renderM1);
+renderM1();
+
+/* ============================================================
+   MODEL 02 · 蓝领收入模拟器
+   ============================================================ */
+var BASE=2520, HOURS_BASE=21.75*8; /* 174h */
+var H_RATE=BASE/21.75/8;           /* ≈14.48 */
+function renderM2(){
+  var ot=parseInt($("m2Ot").value,10);
+  $("m2OtVal").textContent=ot+" 小时";
+  var otPay=ot*H_RATE*1.5;
+  var income=BASE+otPay;
+  var totalH=HOURS_BASE+ot;
+  var hourly=income/totalH;
+  $("m2Income").textContent=fmt(Math.round(income));
+  $("m2Hourly").textContent=fmt(hourly,1);
+  $("m2Hours").textContent=fmt(Math.round(totalH));
+  var v=$("m2Verdict");
+  if(income<4000){v.className="verdict v-red";v.textContent="不加班，到手两三千——这个收入配不上\"体面\"二字，也撑不起一个家庭对分流的无畏。";}
+  else if(income<6000){v.className="verdict v-gold";v.textContent="疯狂加班后摸到五六千的\"生存线\"：用 "+Math.round(totalH)+" 小时的月工时换来的，不是中产生活，是透支。";}
+  else{v.className="verdict v-gold";v.textContent="月收入越过 6000 元，代价是月工时 "+Math.round(totalH)+" 小时、实际时薪仍不足 "+fmt(hourly,0)+" 元——收入的每一分增量都由时间垫付。";}
+  $("m2Warn").classList.toggle("show",ot>36);
+  // 绘图
+  var svg=$("m2Svg");svg.innerHTML="";
+  var W=880,H=300,L=64,R=20,T=30,B=44;
+  var iw=W-L-R,ih=H-T-B,maxY=8000;
+  function Y(val){return T+ih*(1-val/maxY);}
+  [0,2000,4000,6000,8000].forEach(function(g){
+    svgEl("line",{x1:L,y1:Y(g),x2:W-R,y2:Y(g),class:"svg-grid"},svg);
+    var t=svgEl("text",{x:L-8,y:Y(g)+4,"text-anchor":"end",class:"svg-tick"},svg);
+    t.textContent=fmt(g);
+  });
+  svgEl("line",{x1:L,y1:H-B,x2:W-R,y2:H-B,class:"svg-axis"},svg);
+  // 生存线带
+  svgEl("rect",{x:L,y:Y(6000),width:iw,height:Y(5000)-Y(6000),class:"fill-gold",opacity:0.14},svg);
+  var b1=svgEl("text",{x:W-R-6,y:Y(6000)-6,"text-anchor":"end",class:"svg-tick svg-gold"},svg);
+  b1.textContent="文中所述\"生存线\" 5000–6000 元";
+  // 最低工资线
+  svgEl("line",{x1:L,y1:Y(BASE),x2:W-R,y2:Y(BASE),class:"stroke-red","stroke-width":1.6,"stroke-dasharray":"7 5"},svg);
+  var b2=svgEl("text",{x:L+6,y:Y(BASE)-6,class:"svg-tick svg-red"},svg);
+  b2.textContent="底薪 = 深圳最低工资 2520 元";
+  // 收入柱：底薪段 + 加班段
+  var cx=W/2,bw=150;
+  var r1=svgEl("rect",{x:cx-bw/2,y:Y(BASE),width:bw,height:Y(0)-Y(BASE),rx:3,class:"fill-blue bar-rect"},svg);
+  r1.setAttribute("data-tt","<span class='tt-title'>底薪部分</span>"+fmt(BASE)+" 元（固定）");
+  var r2=svgEl("rect",{x:cx-bw/2,y:Y(income),width:bw,height:Y(BASE)-Y(income),rx:3,class:"fill-red bar-rect"},svg);
+  r2.setAttribute("data-tt","<span class='tt-title'>加班费部分</span>"+ot+" h × "+fmt(H_RATE,1)+" 元 × 1.5 ≈ <b>"+fmt(Math.round(otPay))+"</b> 元");
+  var vt=svgEl("text",{x:cx,y:Y(income)-10,"text-anchor":"middle",class:"svg-val svg-red","font-size":16},svg);
+  vt.textContent=fmt(Math.round(income))+" 元 / 月";
+  var lb=svgEl("text",{x:cx,y:H-B+20,"text-anchor":"middle",class:"svg-tick","font-size":12.5},svg);
+  lb.textContent="月总收入（黛青 = 底薪，朱砂 = 加班费）";
+}
+$("m2Ot").addEventListener("input",renderM2);
+renderM2();
+
+/* ============================================================
+   MODEL 03 · 分流接受度天平
+   ============================================================ */
+function renderM3(){
+  var wage=parseInt($("m3Wage").value,10);
+  var sec=parseInt($("m3Sec").value,10);
+  var dig=parseInt($("m3Dig").value,10);
+  $("m3WageVal").textContent=fmt(wage)+" 元/月";
+  $("m3SecVal").textContent=sec+" / 100";
+  $("m3DigVal").textContent=dig+" / 100";
+  var wageScore=(wage-2000)/10000*40;
+  var score=Math.round(wageScore+sec*0.3+dig*0.3);
+  score=Math.max(0,Math.min(100,score));
+  $("m3Score").textContent=score;
+  $("m3Score").style.color=score<40?RED:(score<70?GOLD:GREEN);
+  // 天平
+  var svg=$("m3Svg");svg.innerHTML="";
+  var tilt=(score-50)/50*13; /* -13°..+13°，正=右侧下沉=自然选择 */
+  // 支柱
+  svgEl("line",{x1:150,y1:20,x2:150,y2:120,stroke:"#191613","stroke-width":4},svg);
+  svgEl("polygon",{points:"138,150 162,150 150,118",fill:"#191613"},svg);
+  svgEl("circle",{cx:150,cy:20,r:5,fill:"#A63D2F"},svg);
+  // 梁（旋转）
+  var g=svgEl("g",{id:"scaleBeam",transform:"rotate("+tilt+" 150 20)"},svg);
+  svgEl("line",{x1:35,y1:20,x2:265,y2:20,stroke:"#191613","stroke-width":4,"stroke-linecap":"round"},g);
+  // 左盘：被淘汰的恐惧
+  svgEl("line",{x1:35,y1:20,x2:35,y2:56,stroke:"#191613","stroke-width":2},g);
+  svgEl("path",{d:"M12 56 Q35 82 58 56 Z",fill:"#A63D2F",opacity:0.92},g);
+  var lt=svgEl("text",{x:35,y:100,"text-anchor":"middle","font-size":11,fill:"#7E2A20","font-weight":700},g);
+  lt.textContent="被淘汰的恐惧";
+  // 右盘：自然的职业选择
+  svgEl("line",{x1:265,y1:20,x2:265,y2:56,stroke:"#191613","stroke-width":2},g);
+  svgEl("path",{d:"M242 56 Q265 82 288 56 Z",fill:"#4E7A55",opacity:0.92},g);
+  var rt=svgEl("text",{x:265,y:100,"text-anchor":"middle","font-size":11,fill:"#35543A","font-weight":700},g);
+  rt.textContent="自然的职业选择";
+  var sc=svgEl("text",{x:150,y:176,"text-anchor":"middle","font-size":11,fill:"#8A8172"},svg);
+  sc.textContent="左倾 = 恐惧主导 · 右倾 = 选择主导";
+  // 判词
+  var v=$("m3Verdict");
+  if(score<40){v.className="verdict v-red";
+    v.textContent="接受度 "+score+"：起薪低、保障薄、尊严缺位——这正是当下中国的现实区间。家长拒绝的不是职业教育，而是职业教育通往的生活。";}
+  else if(score<70){v.className="verdict v-gold";
+    v.textContent="接受度 "+score+"：天平开始回摆。待遇每改善一分，\"被分流\"的恐惧就消退一分——但还不足以让选择自然发生。";}
+  else{v.className="verdict v-green";
+    v.textContent="接受度 "+score+"：这大致是德国的区间。当蓝领起薪体面、劳动法被落实、技工有尊严，分流不再需要强制——它成为一次自然的职业选择。";}
+}
+["m3Wage","m3Sec","m3Dig"].forEach(function(id){
+  $(id).addEventListener("input",renderM3);
+});
+renderM3();
+})();
+</script>
+</body>
+</html>

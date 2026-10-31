@@ -8,5 +8,7 @@ Thumbs.db
 /杂项.md
 .claude/
 .claudian/
+tmp/
+debug.log
 
 .obsidian/plugins/obsidian-excalidraw-plugin/

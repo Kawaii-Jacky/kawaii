@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>倒反天罡 · 中国高等教育三重荒诞 — 交互式报告</title>
+<style>
+:root{
+  --paper:#f5f1e8;
+  --paper-2:#efe9dc;
+  --ink:#1c1a17;
+  --ink-2:#4a453d;
+  --ink-3:#8a8175;
+  --line:rgba(28,26,23,.14);
+  --line-strong:rgba(28,26,23,.34);
+  --cinnabar:#be3a2b;
+  --cinnabar-soft:rgba(190,58,43,.09);
+  --indigo:#24425e;
+  --indigo-soft:rgba(36,66,94,.09);
+  --gold:#a67c2e;
+  --gold-soft:rgba(166,124,46,.12);
+  --green:#3d6b4f;
+  --green-soft:rgba(61,107,79,.1);
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --mono:"SF Mono","JetBrains Mono",Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--cinnabar);color:#fff}
+
+/* ---------- progress & nav ---------- */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--cinnabar);z-index:99;transition:width .1s linear}
+nav#topnav{
+  position:fixed;top:0;left:0;right:0;z-index:90;
+  display:flex;align-items:center;gap:18px;
+  padding:10px 28px;
+  background:rgba(245,241,232,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  transform:translateY(-100%);transition:transform .35s ease;
+}
+nav#topnav.show{transform:translateY(0)}
+nav#topnav .brand{font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.08em;white-space:nowrap}
+nav#topnav .brand em{color:var(--cinnabar);font-style:normal}
+nav#topnav .links{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+nav#topnav .links::-webkit-scrollbar{display:none}
+nav#topnav a{
+  font-size:12.5px;color:var(--ink-2);text-decoration:none;white-space:nowrap;
+  padding:5px 10px;border-radius:99px;transition:all .2s;
+}
+nav#topnav a:hover{background:var(--ink);color:var(--paper)}
+
+/* ---------- layout ---------- */
+.container{max-width:1120px;margin:0 auto;padding:0 28px}
+section.chapter{padding:110px 0 70px;border-top:1px solid var(--line)}
+.chap-head{display:flex;align-items:baseline;gap:22px;margin-bottom:14px;flex-wrap:wrap}
+.chap-num{
+  font-family:var(--serif);font-size:15px;color:var(--cinnabar);
+  border:1px solid var(--cinnabar);border-radius:4px;padding:2px 10px;letter-spacing:.2em;
+  white-space:nowrap;
+}
+.chap-title{font-family:var(--serif);font-size:clamp(28px,4.4vw,44px);font-weight:900;letter-spacing:.04em;line-height:1.25}
+.chap-sub{font-size:15px;color:var(--ink-3);margin-bottom:44px;max-width:760px}
+.lead{font-size:17px;color:var(--ink-2);max-width:820px;margin-bottom:36px}
+.lead strong{color:var(--cinnabar);font-weight:600}
+
+/* ---------- reveal animation ---------- */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.8,.3,1)}
+.rv.on{opacity:1;transform:none}
+.rv-d1{transition-delay:.08s}.rv-d2{transition-delay:.16s}.rv-d3{transition-delay:.24s}.rv-d4{transition-delay:.32s}
+
+/* ---------- hero ---------- */
+header#hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  position:relative;overflow:hidden;
+}
+#hero .bg-ring{
+  position:absolute;right:-180px;top:50%;transform:translateY(-50%);
+  width:640px;height:640px;border:1px solid var(--line);border-radius:50%;
+  pointer-events:none;
+}
+#hero .bg-ring::before,#hero .bg-ring::after{
+  content:"";position:absolute;border-radius:50%;border:1px solid var(--line);
+}
+#hero .bg-ring::before{inset:90px}
+#hero .bg-ring::after{inset:190px;border-color:var(--line-strong)}
+#hero .vertical-slogan{
+  position:absolute;right:60px;top:50%;transform:translateY(-50%);
+  writing-mode:vertical-rl;font-family:var(--serif);font-size:15px;letter-spacing:.5em;
+  color:var(--ink-3);
+}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.35em;
+  color:var(--ink-3);margin-bottom:26px;
+}
+.hero-kicker::before{content:"";width:44px;height:1px;background:var(--cinnabar)}
+.hero-title{
+  font-family:var(--serif);font-weight:900;
+  font-size:clamp(58px,11vw,140px);line-height:1.08;letter-spacing:.02em;
+}
+.hero-title .ch{display:inline-block;opacity:0;transform:translateY(40px) rotate(3deg)}
+.hero-title .ch.in{animation:chIn .8s cubic-bezier(.2,.8,.25,1) forwards}
+@keyframes chIn{to{opacity:1;transform:none}}
+.hero-title .accent{color:var(--cinnabar)}
+.hero-sub{
+  margin-top:30px;max-width:640px;font-size:16.5px;color:var(--ink-2);
+}
+.hero-keys{display:flex;gap:12px;margin-top:38px;flex-wrap:wrap}
+.hero-key{
+  font-family:var(--serif);font-size:15px;padding:8px 18px;border-radius:99px;
+  border:1px solid var(--line-strong);color:var(--ink);
+  display:inline-flex;align-items:center;gap:8px;
+  transition:all .25s;cursor:default;background:transparent;
+}
+.hero-key:hover{border-color:var(--cinnabar);color:var(--cinnabar);transform:translateY(-2px)}
+.hero-key .dot{width:7px;height:7px;border-radius:50%;background:var(--cinnabar)}
+.scroll-hint{
+  position:absolute;bottom:34px;left:50%;transform:translateX(-50%);
+  font-size:11.5px;letter-spacing:.3em;color:var(--ink-3);text-align:center;
+}
+.scroll-hint::after{
+  content:"";display:block;width:1px;height:44px;margin:10px auto 0;
+  background:linear-gradient(var(--cinnabar),transparent);
+  animation:drip 1.8s ease infinite;
+}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ---------- absurd panels ---------- */
+.absurd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:26px}
+.absurd-card{
+  border:1px solid var(--line);border-radius:14px;padding:26px 24px;background:var(--paper);
+  position:relative;overflow:hidden;transition:all .3s;cursor:pointer;
+}
+.absurd-card::before{
+  content:attr(data-idx);position:absolute;right:14px;top:2px;
+  font-family:var(--serif);font-size:74px;font-weight:900;color:var(--ink);
+  opacity:.06;line-height:1;
+}
+.absurd-card:hover{transform:translateY(-4px);border-color:var(--cinnabar);box-shadow:0 14px 34px rgba(28,26,23,.08)}
+.absurd-card.sel{border-color:var(--cinnabar);box-shadow:0 14px 34px rgba(190,58,43,.12)}
+.absurd-tag{font-size:12px;letter-spacing:.18em;color:var(--cinnabar);margin-bottom:10px;font-weight:600}
+.absurd-card h3{font-family:var(--serif);font-size:21px;font-weight:900;margin-bottom:10px}
+.absurd-card p{font-size:13.5px;color:var(--ink-2);line-height:1.8}
+.absurd-card .hint{margin-top:14px;font-size:12px;color:var(--ink-3)}
+.absurd-card .hint::before{content:"→ ";color:var(--cinnabar)}
+
+#absurd-detail{
+  border:1px solid var(--line);border-radius:14px;background:var(--paper-2);
+  padding:34px 34px 28px;min-height:280px;
+}
+#absurd-detail .detail-pane{display:none}
+#absurd-detail .detail-pane.on{display:block;animation:paneIn .45s ease}
+@keyframes paneIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.detail-title{font-family:var(--serif);font-size:24px;font-weight:900;margin-bottom:6px}
+.detail-title em{font-style:normal;color:var(--cinnabar)}
+.detail-brief{font-size:14.5px;color:var(--ink-2);max-width:840px;margin-bottom:26px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:26px}
+.stat-box{border:1px solid var(--line);border-radius:10px;padding:16px 16px 12px;background:var(--paper)}
+.stat-box .num{font-family:var(--serif);font-size:34px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums}
+.stat-box .num.red{color:var(--cinnabar)}.stat-box .num.blue{color:var(--indigo)}.stat-box .num.gold{color:var(--gold)}
+.stat-box .lbl{font-size:12.5px;color:var(--ink-3);margin-top:4px;line-height:1.55}
+.pill-cloud{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.pill{font-size:12.5px;padding:4px 12px;border-radius:99px;border:1px solid var(--line)}
+.pill.cut{background:var(--cinnabar-soft);border-color:transparent;color:var(--cinnabar)}
+.pill.rise{background:var(--indigo-soft);border-color:transparent;color:var(--indigo)}
+.pill-note{font-size:12px;color:var(--ink-3);margin-bottom:8px;letter-spacing:.14em}
+
+/* ---------- charts ---------- */
+.chart-frame{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:26px 22px 14px;position:relative}
+.chart-title{font-family:var(--serif);font-size:17px;font-weight:700;margin:0 0 2px 8px}
+.chart-cap{font-size:12.5px;color:var(--ink-3);margin:0 0 8px 8px}
+.chart-tip{
+  position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);
+  font-size:12px;padding:6px 10px;border-radius:6px;opacity:0;transition:opacity .15s;
+  white-space:nowrap;z-index:5;line-height:1.5;
+}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:4px 8px 0}
+.legend span{font-size:12.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:7px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.src-line{font-size:11.5px;color:var(--ink-3);margin:10px 8px 2px}
+
+/* ---------- timeline ---------- */
+.tl{position:relative;margin-top:10px}
+.tl::before{content:"";position:absolute;left:19px;top:6px;bottom:6px;width:2px;background:var(--line-strong)}
+.tl-item{position:relative;padding:0 0 30px 62px;cursor:pointer}
+.tl-item .node{
+  position:absolute;left:11px;top:7px;width:18px;height:18px;border-radius:50%;
+  background:var(--paper);border:2px solid var(--ink);transition:all .25s;z-index:1;
+}
+.tl-item.hot .node{border-color:var(--cinnabar)}
+.tl-item.open .node{background:var(--cinnabar);border-color:var(--cinnabar);transform:scale(1.15)}
+.tl-year{font-family:var(--serif);font-size:20px;font-weight:900;color:var(--cinnabar)}
+.tl-item .tl-head{font-family:var(--serif);font-size:17.5px;font-weight:700;line-height:1.5}
+.tl-item .tl-body{
+  max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,opacity .45s;
+  font-size:14px;color:var(--ink-2);max-width:760px;
+}
+.tl-item.open .tl-body{max-height:300px;opacity:1;margin-top:6px}
+.tl-item .tl-tag{
+  display:inline-block;font-size:11.5px;letter-spacing:.14em;color:var(--ink-3);
+  border:1px solid var(--line);border-radius:99px;padding:1px 10px;margin-left:10px;
+  vertical-align:2px;
+}
+.tl-hint{font-size:12.5px;color:var(--ink-3);margin-bottom:18px}
+.tl-hint::before{content:"◦ ";color:var(--cinnabar)}
+
+/* ---------- glossary ---------- */
+.glossary{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.g-card{perspective:1000px;height:170px;cursor:pointer}
+.g-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,.7,.3,1)}
+.g-card.flip .g-inner{transform:rotateY(180deg)}
+.g-face{
+  position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:18px;
+  display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);
+}
+.g-front{background:var(--paper)}
+.g-front .term{font-family:var(--serif);font-size:19px;font-weight:900}
+.g-front .en{font-size:11.5px;color:var(--ink-3);letter-spacing:.06em;margin-top:2px}
+.g-front .flip-mark{position:absolute;right:14px;bottom:12px;font-size:11px;color:var(--ink-3);letter-spacing:.1em}
+.g-back{background:var(--ink);color:var(--paper);transform:rotateY(180deg);border-color:var(--ink)}
+.g-back p{font-size:12.5px;line-height:1.75;color:rgba(245,241,232,.88)}
+.g-back .term-b{font-family:var(--serif);font-size:13px;color:var(--gold);margin-bottom:6px;letter-spacing:.1em}
+
+/* ---------- formula ---------- */
+.formula-card{
+  border:1px solid var(--line);border-radius:14px;background:var(--paper-2);
+  padding:30px 34px;margin-bottom:22px;
+}
+.formula-card h4{font-family:var(--serif);font-size:18px;font-weight:900;margin-bottom:4px}
+.formula-card h4 span{color:var(--cinnabar)}
+.formula-box{
+  font-family:var(--mono);font-size:clamp(14px,2vw,17px);text-align:center;
+  background:var(--paper);border:1px dashed var(--line-strong);border-radius:10px;
+  padding:20px 16px;margin:16px 0;color:var(--indigo);overflow-x:auto;white-space:nowrap;
+}
+.formula-box .frac{display:inline-flex;flex-direction:column;vertical-align:middle;margin:0 6px;line-height:1.35}
+.formula-box .frac .top{border-bottom:1.5px solid var(--indigo);padding:0 8px}
+.formula-box .frac .bot{padding:0 8px}
+.formula-explain{font-size:14px;color:var(--ink-2)}
+.formula-explain b{color:var(--ink)}
+.var-list{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:14px;font-size:12.5px;color:var(--ink-3)}
+.var-list code{font-family:var(--mono);color:var(--cinnabar);background:var(--cinnabar-soft);padding:1px 6px;border-radius:4px}
+
+/* ---------- chain ---------- */
+.chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:8px 0 22px}
+.chain-node{
+  flex:1;min-width:118px;border:1px solid var(--line);background:var(--paper);
+  padding:14px 12px;text-align:center;cursor:pointer;position:relative;transition:all .25s;
+}
+.chain-node:first-child{border-radius:12px 0 0 12px}
+.chain-node:last-child{border-radius:0 12px 12px 0}
+.chain-node + .chain-node{border-left:none}
+.chain-node .c-idx{font-size:11px;color:var(--ink-3);letter-spacing:.1em}
+.chain-node .c-name{font-family:var(--serif);font-size:14.5px;font-weight:700;margin-top:3px;line-height:1.5}
+.chain-node:hover{transform:translateY(-3px)}
+.chain-node.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chain-node.on .c-idx{color:var(--gold)}
+.chain-detail{
+  border:1px solid var(--line);border-radius:12px;background:var(--paper-2);
+  padding:22px 26px;font-size:14.5px;color:var(--ink-2);min-height:96px;
+}
+.chain-detail b{color:var(--cinnabar)}
+
+/* ---------- simulator ---------- */
+.sim-wrap{display:grid;grid-template-columns:300px 1fr;gap:22px}
+.sim-controls{border:1px solid var(--line);border-radius:14px;padding:24px 22px;background:var(--paper-2)}
+.sim-controls h4{font-family:var(--serif);font-size:17px;font-weight:900;margin-bottom:4px}
+.sim-controls .sim-sub{font-size:12.5px;color:var(--ink-3);margin-bottom:18px}
+.ctrl{margin-bottom:18px}
+.ctrl label{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);margin-bottom:6px}
+.ctrl label output{font-family:var(--mono);color:var(--cinnabar);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--cinnabar);height:22px;cursor:pointer}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.preset-btn{
+  font-size:12.5px;padding:6px 14px;border-radius:99px;border:1px solid var(--line-strong);
+  background:transparent;cursor:pointer;transition:all .2s;color:var(--ink-2);
+}
+.preset-btn:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.preset-btn.on{background:var(--cinnabar);color:#fff;border-color:var(--cinnabar)}
+.sim-canvas-box{border:1px solid var(--line);border-radius:14px;padding:18px 14px 10px;background:var(--paper);position:relative}
+#simCanvas{width:100%;height:auto;display:block}
+.sim-readout{display:flex;gap:14px;flex-wrap:wrap;margin:10px 6px 4px}
+.sim-readout .ro{flex:1;min-width:130px;border-top:2px solid var(--cinnabar);padding-top:8px}
+.sim-readout .ro.blue{border-top-color:var(--indigo)}
+.sim-readout .ro .ro-num{font-family:var(--serif);font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.sim-readout .ro .ro-lbl{font-size:11.5px;color:var(--ink-3)}
+.sim-note{font-size:12px;color:var(--ink-3);margin:8px 6px 2px}
+
+/* ---------- triad / structure ---------- */
+.triad{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:26px}
+.triad-card{border:1px solid var(--line);border-radius:14px;padding:24px;background:var(--paper);position:relative}
+.triad-card::after{content:"";position:absolute;left:24px;right:24px;top:62px;height:1px;background:var(--line)}
+.triad-role{font-family:var(--serif);font-size:19px;font-weight:900;padding-bottom:16px}
+.triad-role em{font-style:normal;color:var(--cinnabar);font-size:13px;margin-left:8px;letter-spacing:.1em}
+.triad-card ul{list-style:none;margin-top:14px}
+.triad-card li{font-size:13.5px;color:var(--ink-2);padding:7px 0 7px 18px;position:relative;border-bottom:1px dashed var(--line)}
+.triad-card li:last-child{border-bottom:none}
+.triad-card li::before{content:"◆";position:absolute;left:0;color:var(--gold);font-size:9px;top:12px}
+.verdict{
+  text-align:center;font-family:var(--serif);font-size:17px;font-weight:700;
+  padding:22px;border:1px solid var(--line);border-radius:12px;background:var(--gold-soft);
+}
+.verdict em{font-style:normal;color:var(--cinnabar)}
+
+/* ---------- AI compare ---------- */
+.ai-compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ai-col{border:1px solid var(--line);border-radius:14px;padding:22px;background:var(--paper)}
+.ai-col.bad{border-top:4px solid var(--cinnabar)}
+.ai-col.good{border-top:4px solid var(--green)}
+.ai-col h5{font-family:var(--serif);font-size:16.5px;font-weight:900;margin-bottom:12px}
+.ai-col.bad h5{color:var(--cinnabar)}.ai-col.good h5{color:var(--green)}
+.ai-col ul{list-style:none}
+.ai-col li{font-size:13.5px;color:var(--ink-2);padding:6px 0 6px 20px;position:relative}
+.ai-col.bad li::before{content:"✕";position:absolute;left:0;color:var(--cinnabar);font-size:12px}
+.ai-col.good li::before{content:"✓";position:absolute;left:0;color:var(--green);font-size:12px}
+
+/* ---------- international ---------- */
+.intl{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.intl-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper);transition:transform .3s}
+.intl-card:hover{transform:translateY(-4px)}
+.intl-head{padding:18px 22px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.intl-head .flag-word{font-family:var(--serif);font-size:19px;font-weight:900}
+.intl-head .model{font-size:12px;color:var(--ink-3);letter-spacing:.1em}
+.intl-body{padding:18px 22px}
+.intl-body p{font-size:13.5px;color:var(--ink-2);margin-bottom:10px}
+.intl-key{font-size:12px;letter-spacing:.12em;color:var(--gold);margin:12px 0 4px}
+.intl-key::before{content:"◆ ";font-size:9px}
+
+/* ---------- new universities bar chart ---------- */
+.uni-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:22px}
+.uni-card{border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--paper);transition:all .25s}
+.uni-card:hover{border-color:var(--indigo);transform:translateY(-3px)}
+.uni-name{font-family:var(--serif);font-size:17px;font-weight:900}
+.uni-meta{font-size:12px;color:var(--ink-3);margin:2px 0 12px}
+.uni-score{font-family:var(--serif);font-size:30px;font-weight:900;color:var(--indigo)}
+.uni-score small{font-size:13px;color:var(--ink-3);font-weight:400}
+.uni-vs{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.6}
+
+/* ---------- way out ---------- */
+.way-item{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:var(--paper);overflow:hidden;transition:border-color .25s}
+.way-item.open{border-color:var(--cinnabar)}
+.way-head{
+  width:100%;display:flex;align-items:center;gap:18px;padding:18px 24px;
+  background:none;border:none;cursor:pointer;text-align:left;font-family:var(--sans);
+}
+.way-num{font-family:var(--serif);font-size:26px;font-weight:900;color:var(--cinnabar);opacity:.85;min-width:44px}
+.way-title{flex:1;font-family:var(--serif);font-size:17.5px;font-weight:700}
+.way-arrow{color:var(--ink-3);transition:transform .3s;font-size:14px}
+.way-item.open .way-arrow{transform:rotate(90deg);color:var(--cinnabar)}
+.way-body{max-height:0;overflow:hidden;transition:max-height .45s ease}
+.way-body-in{padding:0 24px 22px 86px;font-size:14px;color:var(--ink-2)}
+.way-body-in b{color:var(--ink)}
+.way-kw{display:inline-block;font-size:12px;background:var(--indigo-soft);color:var(--indigo);border-radius:99px;padding:2px 10px;margin:8px 6px 0 0}
+
+/* ---------- epilogue ---------- */
+section#epilogue{padding:130px 0 90px;text-align:center;border-top:1px solid var(--line)}
+.epi-quote{
+  font-family:var(--serif);font-size:clamp(22px,3.4vw,34px);font-weight:900;line-height:1.9;
+  max-width:840px;margin:0 auto;
+}
+.epi-quote em{font-style:normal;color:var(--cinnabar)}
+.epi-sub{margin-top:26px;font-size:14px;color:var(--ink-3)}
+.sources{
+  max-width:860px;margin:70px auto 0;text-align:left;
+  border-top:1px solid var(--line);padding-top:30px;
+}
+.sources h6{font-size:12.5px;letter-spacing:.2em;color:var(--ink-3);margin-bottom:12px}
+.sources li{font-size:12.5px;color:var(--ink-3);line-height:2;list-style:none}
+.sources li::before{content:"· ";color:var(--cinnabar)}
+footer{padding:40px 0 60px;text-align:center;font-size:12px;color:var(--ink-3);border-top:1px solid var(--line)}
+footer .f-mark{font-family:var(--serif);font-size:16px;letter-spacing:.3em;margin-bottom:8px}
+
+/* ---------- back to top ---------- */
+#toTop{
+  position:fixed;right:26px;bottom:26px;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--line-strong);background:var(--paper);cursor:pointer;
+  font-size:16px;color:var(--ink-2);opacity:0;pointer-events:none;transition:all .3s;z-index:80;
+}
+#toTop.show{opacity:1;pointer-events:auto}
+#toTop:hover{background:var(--ink);color:var(--paper)}
+
+/* ---------- responsive ---------- */
+@media (max-width:920px){
+  .absurd-grid,.triad,.intl{grid-template-columns:1fr}
+  .sim-wrap{grid-template-columns:1fr}
+  .ai-compare{grid-template-columns:1fr}
+  .way-body-in{padding-left:24px}
+  #hero .vertical-slogan{display:none}
+  .chain-node{min-width:45%;border-radius:8px!important;margin-bottom:6px;border-left:1px solid var(--line)!important}
+  .chain{gap:8px}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<nav id="topnav">
+  <span class="brand">倒反<em>天罡</em> · 高教报告</span>
+  <div class="links">
+    <a href="#c1">三重荒诞</a><a href="#c2">大扩张史</a><a href="#c3">政策时间线</a>
+    <a href="#c4">名词解释</a><a href="#c5">模型推演</a><a href="#c6">结构解剖</a>
+    <a href="#c7">国际镜鉴</a><a href="#c8">新大学</a><a href="#c9">个体出路</a>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header id="hero">
+  <div class="bg-ring"></div>
+  <div class="vertical-slogan">教育失序 · 系统失灵 · 个体清醒</div>
+  <div class="container">
+    <div class="hero-kicker">一份关于中国高等教育的深度交互报告</div>
+    <h1 class="hero-title" id="heroTitle">倒反<span class="accent">天罡</span></h1>
+    <p class="hero-sub">
+      最近，中国高等教育界同时发生了三件事：大学狂砍专业、博士回头读硕士、本科生重读技校。
+      每一件事都称得上「倒反天罡」。它们不是孤立的新闻，而是同一套系统失灵的三个切面——
+      这套系统既不知道该教什么，也不知道该培养谁，更不知道该对谁负责。
+    </p>
+    <div class="hero-keys">
+      <span class="hero-key"><span class="dot"></span>专业死亡潮</span>
+      <span class="hero-key"><span class="dot"></span>博士回读硕士</span>
+      <span class="hero-key"><span class="dot"></span>本科回炉技校</span>
+    </div>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
+</header>
+
+<!-- ================= 第一章：三重荒诞 ================= -->
+<section class="chapter" id="c1">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第壹章</span>
+      <h2 class="chap-title">三件荒诞之事，同时上演</h2>
+    </div>
+    <p class="chap-sub rv">点击任意一张卡片，展开对应的完整数据面板。</p>
+
+    <div class="absurd-grid">
+      <div class="absurd-card sel rv" data-pane="p1" data-idx="壹">
+        <div class="absurd-tag">ABSURDITY 01</div>
+        <h3>专业死亡潮</h3>
+        <p>五年间，全国高校新增 8510 个专业点，同时撤销 5345 个。裁撤速度远超大多数人意识到的程度。</p>
+        <div class="hint">展开数据</div>
+      </div>
+      <div class="absurd-card rv rv-d1" data-pane="p2" data-idx="贰">
+        <h3 style="margin-top:0"><span class="absurd-tag">ABSURDITY 02</span>博士回读硕士</h3>
+        <p>南大、哈工大等推出「博士+硕士」双学位，让已在学术塔尖的人回头补一个 AI 硕士。</p>
+        <div class="hint">展开数据</div>
+      </div>
+      <div class="absurd-card rv rv-d2" data-pane="p3" data-idx="叁">
+        <h3 style="margin-top:0"><span class="absurd-tag">ABSURDITY 03</span>本科回炉技校</h3>
+        <p>北京开出 6 个全日制「大学生技师班」，浙江、广东、山东、安徽密集跟进。</p>
+        <div class="hint">展开数据</div>
+      </div>
+    </div>
+
+    <div id="absurd-detail" class="rv">
+      <!-- pane 1 -->
+      <div class="detail-pane on" id="p1">
+        <div class="detail-title">专业死亡潮：<em>一增一减之间的版图重组</em></div>
+        <p class="detail-brief">
+          四川大学五年间将本科专业从 144 个压缩到 105 个，减少近三分之一——这只是全国版图重组的缩影。
+          被裁撤的专业集中于三类：就业市场饱和的、核心技能正被 AI 快速替代的，或两者兼而有之。
+          与此同时，新专业的涌入速度同样惊人。
+        </p>
+        <div class="stat-row">
+          <div class="stat-box"><div class="num red" data-count="1428">0</div><div class="lbl">2024 年度撤销本科专业点（创历史新高）</div></div>
+          <div class="stat-box"><div class="num red" data-count="2220">0</div><div class="lbl">2024 年度停招专业点</div></div>
+          <div class="stat-box"><div class="num blue" data-count="1839">0</div><div class="lbl">2024 年度新增专业点</div></div>
+          <div class="stat-box"><div class="num gold" data-count="5345">0</div><div class="lbl">2020–2024 五年累计撤销专业点</div></div>
+          <div class="stat-box"><div class="num blue" data-count="2100" data-suffix="+">0</div><div class="lbl">五年累计新增「智能 / 智慧」类专业</div></div>
+        </div>
+        <div class="pill-note">正在退场的（裁撤高发区）</div>
+        <div class="pill-cloud">
+          <span class="pill cut">公共事业管理</span><span class="pill cut">信息管理</span><span class="pill cut">市场营销</span>
+          <span class="pill cut">摄影 / 动画</span><span class="pill cut">视觉传达设计</span><span class="pill cut">音乐学 / 表演</span>
+          <span class="pill cut">广播电视学</span><span class="pill cut">外语</span><span class="pill cut">土木工程</span><span class="pill cut">建筑学</span>
+        </div>
+        <div class="pill-note" style="margin-top:18px">正在涌入的（新增热门）</div>
+        <div class="pill-cloud">
+          <span class="pill rise">人工智能</span><span class="pill rise">数字经济</span><span class="pill rise">智能制造工程</span>
+          <span class="pill rise">大数据管理与应用</span><span class="pill rise">智能分子工程</span><span class="pill rise">低空技术与工程</span>
+          <span class="pill rise">碳中和科学与工程</span><span class="pill rise">区域国别学</span>
+        </div>
+        <p class="detail-brief" style="margin-top:22px;margin-bottom:0">
+          问题在于：一所既没有顶尖计算机师资、又缺乏产业合作基础的地方院校，挂牌一个「人工智能专业」，
+          意味着学生将用四年时间，在一个老师自己也在摸索的领域里，学习一套可能已经过时的知识。
+          <b>中国高校的专业扩张逻辑从来不是「我有能力培养」，而是「政策让我培养」。</b>
+        </p>
+      </div>
+
+      <!-- pane 2 -->
+      <div class="detail-pane" id="p2">
+        <div class="detail-title">博士回读硕士：<em>塔尖之上，原地兜圈</em></div>
+        <p class="detail-brief">
+          南京大学、哈尔滨工业大学等高校启动「博士+硕士」双学位项目，鼓励在读博士回头再读一个 AI 方向硕士。
+          官方说法是「学科交叉、复合培养」；但一个已经在学术金字塔顶端的人被要求重新补课，
+          本身就说明：博士生的知识结构，已经追不上市场的变化。
+        </p>
+        <div class="stat-row">
+          <div class="stat-box"><div class="num red" data-count="61" data-suffix="万+">0</div><div class="lbl">2023 年全国在学博士生，约为 2013 年的两倍</div></div>
+          <div class="stat-box"><div class="num red" data-count="15.33" data-decimal="2" data-suffix="万">0</div><div class="lbl">2023 年博士招生数，较 2017 年（8.39 万）接近翻倍</div></div>
+          <div class="stat-box"><div class="num blue" data-count="3.5" data-decimal="1" data-suffix="万">0</div><div class="lbl">全国高校每年可提供的教学科研等岗位（媒体测算）</div></div>
+          <div class="stat-box"><div class="num gold" data-count="2" data-suffix=" 年">0</div><div class="lbl">「博士+硕士」多读的时间，成本由学生自付</div></div>
+        </div>
+        <p class="detail-brief">
+          庞大的博士群体面对的是一个根本无法消化他们的就业市场：教职有限，产业界对传统学科博士的吸纳同样有限。
+          大量博士毕业后进入漫长的「博士后漂流」，或降维去竞争本科生的岗位。
+          杭州市委党校招 3 名博士、报名 150 余人；偏远县城的人才引进名单里清一色博士。
+        </p>
+        <p class="detail-brief" style="margin-bottom:0">
+          <b>「博士再读硕士」的实质，是用延长学制来掩盖结构性失业</b>——让学生继续待在校园里，
+          暂时逃离已经承压的就业市场。而高校的评价体系、教授的激励机制、博士培养的课程逻辑，一概照旧。
+        </p>
+      </div>
+
+      <!-- pane 3 -->
+      <div class="detail-pane" id="p3">
+        <div class="detail-title">本科回炉技校：<em>四年之后，再加两年</em></div>
+        <p class="detail-brief">
+          北京推出 6 个全日制「大学生技师班」，招收对象明确指向离校未就业的高校毕业生；
+          浙江、广东、山东、安徽密集跟进，人社部与财政部联合发文表示支持。
+          一个读了四年本科的人，被政策引导去技工院校再花两年，学一门能直接上手的手艺。
+        </p>
+        <div class="stat-row">
+          <div class="stat-box"><div class="num blue" data-count="6">0</div><div class="lbl">北京首批「大学生技师班」数量，覆盖智能制造等方向</div></div>
+          <div class="stat-box"><div class="num" data-count="1" data-suffix="+1">0</div><div class="lbl">培养模式：一年在校 + 一年企业实习</div></div>
+          <div class="stat-box"><div class="num red" data-count="4">0</div><div class="lbl">浙 / 粤 / 鲁 / 皖四省密集跟进同类政策</div></div>
+          <div class="stat-box"><div class="num gold" data-count="2025">0</div><div class="lbl">「本升专」成为高招季舆论热词，就业为王、用脚投票</div></div>
+        </div>
+        <p class="detail-brief">
+          这些技师班覆盖智能制造、生物制药、电子技术应用等方向，共同特点是：实操性强、上手即用、企业急需。
+          这恰恰说明——<b>四年本科教育所缺失的，正是这些最基础的、能被市场直接验证的能力。</b>
+        </p>
+        <p class="detail-brief" style="margin-bottom:0">
+          一个正常运转的教育体系，不应该需要用职业教育来给本科教育打补丁。
+          而谁来承担这两年的时间与学费？不是高校，不是教育主管部门，是学生和他们的家庭。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第二章：大扩张史 ================= -->
+<section class="chapter" id="c2">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第贰章</span>
+      <h2 class="chap-title">一切从 1999 年开始：大扩张史</h2>
+    </div>
+    <p class="chap-sub rv">从第一性原理出发：中国高等教育究竟服务于谁？要理解今天的混乱，必须回到扩招的起点。将鼠标悬停在图表上查看具体数据。</p>
+
+    <p class="lead rv">
+      中国现代高等教育体系的底层设计，根植于计划经济时代的逻辑：大学是<strong>为国家意志输送合格人才的流水线</strong>，
+      专业设置对应计划岗位，毕业去向由国家统一分配。1990 年代市场化改革后，分配制度解体，但底层逻辑并未真正转变。
+      真正的转折点在 1999 年——亚洲金融危机之后，经济下行、就业承压，决策者发现大规模扩招有两重好处：
+      <strong>教育消费刺激内需，推迟青年进入就业市场缓解压力</strong>。
+      于是，扩招的驱动逻辑从一开始就不是「我们需要培养更多高质量人才」，而是「我们需要更多人待在学校里」。
+    </p>
+
+    <div class="chart-frame rv">
+      <div class="chart-title">普通本专科招生规模（1998–2023）与高校毕业生规模（2001–2025）</div>
+      <div class="chart-cap">单位：万人 · 悬停查看数值</div>
+      <div class="legend">
+        <span><i style="background:var(--indigo)"></i>本专科年招生数</span>
+        <span><i style="background:var(--cinnabar)"></i>高校年毕业生数</span>
+      </div>
+      <svg id="macroChart" viewBox="0 0 960 380" width="100%"></svg>
+      <div class="chart-tip" id="macroTip"></div>
+      <div class="src-line">数据：教育部历年《全国教育事业发展统计公报》及教育部公开发布；1999 年招生 159.68 万，较 1998 年增长 47.4%。</div>
+    </div>
+
+    <div class="stat-row rv" style="margin-top:22px">
+      <div class="stat-box"><div class="num blue">9.8<span style="font-size:16px">%</span> → 60.2<span style="font-size:16px">%</span></div><div class="lbl">高等教育毛入学率：1998 → 2023，从精英教育跨入普及化</div></div>
+      <div class="stat-box"><div class="num red">114<span style="font-size:16px">万</span> → 1222<span style="font-size:16px">万</span></div><div class="lbl">高校毕业生：2001 → 2025，25 年增长约 10 倍</div></div>
+      <div class="stat-box"><div class="num gold">1.5<span style="font-size:16px">万</span> → 15.3<span style="font-size:16px">万</span></div><div class="lbl">博士年招生数：1998 → 2023，增长约 10 倍</div></div>
+    </div>
+
+    <div class="chart-frame rv" style="margin-top:22px">
+      <div class="chart-title">供给的另一端：16–24 岁城镇青年调查失业率</div>
+      <div class="chart-cap">单位：% · 2023 年 6 月旧口径达 21.3% 历史峰值；此后统计局改用「不含在校生」新口径</div>
+      <svg id="joblessChart" viewBox="0 0 960 300" width="100%"></svg>
+      <div class="chart-tip" id="joblessTip"></div>
+      <div class="src-line">数据：国家统计局。旧口径（含在校生）于 2023 年中暂停发布；新口径自 2023 年 12 月起发布，数值显著低于旧口径。</div>
+    </div>
+
+    <p class="lead rv" style="margin-top:34px">
+      供给端十年翻十倍，而需求端的高端岗位扩张远远跟不上。2023 年 6 月，旧口径青年失业率冲到
+      <strong>21.3%</strong> 的历史峰值后，统计口径被调整。数字口径可以改变，结构矛盾不会。
+      更隐蔽的问题是：高等教育在中国始终同时是意识形态工程，核心考核是一个<strong>自我封闭的体系</strong>——
+      SCI 论文、学科评估排名、项目经费、「帽子」人才——这套逻辑与毕业生的真实就业质量几乎没有直接关联。
+      学界在一个与市场脱钩的平行宇宙里自我运转：圈内人觉得繁荣，圈外人看不见意义。
+    </p>
+  </div>
+</section>
+
+<!-- ================= 第三章：政策时间线 ================= -->
+<section class="chapter" id="c3">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第叁章</span>
+      <h2 class="chap-title">政策与大事件：一条被反复验证的轨迹</h2>
+    </div>
+    <p class="chap-sub rv">中国高校的专业设置从根本上是一个行政行为：教育部以学科目录管控框架，省级厅局负责审批——新增与裁撤遵循的是政策信号，而非市场信号。点击节点展开详情。</p>
+    <div class="tl-hint rv">红色节点为本次「三重荒诞」的直接政策节点。</div>
+
+    <div class="tl" id="timeline">
+      <div class="tl-item rv"><span class="node"></span>
+        <div class="tl-year">1998</div>
+        <div class="tl-head">《面向 21 世纪教育振兴行动计划》获批，扩招酝酿<span class="tl-tag">起点</span></div>
+        <div class="tl-body">亚洲金融危机余波下，「扩大高等教育规模」进入决策视野：既刺激教育消费拉动内需，又能推迟数百万青年进入就业市场。当年本专科招生 108.36 万。</div>
+      </div>
+      <div class="tl-item rv"><span class="node"></span>
+        <div class="tl-year">1999</div>
+        <div class="tl-head">大扩招启动：招生 159.68 万，一年增长 47.4%<span class="tl-tag">转折</span></div>
+        <div class="tl-body">此后数年以每年近 30% 的速度扩张。这场扩招没有配套的质量保障计划——这颗种子，埋下了此后二十余年几乎所有问题。</div>
+      </div>
+      <div class="tl-item rv"><span class="node"></span>
+        <div class="tl-year">2001</div>
+        <div class="tl-head">加入 WTO：对外经贸专业全面扩张<span class="tl-tag">第一轮热门</span></div>
+        <div class="tl-body">「政策信号 → 一哄而上」的模式第一次大规模上演。几年后外贸人才饱和，当年追热的学生在过剩时代毕业。</div>
+      </div>
+      <div class="tl-item rv"><span class="node"></span>
+        <div class="tl-year">2003</div>
+        <div class="tl-head">首届扩招学生毕业：212 万人，「就业难」首次成为社会议题<span class="tl-tag">代价初显</span></div>
+        <div class="tl-body">供给冲击第一次显形。此后毕业生就业规模一路攀升：2010 年 631 万，2020 年 874 万，2022 年突破千万。</div>
+      </div>
+      <div class="tl-item rv"><span class="node"></span>
+        <div class="tl-year">2006–2013</div>
+        <div class="tl-head">地产黄金时代：土木、建筑招生急剧膨胀<span class="tl-tag">第二轮热门</span></div>
+        <div class="tl-body">房地产腾飞带动土建类专业大扩张。十余年后地产退潮，土木与建筑成为今天裁撤名单上的重灾区。</div>
+      </div>
+      <div class="tl-item rv"><span class="node"></span>
+        <div class="tl-year">2017</div>
+        <div class="tl-head">「双一流」建设启动<span class="tl-tag">评价内卷加剧</span></div>
+        <div class="tl-body">以学科评估、论文、项目、帽子为核心的考核闭环进一步强化。高校的注意力被更深地锁进系统内部，与产业和就业市场的距离进一步拉大。</div>
+      </div>
+      <div class="tl-item hot rv"><span class="node"></span>
+        <div class="tl-year">2023</div>
+        <div class="tl-head">五部门印发《学科专业设置调整优化改革方案》<span class="tl-tag">本轮调整的号令</span></div>
+        <div class="tl-body">目标：到 2025 年优化调整高校 20% 左右学科专业布点，淘汰不适应经济社会发展的学科专业；连续五年未招生的专业予以撤销。全国本科专业布点约 6.6 万个——20% 意味着上万个专业点将被改写。</div>
+      </div>
+      <div class="tl-item hot rv"><span class="node"></span>
+        <div class="tl-year">2024</div>
+        <div class="tl-head">「博士+硕士」双学位与「大学生技师班」登场<span class="tl-tag">荒诞落地</span></div>
+        <div class="tl-body">南大、哈工大等启动博士回读 AI 硕士；北京开出 6 个全日制大学生技师班，浙粤鲁皖跟进，人社部与财政部联合发文支持。系统失灵的代价，开始以「再教育」的形式直接转嫁给学生。</div>
+      </div>
+      <div class="tl-item hot rv"><span class="node"></span>
+        <div class="tl-year">2025</div>
+        <div class="tl-head">撤销 1428 个专业点创新高 · 新版专业目录发布 · 新型研究型大学元年<span class="tl-tag">现在进行时</span></div>
+        <div class="tl-body">2024 年度备案审批结果公布：新增 1839 个、停招 2220 个、撤销 1428 个专业点；新版目录增至 845 种专业，并为「战略急需专业」开设超常设置绿色通道。教育部宣布如期完成 20% 布点调整目标。同年，福耀科技大学、东方理工、大湾区大学首年招生分数线比肩甚至超过部分 985；「本升专」成为舆论热词。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第四章：名词解释 ================= -->
+<section class="chapter" id="c4">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第肆章</span>
+      <h2 class="chap-title">读懂这场混乱：十个关键词</h2>
+    </div>
+    <p class="chap-sub rv">点击卡片翻面，查看解释。</p>
+    <div class="glossary" id="glossary"></div>
+  </div>
+</section>
+
+<!-- ================= 第五章：模型推演 ================= -->
+<section class="chapter" id="c5">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第伍章</span>
+      <h2 class="chap-title">模型推演：公式、链条与一台模拟器</h2>
+    </div>
+    <p class="chap-sub rv">叙事之外，用三个经济学模型把这场混乱讲清楚——然后亲手转动旋钮，看看「下一个过剩」是如何被制造出来的。</p>
+
+    <!-- 公式一 -->
+    <div class="formula-card rv">
+      <h4><span>公式 Ⅰ</span> 文凭的信号价值（斯宾塞信号模型）</h4>
+      <div class="formula-box">
+        文凭信号价值 ≈ <span class="frac"><span class="top">区分度</span><span class="bot">持证者规模</span></span> × 与真实能力的相关性
+      </div>
+      <p class="formula-explain">
+        在斯宾塞（Spence）的劳动力市场信号模型中，文凭的功能是帮助雇主在信息不对称下<b>区分高能力与低能力者</b>。
+        当每年 1200 万毕业生同时手持文凭涌入市场，分母暴涨、区分度塌陷；当高校考核与真实能力脱钩，相关性同步衰减——
+        <b>文凭从「证明你有能力」退化为「证明你没有明显缺陷」</b>：它成了负向筛选工具，而非正向证明。
+      </p>
+      <div class="var-list">
+        <span><code>区分度</code> 文凭把候选人分成不同层级的颗粒度</span>
+        <span><code>持证者规模</code> 2025 届毕业生 1222 万</span>
+        <span><code>相关性</code> 课堂内容与产业需求的契合度</span>
+      </div>
+    </div>
+
+    <!-- 公式二 -->
+    <div class="formula-card rv">
+      <h4><span>公式 Ⅱ</span> 高等教育投资决策（净现值）</h4>
+      <div class="formula-box">
+        NPV = Σ<sub>t=1</sub><sup>n</sup> <span class="frac"><span class="top">W<sub>高教</sub> − W<sub>无</sub></span><span class="bot">(1 + r)<sup>t</sup></span></span> − ( 学费 + 生活费 + 机会成本 )
+      </div>
+      <p class="formula-explain">
+        家庭为教育支付的从来不只是学费：四年（或六七年）的时间是最昂贵的机会成本。
+        当「高学历溢价」收窄、年限被政策拉长（博士再读两年硕士、本科再加两年技校），
+        <b>边际学历的 NPV 正在逼近甚至跌破零</b>。2025 年民办本科频繁补录、分数线不断下调、
+        「本升专」成为热词——家庭正在用脚底，对这个公式重新投票。
+      </p>
+      <div class="var-list">
+        <span><code>W<sub>高教</sub> − W<sub>无</sub></code> 学历带来的工资溢价，正在收窄</span>
+        <span><code>机会成本</code> 4–8 年可工作的收入与经验</span>
+        <span><code>r</code> 折现率，也是对未来的不确定性定价</span>
+      </div>
+    </div>
+
+    <!-- 传导链条 -->
+    <div class="chap-head rv" style="margin-top:60px">
+      <h3 class="chap-title" style="font-size:clamp(22px,3vw,30px)">传导链条：一个过剩专业的诞生</h3>
+    </div>
+    <p class="chap-sub rv">点击链条上的任意环节，查看它如何向下传导。这条链上的每一环都「理性」，合起来却必然制造过剩——这就是系统失灵的含义。</p>
+    <div class="chain rv" id="chain"></div>
+    <div class="chain-detail rv" id="chainDetail"></div>
+
+    <!-- 模拟器 -->
+    <div class="chap-head rv" style="margin-top:60px">
+      <h3 class="chap-title" style="font-size:clamp(22px,3vw,30px)">可交互模型：专业生命周期模拟器</h3>
+    </div>
+    <p class="chap-sub rv">调节「政策信号强度」与「市场真实需求增速」，观察一条供给曲线如何因四年培养周期而滞后、超调，最终制造过剩。红色阴影即「过剩区」。可直接点选历史预设。</p>
+    <div class="sim-wrap rv">
+      <div class="sim-controls">
+        <h4>控制面板</h4>
+        <div class="sim-sub">数值为示意模型参数，用于演示机制，非预测。</div>
+        <div class="ctrl">
+          <label>政策信号强度（驱动高校扩招）<output id="oSignal">70</output></label>
+          <input type="range" id="rSignal" min="0" max="100" value="70">
+        </div>
+        <div class="ctrl">
+          <label>市场真实需求年增速<output id="oDemand">+5%</output></label>
+          <input type="range" id="rDemand" min="-10" max="20" value="5">
+        </div>
+        <div class="ctrl">
+          <label>信号消退速度（热门退潮）<output id="oDecay">慢</output></label>
+          <input type="range" id="rDecay" min="0" max="100" value="30">
+        </div>
+        <div class="ctrl" style="margin-bottom:8px">
+          <label style="font-size:12.5px;color:var(--ink-3)">历史预设：</label>
+        </div>
+        <div class="presets">
+          <button class="preset-btn" data-p="law">法学热</button>
+          <button class="preset-btn" data-p="civil">土木热</button>
+          <button class="preset-btn on" data-p="ai">AI 热</button>
+        </div>
+        <div class="sim-note" style="margin-top:18px">
+          核心机制：考生按「当下热门」报考 → 高校按「政策信号」扩招 → 毕业生在四年后才进入市场 →
+          供给对需求的响应永远慢半拍，且被行政信号放大。
+        </div>
+      </div>
+      <div class="sim-canvas-box">
+        <canvas id="simCanvas" width="760" height="420"></canvas>
+        <div class="sim-readout">
+          <div class="ro"><div class="ro-num" id="roGap">—</div><div class="ro-lbl">第 8 年累计过剩规模（示意单位）</div></div>
+          <div class="ro blue"><div class="ro-num" id="roPeak">—</div><div class="ro-lbl">过剩峰值出现时间（自信号发出起）</div></div>
+          <div class="ro"><div class="ro-num" id="roRatio">—</div><div class="ro-lbl">供给 / 需求 比（第 8 年）</div></div>
+        </div>
+        <div class="sim-note">实线：毕业生供给（滞后 4 年）· 虚线：招生热度 · 绿色：市场真实需求 · 红色阴影：供给超出需求的「过剩区」。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第六章：结构解剖 ================= -->
+<section class="chapter" id="c6">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第陆章</span>
+      <h2 class="chap-title">结构解剖：谁在建构，谁在买单</h2>
+    </div>
+    <p class="chap-sub rv">这场混乱是一个由政府、高校和家庭共同搭建的结构：三方各有利益、各有幻觉，共同维系着一个早已失灵的系统继续运转。</p>
+
+    <div class="triad rv">
+      <div class="triad-card">
+        <div class="triad-role">政府<em>看数字</em></div>
+        <ul>
+          <li>高学历人口是现代化建设的政绩指标</li>
+          <li>青年待在学校，比涌入就业市场更易于管理</li>
+          <li>每批扩招都是可对外展示的「发展成就」</li>
+        </ul>
+      </div>
+      <div class="triad-card">
+        <div class="triad-role">高校<em>看排名</em></div>
+        <ul>
+          <li>招生规模决定财政拨款，学生是稳定收入来源</li>
+          <li>考核闭环：论文、帽子、项目经费——与就业质量无关</li>
+          <li>扩招收益是确定的，质量代价是分散、延迟、由学生承担的</li>
+        </ul>
+      </div>
+      <div class="triad-card">
+        <div class="triad-role">家庭<em>看文凭</em></div>
+        <ul>
+          <li>「读好大学 = 好工作 = 好人生」的深度路径依赖</li>
+          <li>文凭稀缺性早已消失，文化惯性却调整迟缓</li>
+          <li>无数家庭仍用 20 年前的逻辑做今天的教育投资</li>
+        </ul>
+      </div>
+    </div>
+    <div class="verdict rv">三方共谋的结果：<em>没有人真正对教育质量负责</em>——政府看宏观数字，高校看排名经费，家庭看文凭标签，唯独没人追问这个孩子四年后能做什么。</div>
+
+    <div class="chap-head rv" style="margin-top:64px">
+      <h3 class="chap-title" style="font-size:clamp(22px,3vw,30px)">AI 是显影剂，不是病因</h3>
+    </div>
+    <p class="lead rv">
+      很多讨论把人工智能放在危机的首要位置，仿佛 AI 打破了一个原本运转良好的系统——这是<strong>倒果为因</strong>。
+      大模型自动化的，恰恰是中国高等教育最擅长生产的那类产品：标准化记忆、格式化输出、标准答案。
+      真正的因果是反过来的：<strong>这套体系长期把学生训练成最容易被 AI 替代的人</strong>。AI 的到来，只是把那堵早已朽坏的墙推倒了。
+    </p>
+    <div class="ai-compare rv">
+      <div class="ai-col bad">
+        <h5>正在被 AI 快速侵蚀的能力（体系擅长训练的）</h5>
+        <ul>
+          <li>标准化的记忆与复述</li>
+          <li>按固定格式输出内容</li>
+          <li>完成有标准答案的任务</li>
+          <li>翻译、基础设计、初级编程、数据录入、文案撰写</li>
+        </ul>
+      </div>
+      <div class="ai-col good">
+        <h5>AI 短期内难以覆盖的位置（体系恰恰轻视的）</h5>
+        <ul>
+          <li>复杂的人际协作与高度情境化的文化理解</li>
+          <li>跨学科知识体系的整合与叙事</li>
+          <li>在模糊与不确定性中做决策</li>
+          <li>批判性思维、创造力、真实问题的定义能力</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="formula-card rv" style="margin-top:26px">
+      <h4><span>深层约束</span> 为什么中国的问题特别难解？</h4>
+      <p class="formula-explain" style="margin-top:10px">
+        教育的功能性改革在任何国家都困难，但在中国额外面临一层约束：<b>改革不能触碰政治边界</b>——
+        不能动摇意识形态管控，不能动摇「党管教育」的根本原则。于是一切改革空间都被压缩在这条边界之内，
+        而恰恰是这条边界，挡住了大学走向真正开放、真正负责、真正以人的发展为中心所需要的那条路。
+        一所肩负思想管控使命的大学，无法同时成为思想自由流动的创新中心——这两个目标在深层是相互矛盾的。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第七章：国际镜鉴 ================= -->
+<section class="chapter" id="c7">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第柒章</span>
+      <h2 class="chap-title">国际镜鉴：缺的不是模板，是地基</h2>
+    </div>
+    <p class="chap-sub rv">把中国高等教育的困境放进国际比较的框架，深层差异会变得清晰。</p>
+
+    <div class="intl rv">
+      <div class="intl-card">
+        <div class="intl-head"><div class="flag-word">德国</div><div class="model">双元制职业教育</div></div>
+        <div class="intl-body">
+          <p>职业教育之所以成立，不仅因为有完善的企业培训体系，更因为有支撑它的社会文化地基：技能工人享有真实的尊严与体面的收入。</p>
+          <div class="intl-key">关键差异</div>
+          <p>职业路径是<b>独立完整的人生选择</b>，而非学术失败后的退路。一名熟练的德国机械师，不需要在文化上向大学毕业生低头。</p>
+          <div class="intl-key">对照中国</div>
+          <p>「大学生读技校」的底层叙事是<b>补救</b>而非平等选项——目标人群是「离校未就业毕业生」，这条路就很难真正走通。</p>
+        </div>
+      </div>
+      <div class="intl-card">
+        <div class="intl-head"><div class="flag-word">美国</div><div class="model">研究型大学 × 产业共生</div></div>
+        <div class="intl-body">
+          <p>斯坦福与硅谷、MIT 与 128 号公路的关系，不是规划出来的，而是在特定大学文化中自然生长的：教授可创业、可做顾问、可把真实问题带回课堂。</p>
+          <div class="intl-key">关键差异</div>
+          <p>企业深入参与课程设计；学生带着课题去公司，把实习中的发现带回实验室——<b>双向、开放、自由流动</b>。</p>
+          <div class="intl-key">对照中国</div>
+          <p>高校愈发物理封闭：参观要预约、进校要扫码、合作要审批。<b>一所不欢迎陌生人的大学，内在也不会欢迎陌生的问题。</b></p>
+        </div>
+      </div>
+      <div class="intl-card">
+        <div class="intl-head"><div class="flag-word">日本 / 德国通识</div><div class="model">规模与质量的再平衡</div></div>
+        <div class="intl-body">
+          <p>普及化之后的发达经济体，普遍经历过从「规模扩张」到「质量与分流」的痛苦再平衡——分流的前提，是每条路径都能通往体面生活。</p>
+          <div class="intl-key">关键差异</div>
+          <p>分流依赖两个地基：<b>技能路径的尊严</b>与<b>收入结构的支撑</b>，而不是一纸行政文件。</p>
+          <div class="intl-key">对照中国</div>
+          <p>毛入学率已达 60.2%（2023），普及化早于地基建成；于是分流政策只能以「补丁」形式出现。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第八章：新大学 ================= -->
+<section class="chapter" id="c8">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第捌章</span>
+      <h2 class="chap-title">裂缝里的参照系：新型研究型大学</h2>
+    </div>
+    <p class="chap-sub rv">2025 年，福耀科技大学、宁波东方理工大学、大湾区大学获批设立并首年招生，录取分数线迅速比肩甚至超过若干 985——学生用志愿选择，表达了对传统高校的不信任和对新模式的期待。</p>
+
+    <div class="uni-cards rv">
+      <div class="uni-card">
+        <div class="uni-name">福耀科技大学</div>
+        <div class="uni-meta">曹德旺捐资超 100 亿创办 · 王树国任校长 · 学费 5460 元/年</div>
+        <div class="uni-score">616<small> 分（广西物理组投档线）</small></div>
+        <div class="uni-vs">超过北京师大、厦门大学、华南理工等 985；在江西 617 分超过哈工大投档线。</div>
+      </div>
+      <div class="uni-card">
+        <div class="uni-name">宁波东方理工大学</div>
+        <div class="uni-meta">宁波工业界支持 · 首年仅在浙江招 70 人</div>
+        <div class="uni-score">656<small> 分（浙江，位次 8518）</small></div>
+        <div class="uni-vs">仅比浙江大学低 2 分，超过多所 985 院校。</div>
+      </div>
+      <div class="uni-card">
+        <div class="uni-name">大湾区大学</div>
+        <div class="uni-meta">数学家田刚领衔 · 首年招 80 人（广东）</div>
+        <div class="uni-score">622<small> 分（广东物理类）</small></div>
+        <div class="uni-vs">仅比中山大学低 6 分，与华南理工大学持平。</div>
+      </div>
+      <div class="uni-card">
+        <div class="uni-name">西湖大学</div>
+        <div class="uni-meta">先行者 · 办学更早的参照样本</div>
+        <div class="uni-score">≈670<small> 分（河南 / 重庆投档线）</small></div>
+        <div class="uni-vs">已超过哈工大、西安交大等 C9 高校的部分投档线。</div>
+      </div>
+    </div>
+
+    <div class="lead rv" style="margin-top:30px">
+      这批新大学的共同特征：与产业界更深度绑定（福耀背靠曹德旺的产业积累，东方理工有宁波工业界的支持），
+      课程设计贴近实务，校企合作有实质内容，培养目标清晰——集成电路专业学生大一就进入华为、中兴解决真实课题。
+      但它们同样需要在教育部监管框架内运行、服从学科目录、应对行政评估。
+      它们的意义不在于颠覆体制，而在于<strong>提供了一个参照系：另一种大学是可能存在的，而且学生愿意为它买单</strong>。
+      这种用脚投票的力量，或许是推动体制内改革为数不多的有效外部压力。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第九章：个体出路 ================= -->
+<section class="chapter" id="c9">
+  <div class="container">
+    <div class="chap-head rv">
+      <span class="chap-num">第玖章</span>
+      <h2 class="chap-title">个体的出路：六件可以掌控的事</h2>
+    </div>
+    <p class="chap-sub rv">先说一件必须直面的事：这套体制不会在你毕业之前修好，没有人会为耽误你的四年道歉。停止等待一个不会来的公平，把精力放在真正可以掌控的事情上。点击展开每一条。</p>
+
+    <div id="ways">
+      <div class="way-item rv open">
+        <button class="way-head"><span class="way-num">01</span><span class="way-title">重新理解文凭：它是负向筛选，不是入场券</span><span class="way-arrow">›</span></button>
+        <div class="way-body"><div class="way-body-in">
+          当 1222 万人同年毕业，文凭的功能已从「证明你有能力」退化为「证明你没有明显缺陷」。
+          真正值钱的是这四年里你<b>实际做了什么</b>：解决过什么真实问题、积累过什么可被验证的能力、建立过什么真实的关系。课堂不会自动提供这些，需要主动争取。
+          <br><span class="way-kw">文凭通胀</span><span class="way-kw">负向筛选</span><span class="way-kw">能力证明</span>
+        </div></div>
+      </div>
+      <div class="way-item rv">
+        <button class="way-head"><span class="way-num">02</span><span class="way-title">建立真实的反馈回路</span><span class="way-arrow">›</span></button>
+        <div class="way-body"><div class="way-body-in">
+          大学教育的反馈回路严重失真：一个分数无法告诉你与行业标准的差距。去实习、做项目、参与真实工作场景，
+          去找愿意直说「这个方案有问题、原因是什么」的人——<b>一个说真话的同事，比一个只打高分的教授对你的成长价值更高</b>。
+          在校园保护层里回避真实反馈，只会让真实世界的重击在毕业后来得更猛。
+          <br><span class="way-kw">反馈失真</span><span class="way-kw">实习</span><span class="way-kw">行业标准</span>
+        </div></div>
+      </div>
+      <div class="way-item rv">
+        <button class="way-head"><span class="way-num">03</span><span class="way-title">主动走出校园，消除信息不对称</span><span class="way-arrow">›</span></button>
+        <div class="way-body"><div class="way-body-in">
+          围墙没有想象中难穿越：科技园区、孵化器、创业基地、寒暑假实习，都是可以进入的真实场景。
+          在封闭系统里，信息不对称是最大的资源浪费——<b>行业怎么运作、职位每天在做什么、雇主真正看中什么，这些信息只在真实工作场景里</b>。
+          <br><span class="way-kw">信息不对称</span><span class="way-kw">真实场景</span>
+        </div></div>
+      </div>
+      <div class="way-item rv">
+        <button class="way-head"><span class="way-num">04</span><span class="way-title">在校期间，自我「技校化」</span><span class="way-arrow">›</span></button>
+        <div class="way-body"><div class="way-body-in">
+          大学生读技校揭示了一个可以自己完成的任务：练一门<b>能被市场直接验证的实操技能</b>——编程、数据分析、产品原型、财务建模、某个行业的专业实操。
+          它们的共同特征：质量可以被外部直接检验，不依赖文凭背书，不依赖简历描述，做出来的东西本身就是证明。在 AI 工具普及的今天，起步比以往任何时候都容易。
+          <br><span class="way-kw">可验证技能</span><span class="way-kw">作品集</span><span class="way-kw">开源实践</span>
+        </div></div>
+      </div>
+      <div class="way-item rv">
+        <button class="way-head"><span class="way-num">05</span><span class="way-title">对 AI 保持真实的学习姿态</span><span class="way-arrow">›</span></button>
+        <div class="way-body"><div class="way-body-in">
+          「会用 AI 工具」不等于理解 AI。真正值得投入的是看清它正在<b>重塑哪些工作的边界</b>：哪些任务在被自动化、哪些判断仍需人类、哪些能力在人机协作中升值。
+          然后站到正确的一侧——能有效使用 AI、能判断 AI 输出的质量与边界、能在 AI 无法覆盖的复杂情境中做决策的那一侧。这是一条动态边界，需要持续学习。
+          <br><span class="way-kw">人机协作</span><span class="way-kw">判断力</span><span class="way-kw">动态边界</span>
+        </div></div>
+      </div>
+      <div class="way-item rv">
+        <button class="way-head"><span class="way-num">06</span><span class="way-title">不追热门，追趋势背后的结构性逻辑</span><span class="way-arrow">›</span></button>
+        <div class="way-body"><div class="way-body-in">
+          当数百所高校同时开设 AI 专业，AI 专业本身已经在制造下一个过剩。真正稀缺的不是「从 AI 专业毕业的人」，
+          而是<b>理解某个特定领域的真实需求、并把 AI 能力有效用进去的人</b>。对文科生同样如此：
+          出路未必是转码，而是找到 AI 难以覆盖的位置——复杂人际协作、情境化文化理解、跨体系整合与叙事、不确定性中的决策。
+          此外，在信息环境日益封闭的当下，保持对一手信息的获取能力（语言、检索、对比性思维），本身就是一种稀缺竞争力。
+          <br><span class="way-kw">领域 × AI</span><span class="way-kw">结构性稀缺</span><span class="way-kw">信息素养</span>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 结语 ================= -->
+<section id="epilogue">
+  <div class="container">
+    <p class="epi-quote rv">
+      没有哪个专业能永远站在风口，<br>
+      没有哪张文凭能提供终身保障。<br>
+      在一个系统失灵的时代，<br><em>清醒本身就是稀缺资产。</em>
+    </p>
+    <p class="epi-sub rv">真正值得押注的，只有一件事：你持续理解这个世界、并在真实挑战中磨细自己的能力。</p>
+
+    <div class="sources rv">
+      <h6>数据与资料来源</h6>
+      <ul>
+        <li>原文：《最近，中国高等教育界同时发生了三件事》（本报告的分析主线与观点来源）</li>
+        <li>教育部历年《全国教育事业发展统计公报》（招生数、在校生数、博士规模）</li>
+        <li>教育部等五部门《普通高等教育学科专业设置调整优化改革方案》（2023 年 3 月印发）</li>
+        <li>教育部 2024 年度普通高等学校本科专业备案和审批结果（新华社 / 人民日报，2025 年 4 月）：新增 1839 个、停招 2220 个、撤销 1428 个专业点</li>
+        <li>新华网《我国完成高校 20% 学科专业调整》（2025 年 8 月）</li>
+        <li>教育部、人社部 2025 届高校毕业生就业创业工作会议：预计规模 1222 万人（2024 年 11 月）</li>
+        <li>国家统计局：16–24 岁城镇青年调查失业率（2023 年 6 月旧口径 21.3%，其后调整口径）</li>
+        <li>广西招生考试院、浙江省 2025 年普通高校招生投档分数线公开数据（新型研究型大学录取线）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-mark">倒反天罡</div>
+  <div>中国高等教育三重荒诞 · 交互式报告 · 单文件版 · 2026</div>
+</footer>
+
+<button id="toTop" aria-label="回到顶部">↑</button>
+
+<script>
+(function(){
+"use strict";
+var $ = function(s,c){ return (c||document).querySelector(s); };
+var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
+
+/* ---------- scroll progress & nav & toTop ---------- */
+var progress = $('#progress'), nav = $('#topnav'), toTop = $('#toTop');
+window.addEventListener('scroll', function(){
+  var h = document.documentElement;
+  var p = h.scrollTop / (h.scrollHeight - h.clientHeight);
+  progress.style.width = (p*100) + '%';
+  nav.classList.toggle('show', h.scrollTop > window.innerHeight*0.7);
+  toTop.classList.toggle('show', h.scrollTop > 900);
+}, {passive:true});
+toTop.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+
+/* ---------- reveal on scroll ---------- */
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); } });
+},{threshold:.12});
+$$('.rv').forEach(function(el){ io.observe(el); });
+
+/* ---------- hero title chars ---------- */
+var hero = $('#heroTitle');
+(function(){
+  var nodes = $$('.ch', hero);
+  if(!nodes.length){
+    // split text nodes into chars
+    var frag = document.createDocumentFragment();
+    $$('*', hero).length; // noop
+    (function split(el){
+      var kids = Array.prototype.slice.call(el.childNodes);
+      kids.forEach(function(n){
+        if(n.nodeType === 3){
+          var text = n.textContent;
+          var spanWrap = document.createDocumentFragment();
+          for(var i=0;i<text.length;i++){
+            var s = document.createElement('span');
+            s.className = 'ch'; s.textContent = text[i];
+            spanWrap.appendChild(s);
+          }
+          el.replaceChild(spanWrap, n);
+        } else if(n.nodeType === 1){ split(n); }
+      });
+    })(hero);
+    nodes = $$('.ch', hero);
+  }
+  nodes.forEach(function(n,i){
+    setTimeout(function(){ n.classList.add('in'); }, 120 + i*90);
+  });
+})();
+
+/* ---------- animated counters ---------- */
+function animateCount(el){
+  var target = parseFloat(el.dataset.count);
+  var decimals = parseInt(el.dataset.decimal || '0', 10);
+  var suffix = el.dataset.suffix || '';
+  var dur = 1200, t0 = null;
+  function step(t){
+    if(!t0) t0 = t;
+    var p = Math.min((t - t0)/dur, 1);
+    var eased = 1 - Math.pow(1-p, 3);
+    el.textContent = (target*eased).toFixed(decimals) + suffix;
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+var cio = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting){ animateCount(e.target); cio.unobserve(e.target); } });
+},{threshold:.4});
+$$('[data-count]').forEach(function(el){ cio.observe(el); });
+
+/* ---------- absurdity card switching ---------- */
+$$('.absurd-card').forEach(function(card){
+  card.addEventListener('click', function(){
+    $$('.absurd-card').forEach(function(c){ c.classList.remove('sel'); });
+    card.classList.add('sel');
+    $$('#absurd-detail .detail-pane').forEach(function(p){ p.classList.remove('on'); });
+    $('#'+card.dataset.pane).classList.add('on');
+    // re-trigger counters inside the pane
+    $$('#'+card.dataset.pane+' [data-count]').forEach(function(el){
+      el.textContent = '0'; animateCount(el);
+    });
+  });
+});
+
+/* ---------- macro chart (dual line) ---------- */
+function drawLineChart(svgId, tipId, series, opts){
+  var svg = document.getElementById(svgId);
+  var tip = document.getElementById(tipId);
+  var W = 960, H = parseInt(svg.getAttribute('height')||380,10) || 380;
+  var vb = svg.viewBox.baseVal; H = vb.height; W = vb.width;
+  var padL=64, padR=30, padT=34, padB=46;
+  var years = opts.years;
+  var maxV = opts.max;
+  var NS = 'http://www.w3.org/2000/svg';
+  function X(i){ return padL + (W-padL-padR) * i/(years.length-1); }
+  function Y(v){ return padT + (H-padT-padB) * (1 - v/maxV); }
+  // grid
+  var gridN = 5;
+  for(var g=0; g<=gridN; g++){
+    var v = maxV*g/gridN;
+    var gy = Y(v);
+    var ln = document.createElementNS(NS,'line');
+    ln.setAttribute('x1',padL); ln.setAttribute('x2',W-padR);
+    ln.setAttribute('y1',gy); ln.setAttribute('y2',gy);
+    ln.setAttribute('stroke','rgba(28,26,23,.1)');
+    svg.appendChild(ln);
+    var t = document.createElementNS(NS,'text');
+    t.setAttribute('x',padL-10); t.setAttribute('y',gy+4);
+    t.setAttribute('text-anchor','end');
+    t.setAttribute('font-size','11'); t.setAttribute('fill','#8a8175');
+    t.textContent = v.toFixed(0);
+    svg.appendChild(t);
+  }
+  // x labels
+  var step = opts.labelEvery || 1;
+  years.forEach(function(yr,i){
+    if(i % step !== 0 && i !== years.length-1) return;
+    var t = document.createElementNS(NS,'text');
+    t.setAttribute('x',X(i)); t.setAttribute('y',H-16);
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','11'); t.setAttribute('fill','#8a8175');
+    t.textContent = yr;
+    svg.appendChild(t);
+  });
+  // series
+  series.forEach(function(s){
+    var pts = s.data.map(function(d,i){ return [X(d.i), Y(d.v)]; });
+    var path = document.createElementNS(NS,'path');
+    var dstr = pts.map(function(p,i){ return (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1); }).join(' ');
+    path.setAttribute('d', dstr);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', s.color);
+    path.setAttribute('stroke-width', s.dash ? 2 : 3);
+    if(s.dash) path.setAttribute('stroke-dasharray','7 6');
+    path.setAttribute('stroke-linecap','round');
+    svg.appendChild(path);
+    // area under first series
+    if(s.area){
+      var ap = document.createElementNS(NS,'path');
+      var dstr2 = dstr + ' L'+pts[pts.length-1][0]+' '+Y(0)+' L'+pts[0][0]+' '+Y(0)+' Z';
+      ap.setAttribute('d', dstr2);
+      ap.setAttribute('fill', s.color); ap.setAttribute('opacity','.07');
+      svg.appendChild(ap);
+    }
+    pts.forEach(function(p){
+      var c = document.createElementNS(NS,'circle');
+      c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r',3.4);
+      c.setAttribute('fill', s.color);
+      svg.appendChild(c);
+    });
+    // endpoint label
+    var last = pts[pts.length-1];
+    var lt = document.createElementNS(NS,'text');
+    lt.setAttribute('x', last[0]-4); lt.setAttribute('y', last[1]-12);
+    lt.setAttribute('text-anchor','end');
+    lt.setAttribute('font-size','13'); lt.setAttribute('font-weight','700');
+    lt.setAttribute('fill', s.color);
+    lt.textContent = s.data[s.data.length-1].v.toFixed(0);
+    svg.appendChild(lt);
+  });
+  // hover line + tip
+  var hoverLine = document.createElementNS(NS,'line');
+  hoverLine.setAttribute('stroke','rgba(28,26,23,.35)'); hoverLine.setAttribute('stroke-dasharray','3 4');
+  hoverLine.style.display='none';
+  svg.appendChild(hoverLine);
+  svg.addEventListener('mousemove', function(ev){
+    var rect = svg.getBoundingClientRect();
+    var mx = (ev.clientX - rect.left) * (W/rect.width);
+    var best = 0, bd = 1e9;
+    for(var i=0;i<years.length;i++){ var d = Math.abs(X(i)-mx); if(d<bd){bd=d;best=i;} }
+    hoverLine.setAttribute('x1',X(best)); hoverLine.setAttribute('x2',X(best));
+    hoverLine.setAttribute('y1',padT); hoverLine.setAttribute('y2',H-padB);
+    hoverLine.style.display='block';
+    var html = '<b>'+years[best]+'</b>';
+    series.forEach(function(s){
+      var hit = s.data.filter(function(d){ return d.i===best; })[0];
+      if(hit) html += '<br><span style="color:'+s.color+'">●</span> '+s.name+'：'+hit.v.toFixed(hit.v%1?1:0)+' '+opts.unit;
+    });
+    tip.innerHTML = html;
+    var frame = svg.parentElement;
+    var fx = ev.clientX - frame.getBoundingClientRect().left;
+    var fy = ev.clientY - frame.getBoundingClientRect().top;
+    tip.style.left = Math.min(fx+14, frame.clientWidth-180)+'px';
+    tip.style.top = (fy-10)+'px';
+    tip.style.opacity = 1;
+  });
+  svg.addEventListener('mouseleave', function(){ tip.style.opacity=0; hoverLine.style.display='none'; });
+}
+
+// macro data
+var enrollYears = [1998,1999,2000,2001,2002,2003,2004,2005,2006,2008,2010,2012,2015,2018,2020,2021,2022,2023];
+var enrollVals  = [108.4,159.7,220.6,268.3,320.5,382.2,447.3,504.5,546.1,607.7,661.8,688.8,737.8,791.0,967.5,1001.3,1014.5,1042.2];
+var gradYears = [2001,2003,2005,2008,2010,2013,2015,2018,2020,2021,2022,2023,2024,2025];
+var gradVals  = [114,212,338,559,631,699,749,820,874,909,1076,1158,1179,1222];
+var allYears = [];
+for(var y=1998;y<=2025;y++) allYears.push(y);
+drawLineChart('macroChart','macroTip',[
+  { name:'本专科招生', color:'#24425e', area:true,
+    data: enrollVals.map(function(v,idx){ return { i: enrollYears[idx]-1998, v: v }; }) },
+  { name:'毕业生', color:'#be3a2b',
+    data: gradVals.map(function(v,idx){ return { i: gradYears[idx]-1998, v: v }; }) }
+], { years: allYears, max: 1300, unit:'万', labelEvery: 3 });
+
+// jobless chart data (illustrative official releases)
+var jy = ['21.12','22.06','22.12','23.06','23.12','24.03','24.06','24.08','24.12','25.03','25.06','25.08'];
+var jv = [14.3,19.3,16.7,21.3,14.9,15.3,13.2,18.8,15.7,16.5,14.5,18.9];
+var jdash = [0,0,0,0,1,1,1,1,1,1,1,1]; // 1 = new methodology
+drawLineChart('joblessChart','joblessTip',[
+  { name:'旧口径(含在校生)', color:'#be3a2b',
+    data: [ {i:0,v:14.3},{i:1,v:19.3},{i:2,v:16.7},{i:3,v:21.3} ] },
+  { name:'新口径(不含在校生)', color:'#24425e',
+    data: [ {i:4,v:14.9},{i:5,v:15.3},{i:6,v:13.2},{i:7,v:18.8},{i:8,v:15.7},{i:9,v:16.5},{i:10,v:14.5},{i:11,v:18.9} ] }
+], { years: jy, max: 24, unit:'%', labelEvery: 2 });
+
+/* ---------- timeline toggle ---------- */
+$$('#timeline .tl-item').forEach(function(item){
+  item.addEventListener('click', function(){ item.classList.toggle('open'); });
+});
+
+/* ---------- glossary ---------- */
+var TERMS = [
+  { t:'文凭通胀', en:'Credential Inflation', d:'当越来越多的人持有同一文凭，它的区分度与购买力同步下降——原本本科胜任的岗位开始要求硕士，如同货币超发后的贬值。' },
+  { t:'信号理论', en:'Signaling (Spence)', d:'1973 年斯宾塞提出：教育的价值未必在教学本身，而在于向雇主「发信号」。当信号人人可得、且与能力脱钩，信号即失效。', nobel:true },
+  { t:'结构性失业', en:'Structural Unemployment', d:'劳动力的技能结构与岗位需求结构不匹配造成的失业。不是没有岗位，而是培养出来的人与岗位对不上——延学制无法修复它。' },
+  { t:'路径依赖', en:'Path Dependence', d:'「读好大学=好工作=好人生」在计划经济与市场化早期成立；当现实已变，文化惯性仍让家庭用 20 年前的逻辑做今天的投资决策。' },
+  { t:'负向筛选', en:'Negative Screening', d:'文凭过剩后，它的功能从「证明你有能力」反转为「证明你没有明显缺陷」——用于排除，而非选拔。' },
+  { t:'学科专业目录', en:'Catalogue Control', d:'教育部以专业目录管控高校专业框架、省级审批落地——专业的新增与裁撤是行政行为，跟随政策信号而非市场信号。' },
+  { t:'博士后漂流', en:'Postdoc Drift', d:'教职吸纳不了持续翻倍的博士供给，大量博士把博士后当「停车场」，一站接一站，等待一个未必出现的坑位。' },
+  { t:'双元制', en:'Dual System (DE)', d:'德国职业教育：企业实训+职业学校并行。其地基是技能工人的真实尊严与体面收入——职业路径是平等选项，不是失败退路。' },
+  { t:'帽子人才', en:'Title-driven Academia', d:'以「长江」「杰青」等头衔为核心的评价闭环：论文、帽子、经费在系统内部循环，与学生出路和产业需求几乎无关。' },
+  { t:'用脚投票', en:'Voting with Feet', d:'2025 年福耀科大、东方理工、大湾区大学首年分数线即超部分 985——学生用志愿为「另一种大学」投票，构成体制外压力。' }
+];
+var gwrap = $('#glossary');
+TERMS.forEach(function(term, i){
+  var card = document.createElement('div');
+  card.className = 'g-card rv rv-d' + (i%4);
+  card.innerHTML =
+    '<div class="g-inner">' +
+      '<div class="g-face g-front"><div class="term">'+term.t+'</div><div class="en">'+term.en+'</div><div class="flip-mark">点击翻面 ⟲</div></div>' +
+      '<div class="g-face g-back"><div class="term-b">'+term.t+'</div><p>'+term.d+'</p></div>' +
+    '</div>';
+  card.addEventListener('click', function(){ card.classList.toggle('flip'); });
+  gwrap.appendChild(card);
+  io.observe(card);
+});
+
+/* ---------- transmission chain ---------- */
+var CHAIN = [
+  { n:'政策信号', d:'<b>政策信号</b>：国家战略或产业政策释放方向（如「科技竞争需要 AI 人才」）。在行政主导的专业设置体制下，信号绕过市场直达高校。' },
+  { n:'高校一哄而上', d:'<b>高校一哄而上</b>：招生规模决定财政拨款，新专业是确定性收益。数百所高校同时申报同一热门专业——406 个 AI 专业点（2020–2024）由此而来。' },
+  { n:'师资与课程稀释', d:'<b>师资与课程稀释</b>：扎实的学科建设需要多年积累。一哄而上时，缺乏产业经验的教师边摸索边开课，学生用四年学一套可能已过时的大纲。' },
+  { n:'四年后集中入市', d:'<b>四年后集中入市</b>：培养周期使供给必然滞后。信号最热时入学的学生，在四年后的市场里集体毕业——供给的洪峰精确错过需求的高峰。' },
+  { n:'市场饱和崩塌', d:'<b>市场饱和崩塌</b>：就业率崩塌、薪资下压。法学、外贸、土木、计算机……每一轮的受害者，都是在热门时代入学、在过剩时代毕业的那批学生。' },
+  { n:'行政式裁撤', d:'<b>行政式裁撤</b>：系统纠错的办法不是修复反馈回路，而是下一轮行政命令——停招 2220 个、撤销 1428 个专业点，再为下一个信号开设「绿色通道」。' },
+  { n:'成本转嫁学生', d:'<b>成本转嫁学生</b>：决策者是行政官员，承担者是学生。财政拨款与毕业质量没有硬挂钩，这个系统就永远无法自我纠错——回读硕士、回炉技校，皆由此而来。' }
+];
+var chainEl = $('#chain'), chainDetail = $('#chainDetail');
+CHAIN.forEach(function(c, i){
+  var node = document.createElement('div');
+  node.className = 'chain-node' + (i===0?' on':'');
+  node.innerHTML = '<div class="c-idx">环节 '+(i+1)+' / '+CHAIN.length+'</div><div class="c-name">'+c.n+'</div>';
+  node.addEventListener('click', function(){
+    $$('.chain-node', chainEl).forEach(function(n){ n.classList.remove('on'); });
+    node.classList.add('on');
+    chainDetail.innerHTML = c.d;
+  });
+  chainEl.appendChild(node);
+});
+chainDetail.innerHTML = CHAIN[0].d;
+
+/* ---------- simulator ---------- */
+var simC = $('#simCanvas'), ctx = simC.getContext('2d');
+var rSignal = $('#rSignal'), rDemand = $('#rDemand'), rDecay = $('#rDecay');
+var oSignal = $('#oSignal'), oDemand = $('#oDemand'), oDecay = $('#oDecay');
+var roGap = $('#roGap'), roPeak = $('#roPeak'), roRatio = $('#roRatio');
+
+var PRESETS = {
+  law:   { s: 78, d: 2,  k: 40, label:'法学热' },
+  civil: { s: 92, d: 7,  k: 75, label:'土木热' },
+  ai:    { s: 88, d: 12, k: 25, label:'AI 热' }
+};
+
+function simCompute(){
+  var S = +rSignal.value, G = +rDemand.value, K = +rDecay.value;
+  oSignal.textContent = S;
+  oDemand.textContent = (G>=0?'+':'') + G + '%';
+  oDecay.textContent = K < 33 ? '慢' : (K < 66 ? '中' : '快');
+  var years = 11;
+  var hot = [], sup = [], dem = [];
+  for(var t=0; t<years; t++){
+    // 招生热度：政策驱动 + 信号逐年消退
+    var decay = 1 - (K/100) * 0.12 * t;
+    var h = 100 * (1 + (S/100) * 1.6 * Math.max(decay, 0.1));
+    if(t>0) h = hot[t-1] * (1 + (S/100) * 0.22 * Math.max(decay, 0.05));
+    hot.push(h);
+    // 毕业供给：滞后 4 年的招生
+    sup.push(t < 4 ? 100 * (1 + (S/100) * 0.05 * t) : hot[t-4]);
+    // 真实需求
+    dem.push(100 * Math.pow(1 + G/100, t));
+  }
+  return { hot:hot, sup:sup, dem:dem, years:years };
+}
+
+function simDraw(){
+  var d = simCompute();
+  var W = simC.width, H = simC.height;
+  var padL = 52, padR = 18, padT = 26, padB = 40;
+  var maxV = Math.max.apply(null, d.hot.concat(d.sup, d.dem)) * 1.08;
+  function X(i){ return padL + (W-padL-padR) * i/(d.years-1); }
+  function Y(v){ return padT + (H-padT-padB) * (1 - v/maxV); }
+  ctx.clearRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle = 'rgba(28,26,23,.1)'; ctx.fillStyle = '#8a8175';
+  ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+  for(var g=0; g<=4; g++){
+    var v = maxV*g/4;
+    ctx.beginPath(); ctx.moveTo(padL, Y(v)); ctx.lineTo(W-padR, Y(v)); ctx.stroke();
+    ctx.fillText(v.toFixed(0), padL-8, Y(v)+4);
+  }
+  ctx.textAlign = 'center';
+  for(var t=0; t<d.years; t++){
+    ctx.fillText('第'+t+'年', X(t), H-14);
+  }
+  // surplus shading
+  ctx.beginPath();
+  for(var i=0;i<d.years;i++){ var px=X(i), py=Y(Math.max(d.sup[i], d.dem[i])); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+  for(var j=d.years-1;j>=0;j--){ ctx.lineTo(X(j), Y(Math.min(d.sup[j], d.dem[j]))); }
+  ctx.closePath();
+  ctx.save();
+  ctx.beginPath();
+  for(var i2=0;i2<d.years;i2++){ i2?ctx.lineTo(X(i2),Y(d.sup[i2])):ctx.moveTo(X(i2),Y(d.sup[i2])); }
+  for(var j2=d.years-1;j2>=0;j2--){ ctx.lineTo(X(j2),Y(d.dem[j2])); }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(190,58,43,.14)'; ctx.fill();
+  ctx.restore();
+  // demand
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#3d6b4f'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  d.dem.forEach(function(v,i){ i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v)); });
+  ctx.stroke();
+  // supply
+  ctx.strokeStyle = '#be3a2b'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  d.sup.forEach(function(v,i){ i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v)); });
+  ctx.stroke();
+  // hot (dashed)
+  ctx.setLineDash([6,5]);
+  ctx.strokeStyle = '#a67c2e'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  d.hot.forEach(function(v,i){ i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v)); });
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // endpoint dots
+  [[d.dem,'#3d6b4f'],[d.sup,'#be3a2b'],[d.hot,'#a67c2e']].forEach(function(pair){
+    var arr = pair[0];
+    ctx.fillStyle = pair[1];
+    ctx.beginPath(); ctx.arc(X(d.years-1), Y(arr[d.years-1]), 4, 0, 7); ctx.fill();
+  });
+  // metrics
+  var gap8 = 0, peakT = -1, peakV = -1;
+  for(var m=0;m<d.years;m++){
+    var gap = d.sup[m]-d.dem[m];
+    if(gap>0){ gap8 += gap; if(gap>peakV){peakV=gap; peakT=m;} }
+  }
+  var lastI = d.years-1;
+  roGap.textContent = gap8>0 ? gap8.toFixed(0) : '≈ 0';
+  roPeak.textContent = peakT>=0 ? '第 '+peakT+' 年' : '未出现';
+  roRatio.textContent = (d.sup[lastI]/d.dem[lastI]).toFixed(2)+' : 1';
+}
+[rSignal, rDemand, rDecay].forEach(function(r){ r.addEventListener('input', simDraw); });
+$$('.preset-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    $$('.preset-btn').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    var p = PRESETS[b.dataset.p];
+    rSignal.value = p.s; rDemand.value = p.d; rDecay.value = p.k;
+    simDraw();
+  });
+});
+simDraw();
+
+/* ---------- way accordion ---------- */
+$$('.way-head').forEach(function(head){
+  head.addEventListener('click', function(){
+    var item = head.parentElement;
+    var body = $('.way-body', item);
+    var open = item.classList.contains('open');
+    $$('.way-item').forEach(function(i){
+      i.classList.remove('open');
+      $('.way-body', i).style.maxHeight = '0';
+    });
+    if(!open){
+      item.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
+  });
+});
+// open first by default
+var firstWay = $('.way-item.open .way-body');
+if(firstWay) firstWay.style.maxHeight = firstWay.scrollHeight + 'px';
+window.addEventListener('resize', function(){
+  var open = $('.way-item.open .way-body');
+  if(open) open.style.maxHeight = open.scrollHeight + 'px';
+});
+})();
+</script>
+</body>
+</html>

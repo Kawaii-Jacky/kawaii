@@ -1,0 +1,208 @@
+<div class="hero">
+  <div class="kick">REAL OPTIONS · EDUCATION · LIFE-CYCLE MODEL</div>
+  <h1>三条航道的期权定价<br>本科、硕士、博士的蒙特卡洛估值与劳动强度折算</h1>
+  <p class="sub">用实物期权框架与生命周期模拟，量化中国七个行业（AI、生物、临床医学、基础医学、电子电力、互联网、金融）三条教育路线的净现值、期权价值、工时折算福利与风险尾部。融合 Dixit–Pindyck 等待阈值、Merton 跳跃扩散、人口 × 教职供需、蛛网循环与热门专业制度史。</p>
+  <div class="meta">模型版本 v1.0 · 2026-10-13 · 蒙特卡洛 N=9,000 · 随机数种子 20261013 · 折现率 r=5%</div>
+</div>
+
+<div class="abstract">
+  <b>核心发现</b>：AI 与电子电力行业，博士路线现值优势明显（470万 vs 335万本科）；生物与临床医学，博士因工时过高、延毕严重、学术岗位稀缺，<b>强度折合福利低于本科</b>（生物 72 万 vs 111 万本科）；金融与互联网，硕士性价比最高。<b>期权价值</b>：博士"第二年退出权"普遍值 6–13 万元；AI/电子电力"本科工作后回炉读研"值 21–26 万；学术轨"全冲教职 vs 全去业界"选择权在临床/互联网/金融分别值 47/48/36 万（P10 风险尾部差距过大）。<b>盈亏平衡</b>：硕士追平本科多在 30–42 岁，博士 38–51 岁（金融最晚）；43% 硕士生、36–50% 博士生终身累计低于本科中位数（"后悔概率"）。
+</div>
+
+<section class="sec" id="s1">
+<h2><span class="no">§1</span>模型概览</h2>
+<p class="lead">本文构建一个<b>离散时间、蒙特卡洛、生命周期</b>模型，从 18 岁本科入学至 63 岁退休，模拟三条路线（本科直接就业 B、硕士 M、博士 D）的收入、工时、劳动强度、延毕、待业、职业冲击、学术 vs 业界分流。核心方程：</p>
+
+<div class="eq">ENPV = Σ_{t=22}^{62} [y_t − φ·H_{eff,t}^{1+1/η} / (1+1/η)] · (1+r)^{−(t−22)}
+CEQ  = [(1−γ)·Σ df·u(c_t)]^{1/(1−γ)} · Σdf
+OV   = max_θ E[PV | θ*] − E[PV | 静态策略]</div>
+
+<p>y_t 为年收入（万元），H_{eff} = H · κ 为强度折合工时（κ ≥ 1 为强度系数），η = 0.5（Frisch 劳动供给弹性），γ = 2（CRRA 风险厌恶），r = 5%（个人实际折现率）。每行业 N=9,000 路径（每路线 3,000），MC 标准误 ≈ PV × 1.5%。</p>
+
+<h3>§1.1 收入生成与期权结构</h3>
+<p>应届起薪 w_0 按学历校准（选择效应 sel=40%：观测薪资比中 40% 由能力自选择解释，因果溢价 = (w_D / w_B)^{1−sel}），个体能力 z ~ N(0, σ_z²)。在职收入：</p>
+
+<div class="eq">log w_t = log w_0 + b₁·x − b₂·x² + 0.5·log(X_t / X_{t−x})
+dX_t / X_t = (μ − σ²/2)dt + σdW_t + J·dN_t</div>
+
+<p>跳跃 N_t ~ Poisson(λ)，J < 0（政策/周期冲击），μ 行业漂移（AI +1.5%、金融 −1%），σ 波动（AI 20%、临床 6%）。35 岁后年冲击概率 h₃₅·min(10, age−35+1)（互联网/金融 h₃₅=0.3%），永久工资损失 l₃₅=25–30%。</p>
+
+<p><b>三路线时序</b>：本科 B（4 年，临床 5+3 规培）→ 入职（待业 u 月，错配概率 m）+ <span class="tag">美式期权</span>25–29 岁回炉读研（阈值 θ，至多两次，p=40%，备考年 −5% 收入 +10h）；硕士 M（本科后 p=40% 上岸 → 2–3 年）+ <span class="tag">欧式期权</span>毕业时转博（z/σ > z*）；博士 D（名义 5 年 + 延毕 60%/22%/10%/8%，完成率 82–90%）+ <span class="tag">看跌期权</span>第 2 年退出（含噪信号 < k）+ 学术 vs 业界（p_acad 冲学术：博后 → 预聘 → 考核，否则降维）。</p>
+</section>
+
+<section class="sec" id="s2">
+<h2><span class="no">§2</span>终身累计收入：何时追平本科？</h2>
+<p class="lead">从 18 岁起计算名义累计收入（未折现），中位数路径 + 分位区间。关键问题：硕士/博士的<b>盈亏平衡年龄</b>（累计追上本科中位数）。</p>
+
+<div class="fig">
+<div class="ftitle">图 1. 终身累计收入（名义，未折现）· 中位数 + 分位带</div>
+<div class="ctrl" id="seg-cum"></div>
+<div class="ctrl" id="seg-band"></div>
+<div class="chart" id="ch-cum"></div>
+<div class="cap" id="cum-note">硕士曲线为上岸条件路径（p=100%）；博士为所有路径中位数（含结业、降维）。</div>
+</div>
+
+<p><b>观察</b>：AI/电子/临床硕士 34–36 岁追平本科，博士 38–41 岁；生物/基础/互联网/金融博士 43–51 岁（金融最晚）。金融博士平衡点 51 岁（仅剩 12 年）反映券商高开低走 + 35 岁后竞争力下降。</p>
+</section>
+
+<section class="sec" id="s3">
+<h2><span class="no">§3</span>劳动强度与有效工时</h2>
+<p class="lead">周工时 H × 强度系数 κ = 有效工时。本科/硕士工作 κ=1.0–1.1，博士在读 κ=1.12–1.20（Nature 2022 中国博士 47.85% >60h），规培 κ=1.30。</p>
+
+<div class="fig">
+<div class="ftitle">图 2. 逐年有效工时（强度折合，小时/周）</div>
+<div class="ctrl" id="seg-hours"></div>
+<div class="chart" id="ch-hours"></div>
+<div class="cap" id="hours-note">博士在读峰值 >60h，规培 >64h。</div>
+</div>
+
+<p><b>有效时薪</b>：AI 博士 173 元/h（本科 63），电子 157（79），但<b>生物博士 82 低于本科 46</b>；临床博士 72 甚至低于本科 49（8 年制 + 规培 + 过劳）。</p>
+</section>
+
+<section class="sec" id="s4">
+<h2><span class="no">§4</span>估值矩阵：七行业 × 三路线</h2>
+<p class="lead">含期权总值 = 静态 ENPV + 期权价值。<b>强度折合福利</b> = ENPV − 终身劳动负效用。P10 = 能力/运气底 10%。<b>后悔概率</b> = P(PV < median(PV_本科))。</p>
+
+<div class="fig">
+<div class="ftitle">表 1. 基准估值矩阵（N=9,000，万元，2026 年不变价）</div>
+<div id="tbl-val"></div>
+<div class="cap">★ 货币最优；◆ 强度福利最优。后悔概率 = P(PV < 本科中位数)。</div>
+</div>
+
+<p><b>结论</b>：AI 博士 470（本 335/硕 339），36% 后悔；电子博士 421（333/331），最稳健；<b>生物博士 235 仅略高 184，强度福利 72 < 111</b>（工时吃掉溢价）；<b>临床博士 276 vs 247，福利 −10 vs +12</b>（负！）；互联网/金融硕士性价比最高。</p>
+</section>
+
+<section class="sec" id="s5">
+<h2><span class="no">§5</span>交互实验室</h2>
+<p class="lead">浏览器端重跑（N=1,200），调整折现率、波动、摩擦、教职率，观察估值变化。</p>
+
+<div class="lab-grid" id="lab">
+<div>
+<div class="ctrl" id="seg-lab"></div>
+<div class="slider"><label><span>折现率 r</span><b id="l-r-v">5</b></label><input type="range" id="l-r" min="2" max="10" step="0.5" value="5" data-f="%"></div>
+<div class="slider"><label><span>文化惯性 ψ</span><b id="l-pre-v">0</b></label><input type="range" id="l-pre" min="0" max="3" step="0.2" value="0" data-f="万"></div>
+<div class="slider"><label><span>考研录取率</span><b id="l-adm-v">40</b></label><input type="range" id="l-adm" min="25" max="80" step="5" value="40" data-f="%"></div>
+<div class="slider"><label><span>劳动弹性 η</span><b id="l-eta-v">0.5</b></label><input type="range" id="l-eta" min="0.3" max="1.5" step="0.1" value="0.5"></div>
+<div class="slider"><label><span>波动率 σ ×</span><b id="l-sig-v">1</b></label><input type="range" id="l-sig" min="0.5" max="2" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>跳跃频率 λ ×</span><b id="l-lam-v">1</b></label><input type="range" id="l-lam" min="0.5" max="2" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>35 岁冲击 ×</span><b id="l-h35-v">1</b></label><input type="range" id="l-h35" min="0.5" max="3" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>教职获得率 ×</span><b id="l-acad-v">1</b></label><input type="range" id="l-acad" min="0.4" max="1.5" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>博士岗位 V/U ×</span><b id="l-V-v">1</b></label><input type="range" id="l-V" min="0.5" max="1.8" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>待业月数 u ×</span><b id="l-u-v">1</b></label><input type="range" id="l-u" min="0.8" max="2" step="0.1" value="1" data-f="×"></div>
+</div>
+<div>
+<div class="chart" id="ch-lab" style="height:420px"></div>
+<div id="lab-out" class="callout"></div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s6">
+<h2><span class="no">§6</span>人口断崖 × 教职供需</h2>
+<p class="lead">F_t ∝ 在校生^0.7（粘性 0.7），在校生 = Σ 出生_{t−18~21} × 毛入学率（2025 61.3% → 2030 65%）。博士占比 31% → 55%。新增需求 = ΔF × 占比 + 退休 2.5%。供给：2025 11.3 万 → 2030 按招生 +3%。学术求职 = 毕业 × 55%。</p>
+
+<div class="fig">
+<div class="ftitle">图 3. 学术求职博士 / 新增教职竞争比</div>
+<div class="chart" id="ch-acad"></div>
+<div class="cap">2026 年 0.85 → 2036 年 4.80 → 2038 年 37.71（人口断崖：18 岁 1523 万 → 792 万，−48%）。</div>
+</div>
+
+<div class="fig">
+<div class="ftitle">图 4. 18 岁人口 vs 学术求职博士 vs 新增教职</div>
+<div class="chart" id="ch-n18"></div>
+<div class="cap">2038–2040 新增 0.3 万/年，求职 >20 万/年。</div>
+</div>
+
+<p><b>政策含义</b>：当前"超常布局"+ 招生年增 3%，将在 2030 年代中期形成<b>结构性过剩</b>——即使毛入学率 70% + 教职博士占比 60%，人口基数断崖使需求长期 <2 万/年。</p>
+</section>
+
+<section class="sec" id="s7">
+<h2><span class="no">§7</span>蛛网模型与热门专业周期</h2>
+<p class="lead">S_t = E_{t−L}，W_t = (D_t / S_t)^{1/ε}，Ŵ_t = Ŵ_{t−1} + θ(W_t − Ŵ_{t−1})，E_t = E_{t−1} · [1 + κ(Ŵ_t − 1) + 政策]。θ = 预期更新速度（文化惯性 → 0.2–0.4），κ = 行政放大（赶热点 → 0.5–0.7）。ρ(θ,κ,L) > 1 → 振荡发散。</p>
+
+<div class="fig">
+<div class="ftitle">图 5. 五轮热门专业周期（1999–2026）</div>
+<div class="ctrl" id="seg-cob"></div>
+<div id="cobctl" class="ctrl">
+<div class="slider"><label><span>预期更新 θ</span><b id="c-theta-v">0.25</b></label><input type="range" id="c-theta" min="0.05" max="1" step="0.05" value="0.25"></div>
+<div class="slider"><label><span>行政放大 κ</span><b id="c-kappa-v">0.50</b></label><input type="range" id="c-kappa" min="0.1" max="1.2" step="0.05" value="0.50"></div>
+</div>
+<div class="chart" id="ch-cob"></div>
+<div class="cap" id="cob-note">虚线 = 招生（政策推力），实线 = 供需。</div>
+</div>
+
+<p><b>五轮校准</b>：法学（θ=0.25, κ=0.50, ρ=1.05，200 点 → 600+，红牌 11 年）；土木（θ=0.30, κ=0.55, ρ=1.06，地产 −44%）；金融（θ=0.30, κ=0.60, ρ=1.07，限薪）；互联网（θ=0.40, κ=0.70, ρ=1.09，大数据 200 倍）；AI（θ=0.40, κ=0.70, ρ=1.09，2025 求职 +39% vs 职位 +3%）。全部 ρ > 1（发散）。</p>
+</section>
+
+<section class="sec" id="s8">
+<h2><span class="no">§8</span>结论与政策建议</h2>
+
+<div class="prop"><div class="pn">核心结论 1 · 行业异质性</div>
+AI/电子：博士优势明显；生物/临床：强度福利为负或低于本科；互联网/金融：硕士性价比最高，博士后悔概率 49–50%。
+</div>
+
+<div class="prop"><div class="pn">核心结论 2 · 期权价值</div>
+博士退出权 3–17 万，本科回炉 20–26 万（AI/电子），学术选择权 37–48 万（临床/互联网/金融）。
+</div>
+
+<div class="prop"><div class="pn">核心结论 3 · 人口断裂</div>
+2036 年竞争比 4.8，2038 年 37.7。博士招生 2030 后应零增长或负增长。
+</div>
+
+<div class="prop"><div class="pn">核心结论 4 · 蛛网发散</div>
+五轮 ρ = 1.05–1.09 > 1（振荡发散），根源：θ 低 + κ 高 + L 长 + 审批制。稳定需 θ > 0.5 且 κ < 0.4（市场化）。
+</div>
+
+<h3>政策建议</h3>
+<ol style="line-height:2.2;margin:12px 0 12px 24px">
+<li><b>透明化</b>：分行业 × 学历 × 能力分位数终身收入预测模型，明示 P10 风险。</li>
+<li><b>质量 + 总量</b>：博士招生 2030 后零增长，提高完成率 88% → 95%，按期毕业 60% → 75%，配套业界转岗。</li>
+<li><b>市场化</b>：取消三级审批（κ 降至 0.3），改负面清单 + 事后评估，红绿牌 API 化（4 年 → 1 年滞后），日落条款。</li>
+<li><b>工时立法</b>：博士 <39h + 30 天年假（德国制），规培 <60h（WHO），契约化（休假权 + 退出机制）。</li>
+<li><b>分流前置</b>：一年级选学术 vs 应用，学术轨总量 = 10 年教职需求 ÷ R₀ ÷ 完成率，应用轨产业联培。</li>
+</ol>
+
+<h3>局限</h3>
+<ul style="line-height:2;margin:12px 0 12px 24px">
+<li>选择效应 sel=40% 为保守估计；非货币收益（声望、自主性）未纳入；技术替代（AI 冲击白领）未建模；户籍/编制期权未显性；女性 vs 男性异质性（退休年龄、生育成本）需分层。</li>
+</ul>
+</section>
+
+<section class="sec" id="refs">
+<h2><span class="no">§9</span>参考文献</h2>
+<p class="lead">150+ 篇学术文献 + 政府统计 + 行业调研。完整表见 /tmp/research/D_literature.md。</p>
+
+<h3>核心理论</h3>
+<ul class="refs">
+<li>Dixit & Pindyck (1994). <i>Investment under Uncertainty</i>.</li>
+<li>Stange (2012). Option Value of College. <i>AEJ Applied</i>, 4(1), 49–84.</li>
+<li>Heckman & Li (2004). Selection Bias. <i>JAE</i>, 19(4), 465–480.</li>
+<li>Zhang et al. (2005). Returns 1988–2001. <i>JCE</i>, 33(4), 730–752.</li>
+<li>Hanushek et al. (2025). Premium Evolution. <i>JCE</i>.</li>
+<li>Evans et al. (2018). PhD Mental Health. <i>Nature Biotech</i>, 36(3), 282–284.</li>
+<li>Larson et al. (2014). R₀ in Academia. <i>SRB Science</i>, 31(6), 745–750.</li>
+<li>Freeman (1976). <i>The Overeducated American</i>.</li>
+<li>Petrongolo & Pissarides (2001). Matching Function. <i>JEL</i>, 39(2), 390–431.</li>
+<li>Brown et al. (2024). Loss Aversion. <i>JEL</i>, 62(2), 485–516.</li>
+</ul>
+
+<h3>中国数据</h3>
+<ul class="refs">
+<li>教育部：统计公报（2013–2025）、学位法（2025）、专业备案（2020–2025）</li>
+<li>统计局：年鉴（2024–2025）、工资、工时 48.6h</li>
+<li>中智：起薪 6695/9426/15523 元/月</li>
+<li>麦可思：红绿牌、分专业起薪工时</li>
+<li>Nature：2019/2022 博士调查</li>
+<li>医学界：医生生存现状（50.5h/周）</li>
+<li>猎聘/脉脉/智联：薪资、供需、35 岁门槛</li>
+<li>年报：中信/中金/中芯/药明/腾讯/阿里</li>
+</ul>
+
+<p class="small" style="margin-top:24px">完整参数表（189 个）、敏感性、情景、蛛网前沿见 results.json（64KB）。源代码（model.js, 680 行）内嵌，DevTools 中调用 PhDModel.* API 自定义实验。</p>
+</section>
+
+<footer><div class="wrap">
+  <p>© 2026 基于公开数据与学术文献。所有估值为期望净现值（MC 均值），个体实际结果受能力/运气/宏观冲击影响，<b>下行风险（P10）与上行潜力（P90）可能偏离均值 ±150 万</b>。本文不构成教育投资建议。</p>
+  <p style="margin-top:8px">vanilla JS · SVG + 原生 DOM · CSS 变量 · JSON 内嵌 · ≈ 380KB · Chrome 90+, Firefox 88+, Safari 14+</p>
+  <p style="margin-top:12px;color:var(--text-3)">2026-10-13 · v1.0 · 研究用途 · 源代码 MIT 许可（暂未公开）</p>
+</div></footer>

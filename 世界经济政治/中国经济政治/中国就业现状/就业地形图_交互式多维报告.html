@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>就业地形图 · 从课桌到退休的中国劳动多维测绘</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF1E2; --bg2:#F5E7D0; --card:#FFFBF3; --ink:#43312A; --ink2:#7A6152; --ink3:#A68B76;
+  --terra:#C96F4A; --amber:#E0A458; --coral:#E28B6D; --olive:#8A9A5B; --sage:#A9BC9B;
+  --teal:#6E9A8B; --rose:#CE8577; --brown:#8A5A44; --cream:#FFF6E8;
+  --shadow:0 10px 34px rgba(146,101,62,.14), 0 2px 8px rgba(146,101,62,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(1200px 500px at 85% -5%, rgba(224,164,88,.16), transparent 60%),
+    radial-gradient(900px 420px at -10% 30%, rgba(206,133,119,.10), transparent 60%),
+    radial-gradient(1000px 600px at 110% 75%, rgba(138,154,91,.10), transparent 60%);
+  color:var(--ink); font-family:'Noto Sans SC',sans-serif; font-weight:400; line-height:1.75;
+}
+.serif{font-family:'Noto Serif SC',serif}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+/* ---------- Hero ---------- */
+.hero{padding:84px 0 46px;text-align:center;position:relative}
+.hero .eyebrow{letter-spacing:.42em;font-size:13px;color:var(--terra);font-weight:700;text-transform:uppercase}
+.hero h1{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(38px,6vw,68px);line-height:1.22;margin:18px 0 10px;
+  background:linear-gradient(120deg,#8A5A44 10%,#C96F4A 45%,#E0A458 70%,#8A9A5B 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{font-size:17px;color:var(--ink2);max-width:760px;margin:0 auto}
+.hero .meta{margin-top:14px;font-size:12.5px;color:var(--ink3);letter-spacing:.06em}
+.chips{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:34px}
+.chip{background:var(--card);border-radius:20px;padding:16px 22px;box-shadow:var(--shadow);min-width:150px;
+  border:1px solid rgba(201,111,74,.12);transition:transform .25s}
+.chip:hover{transform:translateY(-4px)}
+.chip b{display:block;font-family:'Noto Serif SC',serif;font-size:30px;color:var(--terra);line-height:1.2}
+.chip span{font-size:12.5px;color:var(--ink2)}
+.chip:nth-child(2) b{color:var(--olive)} .chip:nth-child(3) b{color:var(--amber)}
+.chip:nth-child(4) b{color:var(--teal)} .chip:nth-child(5) b{color:var(--rose)}
+
+/* ---------- TOC ---------- */
+.toc{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 0 40px}
+.toc a{text-decoration:none;color:var(--ink2);font-size:13.5px;background:rgba(255,251,243,.8);
+  border:1px solid rgba(201,111,74,.18);padding:8px 18px;border-radius:999px;transition:all .25s}
+.toc a:hover{background:var(--terra);color:#fff;box-shadow:0 6px 18px rgba(201,111,74,.35)}
+
+/* ---------- Sections ---------- */
+section{margin:34px 0 78px}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:8px;flex-wrap:wrap}
+.sec-num{font-family:'Noto Serif SC',serif;font-weight:900;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--terra),var(--amber));
+  border-radius:12px;padding:6px 14px;letter-spacing:.15em;box-shadow:0 4px 14px rgba(201,111,74,.35)}
+.sec-head h2{font-family:'Noto Serif SC',serif;font-weight:700;font-size:clamp(24px,3.4vw,36px)}
+.sec-sub{color:var(--ink2);font-size:15px;max-width:900px;margin-bottom:22px}
+.card{background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:26px 26px 18px;
+  border:1px solid rgba(201,111,74,.10);margin-bottom:26px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0 0 auto 0;height:5px;border-radius:26px 26px 0 0;
+  background:linear-gradient(90deg,var(--amber),var(--terra),var(--rose),var(--olive))}
+.card h3{font-family:'Noto Serif SC',serif;font-size:19px;font-weight:700;margin:6px 0 4px}
+.card .hint{font-size:12.5px;color:var(--ink3);margin-bottom:8px}
+.chart{width:100%;border-radius:18px}
+.src{font-size:11.5px;color:var(--ink3);margin-top:10px;padding-top:10px;border-top:1px dashed rgba(166,139,118,.35)}
+.src b{color:var(--ink2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+
+/* ---------- Pills & toggles ---------- */
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px}
+.pill{border:1.5px solid rgba(201,111,74,.35);background:transparent;color:var(--ink2);border-radius:999px;
+  padding:6px 18px;font-size:13px;cursor:pointer;transition:all .22s;font-family:'Noto Sans SC',sans-serif}
+.pill:hover{border-color:var(--terra);color:var(--terra)}
+.pill.on{background:linear-gradient(135deg,var(--terra),var(--coral));color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(201,111,74,.35);font-weight:500}
+.pill.olive.on{background:linear-gradient(135deg,var(--olive),var(--sage))}
+.pill.teal.on{background:linear-gradient(135deg,var(--teal),#8FB5A7)}
+.pill.brown.on{background:linear-gradient(135deg,var(--brown),var(--terra))}
+
+/* ---------- Findings ---------- */
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:0 0 22px}
+.finding{background:linear-gradient(160deg,#FFF9EE,#FBEFDD);border-radius:20px;padding:18px 20px;
+  border:1px solid rgba(224,164,88,.3)}
+.finding b{display:block;font-family:'Noto Serif SC',serif;font-size:24px;color:var(--brown);margin-bottom:2px}
+.finding i{font-style:normal;font-size:12px;color:var(--terra);font-weight:700;letter-spacing:.05em}
+.finding p{font-size:13px;color:var(--ink2);margin-top:6px;line-height:1.6}
+
+/* ---------- Timeline ---------- */
+.timeline{position:relative;padding:10px 0 0 26px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:3px;border-radius:3px;
+  background:linear-gradient(180deg,var(--olive),var(--amber),var(--terra),var(--rose))}
+.tl-item{position:relative;margin-bottom:20px;background:#FFF9EF;border-radius:16px;padding:14px 18px;
+  border:1px solid rgba(201,111,74,.12);box-shadow:0 3px 12px rgba(146,101,62,.08)}
+.tl-item::before{content:'';position:absolute;left:-24px;top:20px;width:13px;height:13px;border-radius:50%;
+  background:var(--card);border:4px solid var(--terra)}
+.tl-item.up::before{border-color:var(--olive)} .tl-item.mid::before{border-color:var(--amber)}
+.tl-item .yr{font-family:'Noto Serif SC',serif;font-weight:700;color:var(--terra);font-size:14px}
+.tl-item.up .yr{color:var(--olive)} .tl-item.mid .yr{color:var(--amber)}
+.tl-item h4{font-size:15px;margin:2px 0}
+.tl-item p{font-size:12.8px;color:var(--ink2);line-height:1.6}
+.tl-item .tag{float:right;font-size:11px;background:rgba(138,154,91,.15);color:var(--olive);border-radius:999px;padding:2px 10px}
+
+.note{background:rgba(110,154,139,.10);border-left:4px solid var(--teal);border-radius:0 16px 16px 0;
+  padding:14px 18px;font-size:13.5px;color:var(--ink2);margin:14px 0}
+.footnote{font-size:12px;color:var(--ink3);padding:30px 0 60px;line-height:2}
+.footnote b{color:var(--ink2)}
+.divider{width:120px;height:4px;border-radius:4px;margin:0 auto;background:linear-gradient(90deg,var(--amber),var(--terra));opacity:.6}
+</style>
+</head>
+<body>
+
+<header class="hero wrap">
+  <div class="eyebrow">CHINA LABOUR ATLAS · 2026</div>
+  <h1>就业地形图</h1>
+  <p class="sub serif" style="font-size:19px">从课桌到退休：劳动时间与强度的三维地貌、教育期权的行业定价、政策潮水的冲击痕迹、三轮专业热潮的蛛网周期，以及两亿四千万灵活就业者的旷野。</p>
+  <p class="meta">基于 7 行业 × 3 学历路线 × 9,000 次蒙特卡洛人生模拟 · 实物期权定价 · 蛛网模型 · 国家统计局与行业调研公开数据</p>
+  <div class="chips">
+    <div class="chip"><b>63,000</b><span>条模拟人生轨迹（7×3×9000）</span></div>
+    <div class="chip"><b>2.4 亿</b><span>灵活就业人员（2024，国家统计局）</span></div>
+    <div class="chip"><b>96 万</b><span>2024 法考报名人数峰值</span></div>
+    <div class="chip"><b>343 万</b><span>2026 考研报名，三连降</span></div>
+    <div class="chip"><b>45 年</b><span>18 → 63 岁，一个人的完整职业弧</span></div>
+  </div>
+</header>
+
+<nav class="toc wrap">
+  <a href="#s1">壹 · 劳动的地形</a>
+  <a href="#s2">贰 · 选择权的定价</a>
+  <a href="#s3">叁 · 政策的潮水</a>
+  <a href="#s4b">肆 · 冲击的棱镜</a>
+  <a href="#s4">伍 · 热潮的周期</a>
+  <a href="#s5">陆 · 灵活就业的旷野</a>
+  <a href="#s6">柒 · 人口的深流</a>
+  <a href="#s7">方法与数据</a>
+</nav>
+
+<main class="wrap">
+
+<!-- ================= 第一章 ================= -->
+<section id="s1">
+  <div class="sec-head"><span class="sec-num">壹</span><h2>劳动的地形：时间与强度的三维地貌</h2></div>
+  <p class="sec-sub">横轴是 18 到 62 岁的年龄，纵轴是七个行业，隆起的高度是每周劳动时间，颜色的深浅是强度折算后的有效工时——临床的规培峡谷、AI 的高原、学术轨的漫长爬坡，一生的地形在一张图上展开。</p>
+
+  <div class="findings" id="f1"></div>
+
+  <div class="card">
+    <h3>一生的劳动地貌 · 3D 曲面</h3>
+    <div class="hint">拖动旋转 · 滚轮缩放。高度 = 每周工时；颜色 = 强度加权有效工时（κ 折算）。切换学历路线观察同一行业的不同人生。</div>
+    <div class="pills" id="routePills"></div>
+    <div id="terrain3d" class="chart" style="height:560px"></div>
+    <div class="src"><b>数据：</b>实物期权-生命周期蒙特卡洛模型（N=9,000/路线·行业）逐岁均值；工时含在校学习时长，强度系数 κ∈[1.0,1.3] 反映节奏与压力折算。</div>
+  </div>
+
+  <div class="card">
+    <h3>生涯剖面：收入、工时与强度的一生</h3>
+    <div class="hint">选择一个行业，看三条学历路线的年收入（面积）、周工时（虚线）与 35 岁门槛的位置。图层叠加呈现“拿时间换钱”的逐岁轨迹。</div>
+    <div class="pills" id="profIndPills"></div>
+    <div id="profileChart" class="chart" style="height:480px"></div>
+    <div class="src"><b>读法：</b>实线面积为年收入（万元，左轴），虚线为周工时（小时，右轴），颜色区分本科 / 硕士 / 博士路线。阴影带为 35 岁制度门槛区。</div>
+  </div>
+</section>
+
+<!-- ================= 第二章 ================= -->
+<section id="s2">
+  <div class="sec-head"><span class="sec-num">贰</span><h2>选择权的定价：每个行业隐含的期权</h2></div>
+  <p class="sec-sub">人生不是一条现金流，而是一篮子期权：本科毕业后“不景气就回炉读研”是美式看涨，硕士毕业“够强就转博”是复合期权，博士二年级“信号差就退出”是看跌期权。波动越大的行业，等待与转换的权利越值钱。</p>
+
+  <div class="findings" id="f2"></div>
+
+  <div class="card">
+    <h3>七行业期权价值矩阵</h3>
+    <div class="hint">堆叠柱 = 静态终身收入折现 + 三类期权价值（万元）；折线 = 期权价值占静态价值比例（右轴）。一根柱子内同时呈现价值层级与期权结构。</div>
+    <div id="optionChart" class="chart" style="height:520px"></div>
+    <div class="src"><b>方法：</b>参数化最优停时蒙特卡洛（Garcia 2003 式下界）：B=回炉读研最优阈值 θ*，M=转博能力阈值 z*，D=博二退出信号阈值 k*＋学术/业界选择权。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>不确定性的地图：风险 × 期权</h3>
+      <div class="hint">横轴 = 终身价值波动率（万元），纵轴 = 总期权价值，气泡 = 学术轨“彩票”溢价。越往右上，越是“风浪越大鱼越贵”。</div>
+      <div id="riskBubble" class="chart" style="height:430px"></div>
+    </div>
+    <div class="card">
+      <h3>等待的阈值：Dixit–Pindyck 与跳跃扩散</h3>
+      <div class="hint">D-P 最优等待倍数（V*/I）随行业波动率变化；散点为各行业“现在读 vs 等两年”的 Merton 期权估值差。</div>
+      <div id="dpChart" class="chart" style="height:430px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第三章 ================= -->
+<section id="s3">
+  <div class="sec-head"><span class="sec-num">叁</span><h2>政策的潮水：八场冲击的重演</h2></div>
+  <p class="sec-sub">把 2021 年“双减”、地产三道红线、医药集采、券商限薪这类冲击翻译成模型语言——漂移率、跳跃频率、入职摩擦、35 岁门槛——再让 63,000 条人生重新活一遍。热力图上是每个行业在每场潮水下的福利增减。</p>
+
+  <div class="findings" id="f3"></div>
+
+  <div class="card">
+    <h3>情景 × 行业 福利冲击热力图</h3>
+    <div class="hint">数值 = 相对基准情景的终身福利变化（%，含劳动负效用折算），可切换学历路线。红暖为增益，青冷为受损。</div>
+    <div class="pills" id="scenRoutePills"></div>
+    <div id="scenHeat" class="chart" style="height:470px"></div>
+    <div class="src"><b>情景设定：</b>AI 泡沫出清 / 人口断崖·高校收缩 / 医疗控费深化 / 国产替代加速 / 博士供给+50% / 入职摩擦恶化 / 35 岁门槛强化，参数见模型 §情景表。</div>
+  </div>
+
+  <div class="card">
+    <h3>真实世界的政策事件轴（2018–2026）</h3>
+    <div class="hint">绿色 = 扩张性信号，赭红 = 收缩性冲击，琥珀 = 制度重构。模型中的每一次“跳跃”，都能在这条轴上找到对应的浪花。</div>
+    <div class="timeline" id="policyTimeline" style="margin-top:14px"></div>
+    <div class="src"><b>来源：</b>中办国办“双减”意见（2021.7）、住建部“三道红线”（2020.8）、国家医保局“4+7”集采（2018.12）、证券业协会薪酬指引（2022）、《渐进式延迟法定退休年龄决定》（2024.9）、人社部新就业形态权益保障指导意见（2021.7）。</div>
+  </div>
+</section>
+
+<!-- ================= 第四章B · AI冲击棱镜 ================= -->
+<section id="s4b">
+  <div class="sec-head"><span class="sec-num">肆</span><h2>冲击的棱镜：AI 暴露 × 学历层级 × 调控强度</h2></div>
+  <p class="sec-sub">AI 不是均匀地冲击所有专业：它替代的是可编码的常规认知任务——恰好是本科与硕士层级的就业缓冲带；同时强化博士以上高专用性人力资本的互补性。而每个行业头顶，还悬着另一套调控之手的合力。</p>
+
+  <div class="findings" id="f4b"></div>
+
+  <div class="card">
+    <h3>靶心图：暴露度 × 净效应四象限</h3>
+    <div class="hint">横轴 = AI 任务暴露度（0–5，综合高盛、ICRIER 等研究校准）；纵轴 = 净效应（上 = 互补增益，下 = 替代收缩）。* 为模型七行业之外的参照专业（数学/统计、能源动力，依据用户提供的研究材料）。</div>
+    <div id="quadrantChart" class="chart" style="height:540px"></div>
+    <div class="src"><b>锚点：</b>高盛（2023）：3 亿全职岗位受 AI 自动化影响、约三分之二职业部分暴露；ICRIER：数学家暴露度 3.86/5 居首，但高暴露职业需求增长同样最强（R²=0.51）；新加坡管理大学：定量方法核心岗位暴露指数居前。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>学历的非对称：谁挡在第一排</h3>
+      <div class="hint">两种切法可切换：「按院校层次」= 六个院校梯队的年毕业生规模（柱，万人）× AI 替代压力（红线）× 信号认可度（绿线），悬停查看每层的学科实力注解；「按行业」= 九行业在本科/硕士/博士层级的替代压力坡度。</div>
+      <div class="pills" id="tierViewPills"></div>
+      <div id="tierChart" class="chart" style="height:430px"></div>
+    </div>
+    <div class="card">
+      <h3>模型的证词：AI 寒冬情景重演</h3>
+      <div class="hint">让模型里的“AI 泡沫出清”情景（漂移 −3pp、跳跃 ×1.5）重演一遍，看七行业三条学历路线的终身福利绝对变化（万元，含劳动负效用折算）——低学历路线是否如理论预言般更受伤。</div>
+      <div id="aiBustChart" class="chart" style="height:430px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>调控的合力：九行业 × 五维度</h3>
+    <div class="hint">−3（强收缩）~ +3（强扶持），悬停查看每个格子对应的真实政策事件。* 为参照行业（能源动力、土木/地产、教培），用于补全调控光谱。</div>
+    <div id="regChart" class="chart" style="height:520px"></div>
+    <div class="src"><b>事件依据：</b>“人工智能+”行动、互联网反垄断（2020）、券商限薪令（2022）、药品集采（2018–）、DRG/DIP 控费、规培制度、双碳战略、三道红线（2020）、“双减”（2021）。</div>
+  </div>
+</section>
+
+<!-- ================= 第五章 ================= -->
+<section id="s4">
+  <div class="sec-head"><span class="sec-num">伍</span><h2>热潮的周期：金融热 · 法学热 · 土木热</h2></div>
+  <p class="sec-sub">热门专业是一台延迟四年的机器：今年的高薪信号，四年之后才变成毕业生供给，而那时需求早已转向。蛛网模型给出每一轮热潮的招生—供给—溢价轨迹，真实数据是它投在墙上的影子。</p>
+
+  <div class="findings" id="f4"></div>
+
+  <div class="card">
+    <h3>蛛网引擎：五轮专业热潮的模拟（独立重写版）</h3>
+    <div class="hint">自研“报考热度—产能延迟”引擎：报考热度对预期溢价即时响应，招生产能滞后 2 年追随，毕业供给再滞后 4 年。左图 = 热度 H、产能 E、供给 S、需求 D 四条曲线；右图 = 工资溢价 W 与适应性预期 Ŵ。绿影 = 政策干预，红影 = 需求冲击。</div>
+    <div class="pills" id="cobwebPills"></div>
+    <div class="grid2">
+      <div id="cobwebFlow" class="chart" style="height:400px"></div>
+      <div id="cobwebPremium" class="chart" style="height:400px"></div>
+    </div>
+    <div class="note" id="cobwebNote"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>稳定性的边界：θ × κ 谱半径矩阵</h3>
+      <div class="hint">数值谱半径（有限差分 Jacobian + 幂迭代）：ρ&gt;1 蛛网发散，ρ≈1 为临界慢衰减区。五个标记点为五轮热潮的校准位置——全部紧贴临界线，意味着振荡一旦激发，余波以十年计。</div>
+      <div id="spectralHeat" class="chart" style="height:440px"></div>
+    </div>
+    <div class="card">
+      <h3>影子与现实：可核验的报考数据</h3>
+      <div class="hint">法学：法考报名（柱，万人）与通过率（线）；金融：中央财大录取位次（位次越大越冷）；考研：报名人数三连降。切换标签查看。</div>
+      <div class="pills" id="realPills"></div>
+      <div id="realChart" class="chart" style="height:380px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第五章 ================= -->
+<section id="s5">
+  <div class="sec-head"><span class="sec-num">陆</span><h2>灵活就业的旷野：2.4 亿人的另一种人生</h2></div>
+  <p class="sec-sub">8400 万新就业形态劳动者，占职工总数的 21%。骑手、司机、主播、快递员——没有学位门槛，也没有 35 岁门槛，但有体力折旧和收入金字塔。把他们的一生与七条学历航道放在同一张图上是本章的目的。</p>
+
+  <div class="findings" id="f5"></div>
+
+  <div class="card">
+    <h3>旷野群像：收入 × 工时 × 满意度</h3>
+    <div class="hint">气泡图：横轴 = 周工时，纵轴 = 月收入（元），气泡大小 = 收入满意度，颜色暖冷区分新蓝领与传统白领基准（七行业本科路线为对照星标）。</div>
+    <div id="gigScatter" class="chart" style="height:520px"></div>
+    <div class="src"><b>来源：</b>中国新就业形态研究中心《2023 中国蓝领群体就业研究报告》、网约车司机就业韧性课题（2025，N=5,417）、美团研究院（2024.6）、中国演出行业协会《网络主播新职业发展报告》。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>金字塔职业：网络主播的收入分布</h3>
+      <div class="hint">1508 万职业主播中 67.9% 月入不足 3000 元——流量职业是一张彩票，均值被头部 13.7% 拉高。</div>
+      <div id="pyramidChart" class="chart" style="height:420px"></div>
+    </div>
+    <div class="card">
+      <h3>一生累积：旷野路线 vs 学历航道</h3>
+      <div class="hint">20 岁进入灵活就业的累计收入曲线（按调研收入参数化，含体力折旧），对比任一行业的本科 / 硕士路线累计收入中位数。</div>
+      <div class="pills" id="gigIndPills"></div>
+      <div id="gigLifeChart" class="chart" style="height:360px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 第六章 ================= -->
+<section id="s6">
+  <div class="sec-head"><span class="sec-num">柒</span><h2>人口的深流：教职供需的 25 年</h2></div>
+  <p class="sec-sub">所有行业之下还有一条更深的河：出生人口。18 岁人口在 2030 年代断崖下行，高校收缩，而博士供给仍在爬坡——学术轨这张“彩票”的中奖率被两股潮汐对向挤压。</p>
+  <div class="card">
+    <h3>2026–2050：博士供给 × 教职需求 × 人口底盘</h3>
+    <div class="hint">三轴分离：左轴 = 18 岁人口（万人，底色面积）；右轴 = 博士毕业供给与教职新增需求（万人，独立刻度）；最右轴 = 竞争烈度（对数刻度虚线，2038 年后教职需求枯竭、烈度飙至 30 倍）。</div>
+    <div id="acadChart" class="chart" style="height:470px"></div>
+    <div class="src"><b>模型：</b>人口-教职供需模块：出生队列 → 18 岁人口 → 在校规模（毛入学率 61.3%→80%）→ 教职数（生师比漂移 1%/年）→ 新增招聘；博士供给前 10 年按扩招外推后转低速。</div>
+  </div>
+</section>
+
+<!-- ================= 方法 ================= -->
+<section id="s7">
+  <div class="divider"></div>
+  <div class="footnote" style="margin-top:30px">
+    <b>方法与口径。</b>本报告第一、二、三、六章基于同一套实物期权-生命周期蒙特卡洛模型（7 行业 × 3 路线 × 9,000 路径，2026 年不变价，实际折现率 5%，CRRA γ=2，Frisch 弹性 0.5）；第四章为含政策干预项与需求冲击的蛛网模型（延迟 L=4 年）及伴随矩阵谱半径分析。第五章基于公开调研数据参数化：灵活就业终身轨迹为简化校准（起薪-峰值-体力折旧三段式），仅用于量级对比，不构成个体预测。<br>
+    <b>主要数据来源。</b>国家统计局（灵活就业 2.4 亿，2024）；第九次全国职工队伍调查（新就业形态 8400 万）；中国新就业形态研究中心（蓝领收入与工时，2023–2025）；美团研究院（骑手收入，2024.6）；交通运输部（网约车驾驶员证 748.3 万本，2024.10）；中国演出行业协会（职业主播 1508 万，2023.12）；司法部（法考报名与授证）；教育部（考研报名）；第一财经、证券时报（高校录取位次与地产人才数据）；东方财富证券研报（“双减”影响，2022.2）。<br>
+    <b>局限。</b>模拟结果对参数校准敏感；行业划分为代表性切面而非全市场；外部调研数据口径不一，已尽量选取权威来源并标注年份。
+  </div>
+</section>
+
+</main>
+<script src="report_data.js"></script>
+<script src="report_app.js"></script>
+</body>
+</html>

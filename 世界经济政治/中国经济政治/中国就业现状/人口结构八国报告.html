@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人口结构 · 八国六十年 — 交互式研究报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  --cream:#FBF8F2; --ink:#2E3030; --sand:#D5CDB6; --parchment:#F3EEE3;
+  --gold:#E8B400; --gold-dark:#B08A00;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+.serif{font-family:"Noto Serif SC","Songti SC","SimSun",serif}
+.num{font-family:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;font-feature-settings:"tnum" 1}
+.wrap{padding-left:24px;padding-right:24px}
+@media(min-width:768px){.wrap{padding-left:48px;padding-right:48px}}
+section{border-bottom:1px solid var(--sand);padding-top:80px;padding-bottom:96px;position:relative}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.25em;color:var(--gold-dark);margin-bottom:16px}
+h2{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(30px,5vw,58px);line-height:1.15}
+.lead{margin-top:20px;max-width:760px;line-height:2;color:rgba(46,48,48,.75);font-size:15px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
+.reveal.in{opacity:1;transform:none}
+/* 名词标注 */
+.term{display:inline;font-weight:500;border:none;background:none;font:inherit;color:inherit;border-bottom:1px dashed var(--gold-dark);cursor:pointer;padding:0}
+.term sup{font-family:"IBM Plex Mono",monospace;font-size:.6em;color:var(--gold-dark)}
+.term:hover{color:var(--gold-dark)}
+.dark .term{border-bottom-color:#E8B400}
+.dark .term sup,.dark .term:hover{color:#E8B400}
+#popover{position:fixed;z-index:99;width:330px;max-width:86vw;background:#2E3030;color:var(--cream);padding:16px;box-shadow:8px 16px 24px rgba(0,0,0,.3);display:none}
+#popover .pk{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.15em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+#popover p{font-size:13px;line-height:1.75;color:rgba(251,248,242,.9)}
+/* 通用面板 */
+.panel{border:1px solid var(--sand);background:var(--cream);margin-top:40px}
+.tabbtn{padding:12px 16px;font-size:14px;font-weight:500;border:none;border-right:1px solid var(--sand);background:none;cursor:pointer;color:var(--ink);transition:background .2s;font-family:inherit}
+.tabbtn:hover{background:rgba(213,205,182,.4)}
+.tabbtn.on{background:var(--ink);color:var(--cream)}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;font-size:13px;border:1px solid var(--sand);background:var(--cream);cursor:pointer;transition:all .2s;font-family:inherit}
+.chip i{width:10px;height:10px;display:inline-block}
+.chip.off{opacity:.38}
+.chip:hover{opacity:1}
+.chip.on{border-color:var(--ink)}
+.howto{padding:14px 24px;font-size:13px;line-height:1.8;color:rgba(46,48,48,.65);border-top:1px solid var(--sand);background:rgba(251,248,242,.6)}
+.howto b{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.15em;color:var(--gold-dark);font-weight:500;margin-right:8px}
+/* hero */
+header{min-height:92vh;display:flex;flex-direction:column;justify-content:space-between;border-bottom:1px solid var(--sand)}
+.topbar{display:flex;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--sand);font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(46,48,48,.6)}
+@media(min-width:768px){.topbar{padding:16px 48px}}
+h1{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(44px,8.5vw,120px);line-height:1.05;letter-spacing:-.01em}
+h1 .u{position:relative;display:inline-block}
+h1 .u svg{position:absolute;bottom:-8px;left:0;width:100%}
+.country-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:40px}
+.country-tags span{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--sand);padding:6px 14px;font-size:14px;background:var(--cream)}
+.country-tags i{width:10px;height:10px;display:inline-block}
+/* 术语 */
+.ggrid{margin-top:48px;display:grid;grid-template-columns:1fr;gap:1px;background:var(--sand);border:1px solid var(--sand)}
+@media(min-width:640px){.ggrid{grid-template-columns:1fr 1fr}}
+@media(min-width:1024px){.ggrid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1280px){.ggrid{grid-template-columns:repeat(4,1fr)}}
+.gcard{background:var(--cream);text-align:left;padding:20px;cursor:pointer;border:none;font-family:inherit;transition:background .2s;width:100%}
+.gcard:hover{background:var(--parchment)}
+.gcard .t{font-family:"Noto Serif SC",serif;font-weight:700;font-size:18px}
+.gcard .e{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;color:rgba(46,48,48,.4);text-transform:uppercase}
+.gcard .d{font-size:13px;line-height:1.75;color:rgba(46,48,48,.7);overflow:hidden;max-height:0;transition:max-height .4s ease,margin .4s}
+.gcard.open .d{max-height:300px;margin-top:12px}
+.gcard .m{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--gold-dark);margin-top:8px}
+/* 结构 */
+.seg{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.barrow{height:24px;background:rgba(213,205,182,.4);overflow:hidden}
+.barrow>div{height:100%;transition:width .3s}
+.histcol{flex:1;display:flex;flex-direction:column-reverse;cursor:pointer;border:none;background:none;padding:0;position:relative}
+.histcol:hover{outline:1px solid rgba(46,48,48,.3)}
+input[type=range]{flex:1;accent-color:var(--ink)}
+.playbtn{width:40px;height:40px;border:1px solid var(--ink);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.playbtn:hover{background:var(--ink);color:var(--cream)}
+/* 深色 */
+.dark{background:var(--ink);color:var(--cream)}
+.dark .kicker{color:var(--gold)}
+.dark .lead{color:rgba(251,248,242,.7)}
+.dark .tabbtn{color:var(--cream);border-right-color:rgba(251,248,242,.15)}
+.dark .tabbtn.on{background:var(--cream);color:var(--ink)}
+.dark .tabbtn:hover{background:rgba(251,248,242,.1)}
+.dark .tabbtn.on:hover{background:var(--cream)}
+/* 卡片网格 */
+.pcards{margin-top:48px;display:grid;grid-template-columns:1fr;gap:1px;background:var(--sand);border:1px solid var(--sand)}
+@media(min-width:768px){.pcards{grid-template-columns:1fr 1fr}}
+@media(min-width:1280px){.pcards{grid-template-columns:repeat(3,1fr)}}
+.pcard{background:var(--cream);padding:26px;display:flex;flex-direction:column;transition:background .2s}
+.pcard:hover{background:var(--parchment)}
+.pcard h3{font-family:"Noto Serif SC",serif;font-weight:700;font-size:20px;line-height:1.35}
+.pcard .sub{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--gold-dark);margin-top:4px}
+.pcard .body{margin-top:16px;font-size:13.5px;line-height:1.85;color:rgba(46,48,48,.75);flex:1}
+.pcard .cases{margin-top:18px;display:flex;flex-wrap:wrap;gap:6px}
+.pcard .cases span{font-size:11px;border:1px solid var(--sand);padding:2px 8px;display:inline-flex;align-items:center;gap:6px}
+.pcard .cases i{width:6px;height:6px;display:inline-block}
+.pcard .verdict{margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);font-size:12px;color:rgba(46,48,48,.6)}
+.pcard .verdict b{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.15em;color:var(--gold-dark);font-weight:500;margin-right:6px}
+footer{background:var(--ink);color:var(--cream);padding:80px 0 96px}
+footer .lead{color:rgba(251,248,242,.8)}
+.fbox{border:1px solid rgba(251,248,242,.15);padding:24px;background:var(--ink)}
+.fbox .pk{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:12px}
+.fbox li{font-size:13px;color:rgba(251,248,242,.65);line-height:1.8;list-style:none;margin-bottom:6px}
+select{font-family:inherit;font-size:14px;font-weight:500;border:1px solid var(--sand);background:var(--cream);padding:6px 10px;cursor:pointer}
+.chart{width:100%;height:440px}
+@media(max-width:767px){.chart{height:380px}}
+</style>
+</head>
+<body>
+
+<div id="popover"><div class="pk"></div><p></p></div>
+
+<!-- HERO -->
+<header>
+  <div class="topbar"><span>Population Report</span><span>1960 — 2100</span></div>
+  <div class="wrap" style="padding-top:88px;max-width:1152px">
+    <p class="kicker reveal">一份交互式人口结构研究报告 · 八个国家 · 六十年数据</p>
+    <h1 class="reveal">人，决定<br>一个国家的<span class="u">命运<svg height="10" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0 8 Q 50 0 100 6 T 200 4" fill="none" stroke="#E8B400" stroke-width="4"/></svg></span></h1>
+    <p class="lead reveal" style="max-width:700px">为什么日本满街都是银发出租车司机，沙特却满眼年轻人？为什么中国开始发钱催生，而美国靠移民就能续命？这份报告用世界银行 1960–2024 年的真实数据和联合国 2024 年最新预测，把八个国家——中国、美国、日本、德国、沙特、英国、巴西、委内瑞拉——的人口故事讲清楚：它们怎么走到今天，政府都在出什么招，以及这一切会怎样影响经济。遇到带下划线的名词，点一下就有解释。</p>
+    <div class="country-tags reveal" id="heroTags"></div>
+  </div>
+  <div class="wrap" style="padding-bottom:40px;margin-top:64px;display:flex;justify-content:space-between;align-items:flex-end">
+    <div class="num" style="font-size:11px;letter-spacing:.15em;color:rgba(46,48,48,.5);line-height:1.8">数据来源 · 世界银行 WDI / 联合国 WPP 2024<br>往下滚动 ↓</div>
+    <svg width="36" height="60" viewBox="0 0 36 60" style="animation:bob 1.6s ease-in-out infinite"><rect x="1" y="1" width="34" height="58" fill="none" stroke="#2E3030" stroke-width="2"/><line x1="18" y1="14" x2="18" y2="30" stroke="#2E3030" stroke-width="2"/></svg>
+  </div>
+</header>
+<style>@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}</style>
+
+<!-- 01 术语 -->
+<section id="glossary"><div class="wrap">
+  <p class="kicker reveal">01 · 先统一语言</p>
+  <h2 class="reveal">十二个词，看懂整份报告</h2>
+  <p class="lead reveal">人口学听起来高深，其实核心概念就这几个。点开每张卡片看看大白话解释——后面正文里遇到它们，也可以随时点击回顾。</p>
+  <div class="ggrid" id="glossGrid"></div>
+</div></section>
+
+<!-- 02 趋势 -->
+<section id="trends"><div class="wrap">
+  <p class="kicker reveal">02 · 六十年全景</p>
+  <h2 class="reveal">一张图，看八个国家<br>怎么「老」的</h2>
+  <p class="lead reveal">下面是世界银行 1960–2024 年的完整记录。切换指标、点选国家，自己动手对比。比如切到「<button class="term" data-en="TFR" data-def="总和生育率：一个女性一生平均生育的孩子数。2.1 是世代更替水平，低于它人口长期必然萎缩。">总和生育率<sup>?</sup></button>」看那条 2.1 的虚线——谁先跌破的，谁就先老。</p>
+  <div class="panel reveal" style="background:var(--parchment)">
+    <div style="display:flex;flex-wrap:wrap;border-bottom:1px solid var(--sand)" id="metricTabs"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid var(--sand);background:rgba(251,248,242,.6)" id="countryChips"></div>
+    <div class="chart" id="trendChart"></div>
+    <div class="howto"><b>怎么读</b><span id="metricNote"></span></div>
+  </div>
+</div></section>
+
+<!-- 03 结构 -->
+<section id="structure" style="background:rgba(243,238,227,.6)"><div class="wrap">
+  <p class="kicker reveal">03 · 结构变形记</p>
+  <h2 class="reveal"><button class="term serif" data-en="Population Pyramid" data-def="人口金字塔：按年龄段画出的人口结构图。底宽顶尖=年轻社会；上下均匀=静止型；上宽下窄=收缩型社会。" style="font-weight:900">人口金字塔<sup>?</sup></button>是怎样倒过来的</h2>
+  <p class="lead reveal">选一个国家，拖动年份（或按播放），看它的三段结构——孩子、劳动者、老人——如何此消彼长。注意中国 1990 年后底部的快速收窄，和日本顶部的不断膨胀。</p>
+  <div class="panel reveal">
+    <div style="display:flex;flex-wrap:wrap;border-bottom:1px solid var(--sand)" id="structTabs"></div>
+    <div style="display:grid;grid-template-columns:1fr" id="structBody">
+      <div style="padding:28px;border-bottom:1px solid var(--sand)" id="structLeft"></div>
+      <div style="padding:28px;display:flex;flex-direction:column" id="structRight"></div>
+    </div>
+  </div>
+</div></section>
+<style>@media(min-width:900px){#structBody{grid-template-columns:2fr 3fr}#structLeft{border-bottom:none!important;border-right:1px solid var(--sand)}}</style>
+
+<!-- 04 抚养比 -->
+<section id="dependency"><div class="wrap">
+  <p class="kicker reveal">04 · 肩膀上的重量</p>
+  <h2 class="reveal">每 100 个干活的人，<br>要养多少人？</h2>
+  <p class="lead reveal">这就是<button class="term" data-en="Dependency Ratio" data-def="抚养比：每100名15–64岁劳动人口对应的非劳动人口数量。少儿抚养比看孩子，老年抚养比看老人。">抚养比<sup>?</sup></button>的直觉版。六十年前，各国的负担主要是「孩子」；今天，日本和德国的负担已经主要是「老人」。负担的性质变了，解法也完全不同——孩子十几年后会变成劳动力，老人不会。</p>
+  <div class="panel reveal">
+    <div style="display:flex;border-bottom:1px solid var(--sand);flex-wrap:wrap">
+      <button class="tabbtn on" data-dep="depOld">老年抚养比（养老压力）</button>
+      <button class="tabbtn" data-dep="depYoung">少儿抚养比（养娃压力）</button>
+      <div class="num" style="margin-left:auto;display:none;align-items:center;gap:16px;padding:0 16px;font-size:10px;color:rgba(46,48,48,.5)" id="depLegend">
+        <span><i style="display:inline-block;width:10px;height:10px;border:1px solid var(--ink);margin-right:6px"></i>1960</span>
+        <span><i style="display:inline-block;width:10px;height:10px;background:var(--ink);margin-right:6px"></i>2024</span>
+      </div>
+    </div>
+    <div id="depRows" style="padding:28px"></div>
+    <div class="howto" id="depNote"></div>
+  </div>
+</div></section>
+<style>@media(min-width:768px){#depLegend{display:flex!important}}</style>
+
+<!-- 05 八国特写（深色） -->
+<section id="countries" class="dark"><div class="wrap">
+  <p class="kicker reveal">05 · 八国特写</p>
+  <h2 class="reveal">同一个地球，<br>八种人口命运</h2>
+  <div class="reveal" style="margin-top:40px;display:flex;flex-wrap:wrap;gap:1px;background:rgba(251,248,242,.15);border:1px solid rgba(251,248,242,.15)" id="profTabs"></div>
+  <div class="reveal" style="margin-top:32px;border:1px solid rgba(251,248,242,.15)">
+    <div style="padding:28px;border-bottom:1px solid rgba(251,248,242,.15);display:grid;gap:32px" id="profHead"></div>
+    <div style="display:flex;flex-wrap:wrap;border-bottom:1px solid rgba(251,248,242,.15)" id="profSubTabs"></div>
+    <div style="padding:28px;min-height:220px"><p id="profText" style="max-width:900px;line-height:2;font-size:15px;color:rgba(251,248,242,.85)"></p></div>
+  </div>
+</div></section>
+<style>@media(min-width:1024px){#profHead{grid-template-columns:1fr 2fr!important}}
+#profHead .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(251,248,242,.12);border:1px solid rgba(251,248,242,.12)}
+#profHead .stat{background:var(--ink);padding:16px}
+.profsub.on{background:var(--gold)!important;color:var(--ink)!important}
+.proftab{flex:1;min-width:100px;padding:14px;font-size:14px;font-weight:500;border:none;background:none;color:var(--cream);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .2s}
+.proftab:hover{background:rgba(251,248,242,.1)}
+.proftab.on{background:var(--cream);color:var(--ink)}</style>
+
+<!-- 06 政策工具箱 -->
+<section id="policy"><div class="wrap">
+  <p class="kicker reveal">06 · 政策工具箱</p>
+  <h2 class="reveal">改变人口结构，<br>政府手里有六张牌</h2>
+  <p class="lead reveal">人口结构变化缓慢，但并非不可撼动。这六类<button class="term" data-en="Macro Policy" data-def="宏观措施：由国家层面实施、作用于整个经济社会的政策手段，区别于企业和个人层面的决策。">宏观措施<sup>?</sup></button>是各国的共同选项——区别只在组合和剂量。残酷的现实是：没有一张牌是免费的，也没有一张牌能快速见效。</p>
+  <div class="pcards" id="policyCards"></div>
+</div></section>
+
+<!-- 07 经济 -->
+<section id="economy" style="background:rgba(243,238,227,.6)"><div class="wrap">
+  <p class="kicker reveal">07 · 人口与钱袋子</p>
+  <h2 class="reveal">人口结构，<br>如何改写经济</h2>
+  <p class="lead reveal">人口对经济的传导链条其实很朴素：劳动年龄人口决定「能生产多少」，<button class="term" data-en="Dependency Ratio" data-def="抚养比：每100名劳动者对应的被抚养人口。越低，社会可用于投资和消费的余力越大。">抚养比<sup>?</sup></button>决定「要分出去多少」，而生育率决定「二十年后还剩多少劳动力」。左图看横截面的规律，右图看一个国家的时间轨迹。</p>
+  <div class="panel reveal" style="display:grid;grid-template-columns:1fr;background:var(--sand);gap:1px;padding:0" id="econGrid">
+    <div style="background:var(--cream);padding:24px">
+      <h3 class="serif" style="font-weight:700;font-size:20px">2024 横截面：越富越不生？</h3>
+      <p style="font-size:13px;color:rgba(46,48,48,.65);margin-top:8px;line-height:1.8">横轴是人均 GDP（对数刻度），纵轴是总和生育率。富裕国家普遍在 2.1 以下扎堆——但注意巴西和中国：还没富到位，生育率已经先降了，这就是「未富先老」。</p>
+      <div class="chart" id="scatterChart" style="height:340px;margin-top:12px"></div>
+      <p class="num" style="font-size:11px;color:rgba(46,48,48,.45);margin-top:6px">委内瑞拉为 2014 年人均 GDP（此后数据缺失）</p>
+    </div>
+    <div style="background:var(--cream);padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div>
+          <h3 class="serif" style="font-weight:700;font-size:20px">红利期 = 增长加速期</h3>
+          <p style="font-size:13px;color:rgba(46,48,48,.65);margin-top:8px;line-height:1.8">选一个国家：金色线是总抚养比（右轴），彩色线是人均 GDP（左轴）。抚养比触底的那段日子，往往就是经济跑得最快的年代。</p>
+        </div>
+        <select id="econSelect"></select>
+      </div>
+      <div class="chart" id="dualChart" style="height:340px;margin-top:12px"></div>
+      <p id="econNote" style="font-size:13px;color:rgba(46,48,48,.6);margin-top:12px;line-height:1.8"></p>
+    </div>
+  </div>
+</div></section>
+<style>@media(min-width:1024px){#econGrid{grid-template-columns:1fr 1fr!important}}</style>
+
+<!-- 08 未来 -->
+<section id="future"><div class="wrap">
+  <p class="kicker reveal">08 · 望向未来</p>
+  <h2 class="reveal">2050 年和 2100 年，<br>世界会是什么样？</h2>
+  <p class="lead reveal">联合国《世界人口展望 2024》的<button class="term" data-en="Medium Variant" data-def="中方案预测：联合国人口司给出的中间情景，假设各国生育率沿历史路径缓慢变化。另有高方案（生育率+0.5）和低方案（-0.5），2100年的全球人口在三种方案下从70亿到144亿不等。">中方案预测<sup>?</sup></button>给出了这些轮廓。请注意：预测越远越不确定——2100 年的全球人口，高方案和低方案之间差着整整一倍。</p>
+  <div class="panel reveal" style="display:grid;grid-template-columns:1fr;background:var(--sand);gap:1px;padding:0" id="futureGrid">
+    <div style="background:var(--cream);padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <h3 class="serif" style="font-weight:700;font-size:20px">八国人口规模（百万）</h3>
+        <div style="display:flex;border:1px solid var(--sand)" id="futureTabs">
+          <button class="tabbtn" data-yi="0">2024（现状）</button>
+          <button class="tabbtn on" data-yi="1">2050</button>
+          <button class="tabbtn" data-yi="2">2100</button>
+        </div>
+      </div>
+      <div class="chart" id="futureChart" style="height:380px;margin-top:12px"></div>
+      <p style="font-size:13px;color:rgba(46,48,48,.6);margin-top:8px;line-height:1.8">中国和日本柱子明显变矮；美国和沙特靠移民与相对高的生育率继续缓慢长个；委内瑞拉几乎原地踏步。</p>
+    </div>
+    <div style="background:var(--cream);padding:24px">
+      <h3 class="serif" style="font-weight:700;font-size:20px">到 2050 年……</h3>
+      <ul style="list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:16px;font-size:13.5px;line-height:1.8;color:rgba(46,48,48,.8)">
+        <li style="border-left:2px solid #D64533;padding-left:12px"><b>中国</b> 65+ 老人占比约 31%，中位年龄约 53 岁——比今天的日本还老。人口回到约 12.6 亿。</li>
+        <li style="border-left:2px solid #8E5EA2;padding-left:12px"><b>日本</b> 老人占比逼近 38%，人口约 1.04 亿，守护「一个人也可以老得有尊严」成为国家命题。</li>
+        <li style="border-left:2px solid #148F77;padding-left:12px"><b>沙特</b> 人口增至约 4500 万，红利窗口进入后半场——转型成败届时见分晓。</li>
+        <li style="border-left:2px solid #2E86C1;padding-left:12px"><b>美国</b> 约 3.8 亿人，是发达大国里唯一确定继续增长的——前提是移民之门不关。</li>
+        <li style="border-left:2px solid #239B56;padding-left:12px"><b>巴西</b> 人口见顶回落，老人占比翻倍到 19%，而人均收入大概率仍低于今天的发达国家。</li>
+        <li style="border-left:2px solid #5D6D7E;padding-left:12px"><b>德国、英国</b> 人口靠移民勉强撑住，退休年龄继续往后挪，养老金改革是每届政府的必答题。</li>
+      </ul>
+      <div style="margin-top:24px;border:1px solid var(--gold);background:rgba(232,180,0,.1);padding:16px">
+        <p class="num" style="font-size:10px;letter-spacing:.2em;color:var(--gold-dark);margin-bottom:6px">最大的变量</p>
+        <p style="font-size:13px;line-height:1.8;color:rgba(46,48,48,.8)">生育率。全球总和生育率 2024 年约 2.25，联合国预计 2036 年前后触及 2.1。如果各国催生抽效，曲线会翘头；如果继续下探（韩国已跌破 0.8），所有预测都得重写——往更少的方向。</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+<style>@media(min-width:1024px){#futureGrid{grid-template-columns:3fr 2fr!important}}</style>
+
+<!-- 09 结语 -->
+<footer><div class="wrap">
+  <p class="kicker reveal" style="color:var(--gold)">09 · 结语</p>
+  <h2 class="reveal" style="color:var(--cream)">人口是慢变量，<br>但从不迟到</h2>
+  <p class="lead reveal">八个国家，同一条转型的路，只是站位不同：沙特刚走到红利期的正中央，巴西的窗口正在关闭，中国的窗口已经关上、正在换赛道，而日本在没人走过的深水区里探路。人口政策的吊诡之处在于——今天出生的孩子，二十年后才变成劳动力；今天做的决定，要一代人之后才能评分。这大概就是为什么人口问题永远「重要但不紧急」，直到它突然变得紧急。</p>
+  <div class="reveal" style="margin-top:56px;display:grid;gap:1px;background:rgba(251,248,242,.15);border:1px solid rgba(251,248,242,.15);max-width:900px" id="footGrid">
+    <div class="fbox"><p class="pk">数据来源</p><ul>
+      <li>世界银行 World Development Indicators（1960–2024）：出生率、生育率、抚养比、年龄结构、预期寿命、人口与人均 GDP</li>
+      <li>联合国《世界人口展望 2024》（UN WPP 2024）中方案：2050 / 2100 年人口、中位年龄与生育率预测（约数）</li>
+      <li>政策事实截至 2025 年公开资料</li>
+    </ul></div>
+    <div class="fbox"><p class="pk">阅读说明</p><ul>
+      <li>正文中带虚线下划线的名词均可点击查看解释</li>
+      <li>预测数字为联合国中方案约数，实际路径存在较大不确定性</li>
+      <li>委内瑞拉人均 GDP 序列在 2014 年后缺失</li>
+    </ul></div>
+  </div>
+  <div class="num" style="margin-top:56px;padding-top:24px;border-top:1px solid rgba(251,248,242,.15);display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(251,248,242,.4)">
+    <span>Population Structure Report · 8 Countries · 1960–2100</span><span>WB WDI × UN WPP 2024</span>
+  </div>
+</div></footer>
+<style>@media(min-width:768px){#footGrid{grid-template-columns:1fr 1fr}}</style>
+<script>
+/* ============ 数据 ============ */
+const WDI = {"years":[1960,1961,1962,1963,1964,1965,1966,1967,1968,1969,1970,1971,1972,1973,1974,1975,1976,1977,1978,1979,1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024],"countries":{"CN":{"birthRate":[20.86,18.02,37.01,43.37,39.14,37.88,35.05,33.96,35.59,34.11,33.43,30.65,29.77,27.93,24.82,23.01,19.91,18.93,18.25,17.82,18.21,20.91,22.28,20.19,19.9,21.04,22.43,23.33,22.37,21.58,21.06,19.68,18.27,18.09,17.7,17.12,16.98,16.57,15.64,14.64,14.03,13.38,12.86,12.41,12.29,12.4,12.09,12.1,12.14,11.95,11.9,13.27,14.57,13.03,13.83,11.99,13.57,12.64,10.86,10.41,8.52,7.52,6.77,6.39,6.77],"tfr":[4.45,3.86,6.08,7.51,6.67,6.61,6.31,5.81,6.51,6.17,6.08,5.52,5.11,4.73,4.17,3.57,3.23,2.84,2.72,2.75,2.74,2.79,2.97,2.56,2.61,2.63,2.72,2.76,2.54,2.52,2.51,1.93,1.78,1.69,1.63,1.59,1.55,1.53,1.52,1.53,1.63,1.56,1.57,1.57,1.6,1.62,1.64,1.67,1.7,1.71,1.69,1.67,1.8,1.71,1.77,1.67,1.77,1.79,1.54,1.5,1.24,1.12,1.03,1.0,1.01],"dep":[79.53,78.05,77.89,79.69,81.45,82.16,82.3,81.55,80.83,80.63,80.18,79.84,79.12,78.47,78.71,79.2,79.54,78.28,74.66,70.98,68.05,65.46,63.5,61.27,58.69,56.47,54.7,53.49,52.55,51.93,51.84,51.75,51.47,51.24,50.88,50.35,49.65,48.68,47.79,47.03,46.12,44.97,43.53,42.09,40.69,39.24,38.21,37.71,37.4,37.26,37.24,37.36,37.72,38.24,38.88,39.61,40.44,41.51,42.54,43.39,44.09,44.48,44.73,44.73,44.24],"depOld":[7.12,6.91,6.8,6.75,6.69,6.64,6.62,6.61,6.62,6.65,6.68,6.72,6.76,6.81,6.94,7.08,7.21,7.29,7.3,7.33,7.39,7.43,7.48,7.52,7.54,7.58,7.65,7.72,7.81,7.95,8.12,8.27,8.45,8.66,8.88,9.1,9.32,9.52,9.76,10.02,10.25,10.46,10.62,10.77,10.89,10.99,11.13,11.31,11.48,11.66,11.89,12.17,12.52,12.93,13.42,14.04,14.73,15.54,16.42,17.29,18.22,19.08,19.95,20.72,21.15],"depYoung":[72.41,71.14,71.08,72.95,74.76,75.52,75.68,74.94,74.21,73.98,73.5,73.11,72.36,71.65,71.78,72.12,72.33,71.0,67.36,63.64,60.66,58.03,56.01,53.76,51.16,48.88,47.05,45.77,44.74,43.98,43.73,43.48,43.02,42.58,42.0,41.25,40.33,39.16,38.03,37.01,35.86,34.51,32.91,31.32,29.81,28.26,27.08,26.4,25.92,25.59,25.35,25.2,25.2,25.31,25.45,25.57,25.71,25.97,26.13,26.09,25.87,25.4,24.78,24.01,23.09],"age65":[3.97,3.88,3.82,3.76,3.69,3.65,3.63,3.64,3.66,3.68,3.71,3.74,3.77,3.82,3.88,3.95,4.02,4.09,4.18,4.29,4.4,4.49,4.58,4.66,4.75,4.85,4.94,5.03,5.12,5.23,5.35,5.45,5.58,5.73,5.89,6.05,6.23,6.4,6.6,6.81,7.02,7.21,7.4,7.58,7.74,7.89,8.05,8.21,8.36,8.5,8.66,8.86,9.09,9.36,9.67,10.05,10.49,10.98,11.52,12.06,12.65,13.21,13.78,14.32,14.67],"age014":[40.33,39.95,39.96,40.59,41.2,41.46,41.51,41.28,41.04,40.96,40.79,40.65,40.4,40.15,40.16,40.25,40.29,39.82,38.57,37.22,36.1,35.07,34.26,33.33,32.24,31.24,30.41,29.82,29.33,28.95,28.8,28.65,28.4,28.15,27.83,27.43,26.95,26.34,25.73,25.17,24.54,23.81,22.93,22.04,21.19,20.29,19.59,19.17,18.87,18.65,18.47,18.34,18.3,18.31,18.33,18.32,18.3,18.35,18.33,18.2,17.95,17.58,17.12,16.59,16.01],"lifeExp":[33.42,40.16,50.96,51.67,52.34,53.0,53.66,54.4,55.19,55.99,56.82,57.73,58.58,59.5,60.24,60.95,61.23,62.46,63.1,63.7,64.24,64.78,65.25,65.73,66.15,66.53,66.89,67.26,67.61,67.93,68.16,68.61,69.06,69.49,69.83,70.36,70.82,71.23,71.6,71.95,72.29,72.67,73.03,73.39,73.73,74.08,74.4,74.79,74.83,75.32,75.67,75.89,76.2,76.45,76.71,76.97,77.21,77.23,77.71,77.94,78.02,78.12,78.2,77.95,78.02],"pop":[667070000.0,660330000.0,665770000.0,682335000.0,698355000.0,715185000.0,735400000.0,754550000.0,774510000.0,796025000.0,818315000.0,841105000.0,862030000.0,881940000.0,900350000.0,916395000.0,930685000.0,943455000.0,956165000.0,969005000.0,981235000.0,993885000.0,1008630000.0,1023310000.0,1036825000.0,1051040000.0,1066790000.0,1084035000.0,1101630000.0,1118650000.0,1135185000.0,1150780000.0,1164970000.0,1178440000.0,1191835000.0,1204855000.0,1217550000.0,1230075000.0,1241935000.0,1252735000.0,1262645000.0,1271850000.0,1280400000.0,1288400000.0,1296075000.0,1303720000.0,1311020000.0,1317885000.0,1324655000.0,1331260000.0,1337705000.0,1345035000.0,1354190000.0,1363240000.0,1371860000.0,1379860000.0,1387790000.0,1396215000.0,1402760000.0,1407745000.0,1411100000.0,1412360000.0,1412175000.0,1410710000.0,1408975000.0],"popGrow":[null,-1.02,0.82,2.46,2.32,2.38,2.79,2.57,2.61,2.74,2.76,2.75,2.46,2.28,2.07,1.77,1.55,1.36,1.34,1.33,1.25,1.28,1.47,1.44,1.31,1.36,1.49,1.6,1.61,1.53,1.47,1.36,1.23,1.15,1.13,1.09,1.05,1.02,0.96,0.87,0.79,0.73,0.67,0.62,0.59,0.59,0.56,0.52,0.51,0.5,0.48,0.55,0.68,0.67,0.63,0.58,0.57,0.61,0.47,0.35,0.24,0.09,-0.01,-0.1,-0.12],"gdpPc":[89.72,75.97,71.06,74.47,85.66,98.67,104.51,96.76,91.65,100.31,113.35,118.84,132.1,157.34,160.4,178.62,165.68,185.73,156.66,184.29,195.15,197.43,203.72,225.87,251.19,295.01,282.45,252.26,284.02,311.43,318.5,334.13,367.82,378.94,475.68,612.68,713.34,786.74,835.1,881.15,969.2,1065.41,1163.56,1306.97,1530.93,1777.64,2129.26,2734.73,3523.44,3898.24,4629.25,5703.76,6405.06,7147.04,7781.07,8175.33,8254.87,8979.68,10085.66,10342.9,10627.46,12887.44,12970.61,12951.18,13293.12],"age1564":[55.7,56.17,56.22,55.65,55.11,54.89,54.86,55.08,55.3,55.36,55.5,55.61,55.83,56.03,55.96,55.8,55.69,56.09,57.25,58.49,59.5,60.44,61.16,62.01,63.01,63.91,64.65,65.15,65.55,65.82,65.85,65.9,66.02,66.12,66.28,66.52,66.82,67.26,67.67,68.02,68.44,68.98,69.67,70.38,71.07,71.82,72.36,72.62,72.77,72.85,72.87,72.8,72.61,72.33,72.0,71.63,71.21,70.67,70.15,69.74,69.4,69.21,69.1,69.09,69.32]},"US":{"birthRate":[23.7,23.3,22.4,21.7,21.1,19.4,18.4,17.8,17.6,17.9,18.4,17.2,15.6,14.8,14.8,14.6,14.6,15.1,15.0,15.6,15.9,15.8,15.9,15.6,15.6,15.8,15.6,15.7,16.0,16.4,16.7,16.2,15.8,15.4,15.0,14.6,14.4,14.2,14.3,14.2,14.4,14.1,14.0,14.1,14.0,14.0,14.3,14.3,14.0,13.5,13.0,12.7,12.6,12.4,12.5,12.4,12.2,11.8,11.6,11.4,10.9,11.0,11.0,10.7,10.6],"tfr":[3.65,3.62,3.46,3.32,3.19,2.91,2.72,2.56,2.46,2.46,2.48,2.27,2.01,1.88,1.83,1.77,1.74,1.79,1.76,1.81,1.84,1.81,1.83,1.8,1.81,1.84,1.84,1.87,1.93,2.01,2.08,2.06,2.05,2.02,2.0,1.98,1.98,1.97,2.0,2.01,2.06,2.03,2.02,2.05,2.05,2.06,2.11,2.12,2.07,2.0,1.93,1.89,1.88,1.86,1.86,1.84,1.82,1.77,1.73,1.71,1.64,1.66,1.66,1.62,1.63],"dep":[66.94,67.61,67.51,67.18,66.88,66.56,66.0,65.12,64.08,63.0,61.99,60.85,59.41,57.83,56.3,54.88,53.54,52.4,51.5,50.79,50.32,50.05,49.94,49.92,49.88,49.77,49.71,49.89,50.28,50.77,51.24,51.65,52.0,52.16,52.14,51.97,51.68,51.29,50.87,50.45,50.04,49.64,49.25,48.87,48.5,48.1,47.8,47.77,47.92,48.1,48.25,48.51,48.99,49.5,49.96,50.38,50.79,51.24,51.69,52.16,52.59,52.95,53.38,53.91,54.45],"depOld":[14.74,14.97,15.09,15.17,15.26,15.42,15.55,15.6,15.64,15.67,15.74,15.78,15.78,15.79,15.83,15.91,16.01,16.13,16.28,16.46,16.65,16.82,16.99,17.18,17.37,17.55,17.74,17.97,18.2,18.42,18.61,18.73,18.83,18.88,18.88,18.85,18.79,18.69,18.56,18.42,18.28,18.17,18.08,18.02,17.98,17.97,18.01,18.19,18.47,18.77,19.04,19.4,19.93,20.48,21.01,21.52,22.04,22.59,23.2,23.85,24.52,25.2,25.95,26.83,27.69],"depYoung":[52.19,52.64,52.42,52.01,51.62,51.14,50.45,49.52,48.44,47.32,46.25,45.07,43.63,42.04,40.47,38.97,37.54,36.28,35.22,34.33,33.67,33.24,32.95,32.74,32.51,32.21,31.96,31.92,32.09,32.35,32.63,32.92,33.17,33.28,33.27,33.12,32.89,32.6,32.31,32.03,31.75,31.47,31.17,30.86,30.51,30.13,29.79,29.58,29.45,29.33,29.2,29.11,29.06,29.02,28.95,28.86,28.75,28.64,28.5,28.32,28.07,27.75,27.43,27.08,26.76],"age65":[8.83,8.93,9.01,9.07,9.14,9.26,9.37,9.45,9.53,9.62,9.72,9.81,9.9,10.01,10.13,10.27,10.42,10.58,10.75,10.92,11.08,11.21,11.33,11.46,11.59,11.72,11.85,11.99,12.11,12.22,12.31,12.35,12.39,12.41,12.41,12.41,12.39,12.35,12.3,12.24,12.19,12.14,12.11,12.1,12.11,12.13,12.18,12.31,12.49,12.67,12.84,13.07,13.38,13.7,14.01,14.31,14.61,14.94,15.29,15.67,16.07,16.47,16.92,17.43,17.93],"age014":[31.27,31.4,31.29,31.11,30.93,30.7,30.39,29.99,29.52,29.03,28.55,28.02,27.37,26.64,25.89,25.16,24.45,23.8,23.25,22.77,22.4,22.15,21.98,21.84,21.69,21.51,21.35,21.3,21.35,21.46,21.57,21.71,21.82,21.87,21.87,21.79,21.68,21.55,21.41,21.29,21.16,21.03,20.89,20.73,20.55,20.35,20.16,20.02,19.91,19.81,19.7,19.6,19.51,19.41,19.31,19.19,19.07,18.94,18.79,18.61,18.39,18.15,17.88,17.59,17.32],"lifeExp":[69.77,70.27,70.12,69.92,70.17,70.21,70.21,70.56,69.95,70.51,70.81,71.11,71.16,71.36,71.96,72.6,72.86,73.26,73.36,73.8,73.61,74.01,74.36,74.46,74.56,74.56,74.61,74.77,74.77,75.02,75.21,75.37,75.62,75.42,75.62,75.62,76.03,76.43,76.58,76.58,76.64,76.84,76.94,77.04,77.49,77.49,77.69,77.99,78.04,78.39,78.54,78.64,78.74,78.74,78.84,78.69,78.54,78.54,78.64,78.79,76.98,76.33,77.43,78.39,78.89],"pop":[180671000.0,183691000.0,186538000.0,189242000.0,191889000.0,194303000.0,196560000.0,198712000.0,200706000.0,202677000.0,205052000.0,207661000.0,209896000.0,211909000.0,213854000.0,215973000.0,218035000.0,220239000.0,222585000.0,225055000.0,227225000.0,229466000.0,231664000.0,233792000.0,235825000.0,237924000.0,240133000.0,242289000.0,244499000.0,246819000.0,249623000.0,252981000.0,256514000.0,259919000.0,263126000.0,266278000.0,269394000.0,272657000.0,275854000.0,279040000.0,282162411.0,284968955.0,287625193.0,290107933.0,292805298.0,295516599.0,298379912.0,301231207.0,304093966.0,306771529.0,309378227.0,311839461.0,314339099.0,316726282.0,319257560.0,321815121.0,324353340.0,326608609.0,328529577.0,330226227.0,331578104.0,332100166.0,333996304.0,336755052.0,340003797.0],"popGrow":[null,1.66,1.54,1.44,1.39,1.25,1.15,1.09,1.0,0.98,1.17,1.26,1.07,0.95,0.91,0.99,0.95,1.01,1.06,1.1,0.96,0.98,0.95,0.91,0.87,0.89,0.92,0.89,0.91,0.94,1.13,1.34,1.39,1.32,1.23,1.19,1.16,1.2,1.17,1.15,1.11,0.99,0.93,0.86,0.93,0.92,0.96,0.95,0.95,0.88,0.85,0.79,0.8,0.76,0.8,0.8,0.79,0.69,0.59,0.52,0.41,0.16,0.57,0.82,0.96],"gdpPc":[2999.86,3059.16,3236.01,3366.37,3565.31,3818.29,4136.31,4325.96,4684.59,5020.0,5234.3,5609.38,6094.02,6726.36,7225.69,7801.46,8592.25,9452.58,10564.95,11674.18,12574.79,13976.11,14433.79,15543.89,17121.23,18236.83,19071.23,20038.94,21417.01,22857.15,23888.6,24342.26,25418.99,26387.29,27694.85,28690.88,29967.71,31459.13,32853.67,34515.38,36329.97,37133.62,37997.74,39490.3,41724.64,44123.4,46301.99,48050.23,48570.06,47194.95,48642.63,50024.88,51708.39,53297.39,55153.39,56849.47,57976.63,60047.72,62875.67,65227.96,64465.3,71441.23,78008.69,82586.78,86169.66],"age1564":[59.9,59.67,59.7,59.82,59.93,60.04,60.24,60.56,60.95,61.35,61.73,62.17,62.73,63.35,63.98,64.57,65.13,65.62,66.0,66.31,66.52,66.64,66.69,66.7,66.72,66.77,66.8,66.71,66.54,66.32,66.12,65.94,65.79,65.72,65.72,65.8,65.93,66.1,66.29,66.47,66.65,66.83,67.0,67.17,67.34,67.52,67.66,67.67,67.6,67.52,67.46,67.33,67.11,66.89,66.68,66.5,66.32,66.12,65.92,65.72,65.54,65.38,65.2,64.98,64.75]},"JP":{"birthRate":[17.2,16.9,17.0,17.3,17.7,18.6,13.7,19.4,18.6,18.5,18.8,19.2,19.3,19.4,18.6,17.1,16.3,15.5,14.9,14.2,13.6,13.0,12.8,12.7,12.5,11.9,11.4,11.1,10.8,10.2,10.0,9.9,9.8,9.6,10.0,9.6,9.7,9.5,9.6,9.4,9.5,9.3,9.2,8.9,8.8,8.4,8.7,8.6,8.7,8.5,8.5,8.3,8.2,8.2,8.0,8.0,7.8,7.6,7.4,7.0,6.8,6.6,6.3,6.0,5.7],"tfr":[2.0,1.96,1.98,2.0,2.05,2.14,1.58,2.23,2.13,2.13,2.13,2.16,2.14,2.14,2.05,1.91,1.85,1.8,1.79,1.77,1.75,1.74,1.77,1.8,1.81,1.76,1.72,1.69,1.66,1.57,1.54,1.53,1.5,1.46,1.5,1.42,1.43,1.39,1.38,1.34,1.36,1.33,1.32,1.29,1.29,1.26,1.32,1.34,1.37,1.37,1.39,1.39,1.41,1.43,1.42,1.45,1.44,1.43,1.42,1.36,1.33,1.3,1.26,1.2,1.15],"dep":[55.22,53.82,51.4,49.0,47.1,45.81,44.62,43.84,43.6,43.51,43.51,43.8,44.5,45.28,45.97,46.56,47.08,47.54,47.92,48.15,48.15,48.34,48.37,47.93,47.57,47.11,46.36,45.51,44.62,43.81,43.23,42.94,42.89,42.95,43.14,43.47,43.95,44.57,45.21,45.88,46.68,47.61,48.53,49.35,50.29,51.59,53.01,54.37,55.73,56.79,57.4,58.58,60.54,62.61,64.47,66.02,67.32,68.31,69.02,69.48,69.89,70.26,70.25,70.1,70.12],"depOld":[8.91,8.99,9.01,9.04,9.11,9.23,9.41,9.62,9.8,9.98,10.14,10.35,10.68,11.0,11.3,11.61,11.96,12.33,12.72,13.09,13.44,13.8,14.16,14.44,14.81,15.23,15.58,15.95,16.35,16.84,17.42,18.07,18.78,19.51,20.25,21.03,21.88,22.79,23.7,24.61,25.58,26.62,27.63,28.52,29.49,30.75,32.1,33.39,34.65,35.69,36.36,37.51,39.35,41.32,43.13,44.7,46.03,47.09,47.91,48.52,49.13,49.74,50.06,50.28,50.66],"depYoung":[46.31,44.82,42.38,39.97,37.99,36.58,35.22,34.22,33.8,33.53,33.38,33.44,33.82,34.28,34.67,34.95,35.12,35.21,35.2,35.05,34.72,34.54,34.22,33.5,32.76,31.88,30.79,29.56,28.26,26.97,25.81,24.87,24.1,23.44,22.89,22.43,22.07,21.78,21.51,21.27,21.09,20.99,20.91,20.83,20.8,20.85,20.91,20.99,21.07,21.1,21.05,21.08,21.18,21.29,21.33,21.32,21.29,21.22,21.11,20.96,20.76,20.51,20.19,19.82,19.45],"age65":[5.74,5.85,5.95,6.07,6.19,6.33,6.5,6.69,6.83,6.95,7.06,7.2,7.39,7.57,7.74,7.92,8.13,8.36,8.6,8.84,9.07,9.3,9.54,9.76,10.03,10.35,10.64,10.96,11.31,11.71,12.16,12.64,13.15,13.65,14.15,14.66,15.2,15.76,16.32,16.87,17.44,18.03,18.6,19.09,19.62,20.28,20.98,21.63,22.25,22.76,23.1,23.65,24.51,25.41,26.23,26.92,27.51,27.98,28.35,28.63,28.92,29.22,29.4,29.56,29.78],"age014":[29.83,29.14,28.0,26.82,25.83,25.09,24.35,23.79,23.54,23.37,23.26,23.26,23.41,23.6,23.75,23.85,23.88,23.86,23.8,23.66,23.43,23.28,23.06,22.64,22.2,21.67,21.03,20.32,19.54,18.75,18.02,17.4,16.87,16.4,15.99,15.64,15.33,15.06,14.81,14.58,14.38,14.22,14.08,13.95,13.84,13.75,13.67,13.59,13.53,13.46,13.37,13.29,13.2,13.09,12.97,12.84,12.72,12.61,12.49,12.37,12.22,12.05,11.86,11.65,11.44],"lifeExp":[67.7,68.35,68.63,69.71,70.21,70.27,70.92,71.47,71.61,71.86,71.92,72.81,73.15,73.3,73.67,74.25,74.69,75.26,75.58,76.11,75.99,76.39,76.87,76.92,77.29,77.56,78.01,78.43,78.35,78.77,78.84,79.04,79.08,79.3,79.7,79.54,80.22,80.42,80.5,80.46,81.08,81.42,81.69,81.76,82.03,81.96,82.32,82.51,82.59,82.93,82.84,82.59,83.1,83.33,83.59,83.79,83.98,84.1,84.21,84.36,84.56,84.45,84.0,84.04,84.04],"pop":[93216000.0,94055000.0,94933000.0,95900000.0,96903000.0,97952000.0,98851000.0,99879000.0,101011000.0,102219000.0,103403000.0,105697000.0,107188000.0,108707000.0,110162000.0,111573000.0,112775000.0,113872000.0,114913000.0,115890000.0,116807000.0,117661000.0,118480000.0,119307000.0,120083000.0,120837000.0,121482000.0,122069000.0,122578000.0,123069000.0,123478000.0,123964000.0,124425000.0,124829000.0,125178000.0,125472000.0,125757000.0,126057000.0,126400000.0,126631000.0,126843000.0,127149000.0,127445000.0,127718000.0,127761000.0,127773000.0,127854000.0,128001000.0,128063000.0,128047000.0,128070000.0,127833000.0,127629000.0,127445000.0,127276000.0,127141000.0,127076000.0,126972000.0,126811000.0,126633000.0,126261000.0,125681593.0,125124989.0,124516650.0,123975371.0],"popGrow":[null,0.9,0.93,1.01,1.04,1.08,0.91,1.03,1.13,1.19,1.15,2.19,1.4,1.41,1.33,1.27,1.07,0.97,0.91,0.85,0.79,0.73,0.69,0.7,0.65,0.63,0.53,0.48,0.42,0.4,0.33,0.39,0.37,0.32,0.28,0.23,0.23,0.24,0.27,0.18,0.17,0.24,0.23,0.21,0.03,0.01,0.06,0.11,0.05,-0.01,0.02,-0.19,-0.16,-0.14,-0.13,-0.11,-0.05,-0.08,-0.13,-0.14,-0.29,-0.46,-0.44,-0.49,-0.44],"gdpPc":[519.42,621.69,698.98,791.92,921.88,1014.66,1167.69,1354.29,1585.98,1840.95,2144.99,2370.28,3095.28,4146.53,4541.99,4876.47,5422.26,6609.09,9201.92,9497.01,9872.35,10805.99,9985.92,10876.33,11443.46,12058.15,17819.34,21586.93,26036.86,25798.01,26344.73,30048.14,32666.5,37110.61,40774.45,44947.48,39929.72,36331.03,32835.12,37028.72,39752.94,34910.17,33315.92,35808.68,38677.57,38158.68,36354.43,36129.95,40294.21,41678.18,45378.14,49122.08,49626.68,41369.19,39172.85,35664.64,40214.97,39679.86,40645.48,41424.87,41098.97,41580.74,35548.26,35215.0,33797.1],"age1564":[64.43,65.01,66.05,67.11,67.98,68.58,69.15,69.52,69.63,69.68,69.68,69.54,69.2,68.83,68.51,68.23,67.99,67.78,67.6,67.5,67.5,67.42,67.4,67.6,67.77,67.98,68.33,68.72,69.15,69.54,69.82,69.96,69.98,69.95,69.86,69.7,69.47,69.18,68.87,68.55,68.18,67.75,67.32,66.96,66.54,65.97,65.35,64.78,64.22,63.78,63.53,63.06,62.29,61.5,60.8,60.24,59.77,59.41,59.16,59.0,58.86,58.73,58.74,58.79,58.78]},"DE":{"birthRate":[17.3,17.9,17.8,18.1,18.0,17.4,17.2,16.5,15.7,14.7,13.4,12.9,11.5,10.3,10.2,9.9,10.2,10.3,10.4,10.5,11.1,11.0,11.0,10.6,10.4,10.5,10.9,11.2,11.4,11.2,11.4,10.4,10.0,9.8,9.5,9.4,9.7,9.9,9.6,9.4,9.3,8.9,8.7,8.6,8.6,8.3,8.2,8.3,8.3,8.1,8.3,8.3,8.4,8.5,8.8,9.0,9.6,9.5,9.5,9.4,9.3,9.6,8.9,8.3,8.1],"tfr":[2.37,2.45,2.44,2.51,2.54,2.5,2.53,2.48,2.38,2.21,2.03,1.92,1.71,1.54,1.51,1.45,1.45,1.4,1.38,1.38,1.44,1.43,1.41,1.33,1.29,1.37,1.43,1.43,1.46,1.42,1.45,1.33,1.29,1.28,1.24,1.25,1.3,1.35,1.36,1.36,1.38,1.35,1.34,1.34,1.36,1.34,1.33,1.37,1.38,1.36,1.39,1.39,1.41,1.42,1.47,1.5,1.6,1.57,1.57,1.54,1.53,1.58,1.46,1.39,1.36],"dep":[48.72,50.13,51.37,52.49,53.62,54.57,55.52,56.71,57.62,57.98,58.28,58.52,58.41,58.02,57.56,57.03,56.21,55.29,54.29,53.11,51.64,49.8,47.84,45.97,44.58,43.97,43.84,43.85,44.05,44.39,44.83,45.26,45.49,45.75,46.09,46.3,46.4,46.47,46.55,46.81,47.31,47.79,48.21,48.66,49.3,50.04,50.84,51.46,51.81,52.16,52.12,51.75,51.58,51.62,51.83,52.12,52.58,53.26,53.88,54.54,55.3,56.23,57.16,57.99,59.0],"depOld":[17.07,17.54,18.02,18.43,18.89,19.33,19.82,20.44,20.95,21.25,21.63,22.03,22.34,22.63,22.96,23.3,23.53,23.74,23.91,23.93,23.65,22.97,22.14,21.35,20.89,20.92,21.14,21.35,21.48,21.49,21.53,21.65,21.75,21.93,22.23,22.53,22.75,22.92,23.2,23.65,24.25,24.91,25.59,26.34,27.27,28.3,29.41,30.28,30.8,31.23,31.28,31.14,31.28,31.56,31.82,32.03,32.25,32.63,33.01,33.42,33.92,34.58,35.3,36.01,36.88],"depYoung":[31.65,32.59,33.35,34.06,34.74,35.24,35.7,36.26,36.67,36.74,36.66,36.49,36.07,35.38,34.6,33.73,32.68,31.55,30.38,29.17,27.99,26.83,25.7,24.62,23.69,23.05,22.69,22.49,22.58,22.9,23.3,23.62,23.75,23.82,23.85,23.78,23.65,23.55,23.35,23.16,23.06,22.88,22.62,22.32,22.03,21.75,21.44,21.18,21.02,20.93,20.83,20.61,20.3,20.06,20.01,20.1,20.33,20.62,20.87,21.11,21.37,21.65,21.87,21.99,22.12],"age65":[11.48,11.68,11.9,12.08,12.29,12.51,12.74,13.05,13.29,13.45,13.66,13.9,14.1,14.32,14.57,14.84,15.06,15.29,15.5,15.63,15.6,15.33,14.98,14.62,14.45,14.53,14.7,14.84,14.91,14.88,14.87,14.9,14.95,15.05,15.22,15.4,15.54,15.65,15.83,16.11,16.46,16.86,17.27,17.72,18.27,18.86,19.5,19.99,20.29,20.52,20.57,20.52,20.64,20.81,20.96,21.05,21.13,21.29,21.45,21.63,21.84,22.13,22.46,22.79,23.2],"age014":[21.28,21.71,22.03,22.34,22.61,22.8,22.96,23.14,23.26,23.25,23.16,23.02,22.77,22.39,21.96,21.48,20.92,20.32,19.69,19.05,18.46,17.91,17.38,16.87,16.38,16.01,15.78,15.64,15.67,15.86,16.09,16.26,16.32,16.34,16.33,16.25,16.15,16.08,15.94,15.77,15.65,15.48,15.26,15.01,14.75,14.49,14.21,13.99,13.84,13.76,13.7,13.58,13.39,13.23,13.18,13.21,13.33,13.46,13.56,13.66,13.76,13.86,13.91,13.92,13.91],"lifeExp":[69.06,69.64,69.8,69.91,70.44,70.41,70.52,70.73,70.38,70.23,70.45,70.68,70.91,71.11,71.42,71.26,71.71,72.31,72.29,72.63,72.8,73.04,73.33,73.62,74.07,74.19,74.4,74.81,75.0,75.19,75.09,75.32,75.82,75.87,76.27,76.42,76.67,77.07,77.48,77.73,77.93,78.33,78.23,78.38,78.68,78.93,79.13,79.53,79.74,79.84,79.99,80.44,80.54,80.49,81.09,80.64,80.99,80.99,80.89,81.29,81.04,80.79,80.61,81.04,80.79],"pop":[72814900.0,73377632.0,74025784.0,74714353.0,75318337.0,75963695.0,76600311.0,76951336.0,77294314.0,77909682.0,78169289.0,78312842.0,78688452.0,78936666.0,78967433.0,78673554.0,78336950.0,78159814.0,78091820.0,78126350.0,78288576.0,78407907.0,78333366.0,78128282.0,77858685.0,77684873.0,77720436.0,77839920.0,78144619.0,78751283.0,79433029.0,80013896.0,80624598.0,81156363.0,81438348.0,81678051.0,81914831.0,82034771.0,82047195.0,82100243.0,82211508.0,82349925.0,82488495.0,82534176.0,82516260.0,82469422.0,82376451.0,82266372.0,82110097.0,81902307.0,81776930.0,80274983.0,80425823.0,80645605.0,80982500.0,81686611.0,82348669.0,82657002.0,82905782.0,83092962.0,83160871.0,83196078.0,83177813.0,83287273.0,83516593.0],"popGrow":[null,0.77,0.88,0.93,0.81,0.85,0.83,0.46,0.44,0.79,0.33,0.18,0.48,0.31,0.04,-0.37,-0.43,-0.23,-0.09,0.04,0.21,0.15,-0.1,-0.26,-0.35,-0.22,0.05,0.15,0.39,0.77,0.86,0.73,0.76,0.66,0.35,0.29,0.29,0.15,0.02,0.06,0.14,0.17,0.17,0.06,-0.02,-0.06,-0.11,-0.13,-0.19,-0.25,-0.15,-1.85,0.19,0.27,0.42,0.87,0.81,0.37,0.3,0.23,0.08,0.04,-0.02,0.13,0.27],"gdpPc":[1162.12,1315.91,1430.52,1502.15,1637.46,1774.2,1870.81,1885.62,2025.08,2281.28,2771.28,3203.83,3823.94,5065.25,5659.74,6259.21,6659.17,7711.1,9516.78,11322.35,12182.78,10246.48,9950.06,9900.49,9347.29,9464.12,13511.15,16738.61,17996.98,17829.46,22385.68,23443.34,26559.85,25616.65,27201.96,31747.24,30599.79,27046.96,27395.94,26965.49,23925.86,23878.36,25486.59,30711.1,34566.74,35084.44,36980.33,42350.92,46379.16,42471.89,42396.97,47630.98,44718.02,47206.84,48959.6,41929.75,42948.94,45553.93,48916.17,47656.2,47394.87,52349.25,50506.52,54776.77,56103.73],"age1564":[67.24,66.61,66.07,65.58,65.1,64.69,64.3,63.81,63.45,63.3,63.18,63.08,63.13,63.29,63.47,63.68,64.02,64.39,64.81,65.32,65.94,66.76,67.64,68.51,69.17,69.46,69.52,69.52,69.42,69.26,69.04,68.84,68.73,68.61,68.45,68.35,68.31,68.27,68.23,68.12,67.89,67.66,67.47,67.27,66.98,66.65,66.29,66.02,65.87,65.72,65.73,65.9,65.97,65.96,65.86,65.74,65.54,65.25,64.99,64.71,64.4,64.01,63.63,63.29,62.89]},"SA":{"birthRate":[51.54,51.37,51.14,50.98,50.81,50.42,50.11,49.81,49.34,48.93,48.67,48.36,48.25,48.02,47.85,47.7,47.59,47.54,47.52,47.45,47.05,46.61,46.14,45.59,45.04,44.23,43.12,41.9,40.72,39.32,37.97,36.71,35.51,34.47,33.42,32.31,31.22,30.28,29.51,28.54,27.49,25.53,23.77,22.3,21.27,21.06,21.35,21.73,21.31,20.8,20.13,20.32,20.39,19.71,19.82,19.41,19.55,19.82,19.74,18.07,16.63,15.9,15.22,16.41,16.5],"tfr":[7.63,7.63,7.64,7.65,7.67,7.66,7.66,7.66,7.63,7.6,7.58,7.56,7.54,7.48,7.43,7.37,7.33,7.29,7.26,7.23,7.14,7.07,6.98,6.88,6.78,6.65,6.52,6.34,6.15,5.97,5.8,5.64,5.49,5.33,5.16,4.99,4.81,4.66,4.52,4.35,4.21,3.96,3.71,3.46,3.26,3.16,3.18,3.19,3.07,2.95,2.81,2.8,2.78,2.67,2.68,2.63,2.65,2.67,2.67,2.49,2.27,2.17,2.14,2.28,2.31],"dep":[87.36,88.21,89.12,90.24,91.3,92.08,92.77,93.32,93.65,93.77,93.69,93.28,92.53,91.61,90.66,89.8,88.97,88.13,87.35,86.67,86.09,85.47,84.8,84.22,83.85,83.69,83.43,82.97,82.62,82.25,81.66,80.9,79.97,78.91,77.68,76.3,74.79,73.16,71.45,69.65,68.11,66.44,64.05,61.19,58.08,54.95,51.94,49.2,46.78,44.68,42.9,41.41,40.17,39.14,38.28,37.55,37.23,37.83,38.97,39.28,38.91,38.55,37.64,36.83,36.55],"depOld":[6.14,6.1,6.07,6.03,5.99,5.94,5.88,5.81,5.72,5.63,5.52,5.39,5.23,5.07,4.91,4.75,4.6,4.46,4.32,4.2,4.09,3.99,3.89,3.8,3.73,3.68,3.64,3.6,3.58,3.57,3.57,3.57,3.58,3.59,3.6,3.62,3.64,3.67,3.7,3.74,3.75,3.72,3.69,3.65,3.61,3.57,3.53,3.5,3.48,3.46,3.42,3.38,3.32,3.24,3.15,3.06,3.04,3.14,3.31,3.41,3.5,3.63,3.72,3.86,4.03],"depYoung":[81.23,82.11,83.05,84.21,85.31,86.15,86.9,87.52,87.93,88.15,88.17,87.89,87.3,86.54,85.75,85.05,84.37,83.67,83.02,82.47,82.0,81.49,80.91,80.42,80.12,80.01,79.79,79.37,79.04,78.68,78.09,77.32,76.39,75.32,74.08,72.68,71.15,69.49,67.75,65.92,64.37,62.72,60.36,57.54,54.48,51.38,48.41,45.7,43.3,41.23,39.48,38.03,36.85,35.9,35.13,34.48,34.19,34.69,35.66,35.87,35.41,34.92,33.92,32.97,32.53],"age65":[3.27,3.24,3.21,3.17,3.13,3.09,3.05,3.0,2.95,2.9,2.85,2.79,2.72,2.65,2.57,2.5,2.43,2.37,2.31,2.25,2.2,2.15,2.1,2.06,2.03,2.01,1.99,1.97,1.96,1.96,1.97,1.97,1.99,2.01,2.03,2.05,2.08,2.12,2.16,2.2,2.23,2.24,2.25,2.26,2.28,2.3,2.32,2.35,2.37,2.39,2.4,2.39,2.37,2.33,2.28,2.23,2.21,2.28,2.38,2.45,2.52,2.62,2.7,2.82,2.95],"age014":[43.35,43.63,43.91,44.26,44.6,44.85,45.08,45.27,45.41,45.49,45.52,45.47,45.34,45.16,44.98,44.81,44.65,44.48,44.32,44.18,44.06,43.93,43.78,43.65,43.58,43.55,43.5,43.38,43.28,43.17,42.99,42.75,42.45,42.1,41.69,41.23,40.71,40.13,39.52,38.85,38.29,37.68,36.8,35.7,34.46,33.16,31.86,30.63,29.5,28.49,27.62,26.89,26.29,25.8,25.4,25.07,24.92,25.17,25.66,25.75,25.49,25.21,24.64,24.1,23.82],"lifeExp":[45.31,45.88,46.47,47.09,47.73,48.44,49.19,49.99,50.86,51.77,52.73,53.73,54.74,55.77,56.78,57.78,58.78,59.75,60.69,61.52,62.44,63.25,64.01,64.72,65.39,66.03,66.65,67.24,67.81,68.36,68.87,69.34,69.8,70.21,70.59,70.94,71.29,71.62,71.96,72.29,72.61,72.95,73.3,73.66,74.03,74.4,74.76,75.07,75.3,75.45,75.62,75.81,76.09,76.52,77.12,77.78,78.35,78.72,78.75,78.31,77.6,77.09,77.31,78.73,78.98],"pop":[2435403.0,2526347.0,2620910.0,2719341.0,2821968.0,2928771.0,3039887.0,3157242.0,3282711.0,3417114.0,3562470.0,3724031.0,3905722.0,4106344.0,4323632.0,4556287.0,4807933.0,5083048.0,5381902.0,5703698.0,6047997.0,6420551.0,6824486.0,7252941.0,7697307.0,8151779.0,8628639.0,9130194.0,9629165.0,10128394.0,10640691.0,11160744.0,11686676.0,12215862.0,12750040.0,13289245.0,13831009.0,14374943.0,14922185.0,15472075.0,16177722.0,17041397.0,17910910.0,18786767.0,19669480.0,20559890.0,21459144.0,22368313.0,23287877.0,24217654.0,23978487.0,25091867.0,26168861.0,27624004.0,28309273.0,29816382.0,30954198.0,30977355.0,30196281.0,30063799.0,31552510.0,30784383.0,32175224.0,33702731.0,35300280.0],"popGrow":[null,3.67,3.67,3.69,3.7,3.71,3.72,3.79,3.9,4.01,4.17,4.44,4.76,5.01,5.16,5.24,5.38,5.56,5.71,5.81,5.86,5.98,6.1,6.09,5.95,5.74,5.69,5.65,5.32,5.05,4.93,4.77,4.6,4.43,4.28,4.14,4.0,3.86,3.74,3.62,4.46,5.2,4.98,4.77,4.59,4.43,4.28,4.15,4.03,3.91,-0.99,4.54,4.2,5.41,2.45,5.19,3.75,0.07,-2.55,-0.44,4.83,-2.46,4.42,4.64,4.63],"gdpPc":[717.8,760.31,812.93,811.74,840.48,904.12,960.74,1031.6,1275.71,1312.74,1509.44,1929.31,2474.39,3640.08,10503.43,10265.64,13312.51,14595.37,14914.15,19611.57,27205.65,28703.36,22454.48,17809.55,15541.13,12745.42,10078.29,9385.98,9165.5,9413.58,11054.75,11847.17,11730.27,10884.86,10601.92,10786.4,11471.5,11545.35,9836.06,10452.19,11714.56,10805.31,10586.05,11487.22,13154.5,15975.75,17563.61,18596.15,22320.49,17718.39,22028.39,27126.75,28733.44,27865.47,27805.49,23256.15,22267.72,23929.29,29360.07,29566.79,24338.83,31920.77,38510.23,36156.86,35527.79],"age1564":[53.38,53.13,52.88,52.57,52.27,52.06,51.87,51.73,51.64,51.61,51.63,51.74,51.94,52.19,52.45,52.69,52.92,53.15,53.37,53.57,53.74,53.92,54.12,54.29,54.39,54.44,54.51,54.65,54.76,54.87,55.04,55.28,55.56,55.89,56.28,56.72,57.21,57.75,58.32,58.95,59.48,60.08,60.95,62.04,63.26,64.54,65.82,67.02,68.13,69.12,69.98,70.72,71.34,71.87,72.32,72.7,72.87,72.55,71.96,71.8,71.99,72.17,72.66,73.08,73.23]},"GB":{"birthRate":[17.5,17.9,18.3,18.5,18.8,18.3,17.9,17.5,17.2,16.6,16.2,16.1,14.9,13.9,13.1,12.4,12.0,11.7,12.2,13.1,13.4,13.0,12.8,12.8,12.9,13.3,13.3,13.7,13.8,13.6,13.9,13.8,13.6,13.2,13.0,12.6,12.6,12.5,12.3,11.9,11.5,11.3,11.3,11.7,11.9,12.0,12.3,12.6,12.9,12.7,12.9,12.8,12.8,12.1,12.0,11.9,11.8,11.4,11.0,10.64,10.2,10.24,10.1,10.02,9.89],"tfr":[2.69,2.78,2.86,2.88,2.93,2.86,2.78,2.68,2.6,2.51,2.44,2.41,2.2,2.04,1.92,1.81,1.74,1.69,1.75,1.86,1.9,1.82,1.78,1.77,1.77,1.79,1.78,1.81,1.82,1.79,1.83,1.82,1.79,1.76,1.74,1.71,1.73,1.72,1.71,1.68,1.64,1.63,1.63,1.7,1.75,1.76,1.82,1.86,1.91,1.89,1.92,1.91,1.92,1.83,1.81,1.8,1.79,1.74,1.68,1.63,1.57,1.58,1.56,1.56,1.55],"dep":[53.95,54.05,53.92,54.06,54.59,55.29,56.03,56.85,57.69,58.47,59.13,59.65,60.0,60.15,60.08,59.75,59.15,58.4,57.66,56.92,56.18,55.37,54.4,53.35,52.59,52.38,52.38,52.37,52.88,53.54,53.89,54.34,54.78,55.05,55.12,55.01,54.82,54.61,54.35,53.98,53.43,52.88,52.5,52.36,52.22,51.83,51.4,51.16,51.19,51.44,51.74,52.28,53.23,54.15,54.84,55.4,55.92,56.48,57.0,57.43,57.66,57.61,57.63,57.85,57.94],"depOld":[18.01,18.11,18.17,18.33,18.64,18.97,19.31,19.67,20.07,20.45,20.86,21.25,21.61,21.93,22.26,22.55,22.76,22.95,23.15,23.31,23.42,23.42,23.26,22.96,22.82,23.03,23.33,23.55,23.93,24.28,24.43,24.58,24.71,24.77,24.79,24.79,24.76,24.7,24.61,24.49,24.38,24.32,24.29,24.29,24.29,24.23,24.12,24.11,24.25,24.5,24.79,25.26,26.01,26.71,27.23,27.61,27.94,28.28,28.66,29.06,29.33,29.5,29.84,30.37,30.8],"depYoung":[35.95,35.93,35.75,35.73,35.95,36.31,36.72,37.17,37.63,38.01,38.27,38.4,38.4,38.22,37.82,37.2,36.39,35.46,34.51,33.61,32.76,31.95,31.14,30.39,29.77,29.35,29.05,28.82,28.95,29.26,29.46,29.76,30.07,30.28,30.33,30.21,30.06,29.91,29.74,29.49,29.05,28.56,28.2,28.07,27.92,27.6,27.28,27.05,26.95,26.94,26.95,27.02,27.22,27.44,27.62,27.79,27.99,28.2,28.34,28.37,28.33,28.11,27.79,27.48,27.14],"age65":[11.7,11.76,11.8,11.9,12.06,12.22,12.37,12.54,12.72,12.91,13.11,13.31,13.5,13.7,13.91,14.11,14.3,14.49,14.68,14.86,14.99,15.07,15.06,14.97,14.95,15.11,15.31,15.46,15.65,15.81,15.87,15.93,15.96,15.98,15.98,15.99,15.99,15.98,15.95,15.9,15.89,15.91,15.93,15.94,15.96,15.96,15.93,15.95,16.04,16.18,16.34,16.59,16.97,17.33,17.58,17.77,17.92,18.07,18.26,18.46,18.61,18.72,18.93,19.24,19.5],"age014":[23.35,23.33,23.23,23.19,23.26,23.39,23.54,23.7,23.86,23.99,24.05,24.05,24.0,23.86,23.62,23.29,22.87,22.38,21.89,21.42,20.98,20.56,20.17,19.82,19.51,19.26,19.06,18.91,18.94,19.06,19.15,19.28,19.43,19.53,19.55,19.49,19.42,19.34,19.27,19.15,18.93,18.68,18.49,18.42,18.34,18.18,18.02,17.89,17.82,17.79,17.76,17.74,17.77,17.8,17.83,17.88,17.95,18.02,18.05,18.02,17.97,17.83,17.63,17.41,17.19],"lifeExp":[71.13,70.88,70.93,70.83,71.62,71.62,71.57,72.12,71.72,71.72,71.97,72.27,72.12,72.32,72.52,72.72,72.78,73.22,73.18,73.28,73.68,74.03,74.18,74.38,74.78,74.63,74.93,75.28,75.38,75.58,75.88,76.08,76.43,76.39,76.89,76.84,77.09,77.21,77.19,77.39,77.74,77.99,78.14,78.45,78.75,79.05,79.25,79.45,79.6,80.05,80.4,80.95,80.9,81.0,81.3,80.96,81.16,81.26,81.26,81.37,80.33,80.65,81.01,81.24,81.39],"pop":[52400000.0,52800000.0,53250000.0,53650000.0,54000000.0,54348050.0,54648500.0,54943600.0,55211700.0,55441750.0,55663250.0,55896223.0,56086065.0,56194527.0,56229974.0,56225800.0,56211968.0,56193492.0,56196504.0,56246951.0,56314216.0,56333829.0,56313641.0,56332848.0,56422072.0,56550268.0,56681396.0,56802050.0,56928327.0,57076711.0,57247586.0,57424897.0,57580402.0,57718614.0,57865745.0,58019030.0,58166950.0,58316954.0,58487141.0,58682466.0,58892514.0,59119673.0,59370479.0,59647577.0,59987905.0,60401206.0,60846820.0,61322463.0,61806995.0,62276270.0,62766365.0,63258810.0,63711000.0,64138000.0,64619000.0,65087000.0,65606000.0,65964000.0,66287000.0,66628000.0,66740000.0,66978000.0,67636000.0,68526000.0,69281000.0],"popGrow":[null,0.76,0.85,0.75,0.65,0.64,0.55,0.54,0.49,0.42,0.4,0.42,0.34,0.19,0.06,-0.01,-0.02,-0.03,0.01,0.09,0.12,0.03,-0.04,0.03,0.16,0.23,0.23,0.21,0.22,0.26,0.3,0.31,0.27,0.24,0.25,0.26,0.25,0.26,0.29,0.33,0.36,0.38,0.42,0.47,0.57,0.69,0.74,0.78,0.79,0.76,0.78,0.78,0.71,0.67,0.75,0.72,0.79,0.54,0.49,0.51,0.17,0.36,0.98,1.31,1.1],"gdpPc":[1397.59,1472.39,1525.78,1613.46,1748.29,1873.57,1986.75,2058.78,1951.76,2100.67,2347.54,2649.8,3030.43,3426.28,3665.86,4299.75,4138.17,4681.44,5976.94,7804.76,10032.06,9599.31,9146.08,8691.52,8179.19,8652.22,10611.11,13118.59,15987.17,16239.28,19095.47,19900.73,20487.17,18389.02,19709.24,23252.62,24503.38,26910.14,28396.35,28858.01,28383.88,28013.87,30158.7,34556.77,40504.41,42240.25,44695.16,50629.08,47652.4,39009.37,39778.32,42295.93,42688.33,43607.66,47746.98,45256.04,41258.54,40918.05,43704.32,43160.68,40815.13,47695.65,47034.78,49919.69,53341.31],"age1564":[64.95,64.91,64.97,64.91,64.68,64.39,64.09,63.76,63.42,63.1,62.84,62.64,62.5,62.44,62.47,62.6,62.83,63.13,63.43,63.72,64.03,64.37,64.77,65.21,65.54,65.63,65.63,65.63,65.41,65.13,64.98,64.79,64.61,64.49,64.47,64.52,64.59,64.68,64.78,64.95,65.18,65.41,65.58,65.64,65.7,65.86,66.05,66.16,66.14,66.03,65.9,65.67,65.26,64.87,64.59,64.35,64.13,63.91,63.69,63.52,63.42,63.45,63.44,63.35,63.31]},"BR":{"birthRate":[43.85,43.29,42.7,42.01,41.0,39.84,38.64,37.41,36.34,35.69,35.23,34.88,34.54,34.22,33.68,33.48,33.32,33.17,32.98,32.73,32.42,32.02,31.46,30.8,29.97,29.18,28.34,27.38,26.46,25.64,24.77,24.06,23.3,22.95,22.52,22.28,21.87,21.58,21.22,20.58,19.88,19.18,18.49,17.82,17.5,17.18,16.69,16.24,15.8,15.56,15.34,15.14,14.94,14.79,14.78,14.68,14.15,14.12,14.02,13.55,12.99,12.75,12.55,12.32,12.13],"tfr":[6.05,6.02,5.98,5.93,5.82,5.68,5.52,5.34,5.17,5.04,4.93,4.84,4.74,4.64,4.5,4.42,4.34,4.27,4.2,4.12,4.04,3.94,3.84,3.72,3.6,3.48,3.36,3.23,3.11,3.01,2.9,2.81,2.71,2.66,2.6,2.57,2.51,2.47,2.42,2.33,2.25,2.16,2.08,2.01,1.97,1.94,1.9,1.85,1.81,1.8,1.79,1.78,1.77,1.76,1.77,1.78,1.73,1.74,1.74,1.71,1.65,1.64,1.63,1.62,1.61],"dep":[87.67,88.3,88.79,89.02,88.91,88.5,87.92,87.13,86.15,85.03,83.85,82.64,81.4,80.15,78.87,77.61,76.38,75.22,74.11,73.11,72.24,71.5,70.89,70.38,69.88,69.34,68.75,68.09,67.33,66.51,65.59,64.58,63.46,62.28,61.08,59.87,58.65,57.44,56.25,55.08,53.93,52.82,51.75,50.75,49.83,49.01,48.27,47.58,46.93,46.31,45.72,45.16,44.64,44.18,43.82,43.59,43.44,43.37,43.43,43.54,43.59,43.64,43.79,44.03,44.33],"depOld":[4.74,4.82,4.9,4.98,5.05,5.12,5.19,5.25,5.31,5.38,5.44,5.5,5.56,5.63,5.69,5.76,5.83,5.89,5.95,6.01,6.06,6.11,6.16,6.22,6.28,6.34,6.42,6.5,6.6,6.71,6.82,6.94,7.05,7.17,7.28,7.4,7.52,7.63,7.74,7.84,7.93,8.04,8.15,8.28,8.44,8.61,8.79,9.0,9.22,9.46,9.71,9.99,10.29,10.63,11.01,11.43,11.86,12.32,12.81,13.31,13.78,14.24,14.74,15.32,15.95],"depYoung":[82.92,83.49,83.89,84.05,83.86,83.39,82.74,81.88,80.83,79.66,78.41,77.14,75.84,74.52,73.18,71.84,70.56,69.32,68.16,67.1,66.18,65.39,64.73,64.16,63.61,63.0,62.34,61.58,60.73,59.79,58.77,57.64,56.41,55.11,53.8,52.47,51.13,49.81,48.51,47.24,46.0,44.78,43.6,42.47,41.4,40.41,39.48,38.59,37.71,36.85,36.0,35.17,34.35,33.55,32.81,32.17,31.58,31.05,30.63,30.23,29.8,29.4,29.05,28.71,28.38],"age65":[2.53,2.56,2.59,2.63,2.67,2.71,2.76,2.81,2.85,2.91,2.96,3.01,3.07,3.12,3.18,3.24,3.3,3.36,3.42,3.47,3.52,3.56,3.61,3.65,3.69,3.74,3.8,3.87,3.95,4.03,4.12,4.21,4.31,4.42,4.52,4.63,4.74,4.85,4.95,5.05,5.15,5.26,5.37,5.49,5.63,5.78,5.93,6.1,6.27,6.46,6.67,6.88,7.11,7.37,7.65,7.96,8.27,8.59,8.93,9.27,9.6,9.91,10.25,10.63,11.05],"age014":[44.19,44.34,44.44,44.46,44.39,44.24,44.03,43.75,43.42,43.05,42.65,42.24,41.81,41.37,40.91,40.45,40.0,39.57,39.15,38.76,38.42,38.13,37.88,37.66,37.44,37.2,36.94,36.64,36.29,35.91,35.49,35.02,34.51,33.96,33.4,32.82,32.23,31.64,31.05,30.46,29.88,29.3,28.73,28.17,27.63,27.12,26.62,26.14,25.67,25.19,24.71,24.23,23.75,23.27,22.81,22.4,22.02,21.66,21.35,21.06,20.76,20.47,20.2,19.94,19.67],"lifeExp":[53.16,53.59,54.02,54.45,54.85,55.24,55.62,56.02,56.47,56.9,57.34,57.79,58.26,58.68,59.08,59.56,60.01,60.46,60.92,61.37,61.82,62.27,62.71,63.13,63.55,63.98,64.39,64.78,65.16,65.51,65.86,66.2,66.54,66.89,67.29,67.7,68.11,68.5,68.85,69.21,69.58,69.98,70.4,70.88,71.36,71.83,72.3,72.73,73.11,73.46,73.78,74.05,74.33,74.61,74.82,75.11,75.08,75.38,75.63,75.81,74.51,73.04,74.87,75.85,76.02],"pop":[72388126.0,74605447.0,76865323.0,79164235.0,81488595.0,83817583.0,86139359.0,88446124.0,90741240.0,93045777.0,95375651.0,97739273.0,100146797.0,102600976.0,105089675.0,107619565.0,110213349.0,112875292.0,115600942.0,118380821.0,121207461.0,124063109.0,126923155.0,129790077.0,132658864.0,135515595.0,138336370.0,141104944.0,143826357.0,146502972.0,149143223.0,151724256.0,154275079.0,156794577.0,159265006.0,161735073.0,164202549.0,166661659.0,169159655.0,171641543.0,174018282.0,176301203.0,178503484.0,180622688.0,182675143.0,184688101.0,186653106.0,188552320.0,190367302.0,192079951.0,193701929.0,195284734.0,196876111.0,198478299.0,200085127.0,201675532.0,203218114.0,204703445.0,206107261.0,207455459.0,208660842.0,209550294.0,210306415.0,211140729.0,211998573.0],"popGrow":[null,3.02,2.98,2.95,2.89,2.82,2.73,2.64,2.56,2.51,2.47,2.45,2.43,2.42,2.4,2.38,2.38,2.39,2.39,2.38,2.36,2.33,2.28,2.23,2.19,2.13,2.06,1.98,1.91,1.84,1.79,1.72,1.67,1.62,1.56,1.54,1.51,1.49,1.49,1.46,1.38,1.3,1.24,1.18,1.13,1.1,1.06,1.01,0.96,0.9,0.84,0.81,0.81,0.81,0.81,0.79,0.76,0.73,0.68,0.65,0.58,0.43,0.36,0.4,0.41],"gdpPc":[235.27,231.56,250.2,294.17,257.26,268.03,328.34,351.47,373.93,399.5,443.8,500.0,583.49,814.73,1044.77,1200.56,1389.75,1562.29,1732.5,1869.71,1958.57,2079.71,2137.63,1461.26,1419.73,1556.13,1854.04,2006.0,2140.65,2818.99,2581.14,2257.61,2127.32,2348.88,3298.71,4756.75,5179.13,5299.4,5105.89,3493.57,3766.55,3176.29,2855.94,3090.61,3663.82,4827.78,5934.14,7409.69,8908.33,8678.66,11403.28,13396.62,12521.72,12458.89,12274.99,8936.2,8836.29,10080.51,9300.66,9029.83,7074.19,7972.54,9281.33,10377.59,10310.55],"age1564":[53.28,53.1,52.97,52.91,52.94,53.05,53.21,53.44,53.73,54.04,54.39,54.75,55.12,55.51,55.91,56.31,56.7,57.07,57.43,57.77,58.06,58.31,58.51,58.69,58.87,59.06,59.26,59.49,59.76,60.06,60.39,60.77,61.18,61.62,62.08,62.55,63.03,63.51,64.0,64.49,64.97,65.44,65.9,66.34,66.74,67.1,67.45,67.76,68.06,68.35,68.62,68.89,69.14,69.36,69.54,69.64,69.71,69.75,69.72,69.67,69.64,69.62,69.55,69.43,69.28]},"VE":{"birthRate":[44.97,44.14,43.44,42.72,41.99,41.26,40.51,39.75,38.98,38.21,37.46,36.74,36.13,35.72,35.3,35.01,34.74,34.47,34.15,33.81,33.33,32.83,32.28,31.83,31.43,31.04,30.94,30.57,30.1,29.53,28.93,28.32,27.68,27.07,26.5,25.96,25.48,25.06,24.64,24.23,23.68,23.6,23.28,22.94,22.42,22.37,22.1,21.51,21.06,20.55,20.28,20.2,19.94,19.48,19.05,18.6,18.26,17.93,17.33,16.3,15.54,15.22,15.03,15.09,15.23],"tfr":[6.38,6.3,6.23,6.16,6.07,5.98,5.87,5.75,5.61,5.47,5.32,5.17,5.04,4.91,4.79,4.69,4.59,4.49,4.4,4.3,4.2,4.1,4.01,3.93,3.86,3.79,3.73,3.67,3.6,3.52,3.45,3.37,3.29,3.22,3.15,3.08,3.02,2.97,2.91,2.86,2.79,2.78,2.74,2.7,2.64,2.63,2.6,2.52,2.48,2.42,2.4,2.4,2.38,2.33,2.3,2.25,2.22,2.18,2.15,2.13,2.12,2.1,2.09,2.08,2.08],"dep":[96.39,96.88,97.22,97.45,97.47,97.27,96.86,96.19,95.3,94.23,92.99,91.61,90.12,88.58,87.08,85.69,84.38,83.17,82.03,80.98,79.97,79.0,78.07,77.18,76.33,75.53,74.81,74.17,73.55,72.9,72.2,71.44,70.62,69.74,68.82,67.86,66.9,65.94,65.0,64.06,63.11,62.15,61.2,60.27,59.35,58.51,57.77,57.1,56.48,55.9,55.36,54.88,54.45,54.02,53.6,53.22,53.01,53.36,54.59,55.96,56.49,56.27,55.7,55.01,54.34],"depOld":[4.43,4.48,4.52,4.57,4.63,4.68,4.74,4.81,4.87,4.93,4.98,5.03,5.07,5.12,5.16,5.21,5.27,5.33,5.4,5.48,5.56,5.64,5.73,5.82,5.91,6.0,6.1,6.21,6.32,6.44,6.54,6.65,6.76,6.87,6.97,7.08,7.18,7.29,7.4,7.5,7.6,7.69,7.78,7.89,7.99,8.11,8.24,8.39,8.55,8.73,8.92,9.12,9.33,9.54,9.77,10.01,10.31,10.74,11.43,12.24,12.93,13.49,13.98,14.47,14.94],"depYoung":[91.96,92.41,92.7,92.87,92.84,92.58,92.12,91.39,90.44,89.3,88.01,86.58,85.05,83.46,81.92,80.48,79.11,77.84,76.63,75.49,74.41,73.36,72.34,71.36,70.42,69.53,68.71,67.96,67.22,66.46,65.66,64.79,63.86,62.87,61.84,60.79,59.72,58.65,57.6,56.56,55.51,54.46,53.42,52.38,51.36,50.4,49.53,48.71,47.93,47.17,46.44,45.76,45.12,44.48,43.83,43.21,42.7,42.62,43.16,43.73,43.55,42.78,41.71,40.54,39.4],"age65":[2.26,2.27,2.29,2.32,2.34,2.37,2.41,2.45,2.49,2.54,2.58,2.62,2.67,2.71,2.76,2.81,2.86,2.91,2.97,3.03,3.09,3.15,3.22,3.28,3.35,3.42,3.49,3.57,3.64,3.72,3.8,3.88,3.96,4.05,4.13,4.22,4.3,4.39,4.48,4.57,4.66,4.74,4.83,4.92,5.01,5.11,5.22,5.34,5.46,5.6,5.74,5.89,6.04,6.19,6.36,6.54,6.74,7.0,7.39,7.85,8.27,8.63,8.98,9.33,9.68],"age014":[46.82,46.93,47.0,47.04,47.02,46.93,46.79,46.58,46.3,45.98,45.6,45.19,44.73,44.26,43.79,43.34,42.91,42.49,42.1,41.71,41.35,40.98,40.63,40.27,39.93,39.61,39.31,39.02,38.73,38.44,38.13,37.79,37.43,37.04,36.63,36.21,35.78,35.35,34.91,34.47,34.03,33.59,33.14,32.68,32.23,31.8,31.4,31.01,30.63,30.26,29.89,29.55,29.21,28.88,28.54,28.2,27.91,27.79,27.92,28.04,27.83,27.38,26.79,26.15,25.53],"lifeExp":[58.38,59.12,59.67,60.5,61.17,61.91,62.89,63.55,63.91,63.84,64.82,65.18,65.56,65.74,66.22,66.69,67.27,67.73,68.11,68.23,68.18,68.7,68.98,69.54,69.67,69.96,70.53,70.67,70.76,70.81,70.96,71.17,71.18,71.39,71.28,71.71,71.92,72.56,72.45,72.09,72.39,71.02,72.82,72.06,72.75,73.08,72.97,73.35,72.58,72.78,73.09,73.09,73.09,73.08,72.84,73.0,72.0,71.9,72.64,72.77,72.37,71.54,72.57,72.51,72.67],"pop":[8160090.0,8455915.0,8756870.0,9064021.0,9377712.0,9697790.0,10024854.0,10358513.0,10697530.0,11040280.0,11387790.0,11741008.0,12099180.0,12463537.0,12835351.0,13215892.0,13606284.0,14006812.0,14416684.0,14834552.0,15258218.0,15687297.0,16121874.0,16562205.0,17008841.0,17461434.0,17923536.0,18394963.0,18871020.0,19348921.0,19827010.0,20304896.0,20780948.0,21254520.0,21725188.0,22193821.0,22662113.0,23131685.0,23601337.0,24066593.0,24526708.0,24979922.0,25435671.0,25892703.0,26340838.0,26785804.0,27224686.0,27649363.0,28053696.0,28438298.0,28813101.0,29185212.0,29553826.0,29912198.0,30254079.0,30573972.0,30765720.0,30565323.0,29807592.0,28938098.0,28444077.0,28237826.0,28213017.0,28300854.0,28405543.0],"popGrow":[null,3.56,3.5,3.45,3.4,3.36,3.32,3.27,3.22,3.15,3.1,3.05,3.01,2.97,2.94,2.92,2.91,2.9,2.88,2.86,2.82,2.77,2.73,2.69,2.66,2.63,2.61,2.6,2.56,2.5,2.44,2.38,2.32,2.25,2.19,2.13,2.09,2.05,2.01,1.95,1.89,1.83,1.81,1.78,1.72,1.68,1.63,1.55,1.45,1.36,1.31,1.28,1.26,1.21,1.14,1.05,0.63,-0.65,-2.51,-2.96,-1.72,-0.73,-0.09,0.31,0.37],"gdpPc":[939.2,954.04,1006.56,1060.09,873.6,869.04,875.96,892.99,938.02,931.6,1015.22,1106.09,1155.26,1366.83,2033.52,2078.15,2309.19,2585.22,2727.14,3256.65,3874.4,4228.1,4201.54,4078.94,3519.8,3548.7,3376.35,2610.99,3191.48,2250.08,2451.55,2632.54,2907.3,2824.69,2688.98,3486.98,3112.83,3710.83,3869.98,4070.91,4776.28,4920.39,3652.1,3229.51,4269.09,5432.49,6739.38,8331.62,11262.45,11596.6,13646.3,10843.92,12582.01,8642.37,7101.15,4096.62,3671.23,3791.63,3421.51,2523.12,1506.04,2004.94,3155.04,3617.47,4244.46],"age1564":[50.92,50.8,50.71,50.64,50.64,50.7,50.8,50.97,51.21,51.48,51.82,52.19,52.6,53.03,53.45,53.85,54.23,54.6,54.93,55.26,55.56,55.87,56.15,56.45,56.72,56.97,57.2,57.41,57.63,57.84,58.07,58.33,58.61,58.91,59.24,59.57,59.92,60.26,60.61,60.96,61.31,61.67,62.03,62.4,62.76,63.09,63.38,63.65,63.91,64.14,64.37,64.56,64.75,64.93,65.1,65.26,65.35,65.21,64.69,64.11,63.9,63.99,64.23,64.52,64.79]}}};
+
+const CC = {
+  CN:{name:"中国",en:"China",color:"#D64533"},
+  US:{name:"美国",en:"United States",color:"#2E86C1"},
+  JP:{name:"日本",en:"Japan",color:"#8E5EA2"},
+  DE:{name:"德国",en:"Germany",color:"#5D6D7E"},
+  SA:{name:"沙特",en:"Saudi Arabia",color:"#148F77"},
+  GB:{name:"英国",en:"United Kingdom",color:"#CA6F1E"},
+  BR:{name:"巴西",en:"Brazil",color:"#239B56"},
+  VE:{name:"委内瑞拉",en:"Venezuela",color:"#C2185B"},
+};
+const ORDER = ["CN","US","JP","DE","SA","GB","BR","VE"];
+
+const GLOSSARY = [
+  {t:"总和生育率",en:"Total Fertility Rate (TFR)",d:"一个女性一生平均生育的孩子数。是判断人口长期走向最重要的单一指标：长期高于 2.1 人口会增长，长期低于 2.1 则必然萎缩。韩国 2024 年约 0.78，全球最低。"},
+  {t:"粗出生率",en:"Crude Birth Rate",d:"每年每千人里出生的婴儿数。它受年龄结构影响很大——年轻人多的社会出生率自然高，所以比较不同国家时，总和生育率比粗出生率更可靠。"},
+  {t:"抚养比",en:"Dependency Ratio",d:"每 100 名 15–64 岁劳动年龄人口，对应多少个非劳动人口（0–14 岁孩子 + 65 岁以上老人）。可拆成少儿抚养比和老年抚养比：前者是「养娃压力」，后者是「养老压力」。"},
+  {t:"人口红利",en:"Demographic Dividend",d:"当劳动年龄人口占比高、抚养比低时，社会能用于投资和消费的钱就多，经济容易加速——这段窗口期就是人口红利。中国 1990–2015、沙特当下，都处（曾处）在这种甜蜜期。"},
+  {t:"人口转型",en:"Demographic Transition",d:"几乎所有国家都会经历的历程：先高出生高死亡（人口不增）→ 死亡率下降、人口爆炸 → 出生率也下降、人口趋稳 → 低出生低死亡甚至负增长。差别只在先后和速度。"},
+  {t:"老龄化",en:"Population Aging",d:"65 岁以上人口占比持续上升的过程。国际惯例：占比 7% 进入老龄化社会，14% 进入老龄社会，21% 进入超老龄社会。日本 2024 年已近 30%，全球之最。"},
+  {t:"世代更替水平",en:"Replacement Level",d:"总和生育率 ≈2.1 的水平（考虑婴幼儿死亡率，略高于 2）。维持在这个水平，人口规模长期不增不减；持续低于它，每一代人都比上一代少。"},
+  {t:"中位年龄",en:"Median Age",d:"把所有人按年龄排队，站在正中间那个人的岁数。它比「平均年龄」更抗极端值干扰，是衡量社会整体年轻或衰老最直观的一把尺子。"},
+  {t:"人口机会窗口",en:"Window of Opportunity",d:"抚养比降到低位的那段历史时期。窗口本身不创造财富，但给了经济加速的机会——能不能抓住，取决于就业、教育和制度。拉美多国窗口开过却没抓住。"},
+  {t:"婴儿潮",en:"Baby Boom",d:"二战后 1946–1964 年间发达国家出现的生育高峰。这批「婴儿潮一代」如今正集体跨过 65 岁，是美欧日养老金和医疗体系压力的主要来源。"},
+  {t:"净移民",en:"Net Migration",d:"迁入人数减去迁出人数。当生育率跌破更替水平后，净移民几乎成了发达经济体人口增长的唯一引擎——美国、德国、英国、沙特都高度依赖它。"},
+  {t:"人口金字塔",en:"Population Pyramid",d:"按年龄段画出的人口结构图。底宽顶尖=年轻增长型（沙特、委内瑞拉）；上下均匀=静止型；上宽下窄=收缩型（日本、德国、中国正在变成的样子）。"},
+];
+
+const NARR = {
+  CN:{past:"六十年代初，中国的总和生育率还在 6 左右，家家四五个孩子不稀奇。1979 年起推行的计划生育（1980 年「独生子女政策」全面铺开）用一代人的时间把生育率从 5 以上压到 2 以下——这在人类人口史上没有先例。效果是惊人的：少儿抚养比从 1975 年的 75 一路降到 2010 年的 25 以下，「少养孩子多干活」的黄金结构，叠加改革开放，成就了三十年的经济奇迹。",policy:"眼看老龄化加速，政策 180 度转弯：2016 年全面二孩、2021 年三孩，各地开始发育儿补贴——2025 年国家层面推出每孩每年 3600 元的全国性育儿补贴，托育机构扩容、延长婚育假也在推进。但效果有限：2022 年人口开始负增长，2024 年总和生育率已降到 1.0 附近。发钱能降育儿成本，却降不了年轻人的「机会成本」。",economy:"人口红利期里，充沛廉价劳动力撑起「世界工厂」；而抚养比触底回升之后，故事反过来了：2022 年劳动年龄人口占比已跌破 68%，养老金缺口靠财政转移支付填补，延迟退休从 2025 年起正式实施。经济引擎被迫从「人多」切换到「人强」——靠教育、自动化和机器人密度（中国已是全球第一大工业机器人市场）。",future:"联合国中方案预测，中国人口 2050 年约 12.6 亿、2100 年约 6.3 亿——本世纪末只剩今天的一半不到。中位年龄 2050 年将超过 52 岁，比今天的日本还老。最大的悬念是生育率能否从 1.0 的谷底回升：它决定中国是被「平缓地变老」，还是「坠崖式地变老」。"},
+  US:{past:"美国走的是另一条路。二战后婴儿潮把总和生育率推到 3.7（1957 年），但整个六七十年代，美国的婴儿死亡率下降和女性解放同步发生，生育率温和回落，1976 年触底 1.74 后长期稳定在 2.0 附近——是所有发达大国里最「抗跌」的。原因不神秘：持续涌入的年轻移民不断给人口结构「兑水」。",policy:"美国几乎没有联邦层面的催生政策——没有带薪产假、托育昂贵。它的人口政策核心是移民：每年约 100 万合法移民，平均年龄比本土人口低 7 岁以上。社保体系（Social Security）预计 2033 年信托基金耗尽，改革选项只有三个：延迟退休、削减福利、多收税——或继续用移民稀释老龄化的算术。",economy:"人口结构的相对年轻让美国保持了发达国家中最强的消费市场和劳动力供给弹性。婴儿潮一代（7600 万人）正在退休，医疗养老支出飙升，但移民持续补充的劳动力，使美国总抚养比仍低于几乎所有欧洲同行。人口学家称之为「美国的结构性幸运」——它不靠自己生，靠别人来。",future:"联合国预计美国人口 2050 年约 3.8 亿、2100 年仍在 3.9 亿上下——是发达大国里唯一确定还在缓慢增长的。但注意前提：移民政策不收紧。一旦净移民减半，美国的人口增长会立刻踩刹车。这是一场「移民依赖型」的长跑。"},
+  JP:{past:"日本是全球老龄化的「预演现场」。1974 年生育率跌破 2.1，1989 年跌破 1.57（「1.57 冲击」首次惊动全国），2005 年人口见顶。今天日本 65 岁以上老人占比约 30%——全球第一。婴儿潮一代（「团块世代」）2007 年起集体退休，是日本「失去的三十年」里一条被低估的暗线：经济停滞的时点，恰好和人口结构恶化的时点重合。",policy:"日本 30 年里几乎试遍了所有催生手段：1994 年「天使计划」、2003 年《少子化社会对策基本法》、儿童补贴一路加码、2023 年岸田政府把少子化对策预算翻倍到每年 3.5 万亿日元，喊出「异次元的少子化对策」。同时把退休年龄推到 65 岁、鼓励再就业到 70 岁，用「银发劳动力」续命。结果：生育率从 1.26 低点回到 1.2 上下——止住了下跌，没能逆转。",economy:"老龄化对经济的改造是全方位的：消费市场萎缩（纸尿裤成人款销量超过婴儿款）、劳动力短缺逼出全球最高的机器人渗透率和「银发就业」比例（65 岁以上就业率达 25%）、国债堆到 GDP 的 250% 以上。但日本证明了另一面：深度老龄化社会可以低增长却不失秩序——「富裕地变老」这条路，它替全世界探了三十年。",future:"联合国中方案：日本人口 2050 年约 1.04 亿，2100 年约 7400 万——回到 1960 年的规模。65 岁以上占比 2050 年将逼近 38%。日本的终极命题已经不是「如何增长」，而是「一个人口缩水的国家如何保持体面」——答案会写在移民开放度、机器人密度和养老金改革这三份卷子上。"},
+  DE:{past:"德国是欧洲老龄化的标本。1972 年生育率跌破更替水平后，两德合并（1990）带来短暂人口抬升，但生育率从此再没回到 1.5 以上。2015 年默克尔政府接纳超过 100 万难民，让德国人口一度冲到 8310 万的历史峰值——这是发达国家用移民对冲低生育率最激进的一次实验。",policy:"德国的家庭政策在欧洲最慷慨：父母育儿假最长 14 个月、每月儿童金（Kindergeld）250 欧元、法定托育全覆盖。养老金改革同样激进：法定退休年龄正逐步提到 67 岁。但即便如此，2024 年总和生育率也只有 1.35 左右。德国的教训是：钱给到位了，生育意愿也未必回来——住房、职业中断成本和文化预期同样重要。",economy:"老龄化正在啃噬「德国模式」的根基。制造业用工荒迫使大众、巴斯夫们加速外迁和自动化；护理和医疗行业缺口高达数十万人；现收现付的养老金体系压力山大——2023 年德国政府每 4 欧元财政支出就有 1 欧元间接补贴养老金。人口学家算过账：如果不靠移民，德国劳动人口到 2040 年将减少 700 万。",future:"联合国中方案：德国人口 2050 年约 8300 万，靠每年约 30 万净移民勉强撑住；一旦移民减速，人口将立刻掉头向下。2100 年约 7400 万。65 岁以上占比将从今天的 23% 升到 30% 上下。德国的未来是一道恒等式：要么改革移民和劳动市场，要么接受「优雅的萎缩」。"},
+  SA:{past:"沙特是全场唯一的「例外玩家」：1970 年代石油繁荣期，总和生育率高达 7.3，中位年龄一度只有 15 岁。直到 1990 年代，生育率才开始下滑，但到今天仍有 2.3 上下——在人均 GDP 超过 3 万美元的国家里绝无仅有。人口结构年轻的另一面是：本国劳动力严重不足，沙特长期靠 1300 万外籍劳工（占人口 38%）撑起经济运转。",policy:"「2030 愿景」（Vision 2030）本质就是一份人口-经济转型的总体设计：提高女性劳动参与率（2016 年 17% → 2023 年 35%）、开放娱乐和旅游创造就业、补贴本国人结婚生育、同时收紧外籍劳工政策（Saudization 强制本地化比例）。对生育，政府不催生而是「顺势」——反正生育率还高，重点是让年轻人有活干、有钱花。",economy:"人口红利期正在全力开启：15–64 岁人口占比约 72%，总抚养比全场最低。但红利的成色取决于一件事——能不能在石油收入之外造出足够多的岗位。2023 年沙特非石油部门 GDP 首次超过石油部门，失业率从 2016 年的 12.6% 降到 7% 附近。这是一场用人口优势对冲资源诅咒的豪赌。",future:"联合国中方案：沙特人口 2050 年约 4500 万，2100 年约 5100 万——八个国家里唯一确定一路增长到世纪末的。生育率会继续降，但中位年龄到 2050 年也只有 40 岁上下。如果转型成功，沙特将成为「人口红利 2.0」的全球样板；如果失败，今天的年轻人口就是明天最沉重的就业包袱。"},
+  GB:{past:"英国的人口故事几乎是美国模式的欧洲版：二战后婴儿潮、六七十年代生育率温和回落、1973 年触底 1.7 之后长期徘徊在 1.8 上下——欧洲主要大国里最能「扛」的一个。秘诀同样是移民：2004 年欧盟东扩后十年内净流入超 200 万人，直接改写了英国的年龄结构。",policy:"脱欧（2016 公投）是人口政策的转折点：劳动力净流入骤降，NHS 和餐饮业立刻缺人。英国政府的应对是「移民配额改革」——提高技术移民工资门槛、收紧低技能签证；同时延迟退休年龄（2028 年起 67 岁）、推出儿童托育补贴扩大版（2024 年起 9 个月婴儿即可享受每周 30 小时免费托育）。路线很明确：靠移民续命，但只挑「有用的」移民。",economy:"人口结构相对年轻让英国保持了欧洲最活跃的劳动力市场和金融中心地位，但老龄化账单同样沉重：NHS 等待名单屡创新高，养老金「三重锁定」每年吃掉财政增量的大头。人口学家提醒：英国的「结构红利」完全建立在移民净流入之上——脱欧后的政策摇摆，随时可能把这个优势拆掉。",future:"联合国中方案：英国人口 2050 年约 7400 万，2100 年约 7400 万——基本持平，在主要发达国家里已是最好成绩。前提是净移民维持在每年 20–30 万。中位年龄 2050 年约 45 岁。英国的未来命题不是「会不会老」，而是「靠谁来养老」——本土生育率 1.4 的水平，撑不起一个福利国家的算术。"},
+  BR:{past:"巴西是「未富先老」的教科书案例。1960 年总和生育率高达 6.1，此后一路狂泻：1980 年 4.4，2000 年 2.4，2019 年跌破更替水平 1.65，2024 年约 1.62——从「人口爆炸」到「低于更替」只用了四十年，比发达国家快了一倍，但人均 GDP 只有美国的四分之一。转型太快的代价是：养老体系还没建好，年轻人已经不够用了。",policy:"巴西没有「催生」传统，政策重心一直在「托底」：2003 年推出的「家庭补助金计划」（Bolsa Família）把现金直接发给贫困家庭，条件是孩子上学和打疫苗——这是全球 conditional cash transfer 的标杆项目。但对生育率几乎没影响。真正的改革在养老端：2019 年通过历史性养老金改革，把最低退休年龄定为男 65 岁、女 62 岁——拉美最激进的一次。",economy:"人口红利期（1980–2020）巴西 GDP 年均增速 2.7%，远低于东亚同期水平——红利被高通胀、债务危机和产业空心化吃掉了大半。如今红利期结束，抚养比开始回升，而人均 GDP 仍卡在 1 万美元上下。经济学家称之为「巴西陷阱」：还没富起来，人就先老了。2014 年大宗商品泡沫破裂后，经济陷入失去的十年。",future:"联合国中方案：巴西人口 2050 年约 2.17 亿（峰值附近），2100 年约 1.63 亿——本世纪末回到 2020 年规模。65 岁以上占比将从今天的 11% 升到 2050 年的 24%。留给巴西的时间窗口已经很窄：未来二十年是最后的机会——用产业升级和女性劳动参与率把「人口红利」兑现成「增长红利」，否则就是拉美式的停滞。"},
+  VE:{past:"委内瑞拉的人口故事被一场经济灾难彻底改写。1960 年代生育率高达 6.7，之后缓慢回落，2015 年跌破更替水平。但真正的转折是 2014 年：油价崩盘引发恶性通胀和经济崩溃（2013–2019 年 GDP 缩水 75%），700 万人——相当于全国人口的四分之一——用脚投票涌出国门，形成西半球史上最大规模的难民潮。",policy:"委内瑞拉没有「人口政策」，只有「生存政策」。货币主权崩溃后，政府转向美元化默许、价格管制松绑和汇款依赖（2023 年海外汇款超 40 亿美元，相当于 GDP 的 5%）。对生育，政府象征性地提供母亲补贴，但通胀让一切转移支付瞬间贬值。国家的人口逻辑已经从「如何发展」退化为「如何留住人」。",economy:"人口危机和经济危机互为因果：青壮年大量外流使劳动力萎缩、人才断档，老龄化被动加速（65 岁以上占比 2024 年约 8.5%）；而留下的老幼人口进一步压垮本已崩溃的医疗和养老体系。2024 年石油产量回升到 90 万桶/日，但人口学家警告：即便经济回暖，「流失的一代」也很难回来——这是比石油枯竭更不可逆的资源耗竭。",future:"联合国中方案：委内瑞拉人口 2050 年约 3000 万，2100 年约 2600 万——勉强持平，前提是经济不再崩溃、外流速度放缓。但最大的不确定性不是生育率，而是「回流率」：如果经济稳定在 2019 年后的温和轨道，部分移民可能回流；如果再次动荡，人口可能跌破 2000 万。这是一个被经济命运绑架的人口样本。"},
+};
+
+const PROJ = {
+  CN:{pop:[1419,1260,633],ma:[40,53]}, US:{pop:[340,381,394],ma:[38,43]},
+  JP:{pop:[124,104,74],ma:[49,54]},   DE:{pop:[85,83,74],ma:[45,49]},
+  SA:{pop:[34,45,51],ma:[30,40]},     GB:{pop:[69,74,74],ma:[40,45]},
+  BR:{pop:[212,217,163],ma:[34,45]},  VE:{pop:[28,30,26],ma:[29,37]},
+};
+
+const POLICIES = [
+  {h:"真金白银鼓励生育",sub:"Cash for Kids",c:"CN / JP / DE / BR",body:"发育儿补贴、减免税收、提供廉价托育，直接降低生养成本。效果最被高估的一招：韩国砸了 2000 亿美元，生育率照样全球垫底。中国的每孩每年 3600 元、日本的儿童补贴翻倍，逻辑相同——能缓解痛感，改不了算术。",cases:["中国","日本","德国","巴西"],verdict:"见效慢 · 成本高 · 但不得不做"},
+  {h:"托育与育儿假改革",sub:"Childcare & Leave",c:"DE / GB / JP",body:"北欧模式证明：托育全覆盖 + 父母共享育儿假，能把生育率从 1.3 拉回 1.7 附近。关键不是给多少钱，而是让女性「生了还能回来上班」。德国的父母育儿假、英国的 30 小时免费托育，都在抄这份作业。",cases:["德国","英国","日本"],verdict:"对女性就业最友好 · 效果最扎实"},
+  {h:"打开移民之门",sub:"Immigration as Lever",c:"US / DE / GB / SA",body:"当生育率跌破 2.1，移民几乎是唯一快速见效的杠杆——美国靠它保持人口增长，德国靠它填劳动力缺口，沙特靠它维持经济运转。代价是社会整合成本和本土民意的反弹，脱欧和特朗普都是这种反弹的产物。",cases:["美国","德国","英国","沙特"],verdict:"见效最快 · 政治风险最高"},
+  {h:"延迟退休·银发劳动力",sub:"Work Longer",c:"JP / CN / DE / GB",body:"把 65 岁变成 70 岁，把「退休年龄」变成「可选项」。日本 65 岁以上就业率达 25%，中国 2025 年起渐进式延迟退休，德国法定退休年龄已推至 67 岁。这是所有老龄化国家的共同退路——不用求人，用自己的老人。",cases:["日本","中国","德国","英国"],verdict:"算术上最有效 · 政治上最不受欢迎"},
+  {h:"释放女性生产力",sub:"Women at Work",c:"SA / JP / CN",body:"沙特把女性劳动参与率从 17% 拉到 35%，只花了七年——靠解禁驾车、开放娱乐业、强制企业配额。日本推行「女性经济学」十年，效果有限。核心矛盾：提高女性就业率往往伴随生育率下降，除非配套托育和男性育儿假。",cases:["沙特","日本","中国"],verdict:"一石二鸟 · 但会反噬生育率"},
+  {h:"机器人和 AI 对冲",sub:"Robots & AI",c:"JP / CN / DE",body:"当人力真的不够了，只能让机器顶上。日本护理机器人、中国工业机器人（装机量全球第一）、德国工业 4.0，都是在为「劳动力萎缩」买保险。AI 的爆发让这条路线第一次看起来真正可行——但它替代的是「岗位」，不是「纳税人」。",cases:["日本","中国","德国"],verdict:"长期解药 · 短期还接不住"},
+];
+
+const METRICS = {
+  tfr:      {label:"总和生育率", note:"黑虚线 = 2.1 的世代更替水平。谁先跌破、跌破后能不能爬回来，决定了一个国家未来五十年的底色。", fmt:v=>v.toFixed(2)},
+  birthRate:{label:"粗出生率（‰）", note:"每年每千人出生数。注意沙特从 45‰ 跌到 17‰——一半没了；日本只剩 6‰ 上下，全球最低梯队。", fmt:v=>v.toFixed(1)+"‰"},
+  dep:      {label:"总抚养比", note:"每 100 个劳动者对应多少被抚养人口。降到 50 以下的低区，就是人口红利期。中国 2010 年触底 34，已经开始回升。", fmt:v=>v.toFixed(1)},
+  depOld:   {label:"老年抚养比", note:"每 100 个劳动者对应多少 65+ 老人。日本 2024 年约 52——两个工人养一个老人。这就是养老压力的算术。", fmt:v=>v.toFixed(1)},
+  age65:    {label:"65 岁以上占比（%）", note:"7% 进老龄化、14% 进老龄社会、21% 进超老龄。日本 2024 年约 30%，一骑绝尘；沙特和委内瑞拉还在 3%–8% 的青年世界。", fmt:v=>v.toFixed(1)+"%"},
+  lifeExp:  {label:"预期寿命（岁）", note:"寿命延长是老龄化的另一半原因。委内瑞拉是个警示：2014 年后预期寿命不升反降——经济和公共卫生崩溃会直接写进人口数据。", fmt:v=>v.toFixed(1)+" 岁"},
+};
+const MKEYS = ["tfr","birthRate","dep","depOld","age65","lifeExp"];
+</script>
+<script>
+/* ============ 工具 ============ */
+const $=s=>document.querySelector(s);
+const LAST=()=>WDI.years.length-1;
+function series(cc,key){return WDI.countries[cc][key]}
+function lastVal(cc,key){const a=series(cc,key);for(let i=a.length-1;i>=0;i--)if(a[i]!=null)return a[i];return null}
+function valAt(cc,key,yi){const a=series(cc,key);for(let i=Math.min(yi,a.length-1);i>=0;i--)if(a[i]!=null)return a[i];return null}
+const chartText={color:"#2E3030",fontFamily:"-apple-system,'PingFang SC','Microsoft YaHei',sans-serif",fontSize:12};
+const chartMono={color:"#2E3030",fontFamily:"'IBM Plex Mono',monospace",fontSize:11};
+const charts={};
+function mk(id){const el=document.getElementById(id);if(!el)return null;const c=echarts.init(el);charts[id]=c;return c}
+window.addEventListener("resize",()=>{for(const k in charts)charts[k].resize()});
+
+/* ============ 显现动画 ============ */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.1});
+document.querySelectorAll(".reveal").forEach(el=>{io.observe(el);setTimeout(()=>el.classList.add("in"),1800)});
+
+/* ============ 名词弹窗 ============ */
+const pop=$("#popover");let popTarget=null;
+function bindTerms(scope){
+  (scope||document).querySelectorAll(".term").forEach(t=>{
+    if(t._bound)return;t._bound=true;
+    t.addEventListener("click",e=>{
+      e.stopPropagation();
+      if(popTarget===t&&pop.style.display==="block"){pop.style.display="none";popTarget=null;return}
+      pop.querySelector(".pk").textContent=t.dataset.en||"名词解释";
+      pop.querySelector("p").textContent=t.dataset.def||"";
+      pop.style.display="block";
+      const r=t.getBoundingClientRect(),pw=330,ph=pop.offsetHeight;
+      let x=Math.max(8,Math.min(r.left,innerWidth-pw-12));
+      let y=r.top-ph-10;if(y<8)y=r.bottom+10;
+      pop.style.left=x+"px";pop.style.top=y+"px";popTarget=t;
+    });
+  });
+}
+document.addEventListener("click",()=>{pop.style.display="none";popTarget=null});
+pop.addEventListener("click",e=>e.stopPropagation());
+bindTerms();
+
+/* ============ Hero 国家标签 ============ */
+$("#heroTags").innerHTML=ORDER.map(c=>`<span><i style="background:${CC[c].color}"></i>${CC[c].name}</span>`).join("");
+
+/* ============ 术语卡 ============ */
+$("#glossGrid").innerHTML=GLOSSARY.map(g=>`
+<button class="gcard reveal">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><div class="t">${g.t}</div><div class="e">${g.en}</div></div>
+    <span class="num" style="color:var(--gold-dark);font-size:16px;line-height:1.4">+</span>
+  </div>
+  <div class="d">${g.d}</div>
+  <div class="m">点击查看解释</div>
+</button>`).join("");
+document.querySelectorAll(".gcard").forEach(c=>{
+  c.addEventListener("click",()=>{c.classList.toggle("open");c.querySelector(".m").textContent=c.classList.contains("open")?"收起":"点击查看解释"});
+  io.observe(c);setTimeout(()=>c.classList.add("in"),1800);
+});
+
+/* ============ 02 趋势图 ============ */
+let metric="tfr";
+const active=new Set(["CN","JP","SA"]);
+$("#metricTabs").innerHTML=MKEYS.map(k=>`<button class="tabbtn ${k===metric?"on":""}" data-m="${k}">${METRICS[k].label}</button>`).join("");
+$("#countryChips").innerHTML=ORDER.map(c=>`<button class="chip ${active.has(c)?"on":"off"}" data-c="${c}"><i style="background:${CC[c].color}"></i>${CC[c].name}</button>`).join("");
+document.querySelectorAll("#metricTabs .tabbtn").forEach(b=>b.addEventListener("click",()=>{
+  metric=b.dataset.m;
+  document.querySelectorAll("#metricTabs .tabbtn").forEach(x=>x.classList.toggle("on",x===b));
+  drawTrend();
+}));
+document.querySelectorAll("#countryChips .chip").forEach(b=>b.addEventListener("click",()=>{
+  const c=b.dataset.c;
+  if(active.has(c)){if(active.size>1)active.delete(c)}else active.add(c);
+  b.classList.toggle("on",active.has(c));b.classList.toggle("off",!active.has(c));
+  drawTrend();
+}));
+function drawTrend(){
+  $("#metricNote").textContent=METRICS[metric].note;
+  const c=charts.trendChart||mk("trendChart");
+  const years=WDI.years;
+  const sers=[...active].map(cc=>({
+    name:CC[cc].name,type:"line",smooth:false,symbol:"none",lineStyle:{width:2.5,color:CC[cc].color},
+    itemStyle:{color:CC[cc].color},emphasis:{lineStyle:{width:4}},
+    data:series(cc,metric).map((v,i)=>v==null?[years[i],null]:[years[i],v]),
+  }));
+  const opt={
+    animationDuration:500,textStyle:chartText,
+    grid:{left:60,right:24,top:40,bottom:44},
+    tooltip:{trigger:"axis",backgroundColor:"#2E3030",borderWidth:0,textStyle:{color:"#FBF8F2",fontSize:12,fontFamily:"'IBM Plex Mono',monospace"},
+      valueFormatter:v=>v==null?"—":METRICS[metric].fmt(v)},
+    legend:{top:6,icon:"rect",itemWidth:14,itemHeight:4,textStyle:{fontSize:12}},
+    xAxis:{type:"value",min:1960,max:2024,axisLabel:chartMono,splitLine:{show:false},axisLine:{lineStyle:{color:"#B9B2A0"}}},
+    yAxis:{type:"value",scale:true,axisLabel:chartMono,splitLine:{lineStyle:{color:"rgba(46,48,48,.12)"}}},
+    series:sers,
+  };
+  if(metric==="tfr"){
+    opt.series.push({name:"更替水平 2.1",type:"line",markLine:{silent:true,symbol:"none",
+      lineStyle:{color:"#2E3030",type:"dashed",width:1.5},
+      label:{formatter:"世代更替水平 2.1",position:"insideEndTop",fontSize:11,color:"#2E3030"},
+      data:[{yAxis:2.1}]},data:[]});
+  }
+  c.setOption(opt,{replaceMerge:["series"]});
+}
+drawTrend();
+
+/* ============ 03 结构 ============ */
+let sCountry="CN",sYear=2024,sTimer=null;
+$("#structTabs").innerHTML=ORDER.map(c=>`<button class="tabbtn ${c===sCountry?"on":""}" data-c="${c}">${CC[c].name}</button>`).join("");
+document.querySelectorAll("#structTabs .tabbtn").forEach(b=>b.addEventListener("click",()=>{
+  sCountry=b.dataset.c;
+  document.querySelectorAll("#structTabs .tabbtn").forEach(x=>x.classList.toggle("on",x===b));
+  drawStruct();
+}));
+function shapeOf(y14,o65){
+  const ratio=o65/(y14||0.1);
+  if(o65<7&&y14>30)return{t:"年轻增长型",d:"典型的金字塔：底部宽、顶部尖。孩子多、老人少，社会充满活力，但教育就业压力大。"};
+  if(o65<14)return{t:"成年过渡型",d:"金字塔正在「站直」：孩子减少、劳动者占主导——这就是人口红利期该有的样子。"};
+  if(o65<21)return{t:"老龄收缩型",d:"底部明显收窄，顶部开始膨胀。劳动力占比过峰，社会重心从养娃转向养老。"};
+  return{t:"超老龄收缩型",d:"金字塔倒挂：老人比孩子多得多。增长逻辑失效，社会的核心命题变成「如何优雅地老去」。"};
+}
+function drawStruct(){
+  const yi=WDI.years.indexOf(sYear);
+  const y14=valAt(sCountry,"age014",yi),o65=valAt(sCountry,"age65",yi),w=100-y14-o65;
+  const sh=shapeOf(y14,o65);
+  const color=CC[sCountry].color;
+  const dep=valAt(sCountry,"dep",yi);
+  $("#structLeft").innerHTML=`
+    <div class="num" style="font-size:11px;letter-spacing:.15em;color:rgba(46,48,48,.5)">${CC[sCountry].en.toUpperCase()} · ${sYear}</div>
+    <div class="serif num" style="font-weight:900;font-size:64px;line-height:1.1;margin-top:4px">${sYear}</div>
+    <div style="margin-top:24px">
+      ${[["0–14 岁",y14,"#D5CDB6"],["15–64 岁",w,color],["65+ 岁",o65,"#2E3030"]].map(([l,v,bg])=>`
+      <div style="margin-bottom:18px">
+        <div class="seg"><span>${l}</span><span class="num" style="font-weight:600">${v.toFixed(1)}%</span></div>
+        <div class="barrow"><div style="width:${v}%;background:${bg}"></div></div>
+      </div>`).join("")}
+    </div>
+    <div style="margin-top:8px;border-top:1px solid var(--sand);padding-top:16px">
+      <div class="seg"><span><button class="term" data-en="Dependency Ratio" data-def="抚养比：每100名15–64岁劳动人口对应的非劳动人口数量。越低，社会负担越轻。">总抚养比<sup>?</sup></button></span><span class="num" style="font-weight:600">${dep?dep.toFixed(1):"—"}</span></div>
+      <p style="font-size:12px;color:rgba(46,48,48,.55);margin-top:4px">即每 100 名劳动者要养 ${dep?dep.toFixed(0):"—"} 人</p>
+    </div>`;
+  bindTerms($("#structLeft"));
+  /* 右侧：形态 + 历史小柱 */
+  const cols=[];
+  for(let y=1960;y<=2024;y+=4){
+    const i=WDI.years.indexOf(y);
+    const a=valAt(sCountry,"age014",i),b=valAt(sCountry,"age65",i),ww=100-a-b;
+    cols.push({y,a,b,w:ww});
+  }
+  $("#structRight").innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="num" style="font-size:10px;letter-spacing:.15em;color:var(--gold-dark);background:rgba(232,180,0,.12);padding:4px 10px;border:1px solid var(--gold)">${sh.t}</span>
+      <span style="font-size:13px;color:rgba(46,48,48,.65)">${sh.d}</span>
+    </div>
+    <div style="flex:1;display:flex;align-items:flex-end;gap:3px;margin-top:20px;min-height:200px" title="">
+      ${cols.map(c=>`
+      <button class="histcol" data-y="${c.y}" style="height:200px;justify-content:flex-end">
+        <div style="width:100%;height:${c.a*1.9}px;background:#D5CDB6;opacity:${c.y<=sYear?1:.35}"></div>
+        <div style="width:100%;height:${c.w*1.9}px;background:${color};opacity:${c.y<=sYear?1:.25}"></div>
+        <div style="width:100%;height:${c.b*1.9}px;background:#2E3030;opacity:${c.y<=sYear?1:.25}"></div>
+      </button>`).join("")}
+    </div>
+    <div style="display:flex;justify-content:space-between" class="num"><span style="font-size:10px;color:rgba(46,48,48,.5)">1960</span><span style="font-size:10px;color:rgba(46,48,48,.5)">底部=孩子 · 中间=劳动者 · 顶部=老人（点击小柱可跳转）</span><span style="font-size:10px;color:rgba(46,48,48,.5)">2024</span></div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:24px;border-top:1px solid var(--sand);padding-top:20px">
+      <button class="playbtn" id="playBtn"><svg width="12" height="14" viewBox="0 0 12 14"><path d="M0 0 L12 7 L0 14 Z" fill="currentColor"/></svg></button>
+      <span class="num" style="font-size:12px;color:rgba(46,48,48,.55)">1960</span>
+      <input type="range" min="1960" max="2024" step="1" value="${sYear}" id="yearSlider">
+      <span class="num" style="font-size:12px;color:rgba(46,48,48,.55)">2024</span>
+    </div>`;
+  $("#yearSlider").addEventListener("input",e=>{sYear=+e.target.value;drawStruct()});
+  $("#playBtn").addEventListener("click",function(){
+    if(sTimer){clearInterval(sTimer);sTimer=null;this.innerHTML='<svg width="12" height="14" viewBox="0 0 12 14"><path d="M0 0 L12 7 L0 14 Z" fill="currentColor"/></svg>';return}
+    if(sYear>=2024)sYear=1960;
+    this.innerHTML='<svg width="10" height="14" viewBox="0 0 10 14"><rect width="3" height="14" fill="currentColor"/><rect x="7" width="3" height="14" fill="currentColor"/></svg>';
+    sTimer=setInterval(()=>{sYear++;if(sYear>2024){sYear=2024;clearInterval(sTimer);sTimer=null;const pb=$("#playBtn");if(pb)pb.innerHTML='<svg width="12" height="14" viewBox="0 0 12 14"><path d="M0 0 L12 7 L0 14 Z" fill="currentColor"/></svg>'}drawStruct()},140);
+  });
+  document.querySelectorAll(".histcol").forEach(b=>b.addEventListener("click",()=>{sYear=+b.dataset.y;drawStruct()}));
+}
+drawStruct();
+
+/* ============ 04 抚养比 ============ */
+let depMode="depOld";
+document.querySelectorAll("[data-dep]").forEach(b=>b.addEventListener("click",()=>{
+  depMode=b.dataset.dep;
+  document.querySelectorAll("[data-dep]").forEach(x=>x.classList.toggle("on",x===b));
+  drawDep();
+}));
+function drawDep(){
+  const note=depMode==="depOld"
+    ?"日本、德国一骑绝尘——两个多劳动者养一个老人；中国正以全场最快的速度追上来；沙特和委内瑞拉几乎还没开始变老。"
+    :"倒过来看：沙特和巴西 1960 年时 100 个劳动者要养 90 个孩子；今天中国的少儿抚养比只有 17 左右——是全场最「轻松」的，但这正是未来劳动力短缺的预告。";
+  $("#depNote").innerHTML="<b>怎么读</b>"+note;
+  const rows=ORDER.map(c=>{
+    const v0=series(c,depMode)[0]||0,v1=lastVal(c,depMode)||0;
+    return{c,v0,v1};
+  }).sort((a,b)=>b.v1-a.v1);
+  const max=Math.max(...rows.map(r=>Math.max(r.v0,r.v1)))*1.08;
+  $("#depRows").innerHTML=rows.map(r=>`
+    <div style="display:grid;grid-template-columns:88px 1fr 56px;align-items:center;gap:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500"><i style="width:10px;height:10px;background:${CC[r.c].color};display:inline-block"></i>${CC[r.c].name}</div>
+      <div style="position:relative;height:40px;border-bottom:1px solid var(--sand)">
+        <div style="position:absolute;left:${r.v0/max*100}%;top:6px;transform:translateX(-50%);text-align:center">
+          <div class="num" style="font-size:10px;color:rgba(46,48,48,.5)">${r.v0.toFixed(0)}</div>
+          <div style="width:10px;height:10px;border:1.5px solid var(--ink);background:var(--cream);margin:2px auto 0"></div>
+        </div>
+        <div style="position:absolute;left:${Math.min(r.v0,r.v1)/max*100}%;width:${Math.abs(r.v1-r.v0)/max*100}%;top:19px;height:2px;background:${CC[r.c].color}"></div>
+        <div style="position:absolute;left:${r.v1/max*100}%;bottom:2px;transform:translateX(-50%);text-align:center">
+          <div style="width:10px;height:10px;background:${CC[r.c].color};margin:0 auto 2px"></div>
+          <div class="num" style="font-size:11px;font-weight:600">${r.v1.toFixed(1)}</div>
+        </div>
+      </div>
+      <div class="num" style="font-size:11px;text-align:right;color:${r.v1>r.v0?"#B03A2E":"#239B56"}">${r.v1>r.v0?"+":""}${(r.v1-r.v0).toFixed(0)}</div>
+    </div>`).join("");
+}
+drawDep();
+
+/* ============ 05 八国特写 ============ */
+let pCountry="JP",pTab="past";
+const PTABS=[["past","过去怎么来的"],["policy","政府出了什么招"],["economy","对经济的影响"],["future","未来会怎样"]];
+$("#profTabs").innerHTML=ORDER.map(c=>`<button class="proftab ${c===pCountry?"on":""}" data-c="${c}"><i style="width:10px;height:10px;background:${CC[c].color};display:inline-block"></i>${CC[c].name}</button>`).join("");
+document.querySelectorAll("#profTabs .proftab").forEach(b=>b.addEventListener("click",()=>{
+  pCountry=b.dataset.c;
+  document.querySelectorAll("#profTabs .proftab").forEach(x=>x.classList.toggle("on",x===b));
+  drawProfile();
+}));
+$("#profSubTabs").innerHTML=PTABS.map(([k,l])=>`<button class="tabbtn profsub ${k===pTab?"on":""}" data-t="${k}">${l}</button>`).join("");
+document.querySelectorAll("#profSubTabs .tabbtn").forEach(b=>b.addEventListener("click",()=>{
+  pTab=b.dataset.t;
+  document.querySelectorAll("#profSubTabs .tabbtn").forEach(x=>x.classList.toggle("on",x===b));
+  drawProfile();
+}));
+let spark=null;
+function drawProfile(){
+  const c=pCountry,li=LAST();
+  const pj=PROJ[c];
+  $("#profHead").innerHTML=`
+    <div>
+      <div class="num" style="font-size:11px;letter-spacing:.15em;color:var(--gold)">${CC[c].en.toUpperCase()}</div>
+      <h3 class="serif" style="font-weight:900;font-size:34px;margin-top:6px">${CC[c].name}</h3>
+      <div class="statgrid" style="margin-top:20px">
+        ${[["总和生育率",lastVal(c,"tfr").toFixed(2)],["65+ 占比",lastVal(c,"age65").toFixed(1)+"%"],["预期寿命",lastVal(c,"lifeExp").toFixed(1)+" 岁"],["2050 人口",pj.pop[1]+" M"]].map(([l,v])=>`
+        <div class="stat"><div style="font-size:11px;color:rgba(251,248,242,.5)">${l}</div><div class="num" style="font-size:22px;font-weight:600;margin-top:4px">${v}</div></div>`).join("")}
+      </div>
+    </div>
+    <div><div class="num" style="font-size:10px;letter-spacing:.15em;color:rgba(251,248,242,.45);margin-bottom:8px">总和生育率走势 · 1960–2024（虚线 = 更替水平 2.1）</div><div id="spark" style="width:100%;height:220px"></div></div>`;
+  $("#profText").textContent=NARR[c][pTab];
+  if(spark)spark.dispose();
+  spark=echarts.init(document.getElementById("spark"));
+  spark.setOption({
+    animationDuration:400,
+    grid:{left:44,right:16,top:16,bottom:28},
+    tooltip:{trigger:"axis",backgroundColor:"#FBF8F2",borderWidth:1,borderColor:"#D5CDB6",textStyle:{color:"#2E3030",fontSize:12,fontFamily:"'IBM Plex Mono',monospace"},valueFormatter:v=>v==null?"—":(+v).toFixed(2)},
+    xAxis:{type:"value",min:1960,max:2024,axisLabel:{color:"rgba(251,248,242,.5)",fontFamily:"'IBM Plex Mono',monospace",fontSize:10},splitLine:{show:false},axisLine:{lineStyle:{color:"rgba(251,248,242,.2)"}}},
+    yAxis:{type:"value",scale:true,axisLabel:{color:"rgba(251,248,242,.5)",fontFamily:"'IBM Plex Mono',monospace",fontSize:10},splitLine:{lineStyle:{color:"rgba(251,248,242,.1)"}}},
+    series:[{type:"line",symbol:"none",lineStyle:{width:2.5,color:CC[c].color},data:series(c,"tfr").map((v,i)=>[WDI.years[i],v]),
+      markLine:{silent:true,symbol:"none",lineStyle:{color:"rgba(251,248,242,.4)",type:"dashed"},label:{formatter:"2.1",fontSize:10,color:"rgba(251,248,242,.5)"},data:[{yAxis:2.1}]}}],
+  });
+  window.addEventListener("resize",()=>spark&&spark.resize());
+}
+drawProfile();
+
+/* ============ 06 政策卡 ============ */
+$("#policyCards").innerHTML=POLICIES.map(p=>`
+<div class="pcard reveal">
+  <h3>${p.h}</h3>
+  <div class="sub">${p.sub}</div>
+  <div class="body">${p.body}</div>
+  <div class="cases">${p.cases.map(x=>{
+    const cc=ORDER.find(k=>CC[k].name===x);
+    return `<span><i style="background:${cc?CC[cc].color:"#888"}"></i>${x}</span>`}).join("")}</div>
+  <div class="verdict"><b>点评</b>${p.verdict}</div>
+</div>`).join("");
+document.querySelectorAll(".pcard").forEach(el=>{io.observe(el);setTimeout(()=>el.classList.add("in"),1800)});
+
+/* ============ 07 经济 ============ */
+$("#econSelect").innerHTML=ORDER.map(c=>`<option value="${c}" ${c==="CN"?"selected":""}>${CC[c].name}</option>`).join("");
+function drawScatter(){
+  const c=charts.scatterChart||mk("scatterChart");
+  const data=ORDER.map(cc=>{
+    const tfr=lastVal(cc,"tfr");let g=series(cc,"gdpPc");let gdp=null;
+    for(let i=g.length-1;i>=0;i--)if(g[i]!=null){gdp=g[i];break}
+    return{value:[gdp,tfr],name:CC[cc].name,itemStyle:{color:CC[cc].color}};
+  });
+  c.setOption({
+    animationDuration:500,textStyle:chartText,
+    grid:{left:60,right:24,top:24,bottom:52},
+    tooltip:{backgroundColor:"#2E3030",borderWidth:0,textStyle:{color:"#FBF8F2",fontSize:12},
+      formatter:p=>`${p.name}<br>人均GDP: $${Math.round(p.value[0]).toLocaleString()}<br>总和生育率: ${p.value[1].toFixed(2)}`},
+    xAxis:{type:"log",name:"人均 GDP（美元，对数）",nameLocation:"middle",nameGap:32,nameTextStyle:chartMono,axisLabel:{...chartMono,formatter:v=>v>=1000?(v/1000)+"k":v},splitLine:{lineStyle:{color:"rgba(46,48,48,.08)"}}},
+    yAxis:{type:"value",name:"总和生育率",nameTextStyle:chartMono,min:0,max:7,axisLabel:chartMono,splitLine:{lineStyle:{color:"rgba(46,48,48,.12)"}}},
+    series:[{type:"scatter",symbolSize:18,data,label:{show:true,position:"top",formatter:"{b}",fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:"#2E3030"},
+      markLine:{silent:true,symbol:"none",lineStyle:{color:"#2E3030",type:"dashed",width:1.2},label:{formatter:"更替水平 2.1",fontSize:10},data:[{yAxis:2.1}]}}],
+  },{replaceMerge:["series"]});
+}
+drawScatter();
+const ECON_NOTES={
+  CN:"抚养比 2010 年触底 34——此后十年恰是中国 GDP 翻倍、登顶世界工厂的十年。现在曲线掉头向上，引擎正在换挡。",
+  US:"美国抚养比早早回升，但人均 GDP 斜率几乎没变——移民续上的劳动力和美元体系，让它不太吃「人口红利」这一套。",
+  JP:"看 1990 年前后：抚养比触底反弹的时刻，正是泡沫破裂的时刻。这不全是巧合——劳动力过峰、内需见顶，资产价格很难独善其身。",
+  DE:"德国的抚养比在全球金融危机后才开始回升，是发达国家里最晚的。代价是：回升的起点更低、斜率更陡——养老金账单集中在 2020 年代爆发。",
+  SA:"总抚养比 2024 年仍在 50 上下徘徊——红利窗口还大开着。问题是：低抚养比能不能换来石油之外的增长？答案写在 Vision 2030 的进度表里。",
+  GB:"英国的抚养比回升平缓，靠的是移民持续注入。脱欧后这条曲线会怎么走，取决于政策摇摆的幅度。",
+  BR:"巴西抚养比 2015 年才触底，但经济 2014 年就陷入了失去的十年——窗口开着，却没抓住。这是「红利不会自动兑现」最好的反面教材。",
+  VE:"委内瑞拉的抚养比曲线本来很健康，直到经济崩溃引发 700 万人外流——人口结构被外力强行改写。人均 GDP 数据 2014 年后缺失，本身就是故事的一部分。",
+};
+function drawDual(){
+  const cc=$("#econSelect").value||"CN";
+  $("#econNote").textContent=ECON_NOTES[cc];
+  const c=charts.dualChart||mk("dualChart");
+  const years=WDI.years;
+  const dep=series(cc,"dep").map((v,i)=>v==null?[years[i],null]:[years[i],v]);
+  const gdp=series(cc,"gdpPc").map((v,i)=>v==null?[years[i],null]:[years[i],v]);
+  c.setOption({
+    animationDuration:500,textStyle:chartText,
+    grid:{left:64,right:56,top:40,bottom:44},
+    tooltip:{trigger:"axis",backgroundColor:"#2E3030",borderWidth:0,textStyle:{color:"#FBF8F2",fontSize:12,fontFamily:"'IBM Plex Mono',monospace"}},
+    legend:{top:6,textStyle:{fontSize:12}},
+    xAxis:{type:"value",min:1960,max:2024,axisLabel:chartMono,splitLine:{show:false},axisLine:{lineStyle:{color:"#B9B2A0"}}},
+    yAxis:[
+      {type:"value",name:"人均GDP($)",scale:true,nameTextStyle:chartMono,axisLabel:chartMono,splitLine:{lineStyle:{color:"rgba(46,48,48,.12)"}}},
+      {type:"value",name:"抚养比",scale:true,nameTextStyle:chartMono,axisLabel:chartMono,splitLine:{show:false}},
+    ],
+    series:[
+      {name:"人均 GDP（左轴）",type:"line",symbol:"none",lineStyle:{width:2.5,color:CC[cc].color},itemStyle:{color:CC[cc].color},data:gdp},
+      {name:"总抚养比（右轴）",type:"line",symbol:"none",yAxisIndex:1,lineStyle:{width:2.5,color:"#E8B400",type:"solid"},itemStyle:{color:"#E8B400"},data:dep},
+    ],
+  },{replaceMerge:["series"]});
+}
+$("#econSelect").addEventListener("change",drawDual);
+drawDual();
+
+/* ============ 08 未来 ============ */
+let fyi=1;
+document.querySelectorAll("#futureTabs .tabbtn").forEach(b=>b.addEventListener("click",()=>{
+  fyi=+b.dataset.yi;
+  document.querySelectorAll("#futureTabs .tabbtn").forEach(x=>x.classList.toggle("on",x===b));
+  drawFuture();
+}));
+function drawFuture(){
+  const c=charts.futureChart||mk("futureChart");
+  const data=ORDER.map(cc=>({name:CC[cc].name,value:PROJ[cc].pop[fyi],itemStyle:{color:CC[cc].color}})).sort((a,b)=>b.value-a.value);
+  c.setOption({
+    animationDuration:600,textStyle:chartText,
+    grid:{left:60,right:24,top:24,bottom:44},
+    tooltip:{backgroundColor:"#2E3030",borderWidth:0,textStyle:{color:"#FBF8F2",fontSize:12},formatter:p=>`${p.name}<br>人口：${p.value} 百万`},
+    xAxis:{type:"category",data:data.map(d=>d.name),axisLabel:chartMono,axisLine:{lineStyle:{color:"#B9B2A0"}}},
+    yAxis:{type:"value",name:"百万人",nameTextStyle:chartMono,axisLabel:chartMono,splitLine:{lineStyle:{color:"rgba(46,48,48,.12)"}}},
+    series:[{type:"bar",barWidth:"55%",data,label:{show:true,position:"top",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"#2E3030"}}],
+  },{replaceMerge:["series"]});
+}
+drawFuture();
+</script>
+</body>
+</html>

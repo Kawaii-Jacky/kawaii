@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三条航道的期权定价</title>
+<style>
+:root{
+  color-scheme:light;
+  --surface:#fcfcfb; --surface-2:#f3f2ee; --surface-3:#e9e7e0;
+  --text-1:#0b0b0b; --text-2:#52514e; --text-3:#7a7974;
+  --grid:#e4e2dc; --axis:#c9c7bf;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --accent:#2a78d6;
+  --seq-1:#cde2fb; --seq-2:#9ec5f4; --seq-3:#6da7ec; --seq-4:#3987e5; --seq-5:#256abf; --seq-6:#184f95;
+  --neg:#e34948; --pos:#008300;
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","Consolas","Menlo",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --surface:#1a1a19; --surface-2:#222220; --surface-3:#2c2c29;
+    --text-1:#f0efec; --text-2:#c3c2b7; --text-3:#94938a;
+    --grid:#2f2f2c; --axis:#4a4944;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --accent:#3987e5;
+    --seq-1:#13304f; --seq-2:#184f95; --seq-3:#1c5cab; --seq-4:#2a78d6; --seq-5:#5598e7; --seq-6:#9ec5f4;
+    --neg:#e66767; --pos:#3fae3f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --surface:#1a1a19; --surface-2:#222220; --surface-3:#2c2c29;
+  --text-1:#f0efec; --text-2:#c3c2b7; --text-3:#94938a;
+  --grid:#2f2f2c; --axis:#4a4944;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --accent:#3987e5;
+  --seq-1:#13304f; --seq-2:#184f95; --seq-3:#1c5cab; --seq-4:#2a78d6; --seq-5:#5598e7; --seq-6:#9ec5f4;
+  --neg:#e66767; --pos:#3fae3f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--surface);color:var(--text-1);font-family:var(--serif);line-height:1.85;font-size:16.5px;overflow-x:hidden}
+a{color:var(--accent)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--grid)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;height:48px;font-family:var(--sans);font-size:13px}
+header.top nav{display:flex;gap:16px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+header.top nav a{color:var(--text-2);text-decoration:none}
+header.top nav a:hover{color:var(--text-1)}
+.brand{font-weight:700;letter-spacing:.08em;white-space:nowrap}
+#themeBtn{font:inherit;border:1px solid var(--axis);background:var(--surface-2);color:var(--text-2);border-radius:6px;padding:2px 10px;cursor:pointer}
+.hero{padding:64px 0 24px;border-bottom:1px solid var(--grid)}
+.hero .kick{font-family:var(--sans);font-size:12px;letter-spacing:.3em;color:var(--text-3)}
+.hero h1{font-size:clamp(28px,5vw,46px);line-height:1.3;margin:12px 0 10px;font-weight:900}
+.hero .sub{font-size:clamp(15px,2vw,19px);color:var(--text-2);max-width:820px}
+.meta{font-family:var(--sans);font-size:13px;color:var(--text-3);margin-top:14px}
+.abstract{background:var(--surface-2);border-left:3px solid var(--accent);padding:18px 22px;margin:28px 0;border-radius:0 8px 8px 0;font-size:15.5px}
+.abstract b{font-family:var(--sans)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:24px 0 8px}
+.tile{background:var(--surface-2);border:1px solid var(--grid);border-radius:10px;padding:14px 16px;font-family:var(--sans)}
+.tile .lab{font-size:12.5px;color:var(--text-2)}
+.tile .val{font-size:30px;font-weight:600;line-height:1.25;margin:4px 0}
+.tile .note{font-size:12px;color:var(--text-3);line-height:1.5}
+section.sec{padding:44px 0 12px;border-bottom:1px solid var(--grid)}
+h2{font-size:clamp(22px,3.4vw,30px);font-weight:900;margin-bottom:6px}
+h2 .no{font-family:var(--sans);font-size:.55em;color:var(--text-3);margin-right:10px;letter-spacing:.1em;vertical-align:middle}
+h3{font-size:19px;margin:24px 0 6px}
+p{margin:10px 0}
+.lead{color:var(--text-2)}
+.eq{font-family:var(--mono);font-size:14px;background:var(--surface-2);border:1px solid var(--grid);border-radius:8px;padding:12px 14px;margin:12px 0;overflow-x:auto;white-space:pre;line-height:1.7;color:var(--text-1)}
+.fig{margin:18px 0 8px;background:var(--surface);border:1px solid var(--grid);border-radius:12px;padding:14px 14px 10px}
+.fig .ftitle{font-family:var(--sans);font-weight:600;font-size:15px}
+.fig .fsub{font-family:var(--sans);font-size:12.5px;color:var(--text-2);margin-bottom:8px}
+.fig .cap{font-family:var(--sans);font-size:12px;color:var(--text-3);margin-top:6px;line-height:1.6}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;font-family:var(--sans);font-size:13px}
+.ctrl button{font:inherit;border:1px solid var(--axis);background:var(--surface-2);color:var(--text-2);border-radius:999px;padding:3px 12px;cursor:pointer}
+.ctrl button.on{background:var(--text-1);color:var(--surface);border-color:var(--text-1)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--sans);font-size:12.5px;color:var(--text-2);margin:4px 0}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--sans);font-size:11px;fill:var(--text-2)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--axis);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:8px 10px;font-family:var(--sans);font-size:12px;color:var(--text-1);box-shadow:0 4px 18px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;z-index:5;min-width:150px;line-height:1.55}
+.tip .k{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+table.t{width:100%;border-collapse:collapse;font-family:var(--sans);font-size:13px;margin:10px 0}
+table.t th,table.t td{border-bottom:1px solid var(--grid);padding:6px 8px;text-align:right;white-space:nowrap}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t thead th{color:var(--text-2);font-weight:600;border-bottom:1px solid var(--axis)}
+table.t td.best{font-weight:700}
+.tscroll{overflow-x:auto}
+.lab-grid{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:18px}
+@media(max-width:760px){.lab-grid{grid-template-columns:1fr}}
+.slider{font-family:var(--sans);font-size:13px;margin:8px 0}
+.slider label{display:flex;justify-content:space-between;color:var(--text-2)}
+.slider input{width:100%}
+.slider b{color:var(--text-1);font-variant-numeric:tabular-nums}
+.callout{border:1px solid var(--grid);background:var(--surface-2);border-radius:10px;padding:14px 16px;margin:14px 0}
+.prop{border-left:3px solid var(--text-1);padding:4px 0 4px 14px;margin:16px 0}
+.prop .pn{font-family:var(--sans);font-size:12px;color:var(--text-3);letter-spacing:.15em}
+.refs{font-family:var(--sans);font-size:12.5px;color:var(--text-2)}
+.refs li{margin:4px 0 4px 18px}
+.small{font-family:var(--sans);font-size:12.5px;color:var(--text-3)}
+.tag{display:inline-block;font-family:var(--sans);font-size:11px;padding:0 6px;border-radius:4px;border:1px solid var(--axis);color:var(--text-2);margin-left:6px;vertical-align:middle}
+footer{padding:40px 0 60px;font-family:var(--sans);font-size:12px;color:var(--text-3)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <span class="brand">三条航道 · 期权定价</span>
+  <nav>
+    <a href="#s1">模型</a><a href="#s2">薪资累积</a><a href="#s3">劳动付出</a><a href="#s4">估值矩阵</a>
+    <a href="#s5">实验室</a><a href="#s6">人口×教职</a><a href="#s7">热潮周期</a><a href="#s8">制度</a><a href="#refs">来源</a>
+  </nav>
+  <button id="themeBtn" aria-label="切换深浅色">◐</button>
+</div></header>
+
+<main class="wrap">
+<div class="hero">
+  <div class="kick">REAL OPTIONS · EDUCATION · LIFE-CYCLE MODEL</div>
+  <h1>三条航道的期权定价<br>本科、硕士、博士的蒙特卡洛估值与劳动强度折算</h1>
+  <p class="sub">用实物期权框架与生命周期模拟，量化中国七个行业（AI、生物、临床医学、基础医学、电子电力、互联网、金融）三条教育路线的净现值、期权价值、工时折算福利与风险尾部。融合 Dixit–Pindyck 等待阈值、Merton 跳跃扩散、人口 × 教职供需、蛛网循环与热门专业制度史。</p>
+  <div class="meta">模型版本 v1.0 · 2026-10-13 · 蒙特卡洛 N=9,000 · 随机数种子 20261013 · 折现率 r=5%</div>
+</div>
+
+<div class="abstract">
+  <b>核心发现</b>：AI 与电子电力行业，博士路线现值优势明显（470万 vs 335万本科）；生物与临床医学，博士因工时过高、延毕严重、学术岗位稀缺，<b>强度折合福利低于本科</b>（生物 72 万 vs 111 万本科）；金融与互联网，硕士性价比最高。<b>期权价值</b>：博士"第二年退出权"普遍值 6–13 万元；AI/电子电力"本科工作后回炉读研"值 21–26 万；学术轨"全冲教职 vs 全去业界"选择权在临床/互联网/金融分别值 47/48/36 万（P10 风险尾部差距过大）。<b>盈亏平衡</b>：硕士追平本科多在 30–42 岁，博士 38–51 岁（金融最晚）；43% 硕士生、36–50% 博士生终身累计低于本科中位数（"后悔概率"）。
+</div>
+
+<section class="sec" id="s1">
+<h2><span class="no">§1</span>模型概览</h2>
+<p class="lead">本文构建一个<b>离散时间、蒙特卡洛、生命周期</b>模型，从 18 岁本科入学至 63 岁退休，模拟三条路线（本科直接就业 B、硕士 M、博士 D）的收入、工时、劳动强度、延毕、待业、职业冲击、学术 vs 业界分流。核心方程：</p>
+
+<div class="eq">ENPV = Σ_{t=22}^{62} [y_t − φ·H_{eff,t}^{1+1/η} / (1+1/η)] · (1+r)^{−(t−22)}
+CEQ  = [(1−γ)·Σ df·u(c_t)]^{1/(1−γ)} · Σdf
+OV   = max_θ E[PV | θ*] − E[PV | 静态策略]</div>
+
+<p>y_t 为年收入（万元），H_{eff} = H · κ 为强度折合工时（κ ≥ 1 为强度系数），η = 0.5（Frisch 劳动供给弹性），γ = 2（CRRA 风险厌恶），r = 5%（个人实际折现率）。每行业 N=9,000 路径（每路线 3,000），MC 标准误 ≈ PV × 1.5%。</p>
+
+<h3>§1.1 收入生成与期权结构</h3>
+<p>应届起薪 w_0 按学历校准（选择效应 sel=40%：观测薪资比中 40% 由能力自选择解释，因果溢价 = (w_D / w_B)^{1−sel}），个体能力 z ~ N(0, σ_z²)。在职收入：</p>
+
+<div class="eq">log w_t = log w_0 + b₁·x − b₂·x² + 0.5·log(X_t / X_{t−x})
+dX_t / X_t = (μ − σ²/2)dt + σdW_t + J·dN_t</div>
+
+<p>跳跃 N_t ~ Poisson(λ)，J < 0（政策/周期冲击），μ 行业漂移（AI +1.5%、金融 −1%），σ 波动（AI 20%、临床 6%）。35 岁后年冲击概率 h₃₅·min(10, age−35+1)（互联网/金融 h₃₅=0.3%），永久工资损失 l₃₅=25–30%。</p>
+
+<p><b>三路线时序</b>：本科 B（4 年，临床 5+3 规培）→ 入职（待业 u 月，错配概率 m）+ <span class="tag">美式期权</span>25–29 岁回炉读研（阈值 θ，至多两次，p=40%，备考年 −5% 收入 +10h）；硕士 M（本科后 p=40% 上岸 → 2–3 年）+ <span class="tag">欧式期权</span>毕业时转博（z/σ > z*）；博士 D（名义 5 年 + 延毕 60%/22%/10%/8%，完成率 82–90%）+ <span class="tag">看跌期权</span>第 2 年退出（含噪信号 < k）+ 学术 vs 业界（p_acad 冲学术：博后 → 预聘 → 考核，否则降维）。</p>
+</section>
+
+<section class="sec" id="s2">
+<h2><span class="no">§2</span>终身累计收入：何时追平本科？</h2>
+<p class="lead">从 18 岁起计算名义累计收入（未折现），中位数路径 + 分位区间。关键问题：硕士/博士的<b>盈亏平衡年龄</b>（累计追上本科中位数）。</p>
+
+<div class="fig">
+<div class="ftitle">图 1. 终身累计收入（名义，未折现）· 中位数 + 分位带</div>
+<div class="ctrl" id="seg-cum"></div>
+<div class="ctrl" id="seg-band"></div>
+<div class="chart" id="ch-cum"></div>
+<div class="cap" id="cum-note">硕士曲线为上岸条件路径（p=100%）；博士为所有路径中位数（含结业、降维）。</div>
+</div>
+
+<p><b>观察</b>：AI/电子/临床硕士 34–36 岁追平本科，博士 38–41 岁；生物/基础/互联网/金融博士 43–51 岁（金融最晚）。金融博士平衡点 51 岁（仅剩 12 年）反映券商高开低走 + 35 岁后竞争力下降。</p>
+</section>
+
+<section class="sec" id="s3">
+<h2><span class="no">§3</span>劳动强度与有效工时</h2>
+<p class="lead">周工时 H × 强度系数 κ = 有效工时。本科/硕士工作 κ=1.0–1.1，博士在读 κ=1.12–1.20（Nature 2022 中国博士 47.85% >60h），规培 κ=1.30。</p>
+
+<div class="fig">
+<div class="ftitle">图 2. 逐年有效工时（强度折合，小时/周）</div>
+<div class="ctrl" id="seg-hours"></div>
+<div class="chart" id="ch-hours"></div>
+<div class="cap" id="hours-note">博士在读峰值 >60h，规培 >64h。</div>
+</div>
+
+<p><b>有效时薪</b>：AI 博士 173 元/h（本科 63），电子 157（79），但<b>生物博士 82 低于本科 46</b>；临床博士 72 甚至低于本科 49（8 年制 + 规培 + 过劳）。</p>
+</section>
+
+<section class="sec" id="s4">
+<h2><span class="no">§4</span>估值矩阵：七行业 × 三路线</h2>
+<p class="lead">含期权总值 = 静态 ENPV + 期权价值。<b>强度折合福利</b> = ENPV − 终身劳动负效用。P10 = 能力/运气底 10%。<b>后悔概率</b> = P(PV < median(PV_本科))。</p>
+
+<div class="fig">
+<div class="ftitle">表 1. 基准估值矩阵（N=9,000，万元，2026 年不变价）</div>
+<div id="tbl-val"></div>
+<div class="cap">★ 货币最优；◆ 强度福利最优。后悔概率 = P(PV < 本科中位数)。</div>
+</div>
+
+<p><b>结论</b>：AI 博士 470（本 335/硕 339），36% 后悔；电子博士 421（333/331），最稳健；<b>生物博士 235 仅略高 184，强度福利 72 < 111</b>（工时吃掉溢价）；<b>临床博士 276 vs 247，福利 −10 vs +12</b>（负！）；互联网/金融硕士性价比最高。</p>
+</section>
+
+<section class="sec" id="s5">
+<h2><span class="no">§5</span>交互实验室</h2>
+<p class="lead">浏览器端重跑（N=1,200），调整折现率、波动、摩擦、教职率，观察估值变化。</p>
+
+<div class="lab-grid" id="lab">
+<div>
+<div class="ctrl" id="seg-lab"></div>
+<div class="slider"><label><span>折现率 r</span><b id="l-r-v">5</b></label><input type="range" id="l-r" min="2" max="10" step="0.5" value="5" data-f="%"></div>
+<div class="slider"><label><span>文化惯性 ψ</span><b id="l-pre-v">0</b></label><input type="range" id="l-pre" min="0" max="3" step="0.2" value="0" data-f="万"></div>
+<div class="slider"><label><span>考研录取率</span><b id="l-adm-v">40</b></label><input type="range" id="l-adm" min="25" max="80" step="5" value="40" data-f="%"></div>
+<div class="slider"><label><span>劳动弹性 η</span><b id="l-eta-v">0.5</b></label><input type="range" id="l-eta" min="0.3" max="1.5" step="0.1" value="0.5"></div>
+<div class="slider"><label><span>波动率 σ ×</span><b id="l-sig-v">1</b></label><input type="range" id="l-sig" min="0.5" max="2" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>跳跃频率 λ ×</span><b id="l-lam-v">1</b></label><input type="range" id="l-lam" min="0.5" max="2" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>35 岁冲击 ×</span><b id="l-h35-v">1</b></label><input type="range" id="l-h35" min="0.5" max="3" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>教职获得率 ×</span><b id="l-acad-v">1</b></label><input type="range" id="l-acad" min="0.4" max="1.5" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>博士岗位 V/U ×</span><b id="l-V-v">1</b></label><input type="range" id="l-V" min="0.5" max="1.8" step="0.1" value="1" data-f="×"></div>
+<div class="slider"><label><span>待业月数 u ×</span><b id="l-u-v">1</b></label><input type="range" id="l-u" min="0.8" max="2" step="0.1" value="1" data-f="×"></div>
+</div>
+<div>
+<div class="chart" id="ch-lab" style="height:420px"></div>
+<div id="lab-out" class="callout"></div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s6">
+<h2><span class="no">§6</span>人口断崖 × 教职供需</h2>
+<p class="lead">F_t ∝ 在校生^0.7（粘性 0.7），在校生 = Σ 出生_{t−18~21} × 毛入学率（2025 61.3% → 2030 65%）。博士占比 31% → 55%。新增需求 = ΔF × 占比 + 退休 2.5%。供给：2025 11.3 万 → 2030 按招生 +3%。学术求职 = 毕业 × 55%。</p>
+
+<div class="fig">
+<div class="ftitle">图 3. 学术求职博士 / 新增教职竞争比</div>
+<div class="chart" id="ch-acad"></div>
+<div class="cap">2026 年 0.85 → 2036 年 4.80 → 2038 年 37.71（人口断崖：18 岁 1523 万 → 792 万，−48%）。</div>
+</div>
+
+<div class="fig">
+<div class="ftitle">图 4. 18 岁人口 vs 学术求职博士 vs 新增教职</div>
+<div class="chart" id="ch-n18"></div>
+<div class="cap">2038–2040 新增 0.3 万/年，求职 >20 万/年。</div>
+</div>
+
+<p><b>政策含义</b>：当前"超常布局"+ 招生年增 3%，将在 2030 年代中期形成<b>结构性过剩</b>——即使毛入学率 70% + 教职博士占比 60%，人口基数断崖使需求长期 <2 万/年。</p>
+</section>
+
+<section class="sec" id="s7">
+<h2><span class="no">§7</span>蛛网模型与热门专业周期</h2>
+<p class="lead">S_t = E_{t−L}，W_t = (D_t / S_t)^{1/ε}，Ŵ_t = Ŵ_{t−1} + θ(W_t − Ŵ_{t−1})，E_t = E_{t−1} · [1 + κ(Ŵ_t − 1) + 政策]。θ = 预期更新速度（文化惯性 → 0.2–0.4），κ = 行政放大（赶热点 → 0.5–0.7）。ρ(θ,κ,L) > 1 → 振荡发散。</p>
+
+<div class="fig">
+<div class="ftitle">图 5. 五轮热门专业周期（1999–2026）</div>
+<div class="ctrl" id="seg-cob"></div>
+<div id="cobctl" class="ctrl">
+<div class="slider"><label><span>预期更新 θ</span><b id="c-theta-v">0.25</b></label><input type="range" id="c-theta" min="0.05" max="1" step="0.05" value="0.25"></div>
+<div class="slider"><label><span>行政放大 κ</span><b id="c-kappa-v">0.50</b></label><input type="range" id="c-kappa" min="0.1" max="1.2" step="0.05" value="0.50"></div>
+</div>
+<div class="chart" id="ch-cob"></div>
+<div class="cap" id="cob-note">虚线 = 招生（政策推力），实线 = 供需。</div>
+</div>
+
+<p><b>五轮校准</b>：法学（θ=0.25, κ=0.50, ρ=1.05，200 点 → 600+，红牌 11 年）；土木（θ=0.30, κ=0.55, ρ=1.06，地产 −44%）；金融（θ=0.30, κ=0.60, ρ=1.07，限薪）；互联网（θ=0.40, κ=0.70, ρ=1.09，大数据 200 倍）；AI（θ=0.40, κ=0.70, ρ=1.09，2025 求职 +39% vs 职位 +3%）。全部 ρ > 1（发散）。</p>
+</section>
+
+<section class="sec" id="s8">
+<h2><span class="no">§8</span>结论与政策建议</h2>
+
+<div class="prop"><div class="pn">核心结论 1 · 行业异质性</div>
+AI/电子：博士优势明显；生物/临床：强度福利为负或低于本科；互联网/金融：硕士性价比最高，博士后悔概率 49–50%。
+</div>
+
+<div class="prop"><div class="pn">核心结论 2 · 期权价值</div>
+博士退出权 3–17 万，本科回炉 20–26 万（AI/电子），学术选择权 37–48 万（临床/互联网/金融）。
+</div>
+
+<div class="prop"><div class="pn">核心结论 3 · 人口断裂</div>
+2036 年竞争比 4.8，2038 年 37.7。博士招生 2030 后应零增长或负增长。
+</div>
+
+<div class="prop"><div class="pn">核心结论 4 · 蛛网发散</div>
+五轮 ρ = 1.05–1.09 > 1（振荡发散），根源：θ 低 + κ 高 + L 长 + 审批制。稳定需 θ > 0.5 且 κ < 0.4（市场化）。
+</div>
+
+<h3>政策建议</h3>
+<ol style="line-height:2.2;margin:12px 0 12px 24px">
+<li><b>透明化</b>：分行业 × 学历 × 能力分位数终身收入预测模型，明示 P10 风险。</li>
+<li><b>质量 + 总量</b>：博士招生 2030 后零增长，提高完成率 88% → 95%，按期毕业 60% → 75%，配套业界转岗。</li>
+<li><b>市场化</b>：取消三级审批（κ 降至 0.3），改负面清单 + 事后评估，红绿牌 API 化（4 年 → 1 年滞后），日落条款。</li>
+<li><b>工时立法</b>：博士 <39h + 30 天年假（德国制），规培 <60h（WHO），契约化（休假权 + 退出机制）。</li>
+<li><b>分流前置</b>：一年级选学术 vs 应用，学术轨总量 = 10 年教职需求 ÷ R₀ ÷ 完成率，应用轨产业联培。</li>
+</ol>
+
+<h3>局限</h3>
+<ul style="line-height:2;margin:12px 0 12px 24px">
+<li>选择效应 sel=40% 为保守估计；非货币收益（声望、自主性）未纳入；技术替代（AI 冲击白领）未建模；户籍/编制期权未显性；女性 vs 男性异质性（退休年龄、生育成本）需分层。</li>
+</ul>
+</section>
+
+<section class="sec" id="refs">
+<h2><span class="no">§9</span>参考文献</h2>
+<p class="lead">150+ 篇学术文献 + 政府统计 + 行业调研。完整表见 /tmp/research/D_literature.md。</p>
+
+<h3>核心理论</h3>
+<ul class="refs">
+<li>Dixit & Pindyck (1994). <i>Investment under Uncertainty</i>.</li>
+<li>Stange (2012). Option Value of College. <i>AEJ Applied</i>, 4(1), 49–84.</li>
+<li>Heckman & Li (2004). Selection Bias. <i>JAE</i>, 19(4), 465–480.</li>
+<li>Zhang et al. (2005). Returns 1988–2001. <i>JCE</i>, 33(4), 730–752.</li>
+<li>Hanushek et al. (2025). Premium Evolution. <i>JCE</i>.</li>
+<li>Evans et al. (2018). PhD Mental Health. <i>Nature Biotech</i>, 36(3), 282–284.</li>
+<li>Larson et al. (2014). R₀ in Academia. <i>SRB Science</i>, 31(6), 745–750.</li>
+<li>Freeman (1976). <i>The Overeducated American</i>.</li>
+<li>Petrongolo & Pissarides (2001). Matching Function. <i>JEL</i>, 39(2), 390–431.</li>
+<li>Brown et al. (2024). Loss Aversion. <i>JEL</i>, 62(2), 485–516.</li>
+</ul>
+
+<h3>中国数据</h3>
+<ul class="refs">
+<li>教育部：统计公报（2013–2025）、学位法（2025）、专业备案（2020–2025）</li>
+<li>统计局：年鉴（2024–2025）、工资、工时 48.6h</li>
+<li>中智：起薪 6695/9426/15523 元/月</li>
+<li>麦可思：红绿牌、分专业起薪工时</li>
+<li>Nature：2019/2022 博士调查</li>
+<li>医学界：医生生存现状（50.5h/周）</li>
+<li>猎聘/脉脉/智联：薪资、供需、35 岁门槛</li>
+<li>年报：中信/中金/中芯/药明/腾讯/阿里</li>
+</ul>
+
+<p class="small" style="margin-top:24px">完整参数表（189 个）、敏感性、情景、蛛网前沿见 results.json（64KB）。源代码（model.js, 680 行）内嵌，DevTools 中调用 PhDModel.* API 自定义实验。</p>
+</section>
+
+<footer><div class="wrap">
+  <p>© 2026 基于公开数据与学术文献。所有估值为期望净现值（MC 均值），个体实际结果受能力/运气/宏观冲击影响，<b>下行风险（P10）与上行潜力（P90）可能偏离均值 ±150 万</b>。本文不构成教育投资建议。</p>
+  <p style="margin-top:8px">vanilla JS · SVG + 原生 DOM · CSS 变量 · JSON 内嵌 · ≈ 380KB · Chrome 90+, Firefox 88+, Safari 14+</p>
+  <p style="margin-top:12px;color:var(--text-3)">2026-10-13 · v1.0 · 研究用途 · 源代码 MIT 许可（暂未公开）</p>
+</div></footer>
+
+</main>
+
+<div class="tip" id="tip"></div>
+<script>
+(function(){
+/* ============================================================
+ * 本科 / 硕士 / 博士 三条路线 · 实物期权-生命周期蒙特卡洛模型
+ * 同一份代码：node 端生成论文表格，浏览器端驱动交互模型
+ * 时间单位：年；货币单位：万元（2026 年不变价，实际值）
+ * ============================================================ */
+(function (root) {
+'use strict';
+
+/* ---------- 随机数（可复现） ---------- */
+function rng(seed) {
+  let a = seed >>> 0;
+  const u = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  let spare = null;
+  const n = () => { if (spare !== null) { const s = spare; spare = null; return s; }
+    let x, y, r; do { x = 2 * u() - 1; y = 2 * u() - 1; r = x * x + y * y; } while (r >= 1 || r === 0);
+    const f = Math.sqrt(-2 * Math.log(r) / r); spare = y * f; return x * f; };
+  const pois = (lam) => { const L = Math.exp(-lam); let k = 0, p = 1; do { k++; p *= u(); } while (p > L); return k - 1; };
+  return { u, n, pois };
+}
+
+/* ---------- 全局参数 ---------- */
+const GLOBAL = {
+  ageStart: 18,          // 本科入学
+  ageDecide: 22,         // 本科毕业 = 决策时点 t=0（临床 23）
+  ageRetire: 63,         // 渐进式延迟退休后男性法定年龄（女性 55/58 另做敏感性）
+  r: 0.05,               // 个人实际折现率（基准）
+  gamma: 2,              // CRRA 相对风险厌恶
+  eta: 0.5,              // Frisch 劳动供给弹性（劳动负效用曲率 1+1/eta = 3）
+  wRef: 7.0,             // 参照年收入（万元）：2025 届本科 6435 元/月 × 12 × 0.9 取整，用于标定劳动负效用
+  hRef: 40,              // 法定标准工时
+  living: 2.0,           // 在读年生活费（万元/年）
+  ugTuition: 0.6,        // 本科学费（万元/年）
+  ugHours: 42,           // 本科周学习时长
+  prestige: 0.0,         // 文化惯性：学历名望红利（万元/年·等价），0 = 纯货币模型
+  ageCap: 35,            // 制度年龄门槛（考公/大厂/青基）
+  agePenalty: 0.03,      // 超过 30 岁初次进入市场的年龄折价/岁
+  pAdmitM: 0.40,         // 考研/推免上岸概率（报名/录取约 3.1:1，取中上水平考生）
+  sel: 0.40              // 学历起薪比中由选择效应（能力自选择）解释的对数份额；因果溢价 = (w_d/w_B)^(1−sel)
+};
+
+/* ---------- 七行业参数（详见论文 §4 校准表） ----------
+ * w: 应届月收入（元），按学历 B/M/D
+ * g: Mincer 经验曲线 log w = b1·x − b2·x²
+ * mu/sig: 行业工资指数实际漂移/波动；lam/J: 政策-周期跳跃强度/幅度（对数）
+ * sz: 个体能力-匹配离散度（对数标准差）
+ * h35/l35: 35 岁后职业冲击年风险斜率 / 冲击后永久工资损失
+ * H: 工作周时长（B/M/D），kap: 强度系数
+ * entry: 入职摩擦 u=期望待业月数, m=降维/错配概率, pen=错配工资折价
+ * M/D: 在读参数；P: 博士劳动市场
+ */
+const IND = {
+  AI:    { name: 'AI 人工智能', short:'AI', w:{B:7500,M:16000,D:28000}, g:{b1:.100,b2:.0021}, mu:.015, sig:.20, lam:.12, J:-.15, sz:.42,
+           h35:.0025, l35:.25, H:{B:54,M:54,D:52}, kap:1.10,
+           entry:{B:{u:4.0,m:.50,pen:.30}, M:{u:3.0,m:.30,pen:.25}, D:{u:2.5,m:.15,pen:.20}},
+           M:{n:2.5, tui:2.0, sti:1.4, H:52, kap:1.05}, D:{n:5, delay:[.60,.22,.10,.08], pc:.90, tui:1.0, sti:4.5, H:58, kap:1.15},
+           P:{acad:.30, pd:2, wpd:28, pT:.45, wFac:30, Vind:10000, Uphd:8000} },
+  BIO:   { name: '生物（生命科学/生物医药研发）', short:'生物', w:{B:5200,M:9000,D:20000}, g:{b1:.070,b2:.0014}, mu:.010, sig:.15, lam:.08, J:-.12, sz:.28,
+           h35:.0015, l35:.25, H:{B:46,M:48,D:50}, kap:1.05,
+           entry:{B:{u:5.0,m:.60,pen:.25}, M:{u:4.0,m:.40,pen:.20}, D:{u:4.0,m:.30,pen:.20}},
+           M:{n:3, tui:0.8, sti:1.3, H:54, kap:1.10}, D:{n:5, delay:[.45,.30,.15,.10], pc:.88, tui:1.0, sti:3.8, H:62, kap:1.20},
+           P:{acad:.55, pd:3, wpd:18, pT:.40, wFac:20, Vind:6000, Uphd:15000} },
+  CLIN:  { name: '临床医学', short:'临床', w:{B:7000,M:9500,D:13000}, g:{b1:.070,b2:.0013}, mu:.010, sig:.06, lam:.06, J:-.08, sz:.22,
+           h35:.0004, l35:.15, H:{B:55,M:56,D:58}, kap:1.25,
+           entry:{B:{u:2.0,m:.40,pen:.25}, M:{u:2.0,m:.20,pen:.15}, D:{u:2.0,m:.10,pen:.10}},
+           M:{n:3, tui:1.0, sti:1.5, H:64, kap:1.30}, D:{n:6, delay:[.80,.12,.05,.03], pc:.92, tui:1.0, sti:2.5, H:64, kap:1.30},
+           P:{acad:0, pd:0, wpd:0, pT:.50, wFac:25, Vind:10000, Uphd:12000},
+           clin:{bUG:5, gp:3, wGP:4.5} },
+  BASIC: { name: '基础医学', short:'基础医学', w:{B:5500,M:8000,D:15000}, g:{b1:.065,b2:.0013}, mu:.010, sig:.06, lam:.04, J:-.06, sz:.22,
+           h35:.0008, l35:.20, H:{B:46,M:48,D:52}, kap:1.05,
+           entry:{B:{u:5.0,m:.65,pen:.25}, M:{u:4.0,m:.40,pen:.20}, D:{u:4.0,m:.30,pen:.20}},
+           M:{n:3, tui:0.8, sti:1.3, H:54, kap:1.10}, D:{n:5, delay:[.75,.15,.06,.04], pc:.90, tui:1.0, sti:3.5, H:60, kap:1.18},
+           P:{acad:.60, pd:3, wpd:16, pT:.40, wFac:18, Vind:2000, Uphd:5000} },
+  EE:    { name: '电子电力（芯片/电气）', short:'电子电力', w:{B:7500,M:14000,D:22000}, g:{b1:.075,b2:.0015}, mu:.015, sig:.10, lam:.06, J:-.10, sz:.25,
+           h35:.0010, l35:.20, H:{B:49,M:50,D:50}, kap:1.00,
+           entry:{B:{u:3.0,m:.25,pen:.20}, M:{u:2.5,m:.20,pen:.15}, D:{u:3.0,m:.15,pen:.15}},
+           M:{n:2.5, tui:2.0, sti:1.4, H:52, kap:1.05}, D:{n:5, delay:[.60,.22,.10,.08], pc:.90, tui:1.0, sti:4.0, H:58, kap:1.12},
+           P:{acad:.30, pd:2, wpd:25, pT:.45, wFac:25, Vind:9000, Uphd:9000} },
+  NET:   { name: '互联网（软件/计算机）', short:'互联网', w:{B:7300,M:13000,D:20000}, g:{b1:.095,b2:.0019}, mu:.000, sig:.15, lam:.12, J:-.15, sz:.38,
+           h35:.0030, l35:.30, H:{B:52,M:52,D:50}, kap:1.10,
+           entry:{B:{u:4.5,m:.45,pen:.30}, M:{u:3.5,m:.35,pen:.25}, D:{u:3.0,m:.30,pen:.20}},
+           M:{n:2.5, tui:2.0, sti:1.4, H:52, kap:1.05}, D:{n:5, delay:[.60,.22,.10,.08], pc:.90, tui:1.0, sti:4.0, H:58, kap:1.12},
+           P:{acad:.30, pd:2, wpd:28, pT:.45, wFac:30, Vind:4000, Uphd:6000} },
+  FIN:   { name: '金融', short:'金融', w:{B:6500,M:12000,D:16000}, g:{b1:.090,b2:.0018}, mu:-.010, sig:.12, lam:.10, J:-.12, sz:.38,
+           h35:.0030, l35:.30, H:{B:50,M:52,D:50}, kap:1.10,
+           entry:{B:{u:4.5,m:.55,pen:.30}, M:{u:4.0,m:.40,pen:.25}, D:{u:4.0,m:.35,pen:.20}},
+           M:{n:2, tui:5.0, sti:0.6, H:48, kap:1.05}, D:{n:5, delay:[.73,.17,.06,.04], pc:.90, tui:1.0, sti:3.0, H:56, kap:1.10},
+           P:{acad:.50, pd:2, wpd:22, pT:.45, wFac:25, Vind:1500, Uphd:3000} }
+};
+const IND_KEYS = ['AI', 'BIO', 'CLIN', 'BASIC', 'EE', 'NET', 'FIN'];
+
+/* ---------- 辅助 ---------- */
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function wDeg(p, deg, G) {              // 因果口径的学历起薪（万元/年）
+  const rB = p.w.B * 12 / 1e4; if (deg === 'B') return rB;
+  return rB * Math.pow(p.w[deg] / p.w.B, 1 - G.sel);
+}
+function profile(p, x) { return Math.exp(p.g.b1 * x - p.g.b2 * x * x); }
+function effortCost(Heff, G) {          // 货币化劳动负效用（万元/年）
+  // u = y − φ·H^(1+1/η)/(1+1/η)，φ 标定使 H=hRef 时边际负效用 = 参照时薪
+  const k = 1 + 1 / G.eta;
+  return (G.wRef / k) * Math.pow(Heff / G.hRef, k);
+}
+function pMatchPhD(P, scale) {           // 匹配函数 M = A·U^α·V^(1−α)，α = 0.5，A = 0.85（匹配效率）
+  const theta = (P.Vind * (scale || 1)) / P.Uphd;  // 市场紧度 V/U
+  return clamp(0.85 * Math.pow(theta, 0.5), 0, 0.97);
+}
+
+/* ---------- 单路径模拟 ----------
+ * route: 'B' | 'M' | 'D'
+ * opt: { lateM:θ (B 路线在行业下行时回炉读研的阈值，null=无期权),
+ *        toD:z* (M 路线毕业时转博阈值，null=无),
+ *        exitD:k (D 路线第 2 年进展信号退出阈值，null=无退出权) }
+ * 返回逐年数组（从 18 岁到 62 岁）
+ */
+function simPath(key, route, G, R, opt, scen) {
+  const p = IND[key];
+  const A0 = G.ageStart, AR = G.ageRetire, T = AR - A0;
+  const inc = new Float64Array(T), hrs = new Float64Array(T), kap = new Float64Array(T), stage = new Int8Array(T);
+  // stage: 0 本科 1 硕士在读 2 博士在读 3 规培 4 博后 5 工作 6 待业/冲击 7 教职
+  const mu = p.mu + ((scen.dmu && scen.dmu[key]) || 0);
+  const sig = p.sig * (scen.sigMul || 1);
+  const lam = p.lam * (scen.lamMul || 1);
+  const z = R.n() * p.sz;                       // 个体能力/匹配（对数）
+  const zs = z / p.sz;                          // 标准化能力
+  const ab = Math.exp(z - p.sz * p.sz / 2);     // 均值归一的能力乘子
+  // 行业工资指数：对数随机游走 + 复合泊松跳跃（政策/周期冲击），自 22 岁起
+  const lx = new Float64Array(T + 1);
+  for (let t = 1; t <= T; t++) {
+    const age = A0 + t;
+    lx[t] = age <= G.ageDecide ? 0 : lx[t - 1] + (mu - sig * sig / 2) + sig * R.n() + p.J * R.pois(lam);
+  }
+  const X = (age) => Math.exp(lx[clamp(age - A0, 0, T)]);
+  const isClin = !!p.clin;
+  const pAdmit = scen.pAdmitM != null ? scen.pAdmitM : G.pAdmitM;
+
+  let a = A0, degree = 'B', shocked = false, acad = false;
+  let wStart = 0, entryMult = 1, career = 0, aEntry = 0, lostFirst = 0;
+
+  function put(st, y, H, k) { if (a >= AR) return; const i = a - A0; inc[i] = y; hrs[i] = H; kap[i] = k; stage[i] = st; a++; }
+  function study(n, s, st) { for (let k = 0; k < n && a < AR; k++) put(st, s.sti - s.tui - G.living, s.H, s.kap); }
+
+  function enter(deg, wageOverride) {          // 入职：摩擦 + 错配 + 年龄折价
+    const e = p.entry[deg];
+    const hz = 1 / (1 + e.u * (scen.uMul || 1));     // 月度找到工作概率（几何分布，期望待业 = u 月）
+    let months = 0; while (R.u() > hz && months < 24) months++;
+    const mis = R.u() < clamp(e.m * (scen.mMul || 1), 0, .95);
+    entryMult = mis ? 1 - e.pen : 1;
+    wStart = (wageOverride != null ? wageOverride : wDeg(p, deg, G)) * X(a) * ab;
+    wStart *= Math.pow(1 - G.agePenalty, Math.max(0, a - 30));
+    career = 0; aEntry = a;
+    // 待业超过 12 个月的部分直接占用整年
+    while (months >= 12 && a < AR) { put(6, 0, 25, 1.1); months -= 12; }
+    lostFirst = months / 12;
+  }
+  function work(untilAge) {
+    for (; a < untilAge && a < AR;) {
+      if (!shocked && !acad && a >= G.ageCap) {
+        const hz = p.h35 * Math.min(10, a - G.ageCap + 1) * (scen.h35Mul || 1);
+        if (R.u() < hz) { shocked = true;
+          const w = wStart * profile(p, career) * (1 - p.l35);
+          put(6, 0.5 * w, 30, 1.1); career++; continue; }
+      }
+      const mm = career < 3 ? entryMult : entryMult + (1 - entryMult) * Math.min(1, (career - 2) / 5); // 错配随年资修复
+      let w = wStart * profile(p, career) * mm * (shocked ? 1 - p.l35 : 1);
+      if (!acad) w *= Math.pow(X(a) / X(aEntry), 0.5);   // 在职工资对行业指数弹性 ψ = 0.5
+      if (career === 0) w *= (1 - lostFirst);
+      w += G.prestige * (degree === 'D' ? 1 : degree === 'M' ? 0.4 : 0);
+      const fade = a >= 45 ? Math.max(0.85, 1 - 0.01 * (a - 44)) : 1;
+      put(acad ? 7 : 5, w, (acad ? 58 : p.H[degree]) * fade, acad ? 1.10 : p.kap);
+      career++;
+    }
+  }
+  function workB_withLateM() {                 // 美式期权：工作 2–7 年内若行业指数跌破 θ，回炉读研
+    const tStop = Math.min(AR, a + 7); let tries = 0;
+    while (a < tStop) {
+      if (a >= aEntry + 2 && tries < 2 && X(a) / X(aEntry) < opt.lateM) {
+        tries++;                                    // 在职备考：至多两次，录取率与应届相同；备考年 +10h/周、收入 −5%
+        const i = a - A0; work(a + 1); inc[i] *= 0.95; hrs[i] += 10;
+        if (R.u() < pAdmit) { study(p.M.n, p.M, 1); degree = 'M'; enter('M'); work(AR); return; }
+        continue;
+      }
+      work(a + 1);
+    }
+    work(AR);
+  }
+
+  /* ---- 本科阶段（沉没，但计入累计曲线） ---- */
+  const ugY = isClin ? p.clin.bUG : 4;
+  for (let k = 0; k < ugY; k++) put(0, -(G.ugTuition + G.living), isClin ? 50 : G.ugHours, 1.0);
+  const GP = isClin ? { sti: p.clin.wGP, tui: 0, H: 66, kap: 1.30 } : null;
+
+  if (route === 'B') {
+    if (isClin) study(p.clin.gp, GP, 3);
+    enter('B');
+    if (opt.lateM != null && !isClin) workB_withLateM(); else work(AR);
+  } else if (route === 'M') {
+    if (R.u() > pAdmit) {                      // 未上岸：耗 1 年备考，回到 B
+      put(6, -G.living * 0.5, 50, 1.15);
+      if (isClin) study(p.clin.gp, GP, 3);
+      enter('B'); work(AR);
+    } else {
+      study(p.M.n, p.M, isClin ? 3 : 1); degree = 'M';
+      if (opt.toD != null && zs > opt.toD) phd(true); else { enter('M'); work(AR); }
+    }
+  } else {
+    phd(false);
+  }
+  for (; a < AR; a++) { inc[a - A0] = 0; stage[a - A0] = 6; }
+  return { inc, hrs, kap, stage, ab, degree };
+
+  function phd(fromM) {
+    const d = p.D;
+    const nNom = fromM ? (isClin ? 3 : 4) : d.n;   // 硕士后读博：申请-考核制名义 4 年（临床 3 年）
+    let delay = 0, cum = 0; const ru = R.u();
+    for (let k = 0; k < d.delay.length; k++) { cum += d.delay[k]; if (ru > cum) delay = k + 1; }
+    const nTot = nNom + delay;
+    const pc = 1 / (1 + Math.exp(-(Math.log(d.pc / (1 - d.pc)) + 1.2 * zs)));
+    const finish = R.u() < pc;
+    if (opt.exitD != null) {                    // 看跌期权：第 2 年依据含噪进展信号退出，按硕士毕业
+      study(2, d, 2);
+      const signal = (finish ? 0.8 : -0.8) + 0.8 * R.n();
+      if (signal < opt.exitD) { if (!fromM) study(1, p.M, 1); degree = 'M'; enter('M'); work(AR); return; }
+      study(nTot - 2, d, 2);
+    } else study(nTot, d, 2);
+    if (!finish) { degree = fromM ? 'M' : 'B'; enter(degree); work(AR); return; }   // 结业：仅持原学历
+    degree = 'D';
+    const P = p.P;
+    const acadP = scen.acadShare != null ? scen.acadShare : P.acad;
+    if (acadP > 0 && R.u() < acadP) {         // 学术轨：博后 → 预聘 → 非升即走
+      study(P.pd, { sti: P.wpd, tui: 0, H: 58, kap: 1.15 }, 4);
+      const pT = clamp(P.pT * (scen.acadMul != null ? scen.acadMul : 1) * (1 + 0.3 * zs), 0.02, 0.95);
+      if (R.u() < pT) {
+        acad = true; wStart = P.wFac * Math.pow(wDeg(p, 'D', G) / (p.w.D * 12 / 1e4), 1) * ab; entryMult = 1; career = 0; aEntry = a; lostFirst = 0;
+        work(Math.min(AR, a + 6));
+        const pass = R.u() < clamp((0.60 + 0.2 * zs) * (scen.passMul || 1), 0.05, 0.95);
+        if (!pass && a < AR) { acad = false; enter('D'); wStart *= 0.85; }
+        work(AR); return;
+      }
+    }
+    const pm = pMatchPhD(P, (scen.Vmul && scen.Vmul[key]) || 1);
+    if (R.u() > pm) { enter('M', wDeg(p, 'M', G) * 0.95); } else enter('D');
+    work(AR);
+  }
+}
+
+/* ---------- 路线评估 ---------- */
+function evalRoute(key, route, cfg) {
+  const G = Object.assign({}, GLOBAL, cfg.G || {});
+  const N = cfg.N || 4000, seed = cfg.seed || 20261013;
+  const opt = cfg.opt || {}, scen = cfg.scen || {};
+  const R = rng(seed + (route === 'B' ? 1 : route === 'M' ? 2 : 3) * 7919 + IND_KEYS.indexOf(key) * 104729);
+  const A0 = G.ageStart, T = G.ageRetire - A0, t0 = (IND[key].clin ? IND[key].clin.bUG : 4);
+  const meanInc = new Float64Array(T), meanH = new Float64Array(T), meanHe = new Float64Array(T);
+  const cumAll = []; const pv = new Float64Array(N), wel = new Float64Array(N), ce = new Float64Array(N);
+  let life = 0, lifeHe = 0, lifeInc = 0;
+  const qs = [];
+  for (let n = 0; n < N; n++) {
+    const s = simPath(key, route, G, R, opt, scen);
+    let v = 0, wv = 0, cu = 0, uu = 0; const cum = new Float64Array(T);
+    for (let i = 0; i < T; i++) {
+      const y = s.inc[i], He = s.hrs[i] * s.kap[i];
+      meanInc[i] += y / N; meanH[i] += s.hrs[i] / N; meanHe[i] += He / N;
+      cu += y; cum[i] = cu;
+      if (i >= t0) {
+        const df = Math.pow(1 + G.r, -(i - t0));
+        v += y * df;
+        const net = y - effortCost(He, G);
+        wv += net * df;
+        // CRRA 效用（消费≈收入，下限 1.2 万元/年 兜底）
+        const c = Math.max(1.2, y);
+        uu += df * (Math.pow(c, 1 - G.gamma) / (1 - G.gamma));
+        life += s.hrs[i] * 52 / N; lifeHe += He * 52 / N; lifeInc += y / N;
+      }
+    }
+    pv[n] = v; wel[n] = wv; ce[n] = uu;
+    if (n < 400) cumAll.push(cum);
+  }
+  const sorted = Array.from(pv).sort((x, y) => x - y);
+  const q = (p) => sorted[Math.floor(p * (N - 1))];
+  const mean = pv.reduce((s, x) => s + x, 0) / N;
+  const sd = Math.sqrt(pv.reduce((s, x) => s + (x - mean) * (x - mean), 0) / (N - 1));
+  const meanW = wel.reduce((s, x) => s + x, 0) / N;
+  // 确定性等价：反解 Σdf·u(c) 的均值
+  let annu = 0; for (let i = t0; i < T; i++) annu += Math.pow(1 + G.r, -(i - t0));
+  const EU = ce.reduce((s, x) => s + x, 0) / N;
+  const cEq = Math.pow(EU / annu * (1 - G.gamma), 1 / (1 - G.gamma)); // 等价年收入
+  // 累计收入分位（从 18 岁起，名义未折现）
+  const cumQ = (p) => { const out = new Float64Array(T); for (let i = 0; i < T; i++) { const col = cumAll.map(c => c[i]).sort((x, y) => x - y); out[i] = col[Math.floor(p * (col.length - 1))]; } return out; };
+  return {
+    key, route, N, mean, sd, se: sd / Math.sqrt(N), p10: q(.10), p50: q(.5), p90: q(.9), p05: q(.05),
+    welfare: meanW, cEq: cEq * annu, cEqAnnual: cEq,
+    lifeHours: life, lifeHoursEff: lifeHe, lifeIncome: lifeInc,
+    hourlyEff: lifeInc * 10000 / lifeHe, hourly: lifeInc * 10000 / life,
+    meanInc: Array.from(meanInc), meanH: Array.from(meanH), meanHe: Array.from(meanHe),
+    cumP50: Array.from(cumQ(.5)), cumP10: Array.from(cumQ(.1)), cumP90: Array.from(cumQ(.9)),
+    pv: pv
+  };
+}
+
+/* ---------- 期权价值：参数化最优停时（Garcia 2003 式下界） ---------- */
+function optionValues(key, cfg) {
+  const base = (route, opt) => evalRoute(key, route, Object.assign({}, cfg, { opt }));
+  const res = {};
+  // B 路线：回炉读研美式期权
+  const B0 = base('B', {});
+  let bestB = { v: B0.mean, th: null };
+  if (!IND[key].clin) for (const th of [0.70, 0.85, 1.00, 99]) { const r = base('B', { lateM: th }); if (r.mean > bestB.v) bestB = { v: r.mean, th }; }
+  res.B = { static: B0.mean, withOpt: bestB.v, OV: bestB.v - B0.mean, th: bestB.th };
+  // M 路线：转博复合期权
+  const M0 = base('M', {});
+  let bestM = { v: M0.mean, th: null };
+  for (const th of [0.5, 1.0, 1.5]) { const r = base('M', { toD: th }); if (r.mean > bestM.v) bestM = { v: r.mean, th }; }
+  res.M = { static: M0.mean, withOpt: bestM.v, OV: bestM.v - M0.mean, th: bestM.th };
+  // D 路线：退出看跌期权
+  const D0 = base('D', {});
+  let bestD = { v: D0.mean, th: null };
+  for (const th of [-1.0, -0.5, 0.0, 0.3]) { const r = base('D', { exitD: th }); if (r.mean > bestD.v) bestD = { v: r.mean, th }; }
+  res.D = { static: D0.mean, withOpt: bestD.v, OV: bestD.v - D0.mean, th: bestD.th };
+  // 学术轨"彩票"：全部冲教职 vs 全部去业界（同一套随机数）
+  const sc = cfg.scen || {};
+  const DA = evalRoute(key, 'D', Object.assign({}, cfg, { opt: { exitD: bestD.th }, scen: Object.assign({}, sc, { acadShare: 1 }) }));
+  const DI = evalRoute(key, 'D', Object.assign({}, cfg, { opt: { exitD: bestD.th }, scen: Object.assign({}, sc, { acadShare: 0 }) }));
+  res.acad = { allAcad: DA.mean, allInd: DI.mean, allAcadW: DA.welfare, allIndW: DI.welfare, p10A: DA.p10, p10I: DI.p10 };
+  res.D.OVchoice = Math.max(DA.mean, DI.mean) - bestD.v;
+  return res;
+}
+
+/* ---------- Dixit–Pindyck 等待阈值（闭式） ----------
+ * 投资价值 V 服从 GBM(α, σ)，红利率 δ = r − α；投资成本 I 不可逆
+ * β1 = ½ − (r−δ)/σ² + √[((r−δ)/σ² − ½)² + 2r/σ²]，最优阈值 V* = β1/(β1−1)·I
+ */
+function dixitPindyck(r, delta, sigma) {
+  const s2 = sigma * sigma, a = 0.5 - (r - delta) / s2;
+  const b1 = a + Math.sqrt(a * a + 2 * r / s2);
+  return { beta: b1, mult: b1 / (b1 - 1) };
+}
+/* ---------- Black–Scholes / Merton 跳跃扩散：教育看涨期权 ---------- */
+function ncdf(x) { const t = 1 / (1 + 0.2316419 * Math.abs(x)); const d = 0.3989423 * Math.exp(-x * x / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return x > 0 ? 1 - p : p; }
+function bsCall(S, K, r, s, T) { if (T <= 0) return Math.max(S - K, 0);
+  const d1 = (Math.log(S / K) + (r + s * s / 2) * T) / (s * Math.sqrt(T)), d2 = d1 - s * Math.sqrt(T);
+  return { C: S * ncdf(d1) - K * Math.exp(-r * T) * ncdf(d2), d1, d2, delta: ncdf(d1), vega: S * Math.sqrt(T) * 0.3989423 * Math.exp(-d1 * d1 / 2) }; }
+function mertonCall(S, K, r, s, T, lam, J, dJ) { // 对数跳跃 ~ N(J, dJ²)
+  const k = Math.exp(J + dJ * dJ / 2) - 1; let C = 0, fact = 1;
+  for (let n = 0; n < 30; n++) { if (n > 0) fact *= n;
+    const sn = Math.sqrt(s * s + n * dJ * dJ / T), rn = r - lam * k + n * Math.log(1 + k) / T;
+    const w = Math.exp(-lam * (1 + k) * T) * Math.pow(lam * (1 + k) * T, n) / fact;
+    const c = bsCall(S, K, rn, sn, T); C += w * (typeof c === 'number' ? c : c.C); }
+  return C;
+}
+
+/* ---------- 人口-教职供需模块 ----------
+ * births: {年份: 万人}；返回 2026–2050 年 18 岁人口、在校规模指数、教职新增需求、博士毕业供给
+ */
+function academicMarket(births, cfg) {
+  const out = [];
+  const F0 = cfg.faculty0, ratio0 = cfg.studentsPerFaculty, retireRate = cfg.retireRate;
+  const ger = (y) => Math.min(cfg.gerMax, cfg.ger0 + cfg.gerSlope * (y - 2025));
+  const stud = (y) => { let s = 0; for (let k = 18; k <= 21; k++) s += (births[y - k] || 0) * 0.985; return s * ger(y); };
+  const S0 = stud(2025);
+  let Fprev = F0;
+  for (let y = 2026; y <= 2050; y++) {
+    const S = stud(y), F = F0 * S / S0 * (cfg.ratioDrift ? Math.pow(1 + cfg.ratioDrift, y - 2025) : 1);
+    const hires = Math.max(0, F - Fprev + Fprev * retireRate);
+    const phd = cfg.phdGrad0 * Math.pow(1 + cfg.phdGrowth, Math.min(y - 2025, cfg.phdGrowYears)) * (y - 2025 > cfg.phdGrowYears ? Math.pow(1 + cfg.phdLateGrowth, y - 2025 - cfg.phdGrowYears) : 1);
+    out.push({ y, n18: (births[y - 18] || 0) * 0.985, students: S, faculty: F, hires, phd, ratio: phd * cfg.acadSeekShare / hires });
+    Fprev = F;
+  }
+  return out;
+}
+
+/* ---------- 蛛网模型（含行政放大与文化惯性） ----------
+ * 招生 E_t = E_{t-1}·[1 + κ_adm·(Ŵ_t − 1)]^…；Ŵ 为适应性预期工资溢价，θ = 预期更新速度（文化惯性越强 θ 越小）
+ * 毕业供给 S_t = E_{t−L}；需求 D_t 外生；溢价 W_t = (D_t / S_t)^(1/ε)
+ */
+function cobweb(c) {
+  const T = c.T || 30, L = c.L || 4;
+  const E = [], S = [], D = [], W = [], Wh = [];
+  for (let t = 0; t < T; t++) {
+    const gg = c.shock && t > c.shock.t ? (c.shock.g2 != null ? c.shock.g2 : c.g) : c.g;
+    D[t] = t === 0 ? c.D0 : D[t - 1] * (1 + gg) * (c.shock && t === c.shock.t ? (1 + c.shock.size) : 1);
+    S[t] = t < L ? c.S0 : E[t - L];
+    W[t] = Math.pow(D[t] / S[t], 1 / c.eps);
+    Wh[t] = t === 0 ? 1 : Wh[t - 1] + c.theta * (W[t] - Wh[t - 1]);
+    let signal = 0; (c.policies || (c.policy ? [c.policy] : [])).forEach(pp => { if (t >= pp.t0 && t < pp.t1) signal += pp.size; });
+    E[t] = (t === 0 ? c.S0 : E[t - 1]) * Math.max(0.6, Math.min(1.6, 1 + c.kappa * (Wh[t] - 1) + signal));
+  }
+  return { E, S, D, W, Wh };
+}
+// 线性化稳定性：在稳态附近 e_t = (1−θ)e_{t−1} + θ·w_t，w_t = −s_t/ε，s_t = x_{t−L}，x_t = x_{t−1} + κ·e_t
+// 求伴随矩阵谱半径
+function cobwebSpectral(theta, kappa, eps, L) {
+  // 状态 [x_t, x_{t−1}, …, x_{t−L}, e_t]
+  const n = L + 2; const A = Array.from({ length: n }, () => new Array(n).fill(0));
+  // e_t = (1−θ)e_{t−1} − θ/ε · x_{t−L}
+  // x_t = x_{t−1} + κ e_t = x_{t−1} + κ(1−θ)e_{t−1} − κθ/ε · x_{t−L}
+  A[0][0] = 1; A[0][L] = -kappa * theta / eps; A[0][n - 1] = kappa * (1 - theta);
+  for (let i = 1; i <= L; i++) A[i][i - 1] = 1;
+  A[n - 1][L] = -theta / eps; A[n - 1][n - 1] = 1 - theta;
+  // 幂迭代估计谱半径（复根情形用 ‖A^k‖^(1/k)）
+  let M = A.map(r => r.slice());
+  const mul = (P, Q) => P.map((r, i) => Q[0].map((_, j) => r.reduce((s, _, k) => s + P[i][k] * Q[k][j], 0)));
+  const K = 64; for (let k = 1; k < K; k++) M = mul(M, A);
+  let nr = 0; for (const r of M) for (const v of r) nr = Math.max(nr, Math.abs(v));
+  return Math.pow(nr, 1 / K);
+}
+
+const API = { GLOBAL, IND, IND_KEYS, rng, simPath, evalRoute, optionValues, dixitPindyck, bsCall, mertonCall, academicMarket, cobweb, cobwebSpectral, effortCost, pMatchPhD };
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.PhDModel = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+})();
+</script>
+<script>
+const RESULTS = {"keys":["AI","BIO","CLIN","BASIC","EE","NET","FIN"],"ind":{"AI":{"name":"AI 人工智能","short":"AI","val":{"B":{"static":308.9,"se":1.87,"OV":26.1,"total":335.1,"p05":111.9,"p10":135.8,"p50":267.8,"p90":534.5,"sd":177.6,"welfare":177.9,"cEqAnnual":10.03,"lifeHours":109912,"lifeHoursEff":120903,"lifeIncome":759,"hourly":69.1,"hourlyEff":62.8,"regret":null},"M":{"static":337.8,"se":2.63,"OV":0.8,"total":338.5,"p05":99.2,"p10":123,"p50":271.9,"p90":618.8,"sd":249.7,"welfare":209,"cEqAnnual":6.15,"lifeHours":109663,"lifeHoursEff":120543,"lifeIncome":896.2,"hourly":81.7,"hourlyEff":74.3,"regret":0.491},"D":{"static":454.7,"se":4.05,"OV":15.4,"total":470.1,"p05":89.4,"p10":120.5,"p50":356.9,"p90":887.7,"sd":384.1,"welfare":311.6,"cEqAnnual":4.25,"lifeHours":109254,"lifeHoursEff":121108,"lifeIncome":1351,"hourly":123.7,"hourlyEff":111.6,"regret":0.362}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-8.7,-3.9,0.4,5.4,11.2,17.7,25,32.1,39.9,48.6,57.5,65.7,75.2,83.4,93.7,102.9,114.5,126.9,134.9,144.8,154.5,164.8,176.6,188.8,197.5,204,213.7,221.4,230.2,238.2,245.4,255.1,264.8,274.2,281.3,288.7,292.8,297.2,305.5,313.1,319.4],"p50":[-2.6,-5.2,-7.8,-10.4,-5.7,1.4,9.7,19.3,29.4,41,54,67.6,83.9,100.4,118.1,135.8,154.5,171.7,191,210.2,233.3,251.5,270.5,293.2,316.8,339,361.5,382.6,399.4,423.7,439.3,458.8,479.4,494.8,511.8,528.5,541.6,555.8,573.2,585.8,606.3,617.1,623.6,629,637],"p90":[-2.6,-5.2,-7.8,-10.4,0,13,27.4,42.8,61.6,81.4,105.4,132.5,162.7,190.2,221.1,255.7,292.8,329.6,368.7,413.1,453,493.5,539.6,585.8,626.3,681,730.3,771.4,815.9,861.4,899.2,940.1,980.8,1018.1,1052.9,1092.6,1137.4,1172.8,1208.5,1235.5,1252.4,1277.8,1302.2,1322.3,1342.1]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-15.7,-10,-4,2.7,9.8,17.7,25.9,34.9,45.3,56.1,68.5,79.1,89.4,100.9,114.2,124.7,134.2,147.7,156.6,166.6,176.4,189.2,196.7,203.7,217.6,226.6,241.1,249.4,259.3,272.7,278.8,287.1,295.9,303.4,309.9,316.2,322.2,327.3],"p50":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-10.4,1.2,14.4,28,43,61.1,78.9,98.2,120.5,144.7,169.7,195.8,221.2,249.1,275.6,304.3,330.9,357.4,386.9,418.3,450.1,479.1,507.4,537.6,572.3,601.3,627.7,654.8,684.4,708.5,729.4,756.2,786.9,812.8,835.3,857.1,872.2,888.1],"p90":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,0,22.6,48.6,78.3,112.3,148.7,186.7,236.8,278.6,327.8,383.3,444.3,500.7,567.8,633,694.4,787.7,867.8,947.3,1028.2,1101.2,1165.3,1229,1325.3,1407.4,1494.8,1561.7,1648.3,1729.4,1791.5,1867.3,1935.8,2008,2060.3,2099.7,2136,2166.1,2208.8]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-8.9,-7.4,-5.9,-4.4,-2.9,-1.4,0.1,1.6,9.5,17.6,24.9,32.5,42.3,49.9,58,65.4,71.9,81.1,91.3,102.1,111.6,123.4,133.5,146.6,150.6,156.6,167.6,177,185.8,195.7,206.5,215.9,222.9,229.2,234.2,240.9,251.3,259.4,266.1,270.4,274.3],"p50":[-2.6,-5.2,-7.8,-10.4,-8.9,-7.4,-5.9,-4.4,-2.9,1.2,17.9,35.8,53.9,70.8,90.2,106.9,129.5,150.4,175.4,200.5,230.7,259,290.4,318.8,356.2,389,428.1,463.7,499.4,528.7,559.8,597.2,624.1,661.7,691.8,728.6,767.8,787.4,815.4,849.1,876.8,902.2,936.4,962,974],"p90":[-2.6,-5.2,-7.8,-10.4,-8.9,-7.4,-5.9,-4.4,-2.9,23.1,49.1,84.3,118.6,162.8,210,263,318,372.6,431.9,506.6,581.2,663.9,736.1,822.6,902.3,991.6,1073.9,1176.5,1286.3,1372.1,1470.6,1577.4,1641.1,1708.2,1810.1,1929.9,2035.8,2106,2200.1,2283.1,2381.7,2482.2,2545.7,2601,2654.9]}},"heff":{"B":[42,42,42,42,57.2,59.3,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.3,59.3,59.2,59.1,59.1,59,59,58.9,58.8,58.8,58.3,57.7,57.1,56.5,55.9,55.4,54.8,54.3,53.7,53.1,52.5,52,51.4,50.8,50.2,50.2,50.2,50.2],"M":[42,42,42,42,54.6,54.6,54.6,58.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.4,59.3,59.3,59.2,59.1,59.1,59,58.9,58.9,58.8,58.9,58.3,57.7,57.1,56.5,56,55.4,54.8,54.2,53.7,53.1,52.5,52,51.4,50.8,50.2,50.2,50.2,50.3],"D":[42,42,42,42,66.7,66.7,66.7,66.7,66.7,62.1,61,59.4,58.6,58.4,58.3,58.3,58.3,58.1,58,57.9,57.8,57.8,57.8,57.7,57.6,57.5,57.6,57,56.4,55.8,55.3,54.8,54.2,53.6,53.1,52.5,51.9,51.3,50.8,50.3,49.7,49.1,49.1,49.1,49.1]},"hrs":{"B":[42,42,42,42,52,53.9,54,54,54,54,54,54,54,54,54,54,54,53.9,53.9,53.9,53.8,53.7,53.7,53.6,53.6,53.5,53.4,53,52.5,51.9,51.4,50.9,50.4,49.8,49.4,48.8,48.3,47.8,47.3,46.7,46.2,45.6,45.7,45.6,45.7],"M":[42,42,42,42,52,52,52,53,54,54,54,54,54,54,54,54,54,53.9,53.9,53.8,53.7,53.7,53.6,53.6,53.5,53.5,53.5,53,52.4,51.9,51.4,50.9,50.4,49.9,49.3,48.8,48.2,47.8,47.3,46.7,46.2,45.7,45.7,45.7,45.7],"D":[42,42,42,42,58,58,58,58,58,55.1,54.4,53.6,53.1,53.1,53,53,53,52.8,52.7,52.6,52.6,52.5,52.5,52.5,52.4,52.3,52.3,51.8,51.3,50.8,50.3,49.8,49.3,48.8,48.3,47.7,47.2,46.7,46.2,45.7,45.2,44.7,44.7,44.6,44.6]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,5.24,8.2,9.12,10.23,11.46,12.79,14.16,15.58,16.6,17.6,18.57,19.51,20.39,21.22,22,22.72,23.34,23.79,24.17,24.45,24.57,24.66,24.64,24.44,24.28,23.82,23.46,22.94,22.31,21.6,20.92,20.08,19.3,18.43,17.48,16.54,15.56,14.64,13.65,12.73,11.81],"M":[-2.6,-2.6,-2.6,-2.6,-2.6,-2.6,-2.6,9.82,14.11,15.56,17.17,18.92,20.69,22.54,24.48,26.09,27.74,29.24,30.69,32.02,33.27,34.43,35.39,36.14,36.88,37.39,37.91,38.05,38.15,37.99,37.76,37.38,36.89,36.24,35.33,34.52,33.39,32.39,31.11,29.94,28.55,27.14,25.63,24.21,22.74],"D":[-2.6,-2.6,-2.6,-2.6,1.5,1.5,1.5,1.5,1.5,10.39,15.9,17.72,20.56,22.45,24.27,26.42,28.64,30.28,32.1,33.96,35.88,37.68,39.35,40.85,42.28,43.56,44.76,45.56,46.42,46.91,47.36,47.79,47.8,47.57,47.25,46.69,46.17,45.22,44.32,43.1,41.82,40.58,39.03,37.31,35.58]},"ov":{"B":{"static":309.61150453323864,"withOpt":335.7279643269888,"OV":26.116459793750153,"th":99},"M":{"static":336.99348081819016,"withOpt":337.74886292470967,"OV":0.7553821065195052,"th":0.5},"D":{"static":458.16360437172733,"withOpt":461.4640932137945,"OV":3.300488842067182,"th":-0.5,"OVchoice":12.083414458253856},"acad":{"allAcad":446.75172154251464,"allInd":473.54750767204837,"allAcadW":295.55167103857855,"allIndW":335.65079739156636,"p10A":149.52113474567273,"p10I":134.97757284137185}},"Mcond":{"static":406.5,"welfare":280,"p10":139.9},"psiStar":0,"psiStarM":0,"breakeven":{"M":36,"D":39},"PI":{"M":{"S":126.6,"K":29.1,"PI":4.35},"D":{"S":180.5,"K":34.7,"PI":5.21}},"DP":{"sigma":0.295,"r3":{"beta":1.65,"mult":2.54},"r5":{"beta":1.53,"mult":2.9},"r8":{"beta":1.4,"mult":3.52}},"merton":{"S":180.5,"K":34.7,"now":145.8,"wait2":147.2}},"BIO":{"name":"生物（生命科学/生物医药研发）","short":"生物","val":{"B":{"static":181.6,"se":0.74,"OV":2.6,"total":184.2,"p05":92.6,"p10":105.7,"p50":169.3,"p90":272.5,"sd":70.5,"welfare":111.2,"cEqAnnual":7.22,"lifeHours":93790,"lifeHoursEff":98511,"lifeIncome":452.6,"hourly":48.3,"hourlyEff":45.9,"regret":null},"M":{"static":187.7,"se":0.94,"OV":0,"total":187.7,"p05":83.3,"p10":96.8,"p50":169.5,"p90":297,"sd":89.4,"welfare":108.1,"cEqAnnual":5.12,"lifeHours":95962,"lifeHoursEff":101115,"lifeIncome":501.3,"hourly":52.2,"hourlyEff":49.6,"regret":0.499},"D":{"static":222.4,"se":1.43,"OV":13,"total":235.4,"p05":66.4,"p10":84.2,"p50":193,"p90":388,"sd":136.1,"welfare":71.5,"cEqAnnual":3.19,"lifeHours":106817,"lifeHoursEff":116076,"lifeIncome":661.7,"hourly":61.9,"hourlyEff":57,"regret":0.415}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-10.4,-5.8,-2.3,1.8,6.7,12.1,17.4,23.3,29.1,35.2,41.7,48.3,54.6,62.3,70.1,77,83.2,90.8,97.8,105.3,113.3,122,128.3,136,144.9,152.7,160,167.2,172.6,177.8,186.5,195.5,204.1,210.7,215.9,222.6,227.8,233.4,238.2,243.3,246.9],"p50":[-2.6,-5.2,-7.8,-10.4,-7,-2.1,3.7,9.9,16.5,24.1,32.4,40.8,49.8,59.6,69.3,80.3,90.9,103.1,114.9,126.4,139.3,151.8,164.1,176.7,188.3,201.9,216.2,227.4,240.7,254.8,267.8,279.4,290.7,302.6,312.9,322.5,335.2,343.9,355.9,368.3,379.1,391.2,401.7,410.6,418.4],"p90":[-2.6,-5.2,-7.8,-10.4,-4.3,3.1,11.3,20.8,30.2,41.5,54.2,68.3,82.4,98.4,113.2,129.2,146.6,161.9,181.1,199.2,220.7,240.4,260.7,281.5,299.7,319.1,336.8,354.5,377.5,397.1,419.3,441,457.1,477.2,500.4,520.9,539.9,558.7,578,598.1,615.1,631.2,647.6,664.3,683.3]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-11.9,-13.4,-14.9,-13.3,-7.6,-2.3,2.9,8.5,14.3,20.9,28.4,35.8,43.7,51.6,60.1,69.2,77.4,85.9,95.3,103.5,113,120.8,129.9,139.3,145.8,153.7,160.9,169.4,178.1,185.9,194.5,202.4,211,218,227.3,233,239,243.7,249,255.2,261.3],"p50":[-2.6,-5.2,-7.8,-10.4,-11.9,-13.4,-14.9,-9.6,-1.9,6.4,15.7,25.5,36,47.5,59.8,71.2,83.9,96.8,111,125.4,140.5,156.6,171.4,186.6,201.6,217.9,234.7,252.3,266.7,284.6,302.2,319.8,339.7,357.3,375.2,390.1,404.6,419,434,449.7,468.1,483.4,497.3,508.1,520.6],"p90":[-2.6,-5.2,-7.8,-10.4,-11.9,-13.4,-14.9,-4.6,8.6,22.9,37.7,53.7,72.5,93.3,112.3,135.3,160.1,183.7,209.7,234.9,260,289,319.1,349.2,376.2,405.9,440.5,466.5,501.5,540.1,578.9,608.6,640.8,672.9,698.9,722.4,751.9,780.1,806.5,838.8,869.2,896.2,923.8,950,976.7]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-9.6,-8.8,-8,-7.2,-6.4,-5.6,-4.8,-4,2.5,7.7,13.1,18,25,30.9,36.8,43,49.3,55.7,62.6,69.3,75.9,84,90.6,94.5,99.3,104.6,111.5,119.3,126.4,132.2,138.5,145.5,151.5,156.1,162,168.7,174.9,180.8,187.5,191.3,197.4],"p50":[-2.6,-5.2,-7.8,-10.4,-9.6,-8.8,-8,-7.2,-6.4,-5.6,6.1,15.1,27.2,43.2,51.4,60.8,72.5,84.3,97.2,110.7,122,137.5,149,163.9,178.8,191.1,206.4,221.6,239.1,258.1,274.5,291.2,311.1,328.2,346.6,366.5,386.5,405.2,420.5,438.9,455.3,471.5,488.7,502.7,517.4],"p90":[-2.6,-5.2,-7.8,-10.4,-9.6,-8.8,-8,-7.2,-6.4,9.6,25.6,41.6,53.9,69.2,86.3,105.7,130.6,156.5,181.5,208.1,239.6,271.2,304.8,339.8,372.6,403.5,437.5,477.1,517.5,558.6,598.9,638.1,676.5,711.6,756.8,801.8,848.4,897.2,945.3,994.7,1036.5,1074.7,1116.5,1158.6,1195.5]}},"heff":{"B":[42,42,42,42,46,48.1,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.2,48.2,48.2,48.2,48.2,48.1,48.1,48.1,47.6,47.1,46.7,46.2,45.7,45.2,44.8,44.3,43.8,43.4,42.9,42.4,41.9,41.4,41,41,41,41],"M":[42,42,42,42,59.4,59.4,59.4,48.8,50.3,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.3,50.3,50.3,50.3,50.2,50.3,50.2,50.2,50.1,49.6,49.2,48.7,48.2,47.7,47.2,46.7,46.2,45.7,45.2,44.7,44.2,43.7,43.2,42.7,42.8,42.7,42.7],"D":[42,42,42,42,74.4,74.4,74.4,74.4,74.4,66.6,62,59.8,56,54.8,54.3,53.8,53.9,53.9,53.5,53.3,53.2,53.1,53.1,53,53,52.9,53,52.4,51.9,51.4,50.9,50.4,49.8,49.3,48.8,48.3,47.7,47.2,46.7,46.2,45.7,45.1,45.1,45.1,45.1]},"hrs":{"B":[42,42,42,42,43.7,45.8,46,46,46,46,46,46,46,46,46,46,46,46,46,45.9,45.9,45.9,45.9,45.9,45.8,45.8,45.8,45.3,44.9,44.4,44,43.5,43.1,42.6,42.2,41.7,41.3,40.8,40.4,39.9,39.4,39,39,39,39],"M":[42,42,42,42,54,54,54,46.4,47.9,48,48,48,48,48,48,48,48,48,47.9,47.9,47.9,47.9,47.8,47.8,47.8,47.8,47.7,47.2,46.8,46.3,45.9,45.4,44.9,44.5,44,43.5,43,42.6,42.1,41.6,41.1,40.7,40.7,40.7,40.7],"D":[42,42,42,42,62,62,62,62,62,57.4,54.9,53.8,51.7,51.2,51,50.8,50.8,50.8,50.5,50.3,50.3,50.2,50.2,50.1,50.1,50.1,50.1,49.6,49.1,48.6,48.2,47.6,47.1,46.6,46.1,45.7,45.1,44.6,44.1,43.6,43.2,42.7,42.7,42.7,42.6]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,3.36,5.4,5.98,6.56,7.19,7.84,8.52,9.24,9.71,10.16,10.58,10.99,11.39,11.77,12.12,12.44,12.71,12.98,13.19,13.39,13.54,13.64,13.71,13.7,13.68,13.63,13.52,13.39,13.26,13.03,12.78,12.49,12.21,11.87,11.54,11.17,10.81,10.4,10.01,9.58,9.16],"M":[-2.6,-2.6,-2.6,-2.6,-1.5,-1.5,-1.5,5.52,8.32,9.05,9.76,10.52,11.29,12.09,12.95,13.58,14.19,14.77,15.31,15.84,16.34,16.81,17.22,17.59,17.89,18.16,18.35,18.5,18.69,18.76,18.83,18.83,18.71,18.55,18.4,18.17,17.89,17.5,17.15,16.71,16.27,15.83,15.32,14.79,14.21],"D":[-2.6,-2.6,-2.6,-2.6,0.8,0.8,0.8,0.8,0.8,5.27,9.01,11.11,11.44,11.64,12.21,12.83,13.82,14.68,15.24,15.89,16.63,17.3,17.98,18.62,19.22,19.79,20.33,20.79,21.18,21.63,21.97,22.21,22.45,22.6,22.69,22.76,22.69,22.63,22.5,22.28,22.03,21.72,21.32,20.87,20.35]},"ov":{"B":{"static":182.51754394264228,"withOpt":185.0935264997875,"OV":2.5759825571452097,"th":99},"M":{"static":188.65188403784268,"withOpt":188.65188403784268,"OV":0,"th":null},"D":{"static":222.57472690370116,"withOpt":229.52265535884945,"OV":6.947928455148286,"th":0,"OVchoice":6.054654324472949},"acad":{"allAcad":225.73727317536725,"allInd":235.5773096833224,"allAcadW":77.08565591448503,"allIndW":104.76828980468281,"p10A":106.64154463515676,"p10I":97.34567377508972}},"Mcond":{"static":210.9,"welfare":122.1,"p10":104.9},"psiStar":3.09,"psiStarM":0,"breakeven":{"M":38,"D":47},"PI":{"M":{"S":48.3,"K":19.1,"PI":2.53},"D":{"S":64.6,"K":23.9,"PI":2.71}},"DP":{"sigma":0.208,"r3":{"beta":2.12,"mult":1.89},"r5":{"beta":1.81,"mult":2.23},"r8":{"beta":1.54,"mult":2.84}},"merton":{"S":64.6,"K":23.9,"now":40.7,"wait2":41.7}},"CLIN":{"name":"临床医学","short":"临床","val":{"B":{"static":246.5,"se":0.71,"OV":0,"total":246.5,"p05":154.4,"p10":169.4,"p50":236.2,"p90":336.4,"sd":67,"welfare":12.1,"cEqAnnual":7.61,"lifeHours":111285,"lifeHoursEff":139599,"lifeIncome":683.8,"hourly":61.4,"hourlyEff":49,"regret":null},"M":{"static":254.6,"se":0.81,"OV":1.1,"total":255.7,"p05":150.5,"p10":166.5,"p50":244.3,"p90":356.1,"sd":76.5,"welfare":22.4,"cEqAnnual":5.63,"lifeHours":111759,"lifeHoursEff":140032,"lifeIncome":726.2,"hourly":65,"hourlyEff":51.9,"regret":0.452},"D":{"static":264,"se":0.98,"OV":12.1,"total":276.2,"p05":130.4,"p10":152.7,"p50":253.9,"p90":385.2,"sd":93.1,"welfare":-10,"cEqAnnual":3.34,"lifeHours":116892,"lifeHoursEff":147142,"lifeIncome":821.7,"hourly":70.3,"hourlyEff":55.8,"regret":0.421}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-13,-10.5,-8,-5.5,-2,3.4,9.4,15.7,22.4,30.1,38.3,47.9,57.4,67.2,76.8,87.5,99,111.6,124.2,135.6,146.7,159.9,173.4,187.6,201.7,215.3,229.8,242.7,257.4,272.4,285.5,300.5,316,330.5,345.3,361.2,376,389.7,406.2,419.6,431.6],"p50":[-2.6,-5.2,-7.8,-10.4,-13,-10.5,-8,-5.5,0.6,8.1,16.6,25.7,35.3,45.7,57.3,69.8,82.7,95.9,110,124.6,140.3,155.5,171.8,188.4,206.8,223.6,242.4,261.5,280.8,299.8,319.9,341.2,361.7,382.1,402.2,421.4,443.3,463.9,483.3,504.4,525.2,546,566,585.6,604.8],"p90":[-2.6,-5.2,-7.8,-10.4,-13,-10.5,-8,-5.5,3.7,14.4,26.1,38.6,52.2,67.9,84,101.3,119.8,142.1,164.4,186.3,208.5,231.2,254.5,279.6,305.4,331.1,357.3,384.7,415.8,441.6,468.3,497.3,525.3,555.6,586.1,622,656.7,688.8,721,739.2,766.5,796.9,827.3,857,884.1]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-13,-14.5,-16,-17.5,-13.1,-4.8,2.8,11.4,20.8,30.7,40.5,51.8,62.7,74.4,86.5,98.4,111.1,124.3,138.4,153.5,168.6,185.7,202.9,220.4,238.3,256.7,274.9,292.4,311.1,329.2,347.7,365.3,383.5,402.5,421,437.8,455.9,472.5,489.6,506.5,522.4],"p50":[-2.6,-5.2,-7.8,-10.4,-13,-14.5,-16,-17.5,-9.6,0.6,11.6,23.6,36.5,49.9,64,78.7,94.8,112.2,129.6,148,168,188.2,209.3,231.6,253.7,276.2,299.8,324.7,348.1,374,398.9,426.3,452.1,478.4,504.7,531.4,557.6,584.6,610.2,636.7,662.4,689.9,716,742.1,765.3],"p90":[-2.6,-5.2,-7.8,-10.4,-13,-14.5,-16,-17.5,-5.6,8.8,23.6,40.3,57.2,75.4,94.2,115.5,139.1,162.7,186.1,210.9,238.4,264.9,292.6,323.2,354.1,385.7,419.9,453.7,488.3,524.4,559.8,591.5,627.4,663.4,698,734.6,770.5,805.5,842.8,879.1,919.7,951.1,984.5,1017.7,1053.1]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-13,-13.5,-14,-14.5,-15,-15.5,-16,-16.5,-10.7,-2.4,6.2,15.2,23.9,35.2,46.1,57.8,70,81.2,93.8,107,120.3,133.5,148.3,163.3,179.9,196.1,212.2,228.4,244.6,261.6,279.2,296.9,314.3,334.2,350.9,368.4,386.1,402.4,417,434.9,450.8],"p50":[-2.6,-5.2,-7.8,-10.4,-13,-13.5,-14,-14.5,-15,-15.5,-16,-8.4,1.9,13.9,27,41.2,56.2,72.4,88.9,107,127.3,147.1,167.6,189.2,211,234.8,258.4,282.3,308,333.6,359.7,386.8,416.2,444.5,474,502.8,531.8,560.7,591.8,623.4,655.2,685.3,714.2,743.7,772.5],"p90":[-2.6,-5.2,-7.8,-10.4,-13,-13.5,-14,-14.5,-15,-15.5,-16,-2.1,14.1,31.8,51.2,72,94.3,117.9,143.1,169.2,200.1,230.8,264,295.5,329.6,365.3,403,440.5,479.1,518.9,559.3,602.2,646.8,687.7,734.7,780.4,826,876.6,924.7,979.5,1028.5,1071.2,1115.4,1161.8,1204]}},"heff":{"B":[50,50,50,50,50,85.8,85.8,85.8,68.4,68.7,68.8,68.8,68.8,68.8,68.8,68.8,68.8,68.7,68.7,68.7,68.7,68.7,68.7,68.6,68.6,68.6,68.6,67.9,67.2,66.6,65.9,65.2,64.5,63.8,63.1,62.4,61.7,61.1,60.4,59.7,59,58.3,58.3,58.3,58.3],"M":[50,50,50,50,50,83.2,83.2,83.2,69.6,70,70,70,70,70,70,70,70,70,70,69.9,69.9,69.9,69.9,69.9,69.9,69.9,69.9,69.2,68.4,67.8,67.1,66.4,65.7,65,64.2,63.6,62.9,62.2,61.5,60.8,60.1,59.4,59.4,59.4,59.4],"D":[50,50,50,50,50,83.2,83.2,83.2,83.2,83.2,83.2,74,72.9,72.3,72,72,72,72,72,72,72,72,72,71.9,71.9,71.9,71.9,71.2,70.5,69.7,69,68.3,67.6,66.8,66.1,65.5,64.7,64,63.3,62.5,61.9,61.1,61.1,61.1,61.1]},"hrs":{"B":[50,50,50,50,50,66,66,66,54.8,55,55,55,55,55,55,55,55,55,55,55,55,54.9,55,54.9,54.9,54.9,54.9,54.4,53.8,53.3,52.7,52.2,51.6,51.1,50.5,50,49.4,48.9,48.3,47.8,47.2,46.7,46.7,46.7,46.7],"M":[50,50,50,50,50,64,64,64,55.7,56,56,56,56,56,56,56,56,56,56,56,56,55.9,55.9,55.9,55.9,55.9,55.9,55.4,54.8,54.2,53.7,53.1,52.6,52,51.4,50.9,50.3,49.8,49.2,48.6,48.1,47.5,47.5,47.5,47.5],"D":[50,50,50,50,50,64,64,64,64,64,64,58.7,58.1,57.8,57.6,57.6,57.6,57.6,57.6,57.6,57.6,57.6,57.6,57.5,57.5,57.5,57.5,57,56.4,55.8,55.2,54.6,54.1,53.5,52.9,52.4,51.8,51.2,50.6,50,49.5,48.9,48.9,48.9,48.9]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,-2.6,2.5,2.5,2.5,6.45,8.3,8.9,9.72,10.57,11.46,12.39,13.36,14.09,14.8,15.51,16.21,16.9,17.58,18.23,18.87,19.45,20.02,20.55,21.05,21.48,21.91,22.26,22.57,22.79,22.98,23.1,23.15,23.16,23.11,22.98,22.82,22.57,22.3,21.95,21.56,21.11],"M":[-2.6,-2.6,-2.6,-2.6,-2.6,-1.5,-1.5,-1.5,8.31,10.72,11.5,12.36,13.24,14.15,15.09,16.04,16.89,17.76,18.61,19.45,20.29,21.11,21.89,22.67,23.39,24.1,24.72,25.32,25.84,26.31,26.74,27.09,27.39,27.62,27.74,27.84,27.86,27.79,27.67,27.44,27.14,26.83,26.39,25.91,25.4],"D":[-2.6,-2.6,-2.6,-2.6,-2.6,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,7.53,10.89,12.45,13.73,14.76,15.75,16.78,17.83,18.82,19.79,20.76,21.72,22.66,23.57,24.46,25.31,26.15,26.93,27.65,28.3,28.93,29.49,29.99,30.42,30.77,31.03,31.23,31.33,31.33,31.32,31.15,30.94,30.64,30.29]},"ov":{"B":{"static":245.79228006672687,"withOpt":245.79228006672687,"OV":0,"th":null},"M":{"static":255.35637705994455,"withOpt":256.4774815925243,"OV":1.1211045325797784,"th":1.5},"D":{"static":264.4106927193126,"withOpt":276.5583044729635,"OV":12.14761175365095,"th":0.3,"OVchoice":34.69953247713187},"acad":{"allAcad":311.2578369500954,"allInd":276.5583044729635,"allAcadW":61.118695584598655,"allIndW":13.375159195792664,"p10A":177.9961550416564,"p10I":178.9895018854244}},"Mcond":{"static":286.4,"welfare":48.4,"p10":193.4},"psiStar":1.85,"psiStarM":0,"breakeven":{"M":30,"D":41},"PI":{"M":{"S":51.2,"K":11.4,"PI":4.48},"D":{"S":48.3,"K":30.8,"PI":1.57}},"DP":{"sigma":0.127,"r3":{"beta":3.36,"mult":1.42},"r5":{"beta":2.37,"mult":1.73},"r8":{"beta":1.74,"mult":2.35}},"merton":{"S":48.3,"K":30.8,"now":17.5,"wait2":18.8}},"BASIC":{"name":"基础医学","short":"基础医学","val":{"B":{"static":204,"se":0.53,"OV":0,"total":204,"p05":133.2,"p10":145.4,"p50":197.2,"p90":270.7,"sd":50.3,"welfare":133.4,"cEqAnnual":8.48,"lifeHours":93882,"lifeHoursEff":98597,"lifeIncome":525.8,"hourly":56,"hourlyEff":53.3,"regret":null},"M":{"static":203.1,"se":0.59,"OV":0,"total":203.1,"p05":126.5,"p10":139.7,"p50":195.5,"p90":276.9,"sd":55.8,"welfare":123.4,"cEqAnnual":5.64,"lifeHours":96057,"lifeHoursEff":101207,"lifeIncome":558.6,"hourly":58.2,"hourlyEff":55.2,"regret":0.513},"D":{"static":228.4,"se":0.89,"OV":5.7,"total":234.1,"p05":109.2,"p10":128.6,"p50":219.7,"p90":337.7,"sd":84,"welfare":83.8,"cEqAnnual":3.55,"lifeHours":108902,"lifeHoursEff":117746,"lifeIncome":688.6,"hourly":63.2,"hourlyEff":58.5,"regret":0.404}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-10.4,-5.5,-0.9,4,9.7,15.6,22,29.6,38.1,46,54.7,63,72.5,81.6,91.2,101.5,111.4,121.4,131.4,141.8,152.7,163.1,173.7,186,196.2,207.6,217.9,228.7,239.1,249.7,259.8,270.2,281.4,291.6,301.2,311.5,321.4,331.1,340.6,349,358.3],"p50":[-2.6,-5.2,-7.8,-10.4,-6.7,-1.3,4.5,11,18.3,26.1,34.9,44.6,54.7,65.7,76.5,88,100.2,113,126.4,140.3,154.2,168.9,183.2,198.5,212.4,225.8,240.9,256.5,272.3,287.7,305.5,322.3,337.6,352.8,367.5,383.9,398.8,413.9,428,441.3,456,469.8,481.3,492.8,504],"p90":[-2.6,-5.2,-7.8,-10.4,-4.2,3.1,11.4,20.2,30.1,40.5,52.1,64.8,78,91.5,105.3,121,137.6,154.4,170.1,186.3,205.4,223.3,242.1,261.2,277,295.7,315.3,334.7,355.2,376.1,397.6,416.3,434.7,456.8,477.3,498.3,520,537.8,556.1,573.3,591.5,608.8,623.5,639.7,656]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-11.9,-13.4,-14.9,-13.5,-6.6,-0.1,6.4,13.9,22.3,30.8,39.2,49.1,58.5,68.9,79.1,89.9,101.2,113,124.7,136.3,148.6,161.4,174.9,188.8,203.1,217,230.3,243.7,258.1,272.1,285.4,297.9,311.7,325.5,339.7,352,363.5,376,390.4,401.7,412.9],"p50":[-2.6,-5.2,-7.8,-10.4,-11.9,-13.4,-14.9,-9.5,-1.6,7,16.3,26.6,37,48.5,60.6,73.3,86.6,100.6,114.8,130.7,146,162.1,179.2,196,214.1,232,251,270.2,288.6,307.9,326,345.9,365.2,386.5,405.7,424.6,442.8,463,481.1,500.1,517.9,536.5,553.4,570.6,587],"p90":[-2.6,-5.2,-7.8,-10.4,-11.9,-13.4,-14.9,-6.5,3.9,15.7,28.3,42.1,56.1,71.1,87.3,104.5,123.9,142.9,162.3,183,204.8,226.8,250.6,275.4,298.3,327,353.1,376.5,404.2,430.1,456.8,482.6,507.6,533,558.2,583.1,607.4,631,657.9,680.2,706.4,735.4,763.1,786.4,809.1]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-9.9,-9.4,-8.9,-8.4,-7.9,-7.4,-6.9,0.4,7.9,15.5,22.8,31.7,40.5,50,59.8,69.3,78.8,88.8,100.1,111.1,121.2,134.7,147,157.3,169.3,182.4,194.6,208.2,221.7,236.1,250.9,263,275.1,287.8,299.7,311.2,326.9,340.4,353.1,366.2,379],"p50":[-2.6,-5.2,-7.8,-10.4,-9.9,-9.4,-8.9,-8.4,-7.9,-0.6,8.8,20.8,34.6,45,55,67.5,80.1,94.9,110,125,140.5,156,172.3,190.6,209.5,228.1,248.4,266.9,286.7,310.3,329.8,352.7,376.3,400.3,425.2,449.5,473.7,495.1,516.1,537.6,560.7,585.4,604.7,624.5,645.8],"p90":[-2.6,-5.2,-7.8,-10.4,-9.9,-9.4,-8.9,-8.4,-7.9,6.1,20.1,34.1,48.3,64.5,81.4,101.5,121.8,142.6,165.5,188.5,214,241.1,268.7,298.4,329.6,361.5,394.6,429.3,462.8,499.2,534.1,569.4,605.7,642.4,678.9,715.9,753,794.1,831.3,868.7,905.6,945.8,980.4,1014.3,1049.2]}},"heff":{"B":[42,42,42,42,46,48.1,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.3,48.2,48.2,48.2,48.2,48.2,48.2,48.2,47.7,47.2,46.8,46.3,45.8,45.3,44.8,44.4,43.9,43.4,42.9,42.4,41.9,41.5,41,41,41,41],"M":[42,42,42,42,59.4,59.4,59.4,48.8,50.3,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.4,50.3,50.3,50.3,50.3,50.3,50.3,50.3,49.8,49.3,48.8,48.2,47.8,47.3,46.8,46.2,45.8,45.3,44.8,44.3,43.8,43.3,42.8,42.8,42.8,42.8],"D":[42,42,42,42,70.8,70.8,70.8,70.8,70.8,61.9,60.9,60.3,56.2,56,55.8,55.7,55.7,55.7,55.1,55,54.9,54.9,54.9,54.9,54.9,54.9,54.9,54.3,53.8,53.3,52.7,52.2,51.6,51,50.5,50,49.4,48.9,48.3,47.8,47.2,46.7,46.7,46.7,46.7]},"hrs":{"B":[42,42,42,42,43.7,45.8,46,46,46,46,46,46,46,46,46,46,46,46,46,46,45.9,45.9,45.9,45.9,45.9,45.9,45.9,45.4,45,44.5,44.1,43.6,43.2,42.7,42.2,41.8,41.3,40.9,40.4,39.9,39.5,39,39,39,39],"M":[42,42,42,42,54,54,54,46.4,47.9,48,48,48,48,48,48,48,48,48,48,48,47.9,47.9,47.9,47.9,47.9,47.8,47.9,47.4,46.9,46.4,45.9,45.5,45,44.5,44,43.6,43.1,42.6,42.2,41.7,41.2,40.7,40.7,40.7,40.7],"D":[42,42,42,42,60,60,60,60,60,54.9,54.7,54.4,52.3,52.5,52.5,52.4,52.4,52.4,52,52,51.9,51.9,51.9,51.9,51.9,51.9,51.9,51.3,50.8,50.3,49.8,49.3,48.8,48.2,47.8,47.2,46.7,46.2,45.7,45.2,44.6,44.1,44.1,44.1,44.1]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,3.48,5.67,6.27,6.9,7.59,8.33,9.1,9.91,10.44,10.94,11.44,11.92,12.4,12.84,13.27,13.67,14.04,14.4,14.73,15.01,15.26,15.48,15.66,15.79,15.88,15.95,15.95,15.92,15.87,15.73,15.59,15.43,15.19,14.95,14.65,14.32,13.98,13.6,13.2,12.76,12.33],"M":[-2.6,-2.6,-2.6,-2.6,-1.5,-1.5,-1.5,5.38,8.12,8.84,9.56,10.32,11.1,11.92,12.75,13.4,14.04,14.66,15.27,15.87,16.43,16.97,17.47,17.95,18.42,18.79,19.18,19.46,19.74,19.96,20.11,20.26,20.32,20.34,20.27,20.18,20.05,19.86,19.59,19.33,18.99,18.63,18.19,17.76,17.26],"D":[-2.6,-2.6,-2.6,-2.6,0.5,0.5,0.5,0.5,0.5,7.75,10.24,11.33,10.28,11.36,12.14,12.96,13.9,14.74,15.04,15.86,16.6,17.33,18.05,18.75,19.44,20.06,20.67,21.24,21.76,22.26,22.7,23.08,23.43,23.67,23.91,24.08,24.16,24.19,24.19,24.1,23.91,23.69,23.42,23.11,22.72]},"ov":{"B":{"static":203.4192768064413,"withOpt":203.4192768064413,"OV":0,"th":null},"M":{"static":203.78062845966002,"withOpt":203.78062845966002,"OV":0,"th":null},"D":{"static":229.3438539348738,"withOpt":234.40027650853196,"OV":5.056422573658153,"th":-0.5,"OVchoice":0.6523604681931658},"acad":{"allAcad":230.8685236386706,"allInd":235.05263697672513,"allAcadW":82.52294162642353,"allIndW":105.15679555764315,"p10A":142.10579480019624,"p10I":137.9535747706771}},"Mcond":{"static":218.2,"welfare":129.3,"p10":148.4},"psiStar":3.87,"psiStarM":0.32,"breakeven":{"M":42,"D":43},"PI":{"M":{"S":34.3,"K":20.2,"PI":1.7},"D":{"S":49.5,"K":25.1,"PI":1.97}},"DP":{"sigma":0.126,"r3":{"beta":3.38,"mult":1.42},"r5":{"beta":2.38,"mult":1.72},"r8":{"beta":1.74,"mult":2.35}},"merton":{"S":49.5,"K":25.1,"now":24.4,"wait2":25.4}},"EE":{"name":"电子电力（芯片/电气）","short":"电子电力","val":{"B":{"static":310.7,"se":1.02,"OV":21.7,"total":332.5,"p05":181.6,"p10":201.8,"p50":296.9,"p90":437.2,"sd":96.4,"welfare":236.8,"cEqAnnual":13.05,"lifeHours":100051,"lifeHoursEff":100088,"lifeIncome":797.4,"hourly":79.7,"hourlyEff":79.7,"regret":null},"M":{"static":330.2,"se":1.32,"OV":0.9,"total":331.1,"p05":174.7,"p10":196.1,"p50":305.3,"p90":496.9,"sd":125.6,"welfare":251.1,"cEqAnnual":7.07,"lifeHours":101037,"lifeHoursEff":101469,"lifeIncome":910.6,"hourly":90.1,"hourlyEff":89.7,"regret":0.468},"D":{"static":397.6,"se":1.92,"OV":23.8,"total":421.4,"p05":151.4,"p10":188.7,"p50":372.2,"p90":632.8,"sd":182,"welfare":285.1,"cEqAnnual":3.73,"lifeHours":105485,"lifeHoursEff":108572,"lifeIncome":1213.2,"hourly":115,"hourlyEff":111.7,"regret":0.319}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-7.4,-0.7,5.6,13,20.7,29.2,38.3,48.2,58.7,69.2,80.8,93,105.7,118.6,131.9,145.1,159.6,174.7,190.9,206,221.2,236.9,252.9,269,283.4,300,317.7,333.8,347.9,362.4,378.6,393.2,407.1,421.7,434.5,446.2,458,469.5,479.9,489.5,500.6],"p50":[-2.6,-5.2,-7.8,-10.4,-3.8,5.3,14.7,25.1,36.6,48.8,61.5,75.6,90.4,105.9,122.2,140,157.1,176,194.7,215.3,235.5,257.9,280.7,301.1,325.5,350.2,374.5,400.1,425,446.4,468,488.7,512.7,536.3,557.4,578.9,598.5,623.7,645,666.2,685.9,704.4,722.6,735.7,756.6],"p90":[-2.6,-5.2,-7.8,-10.4,-0.4,11.6,25,40,56.5,74,93.2,114.3,136.5,159.6,184.7,209.2,235.4,261.8,290.9,322.8,354.6,386.4,420.8,454.1,482.8,521.7,560.9,599.3,631.5,671,707.5,733.2,772.6,799.9,829.7,866.4,898.5,932.2,967,1003.7,1041.2,1066,1090,1124.7,1145.7]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-13,-3.5,6.8,17.8,29.7,42.3,55.6,69.5,85.1,100.7,117,134.9,151.6,169.5,187.6,207.4,227.5,246,268.9,288.2,308.2,330.1,349.8,373.7,396.1,412.9,433.5,455.8,476.4,500.3,520.8,539.6,558.3,576.2,594.3,613.6,628.6,642],"p50":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-8.2,5.1,19.8,35.2,53,71.7,90.4,112.5,134.3,158.4,182.6,207.1,233.7,259.5,287.7,315.8,346.7,379.7,410.4,444.9,480.5,513.8,545.2,578.8,608.3,640,674.5,708.8,743.2,776,808.2,840.2,869.8,909.7,943.6,970.2,997.1,1024],"p90":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-1.1,18.8,40.4,63.6,89.4,118.4,147.1,177.7,209.2,243.5,279.4,319.2,361,403,443.6,486.9,534.9,585.4,637.3,684.7,742.7,795.2,849.5,901.7,956.4,1007.6,1059.9,1111.8,1169.2,1229.7,1280.7,1327.7,1372.3,1418.6,1475.2,1532.2,1583,1624.3]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-9.4,-8.4,-7.4,-6.4,-5.4,-4.4,-3.4,1.7,14.9,26.6,37.5,51.8,67.3,80.6,93.5,107.9,123.5,139.6,158.8,178.7,196,214.5,232.4,254.2,274.8,295.9,315.8,337,355.4,376.1,395,414.6,435.7,455.5,474.5,496.1,516,535,554.2,572.1,590.4],"p50":[-2.6,-5.2,-7.8,-10.4,-9.4,-8.4,-7.4,-6.4,-5.4,1.4,18.6,38.2,55.1,73.1,93.2,116.8,139.9,164.3,188,215.1,241.6,270.7,303.8,337.1,373.6,407.1,443.3,479.9,515.6,553.6,589.4,629.7,675.6,713.6,757.1,806.9,852.4,897,938.8,975.7,1013.6,1061.6,1102.8,1140.8,1172.8],"p90":[-2.6,-5.2,-7.8,-10.4,-9.4,-8.4,-7.4,-6.4,-5.4,17.6,40.6,62.5,90.7,122,155.7,193.3,241.2,280.4,328.3,379.2,427.7,478.3,530.5,587.2,656.7,717.2,785.4,844.4,909.5,975.2,1041.2,1110.6,1173.4,1238.8,1321.1,1397.6,1474.7,1550.3,1630.5,1710,1787.6,1864.5,1946.6,2012.5,2074.9]}},"heff":{"B":[42,42,42,42,48.3,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,48.9,48.9,48.9,48.9,48.9,48.9,48.9,48.4,47.9,47.4,46.9,46.4,45.9,45.4,45,44.5,44,43.5,43,42.6,42.1,41.6,41.6,41.6,41.6],"M":[42,42,42,42,54.6,54.6,54.6,49.6,50,50,50,50,50,50,50,50,50,50,50,50,49.9,49.9,49.9,49.9,49.9,49.9,49.8,49.4,48.9,48.4,47.9,47.4,46.9,46.4,45.9,45.4,44.9,44.4,43.9,43.4,42.9,42.4,42.4,42.4,42.4],"D":[42,42,42,42,65,65,65,65,65,58,55.8,53.2,51.8,51.6,51.4,51.4,51.4,51.1,50.9,50.9,50.8,50.8,50.8,50.8,50.7,50.7,50.7,50.2,49.7,49.2,48.7,48.2,47.7,47.2,46.7,46.2,45.7,45.2,44.7,44.2,43.7,43.2,43.2,43.2,43.2]},"hrs":{"B":[42,42,42,42,48.2,49,49,49,49,49,49,49,49,49,49,49,49,49,49,49,48.9,48.9,48.9,48.9,48.8,48.8,48.8,48.3,47.9,47.4,46.9,46.4,45.9,45.4,44.9,44.5,44,43.5,43,42.5,42,41.6,41.6,41.5,41.6],"M":[42,42,42,42,52,52,52,49.6,50,50,50,50,50,50,50,50,50,50,50,50,49.9,49.9,49.9,49.9,49.8,49.8,49.8,49.4,48.8,48.3,47.8,47.3,46.9,46.4,45.9,45.4,44.9,44.4,43.9,43.4,42.9,42.4,42.4,42.4,42.4],"D":[42,42,42,42,58,58,58,58,58,53.9,52.8,51.6,50.9,50.8,50.7,50.8,50.8,50.5,50.5,50.4,50.4,50.4,50.3,50.3,50.3,50.3,50.2,49.8,49.3,48.8,48.3,47.8,47.3,46.8,46.2,45.8,45.3,44.8,44.3,43.8,43.3,42.8,42.8,42.8,42.8]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,6.5,9.15,9.92,10.77,11.66,12.58,13.52,14.5,15.35,16.18,17,17.81,18.58,19.33,20.08,20.77,21.38,22,22.54,22.99,23.42,23.77,24.06,24.28,24.46,24.52,24.5,24.42,24.27,24.04,23.78,23.46,23.07,22.54,21.99,21.43,20.79,20.1,19.39,18.63,17.9],"M":[-2.6,-2.6,-2.6,-2.6,-2.6,-2.6,-2.6,10.41,14.06,15.19,16.4,17.67,18.98,20.31,21.68,22.93,24.17,25.37,26.57,27.76,28.88,29.99,30.99,31.96,32.87,33.67,34.36,35.01,35.5,35.92,36.24,36.5,36.63,36.66,36.55,36.37,36.04,35.58,35.09,34.5,33.78,32.92,32.09,31.11,30.07],"D":[-2.6,-2.6,-2.6,-2.6,1,1,1,1,1,9.11,14.32,15.96,18.27,19.76,21.13,22.66,24.23,25.47,26.9,28.33,29.73,31.12,32.43,33.8,35.05,36.25,37.33,38.41,39.38,40.18,40.98,41.61,42.18,42.56,42.76,43.06,43.13,43.02,42.87,42.54,42.12,41.56,40.82,40.03,39.16]},"ov":{"B":{"static":310.52861108239125,"withOpt":332.2738474405141,"OV":21.74523635812284,"th":99},"M":{"static":328.4243451904705,"withOpt":329.348898389701,"OV":0.9245531992305018,"th":1.5},"D":{"static":397.56248802411704,"withOpt":408.43564162927515,"OV":10.873153605158109,"th":0,"OVchoice":12.91388112555751},"acad":{"allAcad":387.7877304720114,"allInd":421.34952275483266,"allAcadW":265.0014828906898,"allIndW":319.4347393376053,"p10A":223.30237172352676,"p10I":231.48715361716165}},"Mcond":{"static":384.7,"welfare":302.1,"p10":228.1},"psiStar":0,"psiStarM":0,"breakeven":{"M":34,"D":38},"PI":{"M":{"S":105.9,"K":32,"PI":3.31},"D":{"S":128.1,"K":41.3,"PI":3.1}},"DP":{"sigma":0.162,"r3":{"beta":2.63,"mult":1.61},"r5":{"beta":2.08,"mult":1.93},"r8":{"beta":1.65,"mult":2.54}},"merton":{"S":128.1,"K":41.3,"now":86.8,"wait2":88.5}},"NET":{"name":"互联网（软件/计算机）","short":"互联网","val":{"B":{"static":270.7,"se":1.36,"OV":0,"total":270.7,"p05":114.7,"p10":136.3,"p50":243.7,"p90":438.8,"sd":129.2,"welfare":153.9,"cEqAnnual":9.76,"lifeHours":105770,"lifeHoursEff":116347,"lifeIncome":652.1,"hourly":61.7,"hourlyEff":56.1,"regret":null},"M":{"static":270.8,"se":1.59,"OV":0,"total":270.8,"p05":101.6,"p10":121.7,"p50":236.7,"p90":459.6,"sd":150.9,"welfare":154.9,"cEqAnnual":5.97,"lifeHours":105711,"lifeHoursEff":116196,"lifeIncome":704.3,"hourly":66.6,"hourlyEff":60.6,"regret":0.525},"D":{"static":313.2,"se":2.39,"OV":47.9,"total":361.1,"p05":77.4,"p10":102.7,"p50":250.6,"p90":605.2,"sd":226.6,"welfare":182.3,"cEqAnnual":3.42,"lifeHours":106140,"lifeHoursEff":117174,"lifeIncome":915.5,"hourly":86.3,"hourlyEff":78.1,"regret":0.486}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-9.7,-4.9,-0.2,5.2,11.2,17.1,24.3,32.6,41.3,50,58.2,65.7,74,84.2,95.3,104.3,113.2,124,135.4,147,158.6,168.8,178.3,190.8,199.2,207.8,216.8,225.1,233.6,239.2,244.9,252.4,256.9,261.6,267.8,273.9,279.9,284.8,288.1,291.2,294.7],"p50":[-2.6,-5.2,-7.8,-10.4,-5.9,1,8.9,18,28,38.7,50.6,63.8,78.4,92.9,107.9,125.4,141.6,157.6,174.8,192.7,212.2,230.6,244.9,261.5,276.9,297.6,316.4,333,353.6,373.6,389.2,405.4,423.5,438.8,456.5,470.3,484.9,495.1,504.7,516.2,526.7,535,545,555.8,566.3],"p90":[-2.6,-5.2,-7.8,-10.4,-0.6,11.5,25.2,41.8,57.1,75.2,95.3,118.8,143.7,167.9,196.9,224.5,253.7,284.7,320.9,350.2,381.2,409.9,440.6,473.9,509,543.3,580.7,614.7,647.4,677.5,713.1,751,784.6,822.5,863.3,901,929.7,955.4,983.8,999.6,1018.9,1038.2,1057,1073.3,1089.1]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-16.3,-9.9,-3.9,2.5,9,17.5,25.6,34.2,42.9,53.1,62.8,71.6,79.2,90.6,102.4,112.8,125.2,137.4,150.5,162.7,176.5,188,197.8,210.2,222,231.1,242.4,252.6,261.2,270.8,279.6,286,297,304.3,310.1,315,321,325.6],"p50":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-11.4,-1.7,8.2,19.7,32.8,46.1,62.5,78.3,96.7,115.8,133,153.4,173.8,193.5,215.3,236.4,260.5,285.8,308.9,331.8,356.5,377.5,397.8,418.5,440,464.7,488.2,507.8,527.1,541.5,554.3,576.5,594.9,612.9,627.7,641.8,653.9,663.2],"p90":[-2.6,-5.2,-7.8,-10.4,-13,-15.6,-18.2,-4.4,13.6,34,55.4,80.4,106,135.7,167.9,203.3,236.9,272.8,316.7,350.6,390.9,434.5,479.5,519.1,565.7,612.4,653.9,699.8,755.6,794.6,832.5,874.3,923.3,965.5,1017,1059.3,1107,1155.5,1192.9,1227.1,1256.4,1295.7,1323.4,1349.7,1374.4]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-9.4,-8.4,-7.4,-6.4,-5.4,-4.4,-3.4,-0.6,7,13.9,19.6,25.7,31.3,40.4,47.6,53.3,61.3,71.1,79.5,89.2,99,108.7,115.9,124.7,139.4,147.4,157.9,169.3,179.7,188.9,199,206,218.7,224,232,238.1,243.9,247.7,255.7,260.5,266],"p50":[-2.6,-5.2,-7.8,-10.4,-9.4,-8.4,-7.4,-6.4,-5.4,-2.3,9.7,22.6,37.6,54.8,68.6,85.9,104,123,140.7,162,181.5,202.6,223.7,247.3,269.9,292.5,313.6,336.3,356.1,380.2,406,429.6,451.8,475.3,498.9,519.7,536,554.7,578.1,594.5,610.2,624.3,642.2,657.3,672.8],"p90":[-2.6,-5.2,-7.8,-10.4,-9.4,-8.4,-7.4,-6.4,-5.4,20.6,46.6,63.8,88.4,117.8,147,181.6,215,253.3,293.7,338.3,390.6,442.4,491.6,548.5,611.7,685.6,754.5,832,893.3,967.1,1046,1111.7,1186.5,1261.7,1320.8,1391.7,1447.6,1498.5,1593.5,1677.1,1741,1763.3,1823.6,1894.7,1957.5]}},"heff":{"B":[42,42,42,42,54.6,57,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.1,57.1,57,56.9,56.9,56.8,56.7,56.7,56.6,56.6,56.1,55.5,54.9,54.4,53.9,53.3,52.8,52.3,51.7,51.1,50.6,50,49.4,48.9,48.4,48.4,48.4,48.4],"M":[42,42,42,42,54.6,54.6,54.6,55.6,57.1,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.1,57,56.9,56.9,56.8,56.7,56.7,56.7,56.7,56.5,56,55.5,55,54.4,53.9,53.3,52.8,52.2,51.6,51.2,50.6,50,49.5,48.9,48.3,48.4,48.4,48.4],"D":[42,42,42,42,65,65,65,65,65,60.4,59.4,57.6,56.7,56.6,56.5,56.5,56.5,56.1,56,55.9,55.8,55.8,55.7,55.7,55.6,55.6,55.5,55,54.5,54,53.4,52.8,52.3,51.8,51.2,50.7,50.2,49.6,49,48.5,48,47.4,47.4,47.4,47.5]},"hrs":{"B":[42,42,42,42,49.7,51.8,52,52,52,52,52,52,52,52,52,52,52,51.9,51.9,51.8,51.7,51.7,51.6,51.6,51.5,51.4,51.4,51,50.5,49.9,49.5,49,48.5,48,47.5,47,46.5,46,45.5,44.9,44.5,44,44,44,44],"M":[42,42,42,42,52,52,52,50.6,51.9,52,52,52,52,52,52,52,52,51.9,51.8,51.8,51.7,51.7,51.6,51.5,51.6,51.5,51.4,50.9,50.4,50,49.4,49,48.5,48,47.5,46.9,46.5,46,45.5,45,44.5,43.9,44,44,44],"D":[42,42,42,42,58,58,58,58,58,54,53.2,52,51.4,51.4,51.3,51.3,51.3,51,50.9,50.9,50.7,50.7,50.6,50.6,50.5,50.5,50.5,50,49.6,49,48.5,48,47.6,47.1,46.5,46.1,45.6,45.1,44.6,44.1,43.6,43.1,43.1,43.1,43.1]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,5.02,7.91,8.79,9.75,10.77,11.85,12.98,14.14,14.98,15.77,16.55,17.29,17.99,18.62,19.21,19.66,20.09,20.43,20.65,20.78,20.85,20.77,20.67,20.43,20.14,19.84,19.46,19.03,18.52,17.98,17.38,16.73,16.02,15.32,14.53,13.77,13,12.26,11.5,10.73,9.97],"M":[-2.6,-2.6,-2.6,-2.6,-2.6,-2.6,-2.6,7.71,11.45,12.53,13.73,15.01,16.34,17.72,19.13,20.27,21.32,22.32,23.22,24.06,24.87,25.54,26.13,26.6,27.05,27.29,27.43,27.5,27.43,27.3,27.02,26.69,26.26,25.79,25.21,24.43,23.69,22.9,22.06,21.17,20.19,19.17,18.26,17.23,16.21],"D":[-2.6,-2.6,-2.6,-2.6,1,1,1,1,1,8.37,12.71,13.37,15.17,16.43,17.61,19.12,20.66,21.31,22.43,23.57,24.55,25.64,26.7,27.6,28.35,29.1,29.7,30.26,30.73,31.06,31.27,31.41,31.41,31.38,31.15,30.81,30.42,29.94,29.29,28.63,27.93,27.03,26.12,25.15,24.15]},"ov":{"B":{"static":270.95583246964196,"withOpt":270.95583246964196,"OV":0,"th":null},"M":{"static":272.17219455954984,"withOpt":272.17219455954984,"OV":0,"th":null},"D":{"static":311.7261261044569,"withOpt":322.5198749672498,"OV":10.793748862792881,"th":0.3,"OVchoice":37.10026218075302},"acad":{"allAcad":359.6201371480028,"allInd":303.2913673257863,"allAcadW":223.25557887934556,"allIndW":179.721938411364,"p10A":135.60509425472495,"p10I":121.60190490023044}},"Mcond":{"static":302.2,"welfare":187.6,"p10":128},"psiStar":0,"psiStarM":0,"breakeven":{"M":42,"D":45},"PI":{"M":{"S":61.2,"K":29.7,"PI":2.06},"D":{"S":79.3,"K":36.7,"PI":2.16}},"DP":{"sigma":0.248,"r3":{"beta":1.85,"mult":2.17},"r5":{"beta":1.66,"mult":2.52},"r8":{"beta":1.47,"mult":3.13}},"merton":{"S":79.3,"K":36.7,"now":42.6,"wait2":44.2}},"FIN":{"name":"金融","short":"金融","val":{"B":{"static":223.4,"se":1.05,"OV":1.5,"total":224.9,"p05":100.7,"p10":118.3,"p50":204.5,"p90":349.9,"sd":100.1,"welfare":119.6,"cEqAnnual":8.39,"lifeHours":101721,"lifeHoursEff":111893,"lifeIncome":533.4,"hourly":52.4,"hourlyEff":47.7,"regret":null},"M":{"static":233.2,"se":1.27,"OV":0,"total":233.2,"p05":94.7,"p10":110.7,"p50":205.8,"p90":388.3,"sd":120.2,"welfare":125.2,"cEqAnnual":6.13,"lifeHours":103225,"lifeHoursEff":113521,"lifeIncome":595,"hourly":57.6,"hourlyEff":52.4,"regret":0.495},"D":{"static":257.9,"se":1.91,"OV":36.3,"total":294.2,"p05":68.9,"p10":89.6,"p50":203.9,"p90":518.2,"sd":181.4,"welfare":133,"cEqAnnual":3.4,"lifeHours":105799,"lifeHoursEff":116508,"lifeIncome":756.7,"hourly":71.5,"hourlyEff":65,"regret":0.502}},"cum":{"B":{"p10":[-2.6,-5.2,-7.8,-10.4,-10,-5.3,-1,3.6,8.5,13.6,20,26.9,33.8,40.9,48.6,55.9,63.4,71.6,79.2,86.9,94.6,103.1,111.8,121,130.1,138.6,147.7,155,162.4,167.8,173.1,180.1,185.1,191.2,198.6,205.8,210.8,218.4,225.8,232,238,243.3,249,252.5,255.5],"p50":[-2.6,-5.2,-7.8,-10.4,-6.7,-0.7,5.8,13.2,21.4,30.8,40.3,51.3,62.9,75.1,87.6,100.3,114.1,129.4,143.4,158.1,173.4,187.8,202.1,217.9,234.4,249.9,263.3,279.4,292,306.2,320,332.1,345.7,356.2,369.2,381.7,393.4,405.7,417,426.9,435.9,443.7,451.8,460.3,466.4],"p90":[-2.6,-5.2,-7.8,-10.4,-2.5,7.1,18.6,31.6,46.1,60.3,76.9,96.3,113.5,133.9,156.6,184.3,206.3,229.4,251.9,276,301.6,327.5,355.8,382.8,409.7,437.2,463.3,487.7,515.8,543.1,570.4,599.3,630.4,661.1,687,706.6,729.5,754,767.3,791.6,811.6,824.4,836.2,848.3,862.8]},"M":{"p10":[-2.6,-5.2,-7.8,-10.4,-16.8,-23.2,-21.9,-15.9,-10,-3.8,3.3,10.9,18.7,27.3,36.6,44.8,54.4,66.1,75.8,87.3,95.8,107,118.1,130.3,141.5,152.4,162.5,173.7,187,196.5,207,216.3,225,233.3,241.8,249.8,258,265,272.1,279.6,287.9,296.1,304.2,309.8,313.3],"p50":[-2.6,-5.2,-7.8,-10.4,-16.8,-23.2,-17.3,-8.8,0.4,10.9,23.2,36.1,49.7,64,79.6,95.9,113.9,130.3,147.8,166.6,184.3,203.2,222.5,241.9,260.6,279.4,304,320.7,342.5,360.9,382.3,400.4,418.9,438.4,456.2,470.5,487.3,502.8,518.3,529.1,547.4,558.2,570,582.8,591.6],"p90":[-2.6,-5.2,-7.8,-10.4,-16.8,-23.2,-11.3,4.8,22.7,42.4,62.3,85.4,109.3,134.5,165.1,197.3,230.4,264.8,297.7,332.2,372.8,415.3,458.8,497.6,539.5,582.9,622.9,665,701.3,742.7,771.7,811.7,854.7,896.4,931.9,968.5,1006.2,1041.6,1076.7,1102.4,1131.8,1164.9,1192.3,1219.9,1241.6]},"D":{"p10":[-2.6,-5.2,-7.8,-10.4,-10.4,-10.4,-10.4,-10.4,-10.4,-10.4,-8.8,-3.8,1.2,7.1,13.8,21.3,28.2,35.9,44.4,52.1,59.8,67.5,75.1,83,89.4,96.9,104.5,111.2,119,127.6,134.8,145.2,152.4,159.6,167.9,176.7,185.7,193.9,201,207.3,213.3,219.6,225.3,228.6,233.8],"p50":[-2.6,-5.2,-7.8,-10.4,-10.4,-10.4,-10.4,-10.4,-10.4,-4.3,9.6,23,34.7,45.3,55.9,68.9,83.2,97.6,112.5,129.8,144.9,158.8,174.5,188,204.8,221.1,238.5,257.5,275.9,294.3,311.4,328.5,344.7,362.2,378.9,397.4,414.4,429.9,443.5,461.7,476.4,490,508.1,522,534],"p90":[-2.6,-5.2,-7.8,-10.4,-10.4,-10.4,-10.4,-10.4,-10.4,9.6,29.6,47.5,68.4,93.7,124.2,155,190.8,224.7,260.2,302.3,344.3,388.7,435.4,484.5,526.2,578.7,633.3,681.8,739.3,798.4,856.5,920.5,993.1,1058.9,1123.7,1199.6,1254.2,1307.1,1354.8,1417.8,1480.4,1542.3,1602.5,1663.8,1722.3]}},"heff":{"B":[42,42,42,42,52.5,54.7,55,55,55,55,55,55,55,55,55,55,55,55,54.9,54.8,54.8,54.7,54.6,54.6,54.5,54.4,54.4,53.9,53.4,52.9,52.4,51.9,51.2,50.8,50.2,49.7,49.2,48.6,48.1,47.6,47.1,46.5,46.6,46.5,46.6],"M":[42,42,42,42,50.4,50.4,55,57.1,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.2,57.1,57,57,56.9,56.9,56.8,56.7,56.7,56.6,56.5,56,55.5,54.9,54.4,53.9,53.3,52.8,52.2,51.7,51.1,50.6,50,49.5,48.9,48.4,48.4,48.4,48.4],"D":[42,42,42,42,61.6,61.6,61.6,61.6,61.6,59.5,59.9,57.3,56.9,56.8,56.7,56.8,56.8,56.2,56.1,56,55.9,55.9,55.8,55.8,55.7,55.8,55.7,55.1,54.6,54.1,53.5,53,52.4,51.9,51.4,50.8,50.3,49.7,49.2,48.6,48.1,47.5,47.6,47.6,47.5]},"hrs":{"B":[42,42,42,42,47.7,49.8,50,50,50,50,50,50,50,50,50,50,50,50,49.9,49.8,49.8,49.7,49.6,49.6,49.6,49.5,49.4,49,48.5,48.1,47.6,47.2,46.6,46.2,45.7,45.2,44.7,44.2,43.7,43.2,42.8,42.3,42.3,42.3,42.3],"M":[42,42,42,42,48,48,50,51.9,52,52,52,52,52,52,52,52,52,51.9,51.9,51.8,51.7,51.7,51.6,51.6,51.5,51.5,51.3,50.9,50.5,49.9,49.4,49,48.5,48,47.5,47,46.5,46,45.5,45,44.5,44,44,44,44],"D":[42,42,42,42,56,56,56,56,56,53.3,53.5,51.8,51.6,51.6,51.6,51.6,51.6,51.1,51,50.9,50.8,50.8,50.8,50.7,50.6,50.7,50.6,50.1,49.7,49.2,48.6,48.2,47.7,47.2,46.7,46.2,45.7,45.2,44.7,44.2,43.7,43.2,43.2,43.2,43.2]},"inc":{"B":[-2.6,-2.6,-2.6,-2.6,4.23,6.68,7.41,8.22,9.11,10.02,10.99,11.99,12.65,13.25,13.85,14.42,14.96,15.46,15.85,16.24,16.51,16.74,16.86,16.95,16.96,16.86,16.71,16.51,16.28,16.01,15.67,15.29,14.83,14.4,13.89,13.37,12.8,12.23,11.65,11.07,10.49,9.88,9.29,8.7,8.13],"M":[-2.6,-2.6,-2.6,-2.6,-6.4,-6.4,6.67,10.2,11.2,12.24,13.36,14.5,15.69,16.9,17.81,18.66,19.5,20.24,20.93,21.55,22.07,22.54,22.89,23.14,23.36,23.46,23.4,23.36,23.18,22.91,22.56,22.16,21.67,21.22,20.57,19.95,19.28,18.55,17.76,16.99,16.2,15.4,14.54,13.73,12.88],"D":[-2.6,-2.6,-2.6,-2.6,0,0,0,0,0,8.88,12.25,11.41,12.77,13.83,14.9,16.11,17.37,17.42,18.29,19.18,20.05,20.86,21.66,22.42,23.06,23.73,24.27,24.71,25.12,25.47,25.66,25.83,25.88,25.86,25.77,25.55,25.28,24.91,24.47,23.95,23.36,22.72,22.03,21.26,20.45]},"ov":{"B":{"static":222.98006405127617,"withOpt":224.44602807260944,"OV":1.4659640213332636,"th":99},"M":{"static":232.5663462883769,"withOpt":232.5663462883769,"OV":0,"th":null},"D":{"static":252.7281882331662,"withOpt":265.9732230959161,"OV":13.245034862749918,"th":0,"OVchoice":23.038414628523867},"acad":{"allAcad":289.01163772444,"allInd":238.52761394618162,"allAcadW":157.56778630794753,"allIndW":121.8968929049598,"p10A":113.0792901904436,"p10I":104.70959785904809}},"Mcond":{"static":270.5,"welfare":157.8,"p10":126.9},"psiStar":0,"psiStarM":0,"breakeven":{"M":35,"D":51},"PI":{"M":{"S":70.9,"K":23.8,"PI":2.98},"D":{"S":67.7,"K":33.2,"PI":2.04}},"DP":{"sigma":0.228,"r3":{"beta":1.97,"mult":2.03},"r5":{"beta":1.73,"mult":2.37},"r8":{"beta":1.51,"mult":2.98}},"merton":{"S":67.7,"K":33.2,"now":34.5,"wait2":35.9}}},"ages":[18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62],"meta":{"N":9000,"date":"2026-10-13"},"sens":{"r3":{"AI":{"B":{"mean":429.2,"welfare":258.9,"p10":184.5},"M":{"mean":482.2,"welfare":314.3,"p10":171.2},"D":{"mean":686,"welfare":505,"p10":175.3}},"BIO":{"B":{"mean":253.5,"welfare":161.8,"p10":144.9},"M":{"mean":270,"welfare":167.7,"p10":135.8},"D":{"mean":332.8,"welfare":149.6,"p10":119.8}},"CLIN":{"B":{"mean":356.7,"welfare":62.3,"p10":243},"M":{"mean":375.5,"welfare":81.7,"p10":244.1},"D":{"mean":404.2,"welfare":59.7,"p10":233.6}},"BASIC":{"B":{"mean":286,"welfare":194.1,"p10":203.1},"M":{"mean":294.8,"welfare":192.6,"p10":200.1},"D":{"mean":344.6,"welfare":165.8,"p10":190.7}},"EE":{"B":{"mean":435.7,"welfare":339.6,"p10":279.9},"M":{"mean":475.7,"welfare":373.9,"p10":278.3},"D":{"mean":601.1,"welfare":462,"p10":280.1}},"NET":{"B":{"mean":372,"welfare":220.2,"p10":184},"M":{"mean":386.2,"welfare":235.3,"p10":171.1},"D":{"mean":463.5,"welfare":298.3,"p10":147.4}},"FIN":{"B":{"mean":305,"welfare":170.1,"p10":158.9},"M":{"mean":327.5,"welfare":186.9,"p10":151},"D":{"mean":376,"welfare":217.3,"p10":127.5}}},"r8":{"AI":{"B":{"mean":204.5,"welfare":109.2,"p10":93},"M":{"mean":211.6,"welfare":118.5,"p10":79.6},"D":{"mean":269,"welfare":160.7,"p10":75.6}},"BIO":{"B":{"mean":120.8,"welfare":69.6,"p10":71.8},"M":{"mean":118.9,"welfare":59.5,"p10":63},"D":{"mean":131.5,"welfare":10.9,"p10":50.6}},"CLIN":{"B":{"mean":152.4,"welfare":-26.7,"p10":105.8},"M":{"mean":154.6,"welfare":-20.7,"p10":102},"D":{"mean":149.8,"welfare":-58.9,"p10":85.8}},"BASIC":{"B":{"mean":132.6,"welfare":81.4,"p10":95.1},"M":{"mean":126.7,"welfare":67.4,"p10":87.4},"D":{"mean":134.6,"welfare":21.8,"p10":76.4}},"EE":{"B":{"mean":203.1,"welfare":149.3,"p10":134.6},"M":{"mean":203.9,"welfare":145.6,"p10":124.6},"D":{"mean":230.8,"welfare":143.3,"p10":110.5}},"NET":{"B":{"mean":181.5,"welfare":96.6,"p10":93.6},"M":{"mean":172.9,"welfare":88.8,"p10":79.6},"D":{"mean":185,"welfare":85.8,"p10":62}},"FIN":{"B":{"mean":150.1,"welfare":74.6,"p10":80.4},"M":{"mean":149.2,"welfare":71,"p10":71.4},"D":{"mean":149.7,"welfare":56.6,"p10":53.4}}},"sel0":{"AI":{"B":{"mean":309.6,"welfare":178.6,"p10":136.6},"M":{"mean":396.3,"welfare":267.6,"p10":133.8},"D":{"mean":743.9,"welfare":600.7,"p10":149}},"BIO":{"B":{"mean":182.5,"welfare":112,"p10":106.6},"M":{"mean":211.1,"welfare":131.3,"p10":102},"D":{"mean":331.8,"welfare":180.8,"p10":90.2}},"CLIN":{"B":{"mean":245.8,"welfare":11.3,"p10":168.8},"M":{"mean":271.4,"welfare":39.2,"p10":169.9},"D":{"mean":327.2,"welfare":53.1,"p10":167.4}},"BASIC":{"B":{"mean":203.4,"welfare":132.9,"p10":145.2},"M":{"mean":218.5,"welfare":138.8,"p10":144.6},"D":{"mean":307.2,"welfare":162.5,"p10":135.9}},"EE":{"B":{"mean":310.5,"welfare":236.6,"p10":202.3},"M":{"mean":372.9,"welfare":293.9,"p10":201.4},"D":{"mean":579.9,"welfare":467.5,"p10":207.7}},"NET":{"B":{"mean":271,"welfare":154.2,"p10":136.5},"M":{"mean":304.8,"welfare":188.9,"p10":131.3},"D":{"mean":437.6,"welfare":306.7,"p10":113.9}},"FIN":{"B":{"mean":223,"welfare":119.2,"p10":117.1},"M":{"mean":264.2,"welfare":156.2,"p10":116},"D":{"mean":341.4,"welfare":216.9,"p10":96.6}}},"sel6":{"AI":{"B":{"mean":309.6,"welfare":178.6,"p10":136.6},"M":{"mean":313.4,"welfare":184.7,"p10":117.5},"D":{"mean":362.5,"welfare":219.3,"p10":109.2}},"BIO":{"B":{"mean":182.5,"welfare":112,"p10":106.6},"M":{"mean":179.2,"welfare":99.4,"p10":93.8},"D":{"mean":185.3,"welfare":34.3,"p10":78.5}},"CLIN":{"B":{"mean":245.8,"welfare":11.3,"p10":168.8},"M":{"mean":248,"welfare":15.8,"p10":165.6},"D":{"mean":238.1,"welfare":-36,"p10":143.2}},"BASIC":{"B":{"mean":203.4,"welfare":132.9,"p10":145.2},"M":{"mean":197.2,"welfare":117.4,"p10":135.8},"D":{"mean":200,"welfare":55.4,"p10":122.8}},"EE":{"B":{"mean":310.5,"welfare":236.6,"p10":202.3},"M":{"mean":310,"welfare":231,"p10":189.7},"D":{"mean":331.4,"welfare":219,"p10":170}},"NET":{"B":{"mean":271,"welfare":154.2,"p10":136.5},"M":{"mean":258.5,"welfare":142.5,"p10":117.9},"D":{"mean":264.7,"welfare":133.8,"p10":93.7}},"FIN":{"B":{"mean":223,"welfare":119.2,"p10":117.1},"M":{"mean":219.4,"welfare":111.5,"p10":105.5},"D":{"mean":218.5,"welfare":94,"p10":82.3}}},"eta1":{"AI":{"B":{"mean":309.6,"welfare":175.1,"p10":136.6},"M":{"mean":337,"welfare":204.1,"p10":123.3},"D":{"mean":458.2,"welfare":316.3,"p10":121.6}},"BIO":{"B":{"mean":182.5,"welfare":93.5,"p10":106.6},"M":{"mean":188.7,"welfare":92.4,"p10":97.3},"D":{"mean":222.6,"welfare":79.3,"p10":82.7}},"CLIN":{"B":{"mean":245.8,"welfare":49.8,"p10":168.8},"M":{"mean":255.4,"welfare":60.5,"p10":166.6},"D":{"mean":264.4,"welfare":46.2,"p10":152.8}},"BASIC":{"B":{"mean":203.4,"welfare":114.4,"p10":145.2},"M":{"mean":203.8,"welfare":107.6,"p10":138.7},"D":{"mean":229.3,"welfare":88.4,"p10":128.8}},"EE":{"B":{"mean":310.5,"welfare":218.6,"p10":202.3},"M":{"mean":328.4,"welfare":232.5,"p10":196},"D":{"mean":397.6,"welfare":278.4,"p10":187.8}},"NET":{"B":{"mean":271,"welfare":146.5,"p10":136.5},"M":{"mean":272.2,"welfare":148.2,"p10":122.8},"D":{"mean":311.7,"welfare":178.3,"p10":101.5}},"FIN":{"B":{"mean":223,"welfare":107.9,"p10":117.1},"M":{"mean":232.6,"welfare":114.5,"p10":109.5},"D":{"mean":252.7,"welfare":123.4,"p10":87.5}}},"pre1":{"AI":{"B":{"mean":309.6,"welfare":178.6,"p10":136.6},"M":{"mean":339.4,"welfare":210.7,"p10":124.5},"D":{"mean":468.8,"welfare":325.6,"p10":127.4}},"BIO":{"B":{"mean":182.5,"welfare":112,"p10":106.6},"M":{"mean":191.2,"welfare":111.4,"p10":99},"D":{"mean":232.2,"welfare":81.2,"p10":88.2}},"CLIN":{"B":{"mean":245.8,"welfare":11.3,"p10":168.8},"M":{"mean":257.9,"welfare":25.7,"p10":168},"D":{"mean":275.3,"welfare":1.2,"p10":158.9}},"BASIC":{"B":{"mean":203.4,"welfare":132.9,"p10":145.2},"M":{"mean":206.3,"welfare":126.5,"p10":141.1},"D":{"mean":239.6,"welfare":94.9,"p10":133.3}},"EE":{"B":{"mean":310.5,"welfare":236.6,"p10":202.3},"M":{"mean":330.9,"welfare":251.9,"p10":196.8},"D":{"mean":408.3,"welfare":295.8,"p10":192.3}},"NET":{"B":{"mean":271,"welfare":154.2,"p10":136.5},"M":{"mean":274.6,"welfare":158.7,"p10":124.9},"D":{"mean":322.3,"welfare":191.4,"p10":107.1}},"FIN":{"B":{"mean":223,"welfare":119.2,"p10":117.1},"M":{"mean":235.2,"welfare":127.2,"p10":111.1},"D":{"mean":263.1,"welfare":138.6,"p10":93.5}}},"ret58":{"AI":{"B":{"mean":299.6,"welfare":172.3,"p10":134.8},"M":{"mean":323.6,"welfare":198.5,"p10":121.3},"D":{"mean":428.6,"welfare":288.7,"p10":113.5}},"BIO":{"B":{"mean":175,"welfare":106.5,"p10":101.2},"M":{"mean":177.5,"welfare":100.1,"p10":91.6},"D":{"mean":205.3,"welfare":56.6,"p10":80.5}},"CLIN":{"B":{"mean":228,"welfare":-0.4,"p10":156.9},"M":{"mean":236.5,"welfare":10.7,"p10":155.4},"D":{"mean":239,"welfare":-28.2,"p10":140.2}},"BASIC":{"B":{"mean":193,"welfare":124.4,"p10":135.8},"M":{"mean":190.6,"welfare":113.3,"p10":130.9},"D":{"mean":208.2,"welfare":66.9,"p10":115.1}},"EE":{"B":{"mean":294.9,"welfare":223,"p10":194.4},"M":{"mean":309.4,"welfare":232.6,"p10":186.5},"D":{"mean":366.8,"welfare":255.7,"p10":175.2}},"NET":{"B":{"mean":264.4,"welfare":150.9,"p10":131.9},"M":{"mean":262.6,"welfare":149.9,"p10":120.6},"D":{"mean":300.4,"welfare":172.6,"p10":102}},"FIN":{"B":{"mean":217.5,"welfare":116.6,"p10":115.9},"M":{"mean":224.3,"welfare":119.4,"p10":109.3},"D":{"mean":241.8,"welfare":119.5,"p10":88.4}}},"adm7":{"AI":{"B":{"mean":309.6,"welfare":178.6,"p10":136.6},"M":{"mean":373.4,"welfare":245.9,"p10":131.2},"D":{"mean":458.2,"welfare":315,"p10":121.6}},"BIO":{"B":{"mean":182.5,"welfare":112,"p10":106.6},"M":{"mean":200.1,"welfare":115.9,"p10":100.3},"D":{"mean":222.6,"welfare":71.5,"p10":82.7}},"CLIN":{"B":{"mean":245.8,"welfare":11.3,"p10":168.8},"M":{"mean":271.2,"welfare":36,"p10":177.4},"D":{"mean":264.4,"welfare":-9.7,"p10":152.8}},"BASIC":{"B":{"mean":203.4,"welfare":132.9,"p10":145.2},"M":{"mean":211.1,"welfare":126.8,"p10":144.4},"D":{"mean":229.3,"welfare":84.7,"p10":128.8}},"EE":{"B":{"mean":310.5,"welfare":236.6,"p10":202.3},"M":{"mean":357.7,"welfare":276.8,"p10":208.3},"D":{"mean":397.6,"welfare":285.1,"p10":187.8}},"NET":{"B":{"mean":271,"welfare":154.2,"p10":136.5},"M":{"mean":286.3,"welfare":171,"p10":124.2},"D":{"mean":311.7,"welfare":180.8,"p10":101.5}},"FIN":{"B":{"mean":223,"welfare":119.2,"p10":117.1},"M":{"mean":251.6,"welfare":141.3,"p10":115.5},"D":{"mean":252.7,"welfare":128.2,"p10":87.5}}}},"scen":{"base":{"label":"基准","v":{"AI":{"B":{"mean":309.6,"welfare":178.6},"M":{"mean":337,"welfare":208.3},"D":{"mean":458.2,"welfare":315}},"BIO":{"B":{"mean":182.5,"welfare":112},"M":{"mean":188.7,"welfare":108.9},"D":{"mean":222.6,"welfare":71.5}},"CLIN":{"B":{"mean":245.8,"welfare":11.3},"M":{"mean":255.4,"welfare":23.1},"D":{"mean":264.4,"welfare":-9.7}},"BASIC":{"B":{"mean":203.4,"welfare":132.9},"M":{"mean":203.8,"welfare":124},"D":{"mean":229.3,"welfare":84.7}},"EE":{"B":{"mean":310.5,"welfare":236.6},"M":{"mean":328.4,"welfare":249.4},"D":{"mean":397.6,"welfare":285.1}},"NET":{"B":{"mean":271,"welfare":154.2},"M":{"mean":272.2,"welfare":156.2},"D":{"mean":311.7,"welfare":180.8}},"FIN":{"B":{"mean":223,"welfare":119.2},"M":{"mean":232.6,"welfare":124.6},"D":{"mean":252.7,"welfare":128.2}}}},"aiBust":{"label":"AI 泡沫出清（AI 漂移 −3pp、互联网 −1.5pp，跳跃频率 ×1.5）","v":{"AI":{"B":{"mean":228,"welfare":97},"M":{"mean":229.8,"welfare":101},"D":{"mean":301.3,"welfare":158.1}},"BIO":{"B":{"mean":175.9,"welfare":105.4},"M":{"mean":179.5,"welfare":99.9},"D":{"mean":211.7,"welfare":60.3}},"CLIN":{"B":{"mean":239.4,"welfare":5},"M":{"mean":246.9,"welfare":14.8},"D":{"mean":257,"welfare":-17.2}},"BASIC":{"B":{"mean":201.1,"welfare":130.6},"M":{"mean":200.3,"welfare":120.7},"D":{"mean":226.1,"welfare":81.8}},"EE":{"B":{"mean":303.1,"welfare":229.1},"M":{"mean":321.3,"welfare":242.4},"D":{"mean":382.9,"welfare":269.7}},"NET":{"B":{"mean":228.2,"welfare":111.4},"M":{"mean":216.4,"welfare":100.5},"D":{"mean":245.9,"welfare":115.2}},"FIN":{"B":{"mean":215.1,"welfare":111.3},"M":{"mean":221.2,"welfare":113.2},"D":{"mean":244,"welfare":119.3}}}},"demo":{"label":"人口断崖·高校收缩（教职获得率 ×0.6、长聘通过率 ×0.8）","v":{"AI":{"B":{"mean":309.6,"welfare":178.6},"M":{"mean":337,"welfare":208.3},"D":{"mean":455.6,"welfare":313.5}},"BIO":{"B":{"mean":182.5,"welfare":112},"M":{"mean":188.7,"welfare":108.9},"D":{"mean":225,"welfare":76.7}},"CLIN":{"B":{"mean":245.8,"welfare":11.3},"M":{"mean":255.4,"welfare":23.1},"D":{"mean":264.4,"welfare":-9.7}},"BASIC":{"B":{"mean":203.4,"welfare":132.9},"M":{"mean":203.8,"welfare":124},"D":{"mean":224.1,"welfare":82.9}},"EE":{"B":{"mean":310.5,"welfare":236.6},"M":{"mean":328.4,"welfare":249.4},"D":{"mean":396.4,"welfare":286.2}},"NET":{"B":{"mean":271,"welfare":154.2},"M":{"mean":272.2,"welfare":156.2},"D":{"mean":298.2,"welfare":169}},"FIN":{"B":{"mean":223,"welfare":119.2},"M":{"mean":232.6,"welfare":124.6},"D":{"mean":236.4,"welfare":114.3}}}},"med":{"label":"医疗控费深化（临床漂移 −1.5pp、生物 −0.5pp）","v":{"AI":{"B":{"mean":309.6,"welfare":178.6},"M":{"mean":337,"welfare":208.3},"D":{"mean":458.2,"welfare":315}},"BIO":{"B":{"mean":175.4,"welfare":104.9},"M":{"mean":179.7,"welfare":99.9},"D":{"mean":211.3,"welfare":60.2}},"CLIN":{"B":{"mean":207.2,"welfare":-27.2},"M":{"mean":213,"welfare":-19.3},"D":{"mean":212.1,"welfare":-62}},"BASIC":{"B":{"mean":203.4,"welfare":132.9},"M":{"mean":203.8,"welfare":124},"D":{"mean":229.3,"welfare":84.7}},"EE":{"B":{"mean":310.5,"welfare":236.6},"M":{"mean":328.4,"welfare":249.4},"D":{"mean":397.6,"welfare":285.1}},"NET":{"B":{"mean":271,"welfare":154.2},"M":{"mean":272.2,"welfare":156.2},"D":{"mean":311.7,"welfare":180.8}},"FIN":{"B":{"mean":223,"welfare":119.2},"M":{"mean":232.6,"welfare":124.6},"D":{"mean":252.7,"welfare":128.2}}}},"chip":{"label":"国产替代加速（电子电力漂移 +1pp、博士岗位 ×1.3）","v":{"AI":{"B":{"mean":309.6,"welfare":178.6},"M":{"mean":337,"welfare":208.3},"D":{"mean":458.2,"welfare":315}},"BIO":{"B":{"mean":182.5,"welfare":112},"M":{"mean":188.7,"welfare":108.9},"D":{"mean":222.6,"welfare":71.5}},"CLIN":{"B":{"mean":245.8,"welfare":11.3},"M":{"mean":255.4,"welfare":23.1},"D":{"mean":264.4,"welfare":-9.7}},"BASIC":{"B":{"mean":203.4,"welfare":132.9},"M":{"mean":203.8,"welfare":124},"D":{"mean":229.3,"welfare":84.7}},"EE":{"B":{"mean":337.7,"welfare":263.7},"M":{"mean":363.8,"welfare":284.8},"D":{"mean":461.5,"welfare":349.1}},"NET":{"B":{"mean":271,"welfare":154.2},"M":{"mean":272.2,"welfare":156.2},"D":{"mean":311.7,"welfare":180.8}},"FIN":{"B":{"mean":223,"welfare":119.2},"M":{"mean":232.6,"welfare":124.6},"D":{"mean":252.7,"welfare":128.2}}}},"phdGlut":{"label":"博士供给 +50%（所有行业博士岗位紧度 ×0.67）","v":{"AI":{"B":{"mean":309.6,"welfare":178.6},"M":{"mean":337,"welfare":208.3},"D":{"mean":435.9,"welfare":292.7}},"BIO":{"B":{"mean":182.5,"welfare":112},"M":{"mean":188.7,"welfare":108.9},"D":{"mean":215.1,"welfare":64}},"CLIN":{"B":{"mean":245.8,"welfare":11.3},"M":{"mean":255.4,"welfare":23.1},"D":{"mean":256.2,"welfare":-18}},"BASIC":{"B":{"mean":203.4,"welfare":132.9},"M":{"mean":203.8,"welfare":124},"D":{"mean":223.4,"welfare":78.7}},"EE":{"B":{"mean":310.5,"welfare":236.6},"M":{"mean":328.4,"welfare":249.4},"D":{"mean":382,"welfare":269.4}},"NET":{"B":{"mean":271,"welfare":154.2},"M":{"mean":272.2,"welfare":156.2},"D":{"mean":302.7,"welfare":171.8}},"FIN":{"B":{"mean":223,"welfare":119.2},"M":{"mean":232.6,"welfare":124.6},"D":{"mean":249.4,"welfare":124.8}}}},"friction":{"label":"入职摩擦恶化（待业月数 ×1.5、错配概率 ×1.3）","v":{"AI":{"B":{"mean":306.9,"welfare":176.6},"M":{"mean":330.7,"welfare":202.5},"D":{"mean":458.3,"welfare":315.4}},"BIO":{"B":{"mean":180.7,"welfare":110.8},"M":{"mean":183.8,"welfare":104.8},"D":{"mean":220.1,"welfare":69.2}},"CLIN":{"B":{"mean":242.9,"welfare":8.7},"M":{"mean":254.4,"welfare":22.6},"D":{"mean":264.5,"welfare":-9.5}},"BASIC":{"B":{"mean":199.6,"welfare":129.5},"M":{"mean":200.8,"welfare":121.5},"D":{"mean":226.4,"welfare":82.1}},"EE":{"B":{"mean":309.5,"welfare":235.7},"M":{"mean":327.2,"welfare":248.4},"D":{"mean":395.3,"welfare":282.9}},"NET":{"B":{"mean":266.5,"welfare":150.5},"M":{"mean":265.9,"welfare":150.6},"D":{"mean":305.4,"welfare":174.9}},"FIN":{"B":{"mean":220.5,"welfare":117.4},"M":{"mean":231.2,"welfare":123.9},"D":{"mean":251.2,"welfare":126.6}}}},"age35":{"label":"35 岁门槛强化（中年冲击风险 ×2）","v":{"AI":{"B":{"mean":303.3,"welfare":172.7},"M":{"mean":328.1,"welfare":199.8},"D":{"mean":454.1,"welfare":311.5}},"BIO":{"B":{"mean":179.3,"welfare":109},"M":{"mean":183.1,"welfare":103.9},"D":{"mean":219.3,"welfare":68.1}},"CLIN":{"B":{"mean":244.5,"welfare":10.3},"M":{"mean":252.3,"welfare":20.4},"D":{"mean":262.9,"welfare":-10.9}},"BASIC":{"B":{"mean":202.4,"welfare":131.9},"M":{"mean":202,"welfare":122.4},"D":{"mean":224.3,"welfare":80.2}},"EE":{"B":{"mean":306.2,"welfare":232.4},"M":{"mean":326.9,"welfare":248},"D":{"mean":388.9,"welfare":276.4}},"NET":{"B":{"mean":263.7,"welfare":147.4},"M":{"mean":265.7,"welfare":150.1},"D":{"mean":300.5,"welfare":170}},"FIN":{"B":{"mean":217.9,"welfare":114.5},"M":{"mean":225.9,"welfare":118.3},"D":{"mean":252.4,"welfare":127.5}}}}},"acad":[{"y":2026,"n18":1584,"students":3965,"faculty":226.5,"hires":7.53,"phd":11.65,"ratio":0.85},{"y":2027,"n18":1591,"students":4002,"faculty":230.3,"hires":5.41,"phd":12.86,"ratio":1.31},{"y":2028,"n18":1568,"students":4045,"faculty":234.3,"hires":5.67,"phd":14.27,"ratio":1.38},{"y":2029,"n18":1758,"students":4204,"faculty":243.1,"hires":7.57,"phd":16.4,"ratio":1.19},{"y":2030,"n18":1943,"students":4478,"faculty":256.7,"hires":9.63,"phd":18.01,"ratio":1.03},{"y":2031,"n18":1749,"students":4625,"faculty":265.1,"hires":8.16,"phd":18.55,"ratio":1.25},{"y":2032,"n18":1869,"students":4867,"faculty":277.5,"hires":10.01,"phd":19.1,"ratio":1.05},{"y":2033,"n18":1630,"students":4826,"faculty":278.7,"hires":5.92,"phd":19.68,"ratio":1.83},{"y":2034,"n18":1855,"students":4810,"faculty":280.8,"hires":6.44,"phd":20.27,"ratio":1.73},{"y":2035,"n18":1739,"students":4846,"faculty":285.1,"hires":7.49,"phd":20.57,"ratio":1.51},{"y":2036,"n18":1500,"students":4635,"faculty":279.1,"hires":3.28,"phd":20.57,"ratio":3.45},{"y":2037,"n18":1443,"students":4546,"faculty":278.1,"hires":5.34,"phd":20.57,"ratio":2.12},{"y":2038,"n18":1184,"students":4115,"faculty":261.9,"hires":0.3,"phd":20.57,"ratio":37.71},{"y":2039,"n18":1046,"students":3661,"faculty":243.8,"hires":0.3,"phd":20.57,"ratio":37.71},{"y":2040,"n18":942,"students":3294,"faculty":228.6,"hires":0.3,"phd":20.36,"ratio":37.33},{"y":2041,"n18":888,"students":2922,"faculty":212.4,"hires":0.3,"phd":19.95,"ratio":36.58},{"y":2042,"n18":940,"students":2770,"faculty":206.6,"hires":1.84,"phd":19.55,"ratio":5.84},{"y":2043,"n18":780,"students":2598,"faculty":199.6,"hires":1.07,"phd":19.16,"ratio":9.88},{"y":2044,"n18":768,"students":2492,"faculty":195.7,"hires":2.55,"phd":18.78,"ratio":4.06},{"y":2045,"n18":758,"students":2416,"faculty":193.5,"hires":3.26,"phd":18.4,"ratio":3.1},{"y":2046,"n18":749,"students":2292,"faculty":188.3,"hires":1.74,"phd":18.04,"ratio":5.71},{"y":2047,"n18":739,"students":2280,"faculty":189.5,"hires":5,"phd":17.68,"ratio":1.95},{"y":2048,"n18":729,"students":2268,"faculty":190.7,"hires":5.12,"phd":17.32,"ratio":1.86},{"y":2049,"n18":719,"students":2256,"faculty":191.9,"hires":3.27,"phd":16.98,"ratio":2.85},{"y":2050,"n18":709,"students":2243,"faculty":193,"hires":3.28,"phd":16.64,"ratio":2.79}],"acadCfg":{"faculty0":222.36,"retireRate":0.025,"ger0":0.613,"gerSlope":0.006,"gerMax":0.8,"acadSeekShare":0.55,"phdShare0":0.31,"phdShareSlope":0.01,"phdShareMax":0.55,"stick":0.7,"ratioDrift":0.01},"cobweb":{"presets":{"law":{"label":"法学热（1999–）","y0":1999,"T":27,"L":4,"D0":1,"S0":1,"g":0.05,"eps":1,"theta":0.25,"kappa":0.5,"policies":[{"t0":0,"t1":7,"size":0.1}],"note":"2012 年法学列入国家控制布点（K），相当于把 κ 压到接近 0——入口被封，但存量过剩已经形成。"},"civil":{"label":"土木热（2003–）","y0":2003,"T":26,"L":4,"D0":1,"S0":1,"g":0.08,"eps":1,"theta":0.3,"kappa":0.55,"policies":[{"t0":5,"t1":8,"size":0.06}],"shock":{"t":18,"size":-0.35,"g2":-0.1},"note":"需求冲击：房地产投资 2021 峰值后 4 年 −44%，招生计划 11 万→不足 7.5 万。"},"fin":{"label":"金融热（2008–）","y0":2008,"T":22,"L":4,"D0":1,"S0":1,"g":0.06,"eps":1,"theta":0.3,"kappa":0.6,"policies":[{"t0":8,"t1":12,"size":0.05}],"shock":{"t":14,"size":-0.2,"g2":-0.01},"note":"2022 限薪/递延/追索：右尾被行政截断，需求侧发生\"封顶\"冲击。"},"net":{"label":"互联网/计算机热（2012–）","y0":2012,"T":22,"L":4,"D0":1,"S0":1,"g":0.12,"eps":1,"theta":0.4,"kappa":0.7,"policies":[{"t0":4,"t1":9,"size":0.1}],"shock":{"t":9,"size":-0.25,"g2":0.01},"note":"大数据专业 2016→2020 增长约 200 倍；大厂员工数 2021 见顶。"},"ai":{"label":"AI 热（2017–）","y0":2017,"T":22,"L":4,"D0":1,"S0":1,"g":0.12,"eps":1,"theta":0.4,"kappa":0.7,"policies":[{"t0":1,"t1":4,"size":0.18},{"t0":8,"t1":11,"size":0.12}],"note":"2019 年度新增备案 180 所为首峰；2025–2027\"超常布局\"为二次推力。2025 年求职 +39% vs 职位 +3%。"}},"rho4":[[0.989,0.994,1.015,1.026,1.027,1.036,1.06,1.07,1.07],[0.97,0.993,1.006,1.027,1.036,1.048,1.077,1.091,1.107],[0.952,0.978,1.005,1.026,1.045,1.066,1.094,1.115,1.149],[0.931,0.97,0.998,1.029,1.047,1.073,1.11,1.135,1.16],[0.904,0.963,1,1.025,1.057,1.076,1.116,1.15,1.179],[0.884,0.951,0.995,1.031,1.056,1.08,1.124,1.152,1.183],[0.87,0.944,0.991,1.028,1.057,1.087,1.124,1.165,1.2],[0.854,0.935,0.986,1.025,1.059,1.084,1.139,1.174,1.204],[0.848,0.928,0.981,1.023,1.055,1.089,1.137,1.171,1.217]],"rho1":[[0.982,0.98,0.996,0.989,0.999,1.009,0.996,1.023,1.009],[0.955,0.958,0.972,0.97,0.986,0.98,1.001,1.017,1.01],[0.912,0.917,0.927,0.937,0.954,0.96,0.983,1,1.021],[0.859,0.88,0.89,0.908,0.923,0.935,0.971,1.001,1.029],[0.847,0.824,0.847,0.876,0.896,0.919,0.957,1.001,1.04],[0.875,0.78,0.816,0.841,0.87,0.896,0.95,0.996,1.045],[0.883,0.729,0.768,0.805,0.842,0.872,0.938,1.001,1.057],[0.889,0.648,0.671,0.727,0.78,0.83,0.92,0.999,1.076],[0.893,0.736,0.566,0.642,0.715,0.784,0.899,1,1.097]],"thetas":[0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.8,1],"kappas":[0.1,0.2,0.3,0.4,0.5,0.6,0.8,1,1.2],"rhoPresets":{"law":1.05,"civil":1.058,"fin":1.073,"net":1.091,"ai":1.091}},"params":{"GLOBAL":{"ageStart":18,"ageDecide":22,"ageRetire":63,"r":0.05,"gamma":2,"eta":0.5,"wRef":7,"hRef":40,"living":2,"ugTuition":0.6,"ugHours":42,"prestige":0,"ageCap":35,"agePenalty":0.03,"pAdmitM":0.4,"sel":0.4},"IND":{"AI":{"name":"AI 人工智能","short":"AI","w":{"B":7500,"M":16000,"D":28000},"g":{"b1":0.1,"b2":0.0021},"mu":0.015,"sig":0.2,"lam":0.12,"J":-0.15,"sz":0.42,"h35":0.0025,"l35":0.25,"H":{"B":54,"M":54,"D":52},"kap":1.1,"entry":{"B":{"u":4,"m":0.5,"pen":0.3},"M":{"u":3,"m":0.3,"pen":0.25},"D":{"u":2.5,"m":0.15,"pen":0.2}},"M":{"n":2.5,"tui":2,"sti":1.4,"H":52,"kap":1.05},"D":{"n":5,"delay":[0.6,0.22,0.1,0.08],"pc":0.9,"tui":1,"sti":4.5,"H":58,"kap":1.15},"P":{"acad":0.3,"pd":2,"wpd":28,"pT":0.45,"wFac":30,"Vind":10000,"Uphd":8000}},"BIO":{"name":"生物（生命科学/生物医药研发）","short":"生物","w":{"B":5200,"M":9000,"D":20000},"g":{"b1":0.07,"b2":0.0014},"mu":0.01,"sig":0.15,"lam":0.08,"J":-0.12,"sz":0.28,"h35":0.0015,"l35":0.25,"H":{"B":46,"M":48,"D":50},"kap":1.05,"entry":{"B":{"u":5,"m":0.6,"pen":0.25},"M":{"u":4,"m":0.4,"pen":0.2},"D":{"u":4,"m":0.3,"pen":0.2}},"M":{"n":3,"tui":0.8,"sti":1.3,"H":54,"kap":1.1},"D":{"n":5,"delay":[0.45,0.3,0.15,0.1],"pc":0.88,"tui":1,"sti":3.8,"H":62,"kap":1.2},"P":{"acad":0.55,"pd":3,"wpd":18,"pT":0.4,"wFac":20,"Vind":6000,"Uphd":15000}},"CLIN":{"name":"临床医学","short":"临床","w":{"B":7000,"M":9500,"D":13000},"g":{"b1":0.07,"b2":0.0013},"mu":0.01,"sig":0.06,"lam":0.06,"J":-0.08,"sz":0.22,"h35":0.0004,"l35":0.15,"H":{"B":55,"M":56,"D":58},"kap":1.25,"entry":{"B":{"u":2,"m":0.4,"pen":0.25},"M":{"u":2,"m":0.2,"pen":0.15},"D":{"u":2,"m":0.1,"pen":0.1}},"M":{"n":3,"tui":1,"sti":1.5,"H":64,"kap":1.3},"D":{"n":6,"delay":[0.8,0.12,0.05,0.03],"pc":0.92,"tui":1,"sti":2.5,"H":64,"kap":1.3},"P":{"acad":0,"pd":0,"wpd":0,"pT":0.5,"wFac":25,"Vind":10000,"Uphd":12000},"clin":{"bUG":5,"gp":3,"wGP":4.5}},"BASIC":{"name":"基础医学","short":"基础医学","w":{"B":5500,"M":8000,"D":15000},"g":{"b1":0.065,"b2":0.0013},"mu":0.01,"sig":0.06,"lam":0.04,"J":-0.06,"sz":0.22,"h35":0.0008,"l35":0.2,"H":{"B":46,"M":48,"D":52},"kap":1.05,"entry":{"B":{"u":5,"m":0.65,"pen":0.25},"M":{"u":4,"m":0.4,"pen":0.2},"D":{"u":4,"m":0.3,"pen":0.2}},"M":{"n":3,"tui":0.8,"sti":1.3,"H":54,"kap":1.1},"D":{"n":5,"delay":[0.75,0.15,0.06,0.04],"pc":0.9,"tui":1,"sti":3.5,"H":60,"kap":1.18},"P":{"acad":0.6,"pd":3,"wpd":16,"pT":0.4,"wFac":18,"Vind":2000,"Uphd":5000}},"EE":{"name":"电子电力（芯片/电气）","short":"电子电力","w":{"B":7500,"M":14000,"D":22000},"g":{"b1":0.075,"b2":0.0015},"mu":0.015,"sig":0.1,"lam":0.06,"J":-0.1,"sz":0.25,"h35":0.001,"l35":0.2,"H":{"B":49,"M":50,"D":50},"kap":1,"entry":{"B":{"u":3,"m":0.25,"pen":0.2},"M":{"u":2.5,"m":0.2,"pen":0.15},"D":{"u":3,"m":0.15,"pen":0.15}},"M":{"n":2.5,"tui":2,"sti":1.4,"H":52,"kap":1.05},"D":{"n":5,"delay":[0.6,0.22,0.1,0.08],"pc":0.9,"tui":1,"sti":4,"H":58,"kap":1.12},"P":{"acad":0.3,"pd":2,"wpd":25,"pT":0.45,"wFac":25,"Vind":9000,"Uphd":9000}},"NET":{"name":"互联网（软件/计算机）","short":"互联网","w":{"B":7300,"M":13000,"D":20000},"g":{"b1":0.095,"b2":0.0019},"mu":0,"sig":0.15,"lam":0.12,"J":-0.15,"sz":0.38,"h35":0.003,"l35":0.3,"H":{"B":52,"M":52,"D":50},"kap":1.1,"entry":{"B":{"u":4.5,"m":0.45,"pen":0.3},"M":{"u":3.5,"m":0.35,"pen":0.25},"D":{"u":3,"m":0.3,"pen":0.2}},"M":{"n":2.5,"tui":2,"sti":1.4,"H":52,"kap":1.05},"D":{"n":5,"delay":[0.6,0.22,0.1,0.08],"pc":0.9,"tui":1,"sti":4,"H":58,"kap":1.12},"P":{"acad":0.3,"pd":2,"wpd":28,"pT":0.45,"wFac":30,"Vind":4000,"Uphd":6000}},"FIN":{"name":"金融","short":"金融","w":{"B":6500,"M":12000,"D":16000},"g":{"b1":0.09,"b2":0.0018},"mu":-0.01,"sig":0.12,"lam":0.1,"J":-0.12,"sz":0.38,"h35":0.003,"l35":0.3,"H":{"B":50,"M":52,"D":50},"kap":1.1,"entry":{"B":{"u":4.5,"m":0.55,"pen":0.3},"M":{"u":4,"m":0.4,"pen":0.25},"D":{"u":4,"m":0.35,"pen":0.2}},"M":{"n":2,"tui":5,"sti":0.6,"H":48,"kap":1.05},"D":{"n":5,"delay":[0.73,0.17,0.06,0.04],"pc":0.9,"tui":1,"sti":3,"H":56,"kap":1.1},"P":{"acad":0.5,"pd":2,"wpd":22,"pT":0.45,"wFac":25,"Vind":1500,"Uphd":3000}}}}};
+</script>
+<script>
+(function(){
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const $ = s => Array.from(document.querySelectorAll(s));
+const NS = 'http://www.w3.org/2000/svg';
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const ROUTE = { B:{name:'本科直接就业', c:'--s1'}, M:{name:'硕士', c:'--s2'}, D:{name:'博士', c:'--s3'} };
+const fmt = (v, d=0) => (v==null||isNaN(v)) ? '—' : Number(v).toLocaleString('zh-CN',{maximumFractionDigits:d,minimumFractionDigits:d});
+function el(tag, attrs, parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
+function txt(p,x,y,s,a={}){ const t=el('text',Object.assign({x,y},a),p); t.textContent=s; return t; }
+function niceTicks(lo,hi,n=5){ const span=hi-lo||1, step0=span/n, mag=Math.pow(10,Math.floor(Math.log10(step0))), f=step0/mag;
+  const step=(f<1.5?1:f<3?2:f<7?5:10)*mag; const out=[]; for(let v=Math.ceil(lo/step)*step; v<=hi+1e-9; v+=step) out.push(+v.toFixed(10)); return out; }
+const tip = $('#tip');
+function showTip(html, ev, host){ tip.innerHTML=html; tip.style.opacity=1;
+  const rect=host.getBoundingClientRect(); let x=ev.clientX+14, y=ev.clientY+window.scrollY-10;
+  if (x+190>window.innerWidth) x=ev.clientX-200; tip.style.left=x+'px'; tip.style.top=y+'px'; }
+function hideTip(){ tip.style.opacity=0; }
+
+/* ---------- 折线图（含分位带、十字线） ---------- */
+function lineChart(host, cfg){
+  host.innerHTML=''; const W=cfg.W||960, H=cfg.H||360, pl=56, pr=cfg.pr||70, pt=16, pb=34;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':cfg.aria||''},host);
+  const xs=cfg.x, n=xs.length;
+  let lo=cfg.ymin!=null?cfg.ymin:Infinity, hi=-Infinity;
+  cfg.series.forEach(s=>{ (s.band?s.band[0]:s.data).forEach(v=>{ if(v<lo&&cfg.ymin==null) lo=v; }); (s.band?s.band[1]:s.data).forEach(v=>{ if(v>hi) hi=v; }); s.data.forEach(v=>{ if(v>hi) hi=v; if(cfg.ymin==null&&v<lo) lo=v; }); });
+  if (cfg.ymax!=null) hi=cfg.ymax; const ticks=niceTicks(lo,hi,5); lo=Math.min(lo,ticks[0]); hi=Math.max(hi,ticks[ticks.length-1]);
+  const getX=i=>pl+(W-pl-pr)*i/(n-1), Y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
+  ticks.forEach(v=>{ el('line',{x1:pl,x2:W-pr,y1:Y(v),y2:Y(v),class:'gl'},svg); txt(svg,pl-8,Y(v)+4,(cfg.yfmt||fmt)(v),{'text-anchor':'end'}); });
+  el('line',{x1:pl,x2:W-pr,y1:Y(lo),y2:Y(lo),class:'ax'},svg);
+  const every=cfg.xEvery||Math.ceil(n/10);
+  xs.forEach((v,i)=>{ if(i%every===0||i===n-1) txt(svg,getX(i),H-12,v,{'text-anchor':'middle'}); });
+  if (cfg.zero && lo<0 && hi>0) el('line',{x1:pl,x2:W-pr,y1:Y(0),y2:Y(0),stroke:css('--text-3'),'stroke-width':1},svg);
+  (cfg.marks||[]).forEach(m=>{ const xi=xs.indexOf(m.x); if(xi<0) return; el('line',{x1:getX(xi),x2:getX(xi),y1:pt,y2:H-pb,stroke:css('--axis'),'stroke-width':1},svg); txt(svg,getX(xi)+4,pt+11,m.label,{fill:css('--text-3')}); });
+  cfg.series.forEach(s=>{ const col=css(s.c);
+    if (s.band){ const up=s.band[1].map((v,i)=>`${getX(i)},${Y(v)}`), dn=s.band[0].map((v,i)=>`${getX(i)},${Y(v)}`).reverse();
+      el('polygon',{points:up.concat(dn).join(' '),fill:col,opacity:.10},svg); }
+    el('polyline',{points:s.data.map((v,i)=>`${getX(i)},${Y(v)}`).join(' '),fill:'none',stroke:col,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round','stroke-dasharray':s.dash||''},svg);
+  });
+  // 端点标签（带引线防重叠）
+  const ends=cfg.series.filter(s=>!s.noLabel).map(s=>({s,y:Y(s.data[n-1])})).sort((a,b)=>a.y-b.y); let last=-1e9;
+  ends.forEach(e=>{ let ly=Math.max(e.y,last+14); last=ly; const col=css(e.s.c);
+    el('circle',{cx:getX(n-1),cy:e.y,r:4,fill:col,stroke:css('--surface'),'stroke-width':2},svg);
+    if (Math.abs(ly-e.y)>2) el('line',{x1:getX(n-1)+5,x2:getX(n-1)+10,y1:e.y,y2:ly,stroke:css('--axis')},svg);
+    txt(svg,getX(n-1)+12,ly+4,(e.s.short||e.s.name)+' '+(cfg.endFmt||cfg.yfmt||fmt)(e.s.data[n-1]),{fill:css('--text-1'),'font-weight':600}); });
+  // 十字线
+  const cross=el('line',{y1:pt,y2:H-pb,stroke:css('--text-3'),'stroke-width':1,opacity:0},svg);
+  const dots=cfg.series.map(s=>el('circle',{r:4,fill:css(s.c),stroke:css('--surface'),'stroke-width':2,opacity:0},svg));
+  const hit=el('rect',{x:pl,y:pt,width:W-pl-pr,height:H-pt-pb,fill:'transparent'},svg);
+  hit.addEventListener('mousemove',ev=>{ const b=svg.getBoundingClientRect(); const mx=(ev.clientX-b.left)*W/b.width;
+    const idx=Math.max(0,Math.min(n-1,Math.round((mx-pl)/(W-pl-pr)*(n-1))));
+    cross.setAttribute('x1',getX(idx)); cross.setAttribute('x2',getX(idx)); cross.setAttribute('opacity',1);
+    let html=`<b>${cfg.xLabel||''}${xs[idx]}</b>`;
+    cfg.series.forEach((s,k)=>{ dots[k].setAttribute('cx',getX(idx)); dots[k].setAttribute('cy',Y(s.data[idx])); dots[k].setAttribute('opacity',1);
+      html+=`<br><span class="k" style="background:${css(s.c)}"></span>${s.name}：${(cfg.tfmt||cfg.yfmt||fmt)(s.data[idx])}`;
+      if (s.band) html+=` <span style="color:${css('--text-3')}">[${(cfg.yfmt||fmt)(s.band[0][idx])}–${(cfg.yfmt||fmt)(s.band[1][idx])}]</span>`; });
+    showTip(html,ev,host); });
+  hit.addEventListener('mouseleave',()=>{ hideTip(); cross.setAttribute('opacity',0); dots.forEach(d=>d.setAttribute('opacity',0)); });
+}
+
+/* ---------- 横向分组条形图 ---------- */
+function hbar(host, cfg){
+  host.innerHTML=''; const rows=cfg.rows, groups=cfg.groups, gh=groups.length*14+14, W=960, pl=cfg.pl||150, pr=70, pt=8;
+  const H=pt+rows.length*gh+26; const svg=el('svg',{viewBox:`0 0 ${W} ${H}`},host);
+  let lo=Math.min(0,...rows.flatMap(r=>groups.map(g=>r[g.k]))), hi=Math.max(...rows.flatMap(r=>groups.map(g=>r[g.k])));
+  const ticks=niceTicks(lo,hi,5); lo=Math.min(lo,ticks[0]); hi=Math.max(hi,ticks[ticks.length-1]);
+  const getXbar=v=>pl+(W-pl-pr)*(v-lo)/(hi-lo);
+  ticks.forEach(v=>{ el('line',{x1:getXbar(v),x2:getXbar(v),y1:pt,y2:H-24,class:'gl'},svg); txt(svg,getXbar(v),H-8,(cfg.fmt||fmt)(v),{'text-anchor':'middle'}); });
+  el('line',{x1:getXbar(0),x2:getXbar(0),y1:pt,y2:H-24,class:'ax'},svg);
+  rows.forEach((r,ri)=>{ const y0=pt+ri*gh+6; txt(svg,pl-10,y0+groups.length*7+3,r.label,{'text-anchor':'end',fill:css('--text-1')});
+    groups.forEach((g,gi)=>{ const v=r[g.k], y=y0+gi*14, x0=getXbar(Math.min(0,v)), w=Math.abs(getXbar(v)-getXbar(0));
+      el('rect',{x:x0,y,width:Math.max(1,w),height:11,rx:3,fill:css(g.c)},svg);
+      txt(svg,(v>=0?getXbar(v)+5:getXbar(v)-5),y+9.5,(cfg.fmt||fmt)(v),{'text-anchor':v>=0?'start':'end',fill:css('--text-2'),'font-size':10.5});
+      const hb=el('rect',{x:pl,y:y-1,width:W-pl-pr,height:13,fill:'transparent'},svg);
+      hb.addEventListener('mousemove',ev=>showTip(`<b>${r.label}</b><br><span class="k" style="background:${css(g.c)}"></span>${g.name}：${(cfg.fmt||fmt)(v)}${cfg.unit||''}`,ev,host));
+      hb.addEventListener('mouseleave',hideTip); }); });
+}
+
+/* ---------- 估值矩阵表 ---------- */
+function valueTable(host, data, keyOrder){
+  const cols=[['static','静态 ENPV'],['OV','期权价值'],['total','含期权总值'],['p10','P10 尾部'],['welfare','强度折合福利'],['hourlyEff','有效时薪(元)'],['regret','后悔概率']];
+  let h='<div class="tscroll"><table class="t"><thead><tr><th>行业 · 路线</th>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr></thead><tbody>';
+  keyOrder.forEach(k=>{ const d=data[k]; const best=['B','M','D'].reduce((a,b)=>d[b].total>d[a].total?b:a,'B'); const bestW=['B','M','D'].reduce((a,b)=>d[b].welfare>d[a].welfare?b:a,'B');
+    ['B','M','D'].forEach((r,ri)=>{ const v=d[r];
+      h+=`<tr${ri===0?' style="border-top:1px solid var(--axis)"':''}><td>${ri===0?'<b>'+d.name+'</b> · ':''}<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(${ROUTE[r].c});margin-right:6px;vertical-align:-1px"></span>${ROUTE[r].name}</td>`+
+      `<td>${fmt(v.static)}</td><td>${v.OV>0.5?'+'+fmt(v.OV):fmt(v.OV)}</td><td class="${r===best?'best':''}">${fmt(v.total)}${r===best?' ★':''}</td><td>${fmt(v.p10)}</td><td class="${r===bestW?'best':''}">${fmt(v.welfare)}${r===bestW?' ◆':''}</td><td>${fmt(v.hourlyEff)}</td><td>${r==='B'?'—':fmt(v.regret*100,0)+'%'}</td></tr>`; }); });
+  h+='</tbody></table></div>'; host.innerHTML=h;
+}
+
+/* ---------- 主题 ---------- */
+$('#themeBtn').addEventListener('click',()=>{ const cur=document.documentElement.getAttribute('data-theme');
+  const dark=cur? cur==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme',dark?'light':'dark'); renderAll(); });
+
+/* ---------- 图：薪资累积 ---------- */
+let curInd='AI', curInd2='AI';
+function segButtons(id, keys, labels, cur, cb){ const box=document.getElementById(id); if(!box) return; box.innerHTML='';
+  keys.forEach((k,i)=>{ const b=document.createElement('button'); b.textContent=labels[i]; if(k===cur) b.classList.add('on');
+    b.onclick=()=>{ box.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); cb(k); }; box.appendChild(b); }); }
+const KEYS=RESULTS.keys, NAMES=KEYS.map(k=>RESULTS.ind[k].short);
+function drawCum(){ const d=RESULTS.ind[curInd], ages=RESULTS.ages;
+  lineChart($('#ch-cum'),{x:ages,xLabel:'年龄 ',xEvery:5,zero:true,yfmt:v=>fmt(v)+'万',tfmt:v=>fmt(v,1)+' 万',
+    series:['B','M','D'].map(r=>({name:ROUTE[r].name,short:r==='B'?'本科':r==='M'?'硕士':'博士',c:ROUTE[r].c,data:d.cum[r].p50,band:r===curBand?[d.cum[r].p10,d.cum[r].p90]:null})),
+    marks:[{x:35,label:'35 岁门槛'}]});
+  const be=d.breakeven; $('#cum-note').innerHTML=`盈亏平衡年龄（中位数累计收入追平本科）：硕士 <b>${be.M||'未追平'}</b> 岁 · 博士 <b>${be.D||'未追平'}</b> 岁。阴影为所选路线的 P10–P90 区间。`; }
+let curBand='D';
+function drawHours(){ const d=RESULTS.ind[curInd2], ages=RESULTS.ages;
+  lineChart($('#ch-hours'),{x:ages,xLabel:'年龄 ',xEvery:5,ymin:0,yfmt:v=>fmt(v)+'h',tfmt:v=>fmt(v,1)+' 有效小时/周',
+    series:['B','M','D'].map(r=>({name:ROUTE[r].name,short:r==='B'?'本科':r==='M'?'硕士':'博士',c:ROUTE[r].c,data:d.heff[r]})),
+    marks:[{x:22,label:'本科毕业'},{x:35,label:'35'}]});
+  const v=d.val; $('#hours-note').innerHTML=['B','M','D'].map(r=>`${ROUTE[r].name}：终身 ${fmt(v[r].lifeHours/1e4,1)} 万小时（强度折合 ${fmt(v[r].lifeHoursEff/1e4,1)} 万）· 有效时薪 ${fmt(v[r].hourlyEff)} 元`).join('<br>'); }
+
+/* ---------- 实验室：浏览器端重算 ---------- */
+const LAB={ind:'AI'};
+function labRun(){
+  const P=window.PhDModel; const g=id=>parseFloat(document.getElementById(id).value);
+  const G={ r:g('l-r')/100, prestige:g('l-pre'), pAdmitM:g('l-adm')/100, eta:g('l-eta'), ageRetire:63 };
+  const scen={ sigMul:g('l-sig'), lamMul:g('l-lam'), h35Mul:g('l-h35'), acadMul:g('l-acad'), Vmul:{[LAB.ind]:g('l-V')}, uMul:g('l-u') };
+  $('.slider').forEach(s=>{ const i=s.querySelector('input'); s.querySelector('b').textContent=i.dataset.f? i.value+i.dataset.f : i.value; });
+  const N=1200, rows=[], cfg={N,G,scen,seed:7};
+  const ov=P.optionValues(LAB.ind,Object.assign({},cfg,{N:800}));
+  ['B','M','D'].forEach(r=>{ const e=P.evalRoute(LAB.ind,r,cfg); rows.push({r,label:ROUTE[r].name,stat:e.mean,ov:ov[r].OV,tot:e.mean+ov[r].OV,p10:e.p10,wel:e.welfare,he:e.hourlyEff}); });
+  hbar($('#ch-lab'),{rows:rows.map(x=>({label:x.label,a:x.stat,b:x.tot,c:x.wel})),groups:[{k:'a',name:'静态 ENPV',c:'--seq-3'},{k:'b',name:'含期权总值',c:'--seq-5'},{k:'c',name:'强度折合福利',c:'--s2'}],fmt:v=>fmt(v)+'万',pl:120});
+  const best=rows.reduce((a,b)=>b.tot>a.tot?b:a), bestW=rows.reduce((a,b)=>b.wel>a.wel?b:a);
+  $('#lab-out').innerHTML=`<b>${RESULTS.ind[LAB.ind].name}</b>：货币最优 <b>${best.label}</b>（${fmt(best.tot)} 万元）；扣除劳动强度后最优 <b>${bestW.label}</b>（${fmt(bestW.wel)} 万元）。`+
+    `<br>期权价值：本科回炉 ${fmt(ov.B.OV,1)} · 硕士转博 ${fmt(ov.M.OV,1)} · 博士退出 ${fmt(ov.D.OV,1)}（万元，蒙特卡洛 N=${N}，标准误约 ±${fmt(rows[2].stat*0.02,1)}）`;
+}
+
+/* ---------- 人口 × 教职 ---------- */
+function drawAcad(){ const a=RESULTS.acad;
+  lineChart($('#ch-acad'),{x:a.map(d=>d.y),xEvery:4,ymin:0,yfmt:v=>fmt(v,1),tfmt:v=>fmt(v,2),
+    series:[{name:'学术求职博士 / 新增教职（竞争比）',short:'竞争比',c:'--s3',data:a.map(d=>d.ratio)}]});
+  lineChart($('#ch-n18'),{x:a.map(d=>d.y),xEvery:4,ymin:0,yfmt:v=>fmt(v)+'万',tfmt:v=>fmt(v,0)+' 万人',
+    series:[{name:'18 岁人口',short:'18 岁',c:'--s1',data:a.map(d=>d.n18)},{name:'学术求职博士',short:'求职博士',c:'--s3',data:a.map(d=>d.phd*RESULTS.acadCfg.acadSeekShare)},{name:'高校新增教职',short:'新增教职',c:'--s2',data:a.map(d=>d.hires)}]}); }
+
+/* ---------- 蛛网 ---------- */
+const PRE=RESULTS.cobweb.presets; let curPre=Object.keys(PRE)[0];
+function drawCob(){ const P=window.PhDModel; const c=Object.assign({},PRE[curPre]);
+  c.theta=parseFloat($('#c-theta').value); c.kappa=parseFloat($('#c-kappa').value);
+  $('#c-theta-v').textContent=c.theta.toFixed(2); $('#c-kappa-v').textContent=c.kappa.toFixed(2);
+  const r=P.cobweb(c), yrs=r.S.map((_,i)=>c.y0+i);
+  lineChart($('#ch-cob'),{x:yrs,xEvery:3,ymin:0,yfmt:v=>fmt(v,2),tfmt:v=>fmt(v,2),
+    series:[{name:'毕业生供给（指数）',short:'供给',c:'--s1',data:r.S},{name:'市场需求（指数）',short:'需求',c:'--s3',data:r.D},{name:'招生（指数）',short:'招生',c:'--s2',data:r.E,dash:'5 4'}]});
+  const rho=P.cobwebSpectral(c.theta,c.kappa,c.eps,c.L);
+  $('#cob-note').innerHTML=`${c.label}：线性化系统谱半径 ρ = <b>${rho.toFixed(3)}</b> ${rho>1?'（&gt;1，振荡发散：热潮—过剩循环自我放大）':'（&lt;1，振荡收敛）'}。${c.note||''}`; }
+
+function renderAll(){
+  segButtons('seg-cum',KEYS,NAMES,curInd,k=>{curInd=k;drawCum();});
+  segButtons('seg-band',['B','M','D'],['本科带','硕士带','博士带'],curBand,k=>{curBand=k;drawCum();});
+  segButtons('seg-hours',KEYS,NAMES,curInd2,k=>{curInd2=k;drawHours();});
+  segButtons('seg-lab',KEYS,NAMES,LAB.ind,k=>{LAB.ind=k;labRun();});
+  segButtons('seg-cob',Object.keys(PRE),Object.keys(PRE).map(k=>PRE[k].label),curPre,k=>{curPre=k;$('#c-theta').value=PRE[k].theta;$('#c-kappa').value=PRE[k].kappa;drawCob();});
+  drawCum(); drawHours(); valueTable($('#tbl-val'),RESULTS.ind,KEYS); drawAcad(); drawCob(); labRun();
+  if (RESULTS.figs) RESULTS.figs.forEach(f=>{ const h=document.getElementById(f.id); if(!h) return; if(f.type==='hbar') hbar(h,f.cfg); });
+  if (window.__extra) window.__extra({lineChart,hbar,css,fmt,ROUTE});
+}
+let labTimer=null;
+document.addEventListener('input',e=>{ if(e.target.closest('#lab')){ clearTimeout(labTimer); labTimer=setTimeout(labRun,120); } if(e.target.closest('#cobctl')) drawCob(); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderAll);
+renderAll();
+})();
+
+})();
+</script>
+</body>
+</html>

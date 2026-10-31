@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一粒沙的远征 —— 中国造芯地图 · 各地芯片投资交互报告（2024–2026）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --bg2:#0d1117; --panel:#10161f; --panel2:#131b26;
+  --line:rgba(150,140,110,.16); --line2:rgba(240,180,41,.24);
+  --cyan:#22d3ee; --cyan-dim:#0e7490; --gold:#f0b429; --gold-dim:#b8860b;
+  --red:#ef4444; --green:#34d399; --violet:#a78bfa; --pink:#f472b6;
+  --ink:#e6edf3; --muted:#8b98a9; --faint:#5b6a7d;
+  --serif:'Noto Serif SC',serif; --sans:'Noto Sans SC',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-weight:300; line-height:1.85; overflow-x:hidden;
+  background-image:
+    linear-gradient(rgba(240,180,41,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(240,180,41,.03) 1px,transparent 1px);
+  background-size:56px 56px;
+}
+::selection{background:rgba(240,180,41,.28)}
+a{color:var(--cyan);text-decoration:none}
+.num, .stat-num, .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ============ HERO ============ */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(ellipse 80% 60% at 50% 18%,rgba(240,180,41,.07),transparent 60%),
+             radial-gradient(ellipse 60% 50% at 80% 92%,rgba(34,211,238,.06),transparent 60%);}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.6}
+.hero-inner{position:relative;z-index:2;text-align:center;padding:80px 24px 60px;width:100%}
+.hero-kicker{font-family:var(--sans);letter-spacing:.55em;color:var(--cyan);font-size:14px;font-weight:500;margin-bottom:26px}
+.hero-title{font-family:var(--serif);font-weight:900;font-size:clamp(44px,7.2vw,96px);line-height:1.18;letter-spacing:.06em;
+  background:linear-gradient(135deg,#fdf6e3 15%,var(--gold) 52%,var(--cyan) 92%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero-title2{font-family:var(--serif);font-weight:900;font-size:clamp(20px,2.6vw,34px);color:var(--ink);letter-spacing:.35em;margin-top:22px}
+.hero-sub{margin-top:26px;color:var(--muted);font-size:clamp(13px,1.3vw,16px);letter-spacing:.28em}
+.hero-sub b{color:var(--gold);font-weight:500}
+.hero-date{margin-top:34px;display:flex;align-items:center;justify-content:center;gap:18px;color:var(--faint);font-size:14px;letter-spacing:.3em}
+.hero-date::before,.hero-date::after{content:"";width:70px;height:1px;background:linear-gradient(90deg,transparent,var(--cyan));display:block}
+.hero-date::after{background:linear-gradient(90deg,var(--cyan),transparent)}
+.vside{position:absolute;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-family:var(--serif);font-weight:700;
+  font-size:clamp(18px,2vw,28px);letter-spacing:.9em;color:rgba(230,237,243,.14);z-index:1;user-select:none}
+.vside.l{left:3.2vw}.vside.r{right:3.2vw;color:rgba(240,180,41,.16)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1080px;margin:64px auto 0;position:relative;z-index:2}
+.stat-card{background:linear-gradient(160deg,rgba(19,27,38,.85),rgba(13,17,23,.9));border:1px solid var(--line);border-top:2px solid var(--gold);
+  padding:26px 18px 22px;text-align:left;position:relative;transition:transform .35s,border-color .35s;backdrop-filter:blur(4px)}
+.stat-card:hover{transform:translateY(-6px);border-top-color:var(--cyan)}
+.stat-card:nth-child(2){border-top-color:var(--cyan)} .stat-card:nth-child(2):hover{border-top-color:var(--gold)}
+.stat-num{font-size:clamp(30px,3.2vw,46px);font-weight:700;color:#fff;line-height:1.1;font-family:var(--sans)}
+.stat-num .unit{font-size:.42em;color:var(--cyan);font-weight:500;margin-left:4px;letter-spacing:.05em}
+.stat-label{margin-top:10px;font-size:14px;color:var(--ink);font-weight:500;letter-spacing:.06em}
+.stat-src{margin-top:6px;font-size:11.5px;color:var(--faint);line-height:1.6}
+.scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--faint);font-size:12px;letter-spacing:.4em;z-index:2;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,9px)}}
+
+/* ============ SECTIONS ============ */
+section.chapter{padding:110px 0 70px;position:relative}
+.sec-head{display:flex;align-items:flex-start;gap:26px;margin-bottom:14px}
+.sec-no{writing-mode:vertical-rl;font-family:var(--serif);font-weight:900;font-size:44px;color:var(--gold);line-height:1;
+  border:1px solid rgba(240,180,41,.4);padding:14px 8px;background:rgba(240,180,41,.05)}
+.sec-title{font-family:var(--serif);font-weight:900;font-size:clamp(28px,3.6vw,46px);letter-spacing:.1em;line-height:1.25}
+.sec-title small{display:block;font-family:var(--sans);font-weight:400;font-size:13px;letter-spacing:.3em;color:var(--cyan);margin-top:10px}
+.sec-rule{height:1px;background:linear-gradient(90deg,var(--gold),rgba(240,180,41,.06) 60%,transparent);margin:26px 0 40px}
+.lede{color:var(--muted);font-size:15.5px;max-width:900px;margin-bottom:36px}
+.lede b,.lede strong{color:var(--ink);font-weight:500}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.22,.7,.3,1),transform .8s cubic-bezier(.22,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.src{color:var(--faint);font-size:.82em;font-style:normal}
+.src::before{content:"（"} .src::after{content:"）"}
+
+/* panels & charts */
+.panel{background:linear-gradient(170deg,var(--panel),var(--bg2));border:1px solid var(--line);padding:26px 26px 18px;position:relative}
+.panel::before{content:"";position:absolute;top:0;left:0;width:44px;height:2px;background:var(--gold)}
+.panel.cyan::before{background:var(--cyan)}
+.panel h4{font-family:var(--serif);font-weight:700;font-size:19px;letter-spacing:.08em;margin-bottom:4px}
+.panel .sub{font-size:12.5px;color:var(--faint);margin-bottom:10px}
+.chart{width:100%;height:400px}
+.chart-tall{height:480px}
+.chart-sm{height:320px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pillar-tag{display:inline-block;font-size:12px;letter-spacing:.35em;color:var(--gold);border:1px solid rgba(240,180,41,.4);padding:5px 14px 4px 18px;margin:54px 0 20px}
+.pillar-title{font-family:var(--serif);font-weight:900;font-size:clamp(22px,2.6vw,32px);letter-spacing:.12em;margin-bottom:8px}
+.pillar-title em{font-style:normal;color:var(--cyan)}
+.note{font-size:12.5px;color:var(--faint);line-height:1.7;margin-top:8px}
+.note::before{content:"※ ";color:var(--gold)}
+.krow{display:flex;flex-wrap:wrap;gap:14px;margin:18px 0 6px}
+.kchip{border:1px solid var(--line);background:rgba(19,27,38,.6);padding:12px 18px;min-width:150px;flex:1}
+.kchip .kv{font-size:24px;font-weight:700;color:var(--gold)}
+.kchip .kv.c{color:var(--cyan)} .kchip .kv.r{color:var(--red)} .kchip .kv.g2{color:var(--green)}
+.kchip .kl{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.65}
+
+/* ============ MAP / CLUSTERS ============ */
+.map-wrap{display:grid;grid-template-columns:minmax(0,7fr) minmax(300px,5fr);gap:22px;align-items:stretch}
+.map-box{border:1px solid var(--line);background:linear-gradient(170deg,var(--panel),var(--bg2));position:relative;padding:18px 14px 10px}
+#chMap{width:100%;height:560px}
+.map-fallback-note{display:none;font-size:12.5px;color:var(--gold);padding:8px 6px 0}
+.map-fb-grid{display:none;grid-template-columns:repeat(3,1fr);gap:14px;padding:14px 6px 8px}
+.map-fb-card{border:1px solid var(--line2);background:rgba(240,180,41,.05);padding:16px 14px;cursor:pointer;transition:all .3s}
+.map-fb-card:hover{border-color:var(--gold);transform:translateY(-4px)}
+.map-fb-card .n{font-family:var(--serif);font-weight:900;font-size:18px;color:var(--gold);letter-spacing:.08em}
+.map-fb-card .t{font-size:12px;color:var(--cyan);margin-top:6px;letter-spacing:.05em}
+.map-box.fb #chMap{display:none}
+.map-box.fb .map-fallback-note{display:block}
+.map-box.fb .map-fb-grid{display:grid}
+.cluster-detail{border:1px solid var(--line2);background:linear-gradient(160deg,rgba(240,180,41,.06),rgba(13,17,23,.92));padding:24px 26px;display:flex;flex-direction:column}
+.cluster-detail .cd-tag{display:inline-block;align-self:flex-start;font-size:11.5px;color:var(--bg);background:var(--gold);padding:2px 12px;letter-spacing:.2em;font-weight:700;margin-bottom:12px}
+.cluster-detail h5{font-family:var(--serif);font-size:24px;font-weight:900;color:var(--gold);letter-spacing:.1em}
+.cluster-detail .cd-sub{font-size:12.5px;color:var(--cyan);letter-spacing:.12em;margin:4px 0 14px}
+.cluster-detail ul{list-style:none;font-size:13.5px;color:var(--ink);flex:1}
+.cluster-detail li{padding:7px 0 7px 18px;position:relative;border-bottom:1px dashed rgba(150,140,110,.14);line-height:1.75}
+.cluster-detail li::before{content:"◈";position:absolute;left:0;color:var(--cyan);font-size:11px;top:11px}
+.cluster-detail li b{color:var(--gold);font-weight:500}
+.cluster-detail .cd-foot{margin-top:14px;font-size:12px;color:var(--faint);line-height:1.7}
+.map-btns{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 0}
+.map-btn{border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--sans);font-size:13px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;transition:all .25s}
+.map-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.map-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(240,180,41,.08);box-shadow:0 0 16px rgba(240,180,41,.14)}
+
+/* 新兴势力卡片 */
+.em-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.em-card{border:1px solid var(--line);background:linear-gradient(165deg,var(--panel2),var(--bg2));padding:22px 22px 18px;position:relative;transition:transform .3s,border-color .3s}
+.em-card:hover{transform:translateY(-5px);border-color:var(--cyan)}
+.em-card.risky{border-color:rgba(239,68,68,.4)}
+.em-card.risky:hover{border-color:var(--red)}
+.em-card .em-city{font-family:var(--serif);font-weight:900;font-size:20px;color:var(--ink);letter-spacing:.1em}
+.em-card .em-role{font-size:11.5px;color:var(--cyan);letter-spacing:.18em;margin:4px 0 12px}
+.em-card.risky .em-role{color:var(--red)}
+.em-card p{font-size:13px;color:var(--muted);line-height:1.8}
+.em-card p b{color:var(--ink);font-weight:500}
+</style>
+<style>
+/* ============ TIMELINE ============ */
+.tl-wrap{position:relative;margin-top:10px}
+.tl-hint{font-size:12px;color:var(--faint);letter-spacing:.2em;margin-bottom:14px}
+.tl-scroll{overflow-x:auto;cursor:grab;padding:34px 6px 20px;scrollbar-width:thin;scrollbar-color:var(--gold-dim) transparent}
+.tl-scroll.grabbing{cursor:grabbing}
+.tl-track{display:flex;gap:0;min-width:max-content;position:relative;padding-top:10px}
+.tl-track::before{content:"";position:absolute;left:0;right:0;top:14px;height:1px;background:linear-gradient(90deg,var(--gold),var(--cyan),var(--red),var(--gold));opacity:.55}
+.tl-node{width:230px;flex:0 0 auto;position:relative;padding:26px 18px 0 0}
+.tl-dot{position:absolute;top:8px;left:0;width:13px;height:13px;border-radius:50%;border:2px solid var(--gold);background:var(--bg);transition:all .3s}
+.tl-node.us .tl-dot{border-color:var(--red)}
+.tl-node.cn .tl-dot{border-color:var(--cyan)}
+.tl-node:hover .tl-dot,.tl-node.active .tl-dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 14px rgba(240,180,41,.7)}
+.tl-date{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.08em}
+.tl-node:hover .tl-date,.tl-node.active .tl-date{color:var(--cyan)}
+.tl-cap{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;padding-right:8px}
+.tl-node.active .tl-cap{color:var(--ink)}
+.tl-detail{margin-top:26px;border:1px solid var(--line2);background:linear-gradient(160deg,rgba(240,180,41,.06),rgba(13,17,23,.9));padding:24px 28px;min-height:120px}
+.tl-detail h5{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:8px}
+.tl-detail p{font-size:14.5px;color:var(--ink);max-width:920px}
+.tl-detail .tag{display:inline-block;font-size:11px;color:var(--cyan);border:1px solid var(--line2);padding:1px 10px;margin-right:8px;letter-spacing:.15em}
+.tl-detail .tag.us{color:var(--red);border-color:rgba(239,68,68,.4)}
+.tl-detail .tag.cn{color:var(--green);border-color:rgba(52,211,153,.4)}
+
+/* ============ FORMULA ============ */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.fcard{border:1px solid var(--line);background:linear-gradient(165deg,var(--panel),var(--bg2));padding:26px}
+.fcard h5{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:14px}
+.fcard .katex-box{background:rgba(10,14,20,.7);border:1px solid var(--line2);padding:18px 14px;text-align:center;font-size:19px;overflow-x:auto}
+.fcard .fnote{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.75}
+.fcard .fnote b{color:var(--cyan);font-weight:500}
+
+/* ============ SANDBOX ============ */
+.sandbox{display:grid;grid-template-columns:minmax(300px,5fr) 7fr;gap:26px;align-items:stretch}
+.sb-controls{border:1px solid var(--line);background:var(--panel);padding:28px}
+.sb-controls h5{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--gold);margin-bottom:20px;letter-spacing:.08em}
+.ctl{margin-bottom:26px}
+.ctl label{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-bottom:10px}
+.ctl label output{color:var(--gold);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--gold) var(--fill,50%),#1e293b var(--fill,50%));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #0a0e14;box-shadow:0 0 0 2px var(--cyan);cursor:grab}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--cyan);border:3px solid #0a0e14;box-shadow:0 0 0 2px var(--cyan);cursor:grab}
+.sb-out{border:1px solid var(--line2);background:linear-gradient(170deg,rgba(240,180,41,.05),var(--bg2));padding:26px 30px;display:flex;flex-direction:column}
+.sb-nums{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}
+.sb-num{flex:1;min-width:170px}
+.sb-num .v{font-size:clamp(26px,2.6vw,38px);font-weight:700;color:#fff;line-height:1.15;font-variant-numeric:tabular-nums}
+.sb-num .v span{font-size:.45em;color:var(--cyan);font-weight:500;margin-left:3px}
+.sb-num .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+.sb-chart{flex:1;min-height:210px}
+.sb-warn{font-size:12px;color:var(--faint);border-top:1px dashed var(--line);padding-top:12px;margin-top:6px;line-height:1.7}
+.sb-warn b{color:var(--red);font-weight:500}
+
+/* ============ RISK / COLD ============ */
+.cold{border:1px solid rgba(239,68,68,.3);background:linear-gradient(165deg,rgba(239,68,68,.06),var(--bg2));padding:24px 26px}
+.cold h5{color:var(--red);font-family:var(--serif);font-size:17px;font-weight:700;letter-spacing:.1em;margin-bottom:10px}
+.cold h5::before{content:"❄ ";font-size:14px}
+.cold p{font-size:13.5px;color:var(--muted);margin-bottom:8px}
+.cold b{color:var(--ink);font-weight:500}
+.risk-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+/* ============ SOURCES / DETAILS ============ */
+details.fold{border:1px solid var(--line);background:var(--panel);margin-bottom:14px}
+details.fold summary{cursor:pointer;list-style:none;padding:18px 24px;font-family:var(--serif);font-weight:700;font-size:16.5px;letter-spacing:.08em;color:var(--gold);display:flex;justify-content:space-between;align-items:center}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold summary::after{content:"＋";color:var(--cyan);font-size:18px;transition:transform .3s}
+details.fold[open] summary::after{transform:rotate(45deg)}
+details.fold .fold-body{padding:4px 24px 22px;font-size:13.5px;color:var(--muted);line-height:1.9}
+details.fold .fold-body b{color:var(--ink);font-weight:500}
+details.fold ul{list-style:none}
+details.fold li{padding:6px 0 6px 20px;position:relative;border-bottom:1px dashed rgba(150,140,110,.12)}
+details.fold li::before{content:"▸";position:absolute;left:0;color:var(--cyan)}
+
+/* ============ FOOTER ============ */
+footer{border-top:1px solid var(--line);margin-top:60px;padding:56px 0 70px;text-align:center;position:relative}
+.seal{display:inline-flex;align-items:center;justify-content:center;width:96px;height:96px;border:3px solid var(--red);color:var(--red);
+  font-family:var(--serif);font-weight:900;font-size:19px;line-height:1.2;letter-spacing:.1em;transform:rotate(-4deg);
+  writing-mode:vertical-rl;border-radius:6px;box-shadow:0 0 24px rgba(239,68,68,.18),inset 0 0 18px rgba(239,68,68,.12);margin-bottom:22px}
+footer .fline{color:var(--faint);font-size:12.5px;letter-spacing:.25em;margin-top:8px}
+footer .ftitle{font-family:'ZCOOL XiaoWei',var(--serif);font-size:20px;color:var(--muted);letter-spacing:.4em}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:960px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .grid2,.grid3,.fgrid,.em-grid,.risk-grid{grid-template-columns:1fr}
+  .sandbox{grid-template-columns:1fr}
+  .map-wrap{grid-template-columns:1fr}
+  .map-fb-grid{grid-template-columns:repeat(2,1fr)}
+  #chMap{height:440px}
+  .vside{display:none}
+}
+@media (max-width:560px){
+  .stat-grid{grid-template-columns:1fr}
+  .sec-no{font-size:32px}
+  .hero-kicker{letter-spacing:.3em}
+  .hero-title{font-size:33px;letter-spacing:.02em}
+  .hero-title2{letter-spacing:.18em}
+  .chart{height:340px}
+  .map-fb-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="vside l">一粒沙的远征</div>
+  <div class="vside r">聚沙成芯</div>
+  <div class="hero-inner">
+    <div class="hero-kicker">中国造芯地图 · 各地芯片投资交互报告 · 2024–2026</div>
+    <h1 class="hero-title">一粒沙的远征</h1>
+    <div class="hero-title2">中 国 造 芯 地 图</div>
+    <div class="hero-sub"><b>国家意志</b> · <b>六大集群</b> · <b>产能产出</b> · <b>管制博弈</b> · <b>国产化</b> · <b>冷思考</b></div>
+    <div class="hero-date">二〇二六年十月 谨制</div>
+    <div class="stat-grid">
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="3440" data-dec="0">0</span><span class="unit">亿元</span></div>
+        <div class="stat-label">大基金三期注册资本</div>
+        <div class="stat-src">2024-05 设立 · 超一期二期总和 · 财政部领衔</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="17331" data-dec="0">0</span><span class="unit">亿元</span></div>
+        <div class="stat-label">IC 产业销售额</div>
+        <div class="stat-src">2025 年 · 中国半导体行业协会 · 同比 +20.2%</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="4842.8" data-dec="1">0</span><span class="unit">亿块</span></div>
+        <div class="stat-label">集成电路产量</div>
+        <div class="stat-src">2025 年 · 国家统计局 · 同比 +10.9%</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num"><span class="count" data-target="47" data-dec="0">0</span><span class="unit">%</span></div>
+        <div class="stat-label">成熟制程产能全球占比</div>
+        <div class="stat-src">≥28nm · 2027E · TrendForce 预测</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">向下滚动 ▾</div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= 壹 · 国家意志 ================= -->
+<section class="chapter" id="ch1">
+  <div class="sec-head reveal">
+    <div class="sec-no">壹</div>
+    <h2 class="sec-title">国家意志<small>THE NATIONAL FUND · 大基金的三级火箭</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">国家集成电路产业投资基金（“大基金”）是中国造芯的<b>第一推动力</b>。一期 987.2 亿（2014）、二期 2041.5 亿（2019）、三期 <b>3440 亿</b>（2024-05-24）——三期单期规模即超过前两期总和；前两期已撬动社会资本<b>超万亿元</b>。三期由财政部出资 600 亿领衔，六大国有银行合计出资 1140 亿（国有大行合计持股 <b>33.14%</b>），金融央企首次大规模进入半导体耐心资本。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>大基金 · 三级火箭</h4><div class="sub">注册资本 · 单位：亿元 · 三期超前两期总和</div><div id="chFund" class="chart chart-sm"></div></div>
+    <div class="panel cyan reveal"><h4>三期资金流向</h4><div class="sub">国家基金 → 子基金 → 项目 · 单位：亿元（人民币口径，美元项目见时间线）</div><div id="chFundFlow" class="chart chart-sm"></div></div>
+  </div>
+  <div class="krow reveal">
+    <div class="kchip"><div class="kv">600 亿</div><div class="kl">财政部出资 · 三期第一大股东</div></div>
+    <div class="kchip"><div class="kv c">1140 亿</div><div class="kl">工/农/中/建/交/邮储六大行合计出资</div></div>
+    <div class="kchip"><div class="kv">33.14%</div><div class="kl">国有大行在三期的合计持股比例</div></div>
+    <div class="kchip"><div class="kv r">超 1 万亿</div><div class="kl">前两期撬动的社会资本规模（元）</div></div>
+  </div>
+  <div class="panel reveal" style="margin-top:22px">
+    <h4>三期出手时间线</h4>
+    <div class="sub">从设立到首投，用时约 16 个月</div>
+    <div id="chFundTL" class="chart chart-sm"></div>
+  </div>
+  <div class="note reveal">三期出手明显提速且更聚焦“卡脖子”环节：首投落在 HBM 键合设备（拓荆键科），随后参与中芯南方增资——<b>设备与先进制造</b>是三期的首要方向。中芯南方增资约 77.8 亿美元为美元口径，未计入右侧人民币桑基图。</div>
+</section>
+
+<!-- ================= 贰 · 造芯地图 ================= -->
+<section class="chapter" id="ch2">
+  <div class="sec-head reveal">
+    <div class="sec-no">贰</div>
+    <h2 class="sec-title">造芯地图<small>THE MAP · 六大集群与新兴势力</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">中国的芯片产能不是均匀撒胡椒面，而是高度集中于<b>六大集群</b>：长三角全能领跑、京津冀装备称雄、粤港澳设计驱动、合肥豪赌存储、武汉死磕 NAND、西安/成渝背靠外资与功率半导体。<b>点击地图分区或下方按钮</b>，查看每个集群的家底。</p>
+  <div class="map-wrap reveal">
+    <div class="map-box" id="mapBox">
+      <div id="chMap"></div>
+      <div class="map-fallback-note">⚠ 地图数据加载失败（CDN 不可达），已降级为分区卡片——点击卡片查看详情，信息完全一致。</div>
+      <div class="map-fb-grid" id="mapFbGrid"></div>
+    </div>
+    <div class="cluster-detail" id="clusterDetail"></div>
+  </div>
+  <div class="map-btns reveal" id="mapBtns"></div>
+  <div class="note reveal">地图着色仅表示集群归属，深浅不代表投资额；港澳台数据暂缺，未纳入统计。各集群数据口径不一（产值 / 销售额 / 合同投资），正文均已注明，<b>不可跨区直接比较</b>。</div>
+
+  <div class="pillar-tag reveal">编外观察</div>
+  <h3 class="pillar-title reveal"><em>新兴势力</em> · 六大集群之外的变量</h3>
+  <div class="em-grid reveal" style="margin-top:18px">
+    <div class="em-card">
+      <div class="em-city">长沙</div>
+      <div class="em-role">SiC 衬底 + GPU</div>
+      <p><b>三安 SiC 基地总投 160 亿</b>，卡位碳化硅功率器件；<b>景嘉微</b>国产 GPU 代表，军民两用图形处理芯片自主可控。</p>
+    </div>
+    <div class="em-card">
+      <div class="em-city">郑州</div>
+      <div class="em-role">大硅片</div>
+      <p><b>麦斯克 12 英寸硅片项目约 70 亿</b>，填补中原地区半导体材料空白，切入硅片国产化赛道。</p>
+    </div>
+    <div class="em-card risky">
+      <div class="em-city">福建</div>
+      <div class="em-role">⚠ 风险注记</div>
+      <p>三安光电（泉州/厦门布局化合物半导体）<b>2025 年录得上市后首次亏损 3.5 亿</b>——化合物半导体的热度之下，盈利模型尚未跑通。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 叁 · 产能与产出 ================= -->
+<section class="chapter" id="ch3">
+  <div class="sec-head reveal">
+    <div class="sec-no">叁</div>
+    <h2 class="sec-title">产能与产出<small>OUTPUT &amp; CAPACITY · 从 2% 到三分之一</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">产出端，2025 年中国 IC 产量 <b>4842.8 亿块</b>（+10.9%），产业销售额 <b>17331 亿元</b>（+20.2%）；产能端，中国晶圆产能全球占比已从 2000 年的 2% 升至 2020 年的 17%，SEMI 预计 2030 年将达<b>约三分之一</b>——且至 2028 年全球新建 108 座晶圆厂中，中国大陆以 <b>47 座</b>居首。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>IC 产量与增速</h4><div class="sub">单位：亿块 / % · 国家统计局</div><div id="chOutput" class="chart chart-sm"></div></div>
+    <div class="panel cyan reveal"><h4>产业销售额 · 分环节拆解</h4><div class="sub">单位：亿元 · 中国半导体行业协会</div><div id="chSales" class="chart chart-sm"></div></div>
+  </div>
+  <div class="grid2" style="margin-top:22px">
+    <div class="panel cyan reveal"><h4>晶圆产能全球占比演进</h4><div class="sub">% · SEMI · 2030 为预测</div><div id="chCapEvo" class="chart chart-sm"></div></div>
+    <div class="panel reveal"><h4>新建晶圆厂：至 2028 全球 108 座</h4><div class="sub">中国大陆 47 座居首 · SEMI</div><div id="chFabs" class="chart chart-sm"></div></div>
+  </div>
+  <div class="krow reveal">
+    <div class="kchip"><div class="kv">4514.2 亿块</div><div class="kl">2024 年 IC 产量 · +22.2%</div></div>
+    <div class="kchip"><div class="kv c">1272 亿块</div><div class="kl">2026 Q1 产量 · +24.3% · 增速再抬升</div></div>
+    <div class="kchip"><div class="kv">8261.1 亿</div><div class="kl">2025 设计业销售额 · +24.8% · 第一大环节</div></div>
+    <div class="kchip"><div class="kv c">47 / 108</div><div class="kl">至 2028 全球新建晶圆厂中中国大陆数量</div></div>
+  </div>
+  <div class="note reveal">2024 年产业销售额存在 <b>1.43 万亿</b> 与 <b>1.3 万亿</b> 两个口径（协会统计口径调整），本图采用前者；详见文末【口径与来源】。</div>
+</section>
+
+<!-- ================= 肆 · 龙头资本开支 ================= -->
+<section class="chapter" id="ch4">
+  <div class="sec-head reveal">
+    <div class="sec-no">肆</div>
+    <h2 class="sec-title">龙头资本开支<small>CAPEX · 谁在真金白银地建厂</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">造芯是资本密集到近乎残酷的游戏。中芯国际 2025 年资本开支 <b>81.0 亿美元</b>，连续两年站上 70 亿美元台阶；华虹 Fab9B 三期总投 <b>69.5 亿美元</b>（约 468 亿元人民币，2026-03 开建）；长鑫存储 2024 年购建资产现金支出高达 <b>712.3 亿元</b>。下图为<b>美元口径</b>对比，人民币项目以事实卡并列，两者不混排。</p>
+  <div class="grid2">
+    <div class="panel reveal" style="grid-row:span 1"><h4>资本开支 · 美元口径</h4><div class="sub">单位：亿美元 · 公司公告 / 公开披露</div><div id="chCapexUSD" class="chart chart-sm"></div></div>
+    <div class="panel cyan reveal">
+      <h4>事实卡 · 龙头近况</h4>
+      <div class="sub">人民币口径与美元口径分列，不混排</div>
+      <div class="krow" style="margin-top:6px">
+        <div class="kchip"><div class="kv">93.27 亿美元</div><div class="kl">中芯国际 2025 营收 · 创历史新高</div></div>
+        <div class="kchip"><div class="kv c">105.9 万片</div><div class="kl">中芯国际月产能 · 8 英寸当量</div></div>
+        <div class="kchip"><div class="kv">468 亿元</div><div class="kl">华虹 Fab9B 三期总投 · 2026-03 开建 · 新增 5.5 万片/月</div></div>
+        <div class="kchip"><div class="kv c">712.3 亿</div><div class="kl">长鑫 2024 购建固定资产现金支出（元）→ 2025 年 497.4 亿</div></div>
+        <div class="kchip"><div class="kv r">约 630 亿</div><div class="kl">两存（长鑫+长存）2026 合计设备 capex（元）· 日经口径</div></div>
+        <div class="kchip"><div class="kv">5.5 万片/月</div><div class="kl">华虹 Fab9B 新增产能 · 12 英寸</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="note reveal">“购建固定资产、无形资产和其他长期资产支付的现金”为现金流量表口径，与“资本开支”口径略有差异；日经“两存 2026 设备 capex 约 630 亿”为媒体测算。</div>
+</section>
+
+<!-- ================= 伍 · 卡脖子与突围 ================= -->
+<section class="chapter" id="ch5">
+  <div class="sec-head reveal">
+    <div class="sec-no">伍</div>
+    <h2 class="sec-title">卡脖子与突围<small>EXPORT CONTROLS · 管制与反制的对局时间线</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">2024–2026 年，中美围绕半导体的管制与反制完成了一整轮<b>“加码—反制—休战—执法”</b>循环。红色节点为美方动作，青色节点为中方动作，金色为产业节点。<b>按住左右拖拽，点击节点展开详情</b>。</p>
+  <div class="tl-wrap reveal">
+    <div class="tl-hint">◀ 按住左右拖拽 · 点击节点展开详情 ▶</div>
+    <div class="tl-scroll" id="tlScroll"><div class="tl-track" id="tlTrack"></div></div>
+    <div class="tl-detail" id="tlDetail"></div>
+  </div>
+</section>
+
+<!-- ================= 陆 · 设备材料国产化 ================= -->
+<section class="chapter" id="ch6">
+  <div class="sec-head reveal">
+    <div class="sec-no">陆</div>
+    <h2 class="sec-title">设备材料国产化<small>LOCALIZATION · 从 13% 到 21–25%</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">设备国产化率从 2017 年的 <b>13%</b> 升至 2024 年的约 20%，2025 年预计在 <b>21–25%</b> 区间——但结构极不均衡：刻蚀、薄膜沉积已超 30%，光刻、量检测仍低于 25%。北方华创以 2025 年营收 <b>393.5 亿元</b>（+30.9%）跻身<b>全球设备商第 5</b>；中国大陆设备市场 2024 年达 <b>495.5 亿美元</b>、占全球 <b>42.3%</b>，全球第一。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>设备双雄营收</h4><div class="sub">单位：亿元 · 2025 年报</div><div id="chEquip" class="chart chart-sm"></div></div>
+    <div class="panel cyan reveal"><h4>设备国产化率演进</h4><div class="sub">% · 2025E 为区间口径</div><div id="chLocalize" class="chart chart-sm"></div></div>
+  </div>
+  <div class="krow reveal">
+    <div class="kchip"><div class="kv">495.5 亿美元</div><div class="kl">2024 中国大陆半导体设备市场规模</div></div>
+    <div class="kchip"><div class="kv c">42.3%</div><div class="kl">占全球设备市场比重 · 全球第一</div></div>
+    <div class="kchip"><div class="kv">75 → 120 万片/月</div><div class="kl">沪硅产业大硅片产能：2025H1 → 2026 底目标</div></div>
+    <div class="kchip"><div class="kv c">100 亿</div><div class="kl">长电科技晶圆级高端封装项目（元）· 先进封装卡位</div></div>
+  </div>
+  <div class="note reveal">国产化率“21–25%”为区间口径，不同机构测算存在差异；分环节看，<b>刻蚀 / 薄膜沉积 &gt; 30%</b>，而<b>光刻 / 量检测 &lt; 25%</b>——最硬的骨头仍未啃下。</div>
+</section>
+
+<!-- ================= 柒 · 贸易账本 ================= -->
+<section class="chapter" id="ch7">
+  <div class="sec-head reveal">
+    <div class="sec-no">柒</div>
+    <h2 class="sec-title">贸易账本<small>TRADE LEDGER · 逆差、自给率与出口单品之王</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">集成电路仍是中国<b>第一大进口商品</b>，但也在 2024 年<b>首次超过手机成为第一大出口单品</b>。注意：2024 年数据为<b>美元口径</b>（海关总署），2025 年数据为<b>人民币口径</b>——两图分列，<b>不可混排比较</b>。</p>
+  <div class="grid2">
+    <div class="panel reveal"><h4>2024 · 美元口径</h4><div class="sub">单位：亿美元 · 海关总署</div><div id="chTrade24" class="chart chart-sm"></div></div>
+    <div class="panel cyan reveal"><h4>2025 · 人民币口径</h4><div class="sub">单位：亿元 · 海关总署</div><div id="chTrade25" class="chart chart-sm"></div></div>
+  </div>
+  <div class="grid2" style="margin-top:22px">
+    <div class="panel cyan reveal"><h4>IC 自给率 · 产值口径</h4><div class="sub">% · TechInsights 系口径 · 2027E 为预测</div><div id="chSelf" class="chart chart-sm"></div></div>
+    <div class="panel reveal">
+      <h4>自给率的多口径现实</h4>
+      <div class="sub">同一个词，不同的分子分母</div>
+      <div class="krow" style="margin-top:6px">
+        <div class="kchip"><div class="kv">15.9% → 约 23%</div><div class="kl">产值口径自给率 2020 → 2023（TechInsights 系）</div></div>
+        <div class="kchip"><div class="kv c">约 26%</div><div class="kl">2027E 产值口径预测（TechInsights 系）</div></div>
+        <div class="kchip"><div class="kv r">70% 未达成</div><div class="kl">“十四五”自给率 70% 目标 · 公认未达成</div></div>
+        <div class="kchip"><div class="kv c">41% → 86%</div><div class="kl">AI 芯片自给率 2025 → 2030E · 摩根士丹利</div></div>
+      </div>
+      <div class="note" style="margin-top:14px">自给率 = 本土 IC 产值 ÷ 本土 IC 市场（详见第捌章公式）。AI 芯片自给率是独立口径，分母为本土 AI 芯片需求，两者不可互换。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 捌 · 公式与算账 ================= -->
+<section class="chapter" id="ch8">
+  <div class="sec-head reveal">
+    <div class="sec-no">捌</div>
+    <h2 class="sec-title">公式与算账<small>FORMULA &amp; SANDBOX · 把造芯的账算给你看</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">造芯的新闻每天都在刷屏，但背后的账只有三笔：<b>国家撬动社会资本的杠杆账</b>、<b>晶圆厂重资产的折旧账</b>、<b>自给率的分子分母账</b>。先立公式，再动手算。</p>
+  <div class="fgrid">
+    <div class="fcard reveal"><h5>大基金撬动效应</h5>
+      <div class="katex-box" data-tex="\text{社会资本} = \text{国家出资} \times k,\quad k \approx \frac{10000}{987.2 + 2041.5} > 3"></div>
+      <div class="fnote">前两期注册资本合计约 <b>3029 亿</b>，撬动社会资本<b>超万亿</b>，撬动倍数约 3 倍以上。三期 3440 亿的撬动效应仍在兑现途中。</div>
+    </div>
+    <div class="fcard reveal"><h5>晶圆厂重资产折旧模型</h5>
+      <div class="katex-box" data-tex="\text{年折旧} \approx \frac{\text{总投资}}{N_{\text{折旧年限}}},\quad \text{净利率} = \frac{\text{收入} - \text{折旧} - \text{其他成本}}{\text{收入}}"></div>
+      <div class="fnote">样本：<b>晶合集成 2025 年折旧约 40 亿元、占营收 36.7%，净利率不足 1%</b>——满产也只能微利，是重资产代工的典型形态。</div>
+    </div>
+    <div class="fcard reveal"><h5>自给率的定义</h5>
+      <div class="katex-box" data-tex="\text{自给率} = \frac{\text{本土 IC 产值}}{\text{本土 IC 市场规模}}"></div>
+      <div class="fnote">产值口径下：2020 年 <b>15.9%</b> → 2023 年约 <b>23%</b> → 2027E 约 <b>26%</b>（TechInsights 系）。分母是“中国市场”而非“中国需求”，外企在华产能亦计入分子。</div>
+    </div>
+    <div class="fcard reveal"><h5>建厂收入估算式（沙盘用）</h5>
+      <div class="katex-box" data-tex="\text{年收入} = \text{月产能} \times 12 \times \text{良率} \times \text{单片均价}"></div>
+      <div class="fnote">下方沙盘以此式为骨架，毛利按收入的 <b>35%</b> 简化假设，静态回收年限 = 总投资 ÷ 年毛利。<b style="color:var(--red)">为教学简化，非真实财务模型</b>。</div>
+    </div>
+  </div>
+
+  <h3 class="pillar-title reveal" style="margin-top:60px"><em>建厂算账沙盘</em> · 一座 12 英寸厂多久回本</h3>
+  <p class="lede reveal">拖动滑块，以华虹 Fab9B 为默认蓝本（总投 468 亿、达产 5.5 万片/月），推演一座 12 英寸晶圆厂的收入与回本周期。</p>
+  <div class="sandbox reveal">
+    <div class="sb-controls">
+      <h5>参数调节</h5>
+      <div class="ctl">
+        <label>总投资 <output id="oInv">468 亿元</output></label>
+        <input type="range" id="rInv" min="100" max="1500" step="2" value="468">
+      </div>
+      <div class="ctl">
+        <label>达产月产能 <output id="oCap">5.5 万片</output></label>
+        <input type="range" id="rCap" min="1" max="20" step="0.5" value="5.5">
+      </div>
+      <div class="ctl">
+        <label>平均良率 <output id="oYield">90 %</output></label>
+        <input type="range" id="rYield" min="70" max="98" step="1" value="90">
+      </div>
+      <div class="ctl">
+        <label>单片均价 <output id="oPrice">3.0 万元</output></label>
+        <input type="range" id="rPrice" min="0.5" max="10" step="0.1" value="3">
+      </div>
+      <div class="sb-warn" style="border-top:none;padding-top:0;margin-top:0">默认值参考华虹 Fab9B：总投约 468 亿元、新增 5.5 万片/月 12 英寸产能。</div>
+    </div>
+    <div class="sb-out">
+      <div class="sb-nums">
+        <div class="sb-num"><div class="v" id="vRev">178.2<span>亿元</span></div><div class="l">年收入估算（达产后）</div></div>
+        <div class="sb-num"><div class="v" id="vGP">62.4<span>亿元</span></div><div class="l">年毛利估算（按收入 35% 简化）</div></div>
+        <div class="sb-num"><div class="v" id="vPay">7.5<span>年</span></div><div class="l">静态回收年限（总投资 ÷ 年毛利）</div></div>
+      </div>
+      <div class="sb-chart" id="sbChart"></div>
+      <div class="sb-warn"><b>对照现实</b>：晶合集成 2025 年满产状态下折旧约 40 亿、占营收 36.7%、净利率不足 1%——即便沙盘算出 7–8 年回收，<b>折旧周期与价格战</b>仍可能让账面利润长期贴地。<b>免责声明</b>：本沙盘毛利按收入 35% 简化假设，不含设备残值、融资成本与产能爬坡期，结果仅为数量级示意，不构成投资建议。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 玖 · 隐忧与冷思考 ================= -->
+<section class="chapter" id="ch9">
+  <div class="sec-head reveal">
+    <div class="sec-no">玖</div>
+    <h2 class="sec-title">隐忧与冷思考<small>COLD THINKING · 热潮之下的四盆冷水</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+  <p class="lede reveal">造芯叙事越是滚烫，越需要冷数据对冲。以下四组事实，是本报告刻意保留的<b>反向证据</b>。</p>
+  <div class="risk-grid reveal">
+    <div class="cold">
+      <h5>烂尾史 · 千亿画饼的废墟</h5>
+      <p>武汉弘芯（<b>1280 亿</b>画饼，光刻机抵押、工地烂尾）、济南泉芯、南京德科码、成都格芯——2019–2021 年“造芯运动”留下一串烂尾项目。2020 年国家发改委明确要求<b>审慎投资、落实问责</b>，“谁支持、谁负责”。</p>
+    </div>
+    <div class="cold">
+      <h5>成熟制程价格战</h5>
+      <p>晶合集成满产仅微利（折旧占营收 36.7%）；2026-02 长鑫以<b>低价 DDR4</b> 冲击市场，引发存储板块波动——产能上来了，价格下来了，利润被夹在中间。</p>
+    </div>
+    <div class="cold">
+      <h5>SiC 过热</h5>
+      <p>2026 年中国 SiC 预计产能达 <b>460 万片</b>，而需求不足以消化；龙头天岳先进 2025 年营收 <b>-17%</b>、业绩预告亏损——化合物半导体的扩产竞赛已现过剩端倪。</p>
+    </div>
+    <div class="cold">
+      <h5>扩产 timing 风险</h5>
+      <p>三大原厂（三星 / SK 海力士 / 美光）<b>2026–2028 年同步扩产</b>，与中国存储双雄的产能释放窗口高度重叠——2027 年之后，存储市场可能迎来一轮全球性的供需再平衡阵痛。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 拾 · 口径与来源 ================= -->
+<section class="chapter" id="ch10">
+  <div class="sec-head reveal">
+    <div class="sec-no">拾</div>
+    <h2 class="sec-title">口径与来源<small>METHODOLOGY &amp; SOURCES · 诚实是数据的第一美德</small></h2>
+  </div>
+  <div class="sec-rule reveal"></div>
+
+  <details class="fold reveal" open>
+    <summary>口径警示 · 阅读本报告前必读</summary>
+    <div class="fold-body">
+      <ul>
+        <li><b>IC 销售额双口径</b>：2024 年中国 IC 产业销售额存在 <b>1.43 万亿</b> 与 <b>1.3 万亿</b> 两个口径（协会统计口径调整所致），本报告图表采用 1.43 万亿口径。</li>
+        <li><b>成熟制程占比更新</b>：TrendForce 对中国大陆成熟制程（≥28nm）产能全球占比的预测由早前的 39% 更新至 <b>47%</b>（2027E），引用时请注意版本时点。</li>
+        <li><b>设备国产化率为区间</b>：2025E 国产化率 <b>21–25%</b> 为区间口径，分环节差异巨大（刻蚀/薄膜沉积 &gt;30%，光刻/量检测 &lt;25%）。</li>
+        <li><b>深圳双口径</b>：深圳 IC 规模有 <b>2839.6 亿</b>（行业协会口径，+32.9%）与 <b>2564 亿</b>（另一统计口径）两个数字，均非官方统计公报。</li>
+        <li><b>光谷双口径</b>：武汉光谷 IC 产值“2025 破 1000 亿”为省发改委口径，另有 1200 亿口径流传，本报告采前者。</li>
+        <li><b>西安 1800 亿系目标</b>：西安“IC 规模 1800 亿”为<b>规划目标</b>而非实绩，正文未采用。</li>
+        <li><b>媒体口径标注</b>：长存 2026Q1 收入 200 亿、HBM3 交付华为等信息为媒体口径，未经公司公告确认；两存 2026 设备 capex 约 630 亿为日经测算。</li>
+        <li><b>贸易逆差币种不混排</b>：2024 年贸易数据为美元口径（进口 3856 亿 / 出口 1595 亿美元），2025 年为人民币口径（进口 30355 亿 / 出口 14442 亿元），两者<b>不可直接连线比较</b>。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="fold reveal">
+    <summary>完整来源列表 · 机构与时点</summary>
+    <div class="fold-body">
+      <ul>
+        <li><b>国家集成电路产业投资基金（大基金）</b>：一期 987.2 亿（2014）/ 二期 2041.5 亿（2019）/ 三期 3440 亿（2024-05-24 设立）；三期股东结构（财政部 600 亿、六大行 1140 亿、国有大行合计 33.14%）；2024-12-31 出资 1640 亿设华芯鼎新（930.93 亿）与国投集新（710.71 亿）；2025-01 三支子基金合计认缴 2240 亿；2025-09 首投拓荆键科（HBM 键合设备，≤4.5 亿）；2026-02 参与中芯南方增资约 77.8 亿美元；前两期撬动社会资本超万亿。</li>
+        <li><b>中国半导体行业协会</b>：2025 年 IC 产业销售额 17331 亿元（+20.2%），其中设计 8261.1 亿（+24.8%）/ 制造 5225.9 亿（+17.1%）/ 封测 3844 亿（+15.2%）；2024 年销售额约 1.43 万亿（另有 1.3 万亿口径）。</li>
+        <li><b>国家统计局</b>：IC 产量 2024 年 4514.2 亿块（+22.2%）/ 2025 年 4842.8 亿块（+10.9%）/ 2026Q1 1272 亿块（+24.3%）。</li>
+        <li><b>TrendForce</b>：中国大陆成熟制程（≥28nm）产能 2027E 占全球 47%（早前预测 39%）。</li>
+        <li><b>SEMI</b>：中国晶圆产能全球占比（2000 年 2% → 2010 年 9% → 2020 年 17% → 2030E 约 1/3）；至 2028 年全球新建 108 座晶圆厂中中国大陆 47 座居首。</li>
+        <li><b>长三角</b>：上海 IC 规模 2024 破 3900 亿、占全国约 25% 全国第一、设计业 1400 亿第一；中芯东方临港 88.7 亿美元；积塔临港 359 亿；临港“东方芯港”签约合同投资超 2700 亿；江苏产量全国第一（2021–24 累计 3878 亿块、占全国 30%+）；无锡 2024 产值 2512 亿；华虹无锡二期 67 亿美元；浙江 2023 销售收入 2390.4 亿（材料 849 亿全国领先）；芯联集成三期 222 亿。</li>
+        <li><b>京津冀</b>：北京全市 IC 约 2000 亿（2025）；亦庄 2024 首破千亿、增速全国第一；中芯京城 497 亿；北电集成 330 亿（28–55nm，2026 底量产）；装备规模占全国一半以上。</li>
+        <li><b>粤港澳</b>：广东 2024 产值 3600 亿；深圳 2839.6 亿（行业协会口径，+32.9%；另有 2564 亿口径）；粤芯三期 162.5 亿；润鹏 220 亿；中芯深圳 23.5 亿美元；深圳赛米基金一期 50 亿（2025-10）。</li>
+        <li><b>合肥</b>：长鑫存储总投 1500 亿（国内最大 DRAM 项目）；2026-07 科创板 IPO 募资 579.2 亿（当年 A 股最大）；DRAM 全球份额 2025Q4 销售额口径 7.67%、全球第四；晶合集成 DDIC 代工全球市占 23.3% 第一、四期总投 355 亿；合肥 IC 2024 破 500 亿、目标 2025 千亿。</li>
+        <li><b>武汉</b>：国家存储器基地总投资 240 亿美元（约 1600 亿元）；长江存储 2025-09 量产 267 层 TLC；NAND 全球份额 2025Q3 约 13%；长存三期注册资本 207.2 亿、2026 底投产；光谷 IC 产值 2025 破 1000 亿（省发改委口径）。</li>
+        <li><b>西安 / 成渝</b>：三星西安累计投资 250 亿美元级、月产能 25 万片、占三星 NAND 约 40%；奕斯伟 12 英寸硅片 2025 底产能超 85 万片/月、全球第六；成都 IC 2025 破千亿（设计业 486.5 亿、+74%、全国第七）；英特尔成都累计超 40 亿美元；重庆功率半导体产能全国前三；安意法 SiC 合资 32 亿美元。</li>
+        <li><b>公司公告 / 公开披露</b>：中芯国际（2024 capex 73.26 亿美元 / 2025 81.0 亿美元 / 2025 营收 93.27 亿美元创新高 / 月产能 105.9 万片 8 英寸当量）；华虹（Fab9B 三期总投 69.5 亿美元、约 468 亿元、2026-03 开建、新增 5.5 万片/月）；长鑫（2024 购建资产现金支出 712.3 亿 / 2025 497.4 亿）；北方华创（2025 营收 393.5 亿、+30.9%、全球设备商第 5）；中微（123.85 亿、+36.6%）；沪硅产业（2025H1 75 万片/月 → 2026 底目标 120 万片/月）；长电科技（100 亿晶圆级高端封装项目）；天岳先进（2025 营收 -17%、预亏）；三安光电（2025 首亏 3.5 亿）。</li>
+        <li><b>海关总署</b>：2024 年 IC 进口 3856 亿美元 / 出口 1595 亿美元（+16.9%，首超手机成第一大出口单品）/ 逆差 2261 亿美元；2025 年进口 30355 亿元（+10.7%）/ 出口 14442 亿元（+27.4%）。</li>
+        <li><b>TechInsights 系</b>：IC 自给率（产值口径）2020 年 15.9% → 2023 年约 23% → 2027E 约 26%。</li>
+        <li><b>摩根士丹利</b>：AI 芯片自给率 2025 约 41% → 2030E 86%。</li>
+        <li><b>美国 BIS 及公开新闻</b>：2024-12-02 第三轮管制（140 家实体 + HBM）；2024-12-03 中国镓锗锑反制；2025-04 H20 停售 / 中重稀土管制；2025-07-15 H20 恢复（15% 分成）；2025-08-29 撤销 VEU 豁免；2025-10-09 稀土全链条管制 + 0.1% 域外管辖；2025-10/11 釜山会晤互相暂停一年；2025-12-08 H200 解禁（25% 分成）；2026 应用材料 2.52 亿美元和解等执法案例。</li>
+        <li><b>二十届四中全会</b>（2025-10-23）：“十五五”规划建议提出“全链条推动集成电路攻关取得决定性突破”。</li>
+        <li><b>国家发改委</b>（2020）：要求造芯项目审慎投资、落实问责（针对武汉弘芯 1280 亿等烂尾项目）。</li>
+        <li><b>行业与媒体测算</b>：2026 中国 SiC 预计产能 460 万片 vs 需求不足；两存 2026 合计设备 capex 约 630 亿（日经）；长存 2026Q1 收入 200 亿、HBM3 交付华为（媒体口径）。</li>
+      </ul>
+      <div class="note" style="margin-top:14px">本报告所有数据均来自上述公开来源的二次整理，时点以括号内标注为准；个别数据存在口径差异，已在正文与上方警示中注明。</div>
+    </div>
+  </details>
+</section>
+</main>
+
+<footer>
+  <div class="seal">聚沙成芯</div>
+  <div class="ftitle">一粒沙的远征 · 中国造芯地图</div>
+  <div class="fline">各地芯片投资交互报告 · 2024–2026 · 二〇二六年十月 谨制</div>
+  <div class="fline" style="margin-top:14px;letter-spacing:.1em">本报告仅供研究参考，不构成投资建议 · 数据口径以文末【口径与来源】为准</div>
+</footer>
+
+<script>
+/* ============================================================
+   公共：ECharts 深色主题基底
+============================================================ */
+var PALETTE = ['#f0b429','#22d3ee','#ef4444','#34d399','#a78bfa','#f472b6'];
+var FONT = "'Noto Sans SC', sans-serif";
+var SERIF = "'Noto Serif SC', serif";
+function baseOpt(){
+  return {
+    color: PALETTE,
+    textStyle:{fontFamily:FONT, color:'#8b98a9'},
+    tooltip:{
+      backgroundColor:'rgba(13,17,23,.94)', borderColor:'rgba(240,180,41,.4)', borderWidth:1,
+      textStyle:{color:'#e6edf3', fontFamily:FONT, fontSize:13},
+      extraCssText:'box-shadow:0 6px 24px rgba(0,0,0,.5);border-radius:4px;padding:10px 14px;'
+    },
+    grid:{left:56,right:30,top:44,bottom:36,containLabel:true}
+  };
+}
+function axStyle(){
+  return {
+    axisLine:{lineStyle:{color:'rgba(150,140,110,.3)'}},
+    axisLabel:{color:'#8b98a9',fontSize:12},
+    splitLine:{lineStyle:{color:'rgba(150,140,110,.1)'}},
+    axisTick:{show:false}
+  };
+}
+var CHARTS = [];
+function mk(id, option){
+  var el = document.getElementById(id);
+  if(!el || typeof echarts === 'undefined') return null;
+  var c = echarts.init(el, null, {renderer:'canvas'});
+  c.setOption(option);
+  CHARTS.push(c);
+  return c;
+}
+window.addEventListener('resize', function(){ CHARTS.forEach(function(c){ c.resize(); }); });
+
+/* ============================================================
+   Hero：晶圆 + 电路走线粒子 canvas
+============================================================ */
+(function(){
+  var cv = document.getElementById('heroCanvas');
+  if(!cv) return;
+  var ctx = cv.getContext('2d'), W, H, pts = [], N = 64, dpr = window.devicePixelRatio||1;
+  function resize(){
+    dpr = window.devicePixelRatio||1;
+    W = cv.width = cv.offsetWidth * dpr;
+    H = cv.height = cv.offsetHeight * dpr;
+  }
+  resize(); window.addEventListener('resize', resize);
+  for(var i=0;i<N;i++){
+    pts.push({x:Math.random(), y:Math.random(),
+      vx:(Math.random()-.5)*.00055, vy:(Math.random()-.5)*.00055,
+      r:Math.random()*1.8+.7, gold:Math.random()<.4});
+  }
+  /* 晶圆圆环：呼吸脉动的同心圆 + 缺口(notch) + 网格划线 */
+  var t0 = null;
+  function drawWafer(ts){
+    if(!t0) t0 = ts;
+    var t = (ts - t0) / 1000;
+    var cx = W * 0.5, cy = H * 0.42;
+    var R = Math.min(W, H) * 0.30 * (1 + 0.015*Math.sin(t*0.8));
+    ctx.save();
+    /* 外环 */
+    ctx.strokeStyle = 'rgba(240,180,41,'+(0.16+0.05*Math.sin(t*0.8)).toFixed(3)+')';
+    ctx.lineWidth = 1.4*dpr;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+    /* 内环 */
+    ctx.strokeStyle = 'rgba(34,211,238,.10)';
+    ctx.lineWidth = 1*dpr;
+    ctx.beginPath(); ctx.arc(cx, cy, R*0.78, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, R*0.5, 0, Math.PI*2); ctx.stroke();
+    /* notch（晶圆缺口） */
+    ctx.fillStyle = 'rgba(10,14,20,.9)';
+    ctx.strokeStyle = 'rgba(240,180,41,.25)';
+    ctx.beginPath(); ctx.arc(cx, cy+R, R*0.045, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    /* die 网格（极淡的晶粒划线，仅限圆内） */
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.clip();
+    ctx.strokeStyle = 'rgba(240,180,41,.05)';
+    ctx.lineWidth = 1*dpr;
+    var step = R/7;
+    for(var gx = cx-R; gx <= cx+R; gx += step){
+      ctx.beginPath(); ctx.moveTo(gx, cy-R); ctx.lineTo(gx, cy+R); ctx.stroke();
+    }
+    for(var gy = cy-R; gy <= cy+R; gy += step){
+      ctx.beginPath(); ctx.moveTo(cx-R, gy); ctx.lineTo(cx+R, gy); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function frame(ts){
+    ctx.clearRect(0,0,W,H);
+    drawWafer(ts||0);
+    var i,j,a,b,dx,dy,d;
+    for(i=0;i<N;i++){
+      a=pts[i]; a.x+=a.vx; a.y+=a.vy;
+      if(a.x<0||a.x>1)a.vx*=-1; if(a.y<0||a.y>1)a.vy*=-1;
+    }
+    /* 直角电路走线（Manhattan routing） */
+    for(i=0;i<N;i++){
+      for(j=i+1;j<N;j++){
+        a=pts[i]; b=pts[j];
+        dx=(a.x-b.x)*W; dy=(a.y-b.y)*H; d=Math.sqrt(dx*dx+dy*dy);
+        if(d<140*dpr){
+          ctx.strokeStyle = 'rgba(240,180,41,'+(0.13*(1-d/(140*dpr))).toFixed(3)+')';
+          ctx.lineWidth=1*dpr;
+          ctx.beginPath();
+          ctx.moveTo(a.x*W,a.y*H);
+          ctx.lineTo(a.x*W,b.y*H);
+          ctx.lineTo(b.x*W,b.y*H);
+          ctx.stroke();
+          /* 走线拐角焊盘 */
+          ctx.fillStyle = 'rgba(34,211,238,'+(0.3*(1-d/(140*dpr))).toFixed(3)+')';
+          ctx.fillRect(a.x*W-1.5*dpr, b.y*H-1.5*dpr, 3*dpr, 3*dpr);
+        }
+      }
+    }
+    for(i=0;i<N;i++){
+      a=pts[i];
+      ctx.fillStyle = a.gold ? 'rgba(240,180,41,.85)' : 'rgba(34,211,238,.75)';
+      ctx.beginPath(); ctx.arc(a.x*W,a.y*H,a.r*dpr,0,Math.PI*2); ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  frame(0);
+})();
+
+/* ============================================================
+   滚动淡入 + 数字 count-up（带 1.2 秒保险机制）
+============================================================ */
+(function(){
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  var cio = new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting) return;
+      cio.unobserve(e.target);
+      var el = e.target, target = parseFloat(el.dataset.target), dec = parseInt(el.dataset.dec||'0',10);
+      var t0 = null, dur = 1800;
+      function step(ts){
+        if(!t0) t0 = ts;
+        var p = Math.min((ts-t0)/dur, 1);
+        var ease = 1 - Math.pow(1-p, 3);
+        el.textContent = (target*ease).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }, {threshold:.4});
+  document.querySelectorAll('.count').forEach(function(el){ cio.observe(el); });
+
+  /* 保险机制：若 IntersectionObserver 回调因任何原因未触发（无头渲染、
+     低端设备、极端刷新场景），1.2 秒后无条件显现全部内容并落定计数终值，
+     确保首屏主体内容不依赖滚动或动画时序。 */
+  setTimeout(function(){
+    document.querySelectorAll('.reveal:not(.in)').forEach(function(el){ el.classList.add('in'); });
+    document.querySelectorAll('.count').forEach(function(el){
+      var t = parseFloat(el.dataset.target), dec = parseInt(el.dataset.dec||'0',10);
+      if(!isNaN(t)) el.textContent = t.toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    });
+  }, 1200);
+})();
+</script>
+
+<script>
+/* ============================================================
+   壹 · 国家意志：大基金三级火箭 / 桑基 / 出手时间线
+============================================================ */
+mk('chFund', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];var y=['2014-09 设立','2019-10 设立','2024-05-24 设立'][d.dataIndex];
+      return d.name+'<br/>注册资本：<b style="color:#f0b429">'+d.value.toLocaleString()+' 亿元</b><br/><span style="color:#8b98a9;font-size:11px">'+y+(d.dataIndex===2?' · 超前两期总和':'')+'</span>';}};
+  o.xAxis=[Object.assign({type:'category',data:['一期','二期','三期']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿元',nameTextStyle:{color:'#8b98a9'}},axStyle())];
+  o.series=[{type:'bar',barWidth:'46%',data:[
+      {value:987.2,itemStyle:{color:'#0e7490'}},
+      {value:2041.5,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+      {value:3440,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString()+' 亿';}},
+    markLine:{data:[{yAxis:3028.7,label:{formatter:'前两期总和 3,028.7 亿',color:'#ef4444',fontFamily:FONT,fontSize:11}}],lineStyle:{color:'#ef4444',type:'dashed'},symbol:'none'}}];
+  return o;
+})());
+
+mk('chFundFlow', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'item',triggerOn:'mousemove',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){ if(p.dataType==='edge'){return p.data.source+' → '+p.data.target+'：<b style="color:#f0b429">'+p.data.value.toLocaleString()+' 亿元</b>';} return '<b style="color:#f0b429">'+p.name+'</b>'; }};
+  o.series=[{type:'sankey',left:10,right:150,top:14,bottom:14,nodeWidth:14,nodeGap:12,
+    lineStyle:{color:'gradient',curveness:.5,opacity:.35},
+    itemStyle:{borderWidth:0},
+    label:{color:'#e6edf3',fontFamily:FONT,fontSize:11.5},
+    emphasis:{focus:'adjacency'},
+    data:[
+      {name:'大基金三期 3,440 亿',itemStyle:{color:'#f0b429'}},
+      {name:'华芯鼎新 930.93 亿',itemStyle:{color:'#22d3ee'}},
+      {name:'国投集新 710.71 亿',itemStyle:{color:'#22d3ee'}},
+      {name:'第三支子基金 ≈598.4 亿',itemStyle:{color:'#0e7490'}},
+      {name:'其余待投 ≈1,200 亿',itemStyle:{color:'#5b6a7d'}},
+      {name:'拓荆键科 ≤4.5 亿',itemStyle:{color:'#ef4444'}}
+    ],
+    links:[
+      {source:'大基金三期 3,440 亿',target:'华芯鼎新 930.93 亿',value:930.93},
+      {source:'大基金三期 3,440 亿',target:'国投集新 710.71 亿',value:710.71},
+      {source:'大基金三期 3,440 亿',target:'第三支子基金 ≈598.4 亿',value:598.36},
+      {source:'大基金三期 3,440 亿',target:'其余待投 ≈1,200 亿',value:1200},
+      {source:'华芯鼎新 930.93 亿',target:'拓荆键科 ≤4.5 亿',value:4.5}
+    ],
+    levels:[{depth:0,label:{fontSize:12.5,fontWeight:700}},{depth:1},{depth:2}]
+  }];
+  return o;
+})());
+
+mk('chFundTL', (function(){
+  var evs=[
+    {d:'2024-05-24',t:'三期设立',x:'注册资本 3,440 亿元，超前两期总和'},
+    {d:'2024-12-31',t:'出资 1,640 亿设子基金',x:'华芯鼎新 930.93 亿 + 国投集新 710.71 亿'},
+    {d:'2025-01',t:'三支子基金认缴 2,240 亿',x:'三期资金落地为市场化子基金群'},
+    {d:'2025-09',t:'首投拓荆键科',x:'HBM 键合设备 · 金额 ≤4.5 亿 · 卡位先进封装设备'},
+    {d:'2026-02',t:'参与中芯南方增资',x:'约 77.8 亿美元（美元口径，未计入上图）'}
+  ];
+  var o = baseOpt();
+  o.tooltip={trigger:'item',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){ var e=evs[p.dataIndex]; return '<b style="color:#f0b429">'+e.d+' · '+e.t+'</b><br/><span style="color:#8b98a9;font-size:12px">'+e.x+'</span>'; }};
+  o.grid={left:30,right:30,top:66,bottom:66,containLabel:true};
+  o.xAxis=[Object.assign({type:'category',data:evs.map(function(e){return e.d;}),axisLabel:{color:'#f0b429',fontSize:12,fontFamily:FONT}},axStyle())];
+  o.yAxis=[{type:'value',show:false,min:-1,max:1}];
+  o.series=[{type:'scatter',symbol:'diamond',symbolSize:18,
+    data:evs.map(function(e,i){return {value:[i,0],itemStyle:{color:i<3?'#f0b429':(i===3?'#ef4444':'#22d3ee')},label:{show:true,position:i%2===0?'top':'bottom',color:'#c9d4e0',fontSize:11.5,fontFamily:FONT,width:118,overflow:'break',lineHeight:16,formatter:e.t}};}),
+    markLine:{data:[[{coord:[0,0]},{coord:[4,0]}]],lineStyle:{color:'rgba(240,180,41,.5)'},symbol:'none',label:{show:false}},
+    itemStyle:{shadowBlur:12,shadowColor:'rgba(240,180,41,.5)'}}];
+  return o;
+})());
+</script>
+<script>
+/* ============================================================
+   贰 · 造芯地图：六大集群（geo 地图 + 降级卡片网格）
+============================================================ */
+var CLUSTERS = [
+  {key:'cs', name:'长三角', prov:['上海','江苏','浙江'], tag:'全能领跑 · 设计/制造/封测全链', color:'#f0b429',
+   facts:['<b>上海</b> IC 规模 2024 破 <b>3900 亿</b>、占全国约 25%，全国第一；设计业 1400 亿第一','中芯东方临港 <b>88.7 亿美元</b>；积塔临港 <b>359 亿</b>','临港“东方芯港”签约合同投资超 <b>2700 亿</b>','<b>江苏</b>产量全国第一：2021–24 累计 <b>3878 亿块</b>、占全国 30%+','无锡 2024 产值 <b>2512 亿</b>；华虹无锡二期 <b>67 亿美元</b>','<b>浙江</b> 2023 销售收入 <b>2390.4 亿</b>（材料 849 亿全国领先）；芯联集成三期 <b>222 亿</b>'],
+   foot:'定位：全国 IC 第一极，全链条无短板。'},
+  {key:'jjj', name:'京津冀', prov:['北京','天津','河北'], tag:'装备称雄 · 制造重镇', color:'#22d3ee',
+   facts:['北京全市 IC 约 <b>2000 亿</b>（2025）','亦庄 2024 <b>首破千亿</b>、增速全国第一','中芯京城 <b>497 亿</b>；北电集成 <b>330 亿</b>（28–55nm，2026 底量产）','半导体装备规模占<b>全国一半以上</b>（北方华创、中微北京基地）'],
+   foot:'定位：设备 + 制造双核，国产装备的“首都高地”。'},
+  {key:'yga', name:'粤港澳', prov:['广东'], tag:'设计驱动 · 应用牵引', color:'#ef4444',
+   facts:['广东 2024 产值 <b>3600 亿</b>','深圳 <b>2839.6 亿</b>（行业协会口径，+32.9%；另有 2564 亿口径）','粤芯三期 <b>162.5 亿</b>；润鹏 <b>220 亿</b>；中芯深圳 <b>23.5 亿美元</b>','深圳赛米基金一期 <b>50 亿</b>（2025-10）'],
+   foot:'定位：海思/汇顶等设计沃土，制造补课中。'},
+  {key:'hf', name:'合肥', prov:['安徽'], tag:'DRAM + 显示驱动代工', color:'#34d399',
+   facts:['长鑫存储总投 <b>1500 亿</b>（国内最大 DRAM 项目）','长鑫 2026-07 科创板 IPO 募资 <b>579.2 亿</b>（当年 A 股最大）','DRAM 全球份额 2025Q4 销售额口径 <b>7.67%</b>、全球第四','晶合集成 DDIC 代工全球市占 <b>23.3%</b> 第一；四期总投 <b>355 亿</b>','合肥 IC 2024 破 <b>500 亿</b>、目标 2025 千亿'],
+   foot:'定位：“最牛风投城市”的存储豪赌。'},
+  {key:'wh', name:'武汉', prov:['湖北'], tag:'NAND 存储 · 国家基地', color:'#a78bfa',
+   facts:['国家存储器基地总投资 <b>240 亿美元</b>（约 1600 亿元）','长江存储 2025-09 量产 <b>267 层</b> TLC','NAND 全球份额 2025Q3 约 <b>13%</b>','长存三期注册资本 <b>207.2 亿</b>、2026 底投产','光谷 IC 产值 2025 破 <b>1000 亿</b>（省发改委口径）'],
+   foot:'定位：一基地一龙头，NAND 自主化主战场。'},
+  {key:'xa', name:'西安 / 成渝', prov:['陕西','四川','重庆'], tag:'外资 NAND + 硅片 + 功率', color:'#f472b6',
+   facts:['三星西安累计投资 <b>250 亿美元级</b>、月产能 25 万片、占三星 NAND 约 <b>40%</b>','奕斯伟 12 英寸硅片 2025 底产能超 <b>85 万片/月</b>、全球第六','成都 IC 2025 破千亿（设计业 <b>486.5 亿</b>、+74%、全国第七）；英特尔成都累计超 <b>40 亿美元</b>','重庆功率半导体产能全国前三；安意法 SiC 合资 <b>32 亿美元</b>'],
+   foot:'定位：外资存量 + 国产硅片 + 功率半导体三线并进。'}
+];
+(function(){
+  var detail = document.getElementById('clusterDetail');
+  var btnBox = document.getElementById('mapBtns');
+  if(!detail) return;
+  function showCluster(i){
+    var c = CLUSTERS[i];
+    detail.innerHTML = '<div class="cd-tag">定位 · '+c.tag+'</div><h5>'+c.name+'</h5><div class="cd-sub">覆盖：'+c.prov.join(' · ')+'</div>'+
+      '<ul>'+c.facts.map(function(f){return '<li>'+f+'</li>';}).join('')+'</ul>'+
+      '<div class="cd-foot">'+c.foot+'</div>';
+    if(btnBox) btnBox.querySelectorAll('.map-btn').forEach(function(b,j){ b.classList.toggle('active', j===i); });
+  }
+  /* 按钮组（地图与降级模式共用） */
+  if(btnBox){
+    CLUSTERS.forEach(function(c,i){
+      var b = document.createElement('button');
+      b.className = 'map-btn'; b.textContent = c.name;
+      b.style.borderColor = 'rgba(150,140,110,.25)';
+      b.addEventListener('click', function(){ showCluster(i); });
+      btnBox.appendChild(b);
+    });
+  }
+  /* 降级卡片网格 */
+  function buildFallback(){
+    var box = document.getElementById('mapBox');
+    var grid = document.getElementById('mapFbGrid');
+    if(!box || !grid) return;
+    box.classList.add('fb');
+    CLUSTERS.forEach(function(c,i){
+      var d = document.createElement('div');
+      d.className = 'map-fb-card';
+      d.innerHTML = '<div class="n" style="color:'+c.color+'">'+c.name+'</div><div class="t">'+c.tag+'</div>';
+      d.addEventListener('click', function(){ showCluster(i); });
+      grid.appendChild(d);
+    });
+  }
+  /* 地图渲染 */
+  function shortName(n){ return (n||'').replace(/壮族自治区|回族自治区|维吾尔自治区|自治区|特别行政区|省|市/g,''); }
+  function renderMap(geo){
+    var provColor = {};
+    CLUSTERS.forEach(function(c){ c.prov.forEach(function(p){ provColor[p]=c.color; }); });
+    var data = geo.features.map(function(f){
+      var sn = shortName(f.properties && f.properties.name);
+      var col = provColor[sn];
+      return { name:f.properties.name, value: col ? 1 : 0,
+        itemStyle: col ? {areaColor:col, opacity:.42, borderColor:col, borderWidth:1}
+                       : {areaColor:'#131b26', borderColor:'rgba(150,140,110,.25)', borderWidth:.6} };
+    });
+    var el = document.getElementById('chMap');
+    if(!el || typeof echarts==='undefined'){ buildFallback(); return; }
+    var c = echarts.init(el, null, {renderer:'canvas'});
+    CHARTS.push(c);
+    c.setOption({
+      tooltip:{backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+        formatter:function(p){
+          var sn = shortName(p.name);
+          for(var i=0;i<CLUSTERS.length;i++){ if(CLUSTERS[i].prov.indexOf(sn)>-1){
+            return '<b style="color:'+CLUSTERS[i].color+'">'+CLUSTERS[i].name+'</b> · '+p.name+'<br/><span style="color:#8b98a9;font-size:12px">'+CLUSTERS[i].tag+' · 点击查看详情</span>';
+          }}
+          return p.name+'<br/><span style="color:#5b6a7d;font-size:12px">非六大集群统计范围</span>';
+        }},
+      series:[{type:'map', map:'china', roam:false, zoom:1.22, top:'6%', bottom:'4%',
+        selectedMode:false,
+        label:{show:false},
+        emphasis:{label:{show:true,color:'#fff',fontSize:13,fontFamily:FONT,fontWeight:700},
+          itemStyle:{areaColor:'#f0b429',opacity:.85,shadowBlur:18,shadowColor:'rgba(240,180,41,.5)'}},
+        data:data}]
+    });
+    c.on('click', function(p){
+      var sn = shortName(p.name);
+      for(var i=0;i<CLUSTERS.length;i++){ if(CLUSTERS[i].prov.indexOf(sn)>-1){ showCluster(i); return; } }
+    });
+  }
+  /* fetch 地图数据，失败降级为卡片网格 */
+  fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(geo){
+      if(!geo || !geo.features || !geo.features.length) throw new Error('bad geojson');
+      echarts.registerMap('china', geo);
+      renderMap(geo);
+    })
+    .catch(function(){ buildFallback(); });
+  showCluster(0); /* 默认展示长三角 */
+})();
+</script>
+
+<script>
+/* ============================================================
+   叁 · 产能与产出
+============================================================ */
+mk('chOutput', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['产量（亿块）','同比增速（%）'],textStyle:{color:'#8b98a9',fontFamily:FONT},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2024','2025','2026 Q1']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿块'},axStyle()),Object.assign({type:'value',name:'%',splitLine:{show:false}},axStyle())];
+  o.series=[
+    {name:'产量（亿块）',type:'bar',barWidth:'40%',data:[4514.2,4842.8,{value:1272,itemStyle:{color:'#0e7490'}}],
+      itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}},
+      label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString();}}},
+    {name:'同比增速（%）',type:'line',yAxisIndex:1,data:[22.2,10.9,24.3],lineStyle:{color:'#22d3ee',width:2.5},itemStyle:{color:'#22d3ee'},symbolSize:9,
+      label:{show:true,position:'bottom',color:'#22d3ee',fontFamily:FONT,formatter:'+{c}%'}}
+  ];
+  o.graphic=[{type:'text',right:20,top:30,style:{text:'2026Q1 为单季口径',fill:'#8b98a9',fontSize:11,fontFamily:FONT}}];
+  return o;
+})());
+
+mk('chSales', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];var grow=['','+24.8%','+17.1%','+15.2%'][d.dataIndex];
+      return d.name+'<br/>销售额：<b style="color:#f0b429">'+d.value.toLocaleString()+' 亿元</b>'+(grow?'<br/>同比：<b style="color:#22d3ee">'+grow+'</b>':'')+'<br/><span style="color:#8b98a9;font-size:11px">中国半导体行业协会</span>';}};
+  o.grid={left:56,right:30,top:44,bottom:52,containLabel:true};
+  o.xAxis=[Object.assign(axStyle(),{type:'category',data:['2025 合计','其中：设计','其中：制造','其中：封测'],axisLabel:{color:'#c9d4e0',fontSize:12,interval:0}})];
+  o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle())];
+  o.series=[{type:'bar',barWidth:'48%',data:[
+      {value:17331,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}},
+      {value:8261.1,itemStyle:{color:'#22d3ee'}},
+      {value:5225.9,itemStyle:{color:'#34d399'}},
+      {value:3844,itemStyle:{color:'#a78bfa'}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString();}}}];
+  o.graphic=[{type:'text',left:56,bottom:4,style:{text:'对照：2024 年合计约 1.43 万亿元（另有 1.3 万亿口径）· 2025 合计同比 +20.2%',fill:'#8b98a9',fontSize:11,fontFamily:FONT}}];
+  return o;
+})());
+
+mk('chCapEvo', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){return p[0].name+'<br/>晶圆产能全球占比：<b style="color:#22d3ee">'+p[0].value+'%</b>'+(p[0].dataIndex===3?'<br/><span style="color:#f0b429;font-size:11px">SEMI 预测 · “约三分之一”</span>':'');}};
+  o.xAxis=[Object.assign({type:'category',data:['2000','2010','2020','2030E'],boundaryGap:false},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'%',max:40},axStyle())];
+  o.series=[{type:'line',data:[2,9,17,33],lineStyle:{color:'#22d3ee',width:3},itemStyle:{color:'#22d3ee'},symbolSize:11,smooth:true,
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(34,211,238,.3)'},{offset:1,color:'rgba(34,211,238,0)'}]}},
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.dataIndex===3?'≈1/3':p.value+'%';}},
+    markPoint:{data:[{coord:[3,33],value:'SEMI',symbol:'pin',symbolSize:44,itemStyle:{color:'#f0b429'},label:{color:'#0a0e14',fontSize:10,fontFamily:FONT}}]}}];
+  return o;
+})());
+
+mk('chFabs', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'item',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={bottom:0,textStyle:{color:'#8b98a9',fontFamily:FONT}};
+  o.series=[{type:'pie',radius:['42%','68%'],center:['50%','44%'],
+    label:{color:'#e6edf3',fontFamily:FONT,formatter:'{b}\n{c} 座（{d}%）',fontSize:12.5},
+    itemStyle:{borderColor:'#0a0e14',borderWidth:3},
+    data:[
+      {name:'中国大陆',value:47,itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}},
+      {name:'全球其他合计',value:61,itemStyle:{color:'#22384a'}}
+    ]}];
+  o.graphic=[{type:'text',left:'center',top:'40%',style:{text:'47/108\n居首',textAlign:'center',fill:'#f0b429',fontSize:20,fontWeight:700,fontFamily:FONT,lineHeight:28}}];
+  return o;
+})());
+
+/* ============================================================
+   肆 · 龙头资本开支（美元口径）
+============================================================ */
+mk('chCapexUSD', (function(){
+  var o = baseOpt();
+  var names=['华虹 Fab9B 三期（总投资）','中芯国际 2024 capex','中芯国际 2025 capex'];
+  var vals=[69.5,73.26,81.0];
+  var tips=['约 468 亿元人民币 · 2026-03 开建 · 新增 5.5 万片/月','连续两年站上 70 亿美元台阶','营收 93.27 亿美元创新高 · 月产能 105.9 万片（8 英寸当量）'];
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];return d.name+'<br/><b style="color:#f0b429">'+d.value+' 亿美元</b><br/><span style="color:#8b98a9;font-size:11px">'+tips[d.dataIndex]+'</span>';}};
+  o.grid={left:10,right:70,top:16,bottom:16,containLabel:true};
+  o.xAxis=[Object.assign({type:'value',name:'亿美元',nameTextStyle:{color:'#8b98a9'}},axStyle())];
+  o.yAxis=[Object.assign(axStyle(),{type:'category',data:names,axisLabel:{color:'#c9d4e0',fontSize:12.5}})];
+  o.series=[{type:'bar',barWidth:'52%',data:vals.map(function(v,i){
+      var c=['#22d3ee','#b8860b','#f0b429'][i];
+      return {value:v,itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:'#131b26'},{offset:1,color:c}]}}};
+    }),
+    label:{show:true,position:'right',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value+' 亿美元';}}}];
+  return o;
+})());
+
+/* ============================================================
+   伍 · 管制时间线
+============================================================ */
+var TL = [
+  {d:'2024-05', c:'大基金三期设立', t:'大基金三期注册成立', tag:'产业', cls:'cn', x:'注册资本 3440 亿元，超前两期总和；财政部出资 600 亿领衔，六大国有银行合计 1140 亿、持股 33.14%。'},
+  {d:'2024-12-02', c:'美 BIS 第三轮管制', t:'美 BIS 第三轮出口管制', tag:'美方', cls:'us', x:'140 家中国实体列入清单，首次将 HBM（高带宽存储）纳入管制，先进制程设备与 EDA 同步加码。'},
+  {d:'2024-12-03', c:'中国镓锗锑反制', t:'中国对镓、锗、锑实施出口管制反制', tag:'中方', cls:'cn', x:'管制宣布次日即落地反制，关键两用物项对美出口收紧——材料牌首次正面打出。'},
+  {d:'2025-04', c:'H20 停售 / 中重稀土管制', t:'H20 对华停售 · 中方管制中重稀土', tag:'交锋', cls:'us', x:'美方叫停英伟达 H20 对华销售；中方对中重稀土相关物项实施出口管制，博弈升级至“材料换芯片”。'},
+  {d:'2025-07-15', c:'H20 恢复（15% 分成）', t:'H20 恢复对华销售', tag:'美方', cls:'us', x:'英伟达 H20 获准恢复对华销售，条件为向美方缴纳在华收入的 15% 分成——“许可费”模式首现。'},
+  {d:'2025-08-29', c:'撤销 VEU 豁免', t:'美撤销三星/SK 海力士/台积电在华 VEU 豁免', tag:'美方', cls:'us', x:'“经验证最终用户”豁免被撤销，外资在华晶圆厂采购美系设备需逐单申请许可，西安、无锡等外资产能直接承压。'},
+  {d:'2025-09', c:'长存三期', t:'长江存储三期注册资本 207.2 亿', tag:'产业', cls:'cn', x:'管制高压下扩产不停：长存三期落定、2026 底投产；同期长存量产 267 层 TLC，NAND 全球份额约 13%（2025Q3）。'},
+  {d:'2025-10-09', c:'稀土全链条管制', t:'稀土全链条管制 + 0.1% 域外管辖', tag:'中方', cls:'cn', x:'中方将稀土技术、设备、物项纳入全链条管制，并首次引入“0.1% 域外管辖”规则——含微量中国稀土成分的境外产品亦受管辖，被称“中国版 FDPR”。'},
+  {d:'2025-10-23', c:'“十五五”定调', t:'“全链条推动集成电路攻关取得决定性突破”', tag:'产业', cls:'cn', x:'二十届四中全会通过“十五五”规划建议，集成电路攻关以“全链条”“决定性突破”表述写入，规格空前。'},
+  {d:'2025-10/11', c:'釜山会晤 · 休战一年', t:'中美元首釜山会晤：互相暂停一年', tag:'交锋', cls:'us', x:'双方互相暂停新一轮管制与反制措施一年，稀土与芯片各退一步，进入脆弱的休战期。'},
+  {d:'2025-12-08', c:'H200 解禁（25% 分成）', t:'H200 获准对华销售', tag:'美方', cls:'us', x:'休战成果落地：英伟达 H200 对华解禁，分成比例升至 25%——美方以“放水”换收入，中方以时间换空间。'},
+  {d:'2026', c:'休战但执法加码', t:'休战期：执法与合规成本抬升', tag:'交锋', cls:'us', x:'应用材料以 2.52 亿美元就违规对华出口达成和解等案例频现——关税与清单暂停了，执法的牙齿却更锋利。'}
+];
+(function(){
+  var track = document.getElementById('tlTrack'), detail = document.getElementById('tlDetail'), scroll = document.getElementById('tlScroll');
+  if(!track) return;
+  TL.forEach(function(ev){
+    var n = document.createElement('div');
+    n.className = 'tl-node ' + ev.cls;
+    n.innerHTML = '<div class="tl-dot"></div><div class="tl-date">'+ev.d+'</div><div class="tl-cap">'+ev.c+'</div>';
+    n.addEventListener('click', function(){
+      track.querySelectorAll('.tl-node').forEach(function(x){ x.classList.remove('active'); });
+      n.classList.add('active');
+      detail.innerHTML = '<span class="tag '+(ev.cls==='us'?'us':ev.cls==='cn'?'cn':'')+'">'+ev.tag+'</span><span class="tag">'+ev.d+'</span><h5 style="margin-top:10px">'+ev.t+'</h5><p>'+ev.x+'</p>';
+    });
+    track.appendChild(n);
+  });
+  track.children[3].click(); /* 默认选中 H20 停售节点 */
+  /* 拖拽滚动 */
+  var down=false, sx=0, sl=0, moved=false;
+  scroll.addEventListener('pointerdown', function(e){ down=true; moved=false; sx=e.clientX; sl=scroll.scrollLeft; scroll.classList.add('grabbing'); });
+  window.addEventListener('pointermove', function(e){ if(!down) return; var dx=e.clientX-sx; if(Math.abs(dx)>4) moved=true; scroll.scrollLeft=sl-dx; });
+  window.addEventListener('pointerup', function(){ down=false; scroll.classList.remove('grabbing'); });
+  scroll.addEventListener('click', function(e){ if(moved){ e.stopPropagation(); e.preventDefault(); } }, true);
+})();
+
+/* ============================================================
+   陆 · 设备材料国产化
+============================================================ */
+mk('chEquip', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];var g=['+30.9%','+36.6%'][d.dataIndex];var extra=d.dataIndex===0?'<br/><span style="color:#f0b429;font-size:11px">全球设备商第 5</span>':'';
+      return d.name+'<br/>2025 营收：<b style="color:#f0b429">'+d.value+' 亿元</b>（'+g+'）'+extra;}};
+  o.xAxis=[Object.assign({type:'category',data:['北方华创','中微公司']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle())];
+  o.series=[{type:'bar',barWidth:'42%',data:[
+      {value:393.5,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}},
+      {value:123.85,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value+' 亿';}}}];
+  return o;
+})());
+
+mk('chLocalize', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];
+      if(d.dataIndex===2) return d.name+'<br/>国产化率：<b style="color:#22d3ee">21–25%</b><br/><span style="color:#8b98a9;font-size:11px">区间口径 · 刻蚀/薄膜沉积 &gt;30%，光刻/量检测 &lt;25%</span>';
+      return d.name+'<br/>国产化率：<b style="color:#22d3ee">'+d.value+'%</b>';}};
+  o.xAxis=[Object.assign({type:'category',data:['2017','2024','2025E'],boundaryGap:false},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'%',max:32},axStyle())];
+  o.series=[{type:'line',data:[13,20,23],lineStyle:{color:'#22d3ee',width:3},itemStyle:{color:'#22d3ee'},symbolSize:11,
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(34,211,238,.3)'},{offset:1,color:'rgba(34,211,238,0)'}]}},
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.dataIndex===2?'21–25%':p.value+'%';}},
+    markArea:{data:[[{coord:[2,21],itemStyle:{color:'rgba(240,180,41,.08)'}},{coord:[2,25]}]],label:{show:true,position:'insideTop',color:'#f0b429',fontSize:10,fontFamily:FONT,formatter:''}}}];
+  return o;
+})());
+
+/* ============================================================
+   柒 · 贸易账本（美元/人民币分列）
+============================================================ */
+mk('chTrade24', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];var extra=d.dataIndex===1?'<br/><span style="color:#f0b429;font-size:11px">+16.9% · 首超手机成第一大出口单品</span>':'';
+      return '2024 · '+d.name+'<br/><b style="color:#f0b429">'+d.value.toLocaleString()+' 亿美元</b>'+extra;}};
+  o.xAxis=[Object.assign({type:'category',data:['进口','出口','逆差']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿美元'},axStyle())];
+  o.series=[{type:'bar',barWidth:'46%',data:[
+      {value:3856,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+      {value:1595,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}},
+      {value:2261,itemStyle:{color:'rgba(239,68,68,.75)'}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString();}}}];
+  return o;
+})());
+
+mk('chTrade25', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT},
+    formatter:function(p){var d=p[0];var g=['+10.7%','+27.4%'][d.dataIndex];
+      return '2025 · '+d.name+'<br/><b style="color:#22d3ee">'+d.value.toLocaleString()+' 亿元</b>（'+g+'）';}};
+  o.xAxis=[Object.assign({type:'category',data:['进口','出口']},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle())];
+  o.series=[{type:'bar',barWidth:'42%',data:[
+      {value:30355,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+      {value:14442,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+    ],
+    label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toLocaleString();}}}];
+  o.graphic=[{type:'text',left:56,bottom:4,style:{text:'⚠ 人民币口径，与左图美元口径不可直接连线比较',fill:'#ef4444',fontSize:11,fontFamily:FONT}}];
+  return o;
+})());
+
+mk('chSelf', (function(){
+  var o = baseOpt();
+  o.tooltip={trigger:'axis',backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+  o.legend={data:['IC 自给率 · 产值口径（TechInsights 系）','AI 芯片自给率（摩根士丹利）'],textStyle:{color:'#8b98a9',fontFamily:FONT,fontSize:11},top:0};
+  o.xAxis=[Object.assign({type:'category',data:['2020','2023','2025','2027E','2030E'],boundaryGap:false},axStyle())];
+  o.yAxis=[Object.assign({type:'value',name:'%',max:95},axStyle())];
+  o.series=[
+    {name:'IC 自给率 · 产值口径（TechInsights 系）',type:'line',data:[15.9,23,null,26,null],lineStyle:{color:'#f0b429',width:3},itemStyle:{color:'#f0b429'},symbolSize:10,connectNulls:true,
+      label:{show:true,position:'top',color:'#f0b429',fontFamily:FONT,formatter:function(p){return p.value?p.value+'%':'';}}},
+    {name:'AI 芯片自给率（摩根士丹利）',type:'line',data:[null,null,41,null,86],lineStyle:{color:'#22d3ee',width:2.5,type:'dashed'},itemStyle:{color:'#22d3ee'},symbolSize:10,connectNulls:true,
+      label:{show:true,position:'top',color:'#22d3ee',fontFamily:FONT,formatter:function(p){return p.value?p.value+'%':'';}}}
+  ];
+  o.graphic=[{type:'text',left:56,bottom:2,style:{text:'两条线为独立口径（分母不同），仅并列展示，不可互推',fill:'#8b98a9',fontSize:11,fontFamily:FONT}}];
+  return o;
+})());
+
+/* ============================================================
+   捌 · KaTeX 公式渲染
+============================================================ */
+(function(){
+  if(typeof katex === 'undefined') return;
+  document.querySelectorAll('.katex-box').forEach(function(el){
+    try{ katex.render(el.dataset.tex, el, {throwOnError:false, displayMode:true}); }catch(e){ el.textContent = el.dataset.tex; }
+  });
+})();
+
+/* ============================================================
+   捌 · 建厂算账沙盘
+============================================================ */
+function fillSlider(r){
+  var p = (r.value - r.min) / (r.max - r.min) * 100;
+  r.style.setProperty('--fill', p + '%');
+}
+(function(){
+  var rInv = document.getElementById('rInv'), rCap = document.getElementById('rCap'),
+      rYield = document.getElementById('rYield'), rPrice = document.getElementById('rPrice');
+  if(!rInv) return;
+  var chart = mk('sbChart', (function(){
+    var o = baseOpt();
+    o.tooltip={trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,17,23,.94)',borderColor:'rgba(240,180,41,.4)',textStyle:{color:'#e6edf3',fontFamily:FONT}};
+    o.grid={left:56,right:30,top:30,bottom:30,containLabel:true};
+    o.xAxis=[Object.assign({type:'category',data:['总投资','年收入','年毛利']},axStyle())];
+    o.yAxis=[Object.assign({type:'value',name:'亿元'},axStyle())];
+    o.series=[{type:'bar',barWidth:'46%',data:[
+        {value:468,itemStyle:{color:'rgba(239,68,68,.75)'}},
+        {value:178.2,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+        {value:62.4,itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+      ],
+      label:{show:true,position:'top',color:'#e6edf3',fontFamily:FONT,formatter:function(p){return p.value.toFixed(1)+' 亿';}}}];
+    return o;
+  })());
+  function upd(){
+    var inv = parseFloat(rInv.value);      /* 亿元 */
+    var cap = parseFloat(rCap.value);      /* 万片/月 */
+    var yld = parseFloat(rYield.value);    /* % */
+    var prc = parseFloat(rPrice.value);    /* 万元/片 */
+    var rev = cap * 12 * (yld/100) * prc;  /* 万片×万元 = 亿元 */
+    var gp = rev * 0.35;
+    var pay = gp > 0 ? inv / gp : 0;
+    document.getElementById('oInv').textContent = inv.toLocaleString() + ' 亿元';
+    document.getElementById('oCap').textContent = cap + ' 万片';
+    document.getElementById('oYield').textContent = yld + ' %';
+    document.getElementById('oPrice').textContent = prc.toFixed(1) + ' 万元';
+    document.getElementById('vRev').innerHTML = rev.toFixed(1) + '<span>亿元</span>';
+    document.getElementById('vGP').innerHTML = gp.toFixed(1) + '<span>亿元</span>';
+    var payEl = document.getElementById('vPay');
+    payEl.innerHTML = (pay > 99 ? '>99' : pay.toFixed(1)) + '<span>年</span>';
+    payEl.style.color = pay > 10 ? '#ef4444' : (pay > 7 ? '#f0b429' : '#34d399');
+    if(chart) chart.setOption({series:[{data:[
+      {value:inv,itemStyle:{color:'rgba(239,68,68,.75)'}},
+      {value:parseFloat(rev.toFixed(1)),itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#22d3ee'},{offset:1,color:'#0e7490'}]}}},
+      {value:parseFloat(gp.toFixed(1)),itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#f0b429'},{offset:1,color:'#b8860b'}]}}}
+    ]}]});
+    fillSlider(rInv); fillSlider(rCap); fillSlider(rYield); fillSlider(rPrice);
+  }
+  [rInv,rCap,rYield,rPrice].forEach(function(r){ r.addEventListener('input', upd); });
+  upd();
+})();
+</script>
+</body>
+</html>

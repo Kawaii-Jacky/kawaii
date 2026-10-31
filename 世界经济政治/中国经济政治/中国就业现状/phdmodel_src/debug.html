@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>调试测试</title>
+<style>
+body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+.status { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+.ok { color: green; font-weight: bold; }
+.fail { color: red; font-weight: bold; }
+#chart { width: 800px; height: 400px; border: 2px solid #333; margin: 20px 0; background: white; }
+</style>
+</head>
+<body>
+<h1>📊 调试测试页面</h1>
+<div id="log"></div>
+<div id="chart"></div>
+
+<script src="model.js"></script>
+<script>
+const log = (msg, ok=true) => {
+  const div = document.createElement('div');
+  div.className = 'status';
+  div.innerHTML = `<span class="${ok?'ok':'fail'}">${ok?'✓':'✗'}</span> ${msg}`;
+  document.getElementById('log').appendChild(div);
+  console.log((ok?'✓':'✗'), msg);
+};
+
+log('1. 页面加载完成');
+log('2. PhDModel 对象存在: ' + (typeof window.PhDModel !== 'undefined'), typeof window.PhDModel !== 'undefined');
+
+if (typeof window.PhDModel === 'undefined') {
+  log('✗ PhDModel 未加载，请检查 model.js', false);
+} else {
+  const M = window.PhDModel;
+  log('3. IND_KEYS: ' + M.IND_KEYS.join(', '));
+
+  try {
+    log('4. 运行模拟 evalRoute("AI", "B", {N:100})...');
+    const result = M.evalRoute('AI', 'B', {N:100});
+    log('5. ✓ 模拟成功！均值 = ' + result.mean.toFixed(1) + ' 万元');
+    log('6. P10 = ' + result.p10.toFixed(1) + ', P50 = ' + result.p50.toFixed(1) + ', P90 = ' + result.p90.toFixed(1));
+
+    // 绘制图表
+    const chart = document.getElementById('chart');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 800 400');
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+
+    const data = result.meanInc.slice(0, 40);
+    const max = Math.max(...data);
+    const W = 800, H = 400, pad = 60;
+
+    // 画轴
+    const line = (x1,y1,x2,y2,color='#ccc') => {
+      const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', color); l.setAttribute('stroke-width', 1);
+      svg.appendChild(l);
+    };
+
+    line(pad, H-pad, W-pad, H-pad, '#000');
+    line(pad, pad, pad, H-pad, '#000');
+
+    // 画折线
+    const X = i => pad + (W - 2*pad) * i / (data.length - 1);
+    const Y = v => H - pad - (H - 2*pad) * v / max;
+
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.setAttribute('points', data.map((v, i) => `${X(i)},${Y(v)}`).join(' '));
+    polyline.setAttribute('fill', 'none');
+    polyline.setAttribute('stroke', '#2a78d6');
+    polyline.setAttribute('stroke-width', '3');
+    svg.appendChild(polyline);
+
+    // 标题
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', W/2);
+    text.setAttribute('y', 30);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '18');
+    text.setAttribute('font-weight', 'bold');
+    text.textContent = 'AI 本科路线：年收入曲线（N=100）';
+    svg.appendChild(text);
+
+    chart.appendChild(svg);
+    log('7. ✓ 图表绘制完成！');
+
+  } catch(e) {
+    log('✗ 错误: ' + e.message, false);
+    log('Stack: ' + e.stack, false);
+  }
+}
+</script>
+</body>
+</html>

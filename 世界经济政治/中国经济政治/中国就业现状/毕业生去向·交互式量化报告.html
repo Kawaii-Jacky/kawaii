@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>渡口 · 2026—2030 中国毕业生去向量化报告</title>
+<style>
+/* ============ 基础与变量 ============ */
+:root{
+  --ink:#12100d;
+  --ink-2:#1c1915;
+  --paper:#f4efe4;
+  --paper-2:#ece5d4;
+  --vermil:#d43d2a;
+  --vermil-deep:#a32a1c;
+  --gold:#c9a227;
+  --teal:#3d8b8b;
+  --blue:#3a5f8a;
+  --mut:#8a8175;
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--serif);
+  overflow-x:hidden;
+  line-height:1.8;
+}
+::selection{background:var(--vermil);color:var(--paper)}
+/* 颗粒噪点 */
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* 滚动进度 */
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--vermil),var(--gold));width:0;z-index:9999;transition:width .1s linear}
+
+/* ============ 导航 ============ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 4vw;
+  background:linear-gradient(180deg,rgba(18,16,13,.94),rgba(18,16,13,0));
+  font-family:var(--sans);font-size:12px;letter-spacing:.18em;
+}
+nav .brand{color:var(--vermil);font-family:var(--serif);font-weight:900;font-size:15px;letter-spacing:.3em}
+nav .links{display:flex;gap:2.2vw;flex-wrap:wrap}
+nav a{color:var(--paper);text-decoration:none;opacity:.65;transition:.3s;white-space:nowrap}
+nav a:hover{opacity:1;color:var(--gold)}
+@media(max-width:820px){nav .links{display:none}}
+
+/* ============ 通用版式 ============ */
+section{position:relative;padding:12vh 6vw;max-width:1280px;margin:0 auto}
+.kicker{
+  font-family:var(--sans);font-size:11px;letter-spacing:.45em;color:var(--vermil);
+  text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:14px;
+}
+.kicker::before{content:"";width:44px;height:1px;background:var(--vermil)}
+h2.title{
+  font-size:clamp(30px,4.6vw,58px);font-weight:900;line-height:1.25;
+  margin-bottom:8px;letter-spacing:.02em;
+}
+h2.title .zh-num{
+  display:inline-block;vertical-align:top;margin-right:16px;
+  color:var(--vermil);font-size:.42em;letter-spacing:.3em;
+  border:1px solid var(--vermil);padding:6px 10px 4px;border-radius:3px;transform:translateY(8px);
+}
+.subtitle{color:var(--mut);font-size:clamp(13px,1.3vw,16px);max-width:640px;margin-bottom:48px}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}
+.reveal.in{opacity:1;transform:none}
+em.num{font-style:normal;color:var(--gold);font-variant-numeric:tabular-nums}
+em.hot{font-style:normal;color:var(--vermil)}
+em.cold{font-style:normal;color:var(--teal)}
+.src{font-family:var(--sans);font-size:10.5px;color:var(--mut);letter-spacing:.06em;margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* ============ HERO ============ */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  max-width:none;padding:0 6vw;
+  background:
+    radial-gradient(1200px 600px at 82% 18%,rgba(212,61,42,.13),transparent 60%),
+    radial-gradient(900px 500px at 12% 85%,rgba(201,162,39,.08),transparent 60%),
+    var(--ink);
+}
+#hero .era{font-family:var(--sans);font-size:12px;letter-spacing:.6em;color:var(--mut);margin-bottom:3vh}
+#hero h1{
+  font-size:clamp(52px,11vw,150px);font-weight:900;line-height:1.02;letter-spacing:.04em;
+}
+#hero h1 .outline{
+  color:transparent;-webkit-text-stroke:1.5px var(--paper);
+}
+#hero h1 .red{color:var(--vermil)}
+#hero .bignumber{
+  margin:4vh 0 2vh;display:flex;align-items:baseline;gap:2vw;flex-wrap:wrap;
+}
+#hero .bignumber .n{
+  font-size:clamp(44px,7vw,96px);font-weight:900;color:var(--gold);
+  font-variant-numeric:tabular-nums;line-height:1;
+}
+#hero .bignumber .lbl{font-family:var(--sans);font-size:13px;color:var(--mut);letter-spacing:.2em;max-width:300px;line-height:1.7}
+#hero .scrollhint{
+  position:absolute;bottom:4vh;left:6vw;font-family:var(--sans);font-size:11px;
+  letter-spacing:.4em;color:var(--mut);display:flex;align-items:center;gap:12px;
+}
+#hero .scrollhint .line{width:1px;height:44px;background:linear-gradient(var(--mut),transparent);animation:drip 1.8s infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* 印章 */
+.seal{
+  position:absolute;top:16vh;right:7vw;width:110px;height:110px;
+  border:3px solid var(--vermil);border-radius:8px;color:var(--vermil);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:900;font-size:24px;line-height:1.35;letter-spacing:.1em;
+  transform:rotate(8deg);opacity:.85;padding:8px;
+  box-shadow:inset 0 0 0 1px rgba(212,61,42,.4);
+}
+@media(max-width:820px){.seal{display:none}}
+/* 跑马灯 */
+.marquee{
+  overflow:hidden;border-top:1px solid rgba(244,239,228,.14);border-bottom:1px solid rgba(244,239,228,.14);
+  padding:14px 0;white-space:nowrap;font-family:var(--sans);font-size:12.5px;letter-spacing:.15em;color:var(--mut);
+}
+.marquee .track{display:inline-block;animation:mq 40s linear infinite}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee b{color:var(--gold);font-weight:600}
+
+/* ============ 统计卡片 ============ */
+.statwall{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:rgba(244,239,228,.14);border:1px solid rgba(244,239,228,.14)}
+.stat{background:var(--ink);padding:28px 24px;transition:.4s;position:relative;overflow:hidden}
+.stat:hover{background:var(--ink-2)}
+.stat::before{content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:var(--vermil);transform:scaleX(0);transform-origin:left;transition:.5s}
+.stat:hover::before{transform:scaleX(1)}
+.stat .v{font-size:clamp(30px,3vw,42px);font-weight:900;color:var(--paper);line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:.45em;color:var(--mut);font-weight:400;margin-left:4px}
+.stat .k{font-family:var(--sans);font-size:12px;color:var(--mut);letter-spacing:.12em;margin-top:8px;line-height:1.6}
+
+/* ============ 图表卡片 ============ */
+.chart-card{
+  background:var(--ink-2);border:1px solid rgba(244,239,228,.12);border-radius:6px;
+  padding:30px 28px 22px;position:relative;
+}
+.chart-card h3{font-size:19px;font-weight:900;margin-bottom:2px}
+.chart-card .cap{font-family:var(--sans);font-size:11.5px;color:var(--mut);margin-bottom:18px;letter-spacing:.08em}
+.chart-card svg{width:100%;height:auto;display:block}
+.chart-card .tag{
+  position:absolute;top:22px;right:24px;font-family:var(--sans);font-size:10px;
+  letter-spacing:.2em;color:var(--vermil);border:1px solid var(--vermil);padding:3px 8px;border-radius:2px;
+}
+.legend{font-family:var(--sans);font-size:11px;color:var(--mut);display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* ============ 时间轴 ============ */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:1px;background:linear-gradient(var(--vermil),var(--gold),var(--teal))}
+.tl-item{position:relative;margin-bottom:34px}
+.tl-item::before{
+  content:"";position:absolute;left:-30.5px;top:8px;width:9px;height:9px;border-radius:50%;
+  background:var(--ink);border:2px solid var(--gold);
+}
+.tl-item .yr{font-family:var(--sans);font-size:11px;letter-spacing:.3em;color:var(--gold);margin-bottom:4px}
+.tl-item h4{font-size:17px;font-weight:900;margin-bottom:4px}
+.tl-item p{font-size:14px;color:#cfc8b8}
+.tl-item .badge{font-family:var(--sans);font-size:10px;letter-spacing:.15em;padding:2px 8px;border-radius:2px;margin-left:10px;vertical-align:2px}
+.badge.pol{border:1px solid var(--vermil);color:var(--vermil)}
+.badge.evt{border:1px solid var(--teal);color:var(--teal)}
+
+/* ============ 名词解释 ============ */
+.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.term{
+  border:1px solid rgba(244,239,228,.15);border-radius:6px;padding:22px;cursor:pointer;
+  transition:.35s;background:var(--ink-2);position:relative;overflow:hidden;
+}
+.term:hover{border-color:var(--gold);transform:translateY(-4px)}
+.term h4{font-size:18px;font-weight:900;color:var(--gold);margin-bottom:6px}
+.term h4 span{font-family:var(--sans);font-size:10px;color:var(--mut);letter-spacing:.15em;margin-left:8px}
+.term .def{font-size:13px;color:#cfc8b8;max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.22,1,.36,1),opacity .4s;opacity:0}
+.term.open .def{max-height:280px;opacity:1;margin-top:8px}
+.term .hint{font-family:var(--sans);font-size:10px;color:var(--mut);letter-spacing:.2em;margin-top:8px}
+.term.open .hint{color:var(--vermil)}
+
+/* ============ 公式块 ============ */
+.formula{
+  background:var(--paper);color:var(--ink);border-radius:6px;padding:30px 34px;margin:26px 0;
+  position:relative;box-shadow:8px 8px 0 rgba(212,61,42,.85);
+}
+.formula .eq{font-size:clamp(16px,2vw,22px);font-weight:700;text-align:center;margin:14px 0;font-variant-numeric:tabular-nums}
+.formula .eq .frac{display:inline-flex;flex-direction:column;vertical-align:middle;margin:0 8px;text-align:center}
+.formula .eq .frac .top{border-bottom:2px solid var(--ink);padding:0 8px}
+.formula .eq .frac .bot{padding:0 8px}
+.formula .note{font-family:var(--sans);font-size:12px;color:#5a5348;line-height:1.8}
+.formula .fname{font-family:var(--sans);font-size:10px;letter-spacing:.3em;color:var(--vermil-deep)}
+
+/* ============ 传导链 ============ */
+.chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:30px 0}
+.chain .node{
+  flex:1 1 150px;min-width:140px;border:1px solid rgba(244,239,228,.2);padding:18px 14px;
+  text-align:center;position:relative;transition:.35s;cursor:default;background:var(--ink-2);
+}
+.chain .node:hover{background:rgba(212,61,42,.14);border-color:var(--vermil)}
+.chain .node .ic{font-size:22px}
+.chain .node h5{font-size:14px;margin:6px 0 4px;font-weight:900}
+.chain .node p{font-family:var(--sans);font-size:10.5px;color:var(--mut);line-height:1.6}
+.chain .arrow{align-self:center;color:var(--vermil);font-size:20px;padding:0 6px;font-family:var(--sans)}
+@media(max-width:900px){.chain .arrow{transform:rotate(90deg);width:100%;text-align:center}}
+
+/* ============ 交互模型 ============ */
+.model{
+  border:1px solid rgba(201,162,39,.45);border-radius:8px;background:linear-gradient(160deg,#1c1915,#151310);
+  padding:36px;margin:34px 0;position:relative;
+}
+.model::before{
+  content:attr(data-no);position:absolute;top:-16px;left:30px;background:var(--gold);color:var(--ink);
+  font-family:var(--sans);font-size:11px;letter-spacing:.25em;padding:4px 14px;border-radius:2px;font-weight:700;
+}
+.model h3{font-size:24px;font-weight:900;margin:6px 0 4px}
+.model .mdesc{font-family:var(--sans);font-size:12px;color:var(--mut);margin-bottom:26px;max-width:560px}
+.model .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px;margin-bottom:26px}
+.ctl label{font-family:var(--sans);font-size:11px;letter-spacing:.15em;color:var(--gold);display:block;margin-bottom:8px}
+.ctl .val{font-family:var(--sans);font-size:11px;color:var(--paper);float:right}
+.ctl input[type=range]{width:100%;-webkit-appearance:none;height:3px;background:rgba(244,239,228,.25);border-radius:2px;outline:none}
+.ctl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--vermil);
+  border:2px solid var(--paper);cursor:pointer;
+}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{
+  font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;padding:7px 13px;border-radius:3px;
+  border:1px solid rgba(244,239,228,.25);background:transparent;color:var(--paper);cursor:pointer;transition:.25s;
+}
+.seg button.on{background:var(--vermil);border-color:var(--vermil);color:var(--paper)}
+.model .out{
+  border-top:1px dashed rgba(244,239,228,.2);padding-top:22px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;align-items:center;
+}
+.model .out .big{font-size:clamp(30px,3.4vw,46px);font-weight:900;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
+.model .out .big small{font-size:.38em;color:var(--mut);font-weight:400}
+.model .out .olbl{font-family:var(--sans);font-size:11px;color:var(--mut);letter-spacing:.12em;margin-top:6px;line-height:1.6}
+.gauge{position:relative;height:10px;background:rgba(244,239,228,.12);border-radius:5px;overflow:hidden;margin-top:8px}
+.gauge .fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--teal),var(--gold),var(--vermil));width:0;transition:width .6s cubic-bezier(.22,1,.36,1)}
+.assump{font-family:var(--sans);font-size:10.5px;color:var(--mut);margin-top:18px;line-height:1.7;border-left:2px solid var(--gold);padding-left:12px}
+
+/* ============ 学历航道对比 ============ */
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.lanes{grid-template-columns:1fr}}
+.lane{border:1px solid rgba(244,239,228,.15);border-radius:8px;padding:28px 24px;background:var(--ink-2);transition:.4s;position:relative;overflow:hidden}
+.lane:hover{transform:translateY(-6px)}
+.lane.bach{border-top:4px solid var(--teal)}
+.lane.mast{border-top:4px solid var(--gold)}
+.lane.doct{border-top:4px solid var(--vermil)}
+.lane .lvl{font-family:var(--sans);font-size:10px;letter-spacing:.35em;color:var(--mut)}
+.lane h3{font-size:26px;font-weight:900;margin:4px 0 14px}
+.lane ul{list-style:none;font-size:13.5px}
+.lane li{padding:9px 0;border-bottom:1px dashed rgba(244,239,228,.12);display:flex;justify-content:space-between;gap:12px}
+.lane li b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.lane li span{color:var(--mut);font-family:var(--sans);font-size:11.5px}
+
+/* ============ 展望 ============ */
+.outlook-card{border-left:3px solid var(--gold);padding:20px 26px;margin-bottom:24px;background:rgba(244,239,228,.03)}
+.outlook-card h4{font-size:18px;font-weight:900;margin-bottom:6px}
+.outlook-card h4 span{color:var(--gold);font-family:var(--sans);font-size:12px;margin-right:10px;letter-spacing:.1em}
+.outlook-card p{font-size:14px;color:#cfc8b8}
+
+/* ============ 八条赛道 ============ */
+.tracks{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1100px){.tracks{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.tracks{grid-template-columns:1fr}}
+.track{border:1px solid rgba(244,239,228,.15);border-radius:8px;padding:20px 18px;background:var(--ink-2);transition:.35s;position:relative}
+.track:hover{transform:translateY(-5px)}
+.track .tno{font-family:var(--sans);font-size:10px;letter-spacing:.3em;color:var(--mut)}
+.track h3{font-size:20px;font-weight:900;margin:4px 0 2px}
+.track .en{font-family:var(--sans);font-size:9.5px;letter-spacing:.18em;color:var(--mut);margin-bottom:10px}
+.track .temp{font-family:var(--sans);font-size:10px;letter-spacing:.1em;padding:2px 9px;border-radius:2px;display:inline-block;margin-bottom:12px}
+.temp.hot{border:1px solid var(--vermil);color:var(--vermil)}
+.temp.warm{border:1px solid var(--gold);color:var(--gold)}
+.temp.cold{border:1px solid var(--blue);color:#7fa3cc}
+.temp.split{border:1px solid var(--teal);color:var(--teal)}
+.track ul{list-style:none;font-size:12.5px}
+.track li{padding:7px 0;border-bottom:1px dashed rgba(244,239,228,.1);display:flex;justify-content:space-between;gap:10px}
+.track li b{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--gold)}
+.track li span{color:var(--mut);font-family:var(--sans);font-size:11px}
+.track .fact{font-size:12px;color:#cfc8b8;margin-top:10px;line-height:1.7}
+.track .tsrc{font-family:var(--sans);font-size:9.5px;color:#6a6355;margin-top:8px;line-height:1.6}
+/* 薪资表 */
+.paytable{width:100%;border-collapse:collapse;font-family:var(--sans);font-size:12.5px}
+.paytable th{font-weight:700;color:var(--gold);letter-spacing:.08em;font-size:11px;padding:10px 8px;border-bottom:1px solid rgba(201,162,39,.5);text-align:right}
+.paytable th:first-child{text-align:left}
+.paytable td{padding:9px 8px;border-bottom:1px dashed rgba(244,239,228,.1);text-align:right;font-variant-numeric:tabular-nums}
+.paytable td:first-child{text-align:left;font-family:var(--serif);font-weight:900;font-size:13.5px}
+.paytable tr:hover td{background:rgba(212,61,42,.07)}
+.paytable .anchor{color:var(--mut);font-size:10px}
+/* 竞争力分解条 */
+.bd{display:grid;gap:9px;margin-top:6px}
+.bd-row{display:grid;grid-template-columns:120px 1fr 56px;gap:12px;align-items:center;font-family:var(--sans);font-size:11px;color:var(--mut)}
+.bd-row .bar{height:9px;background:rgba(244,239,228,.1);border-radius:5px;overflow:hidden;position:relative}
+.bd-row .bar i{position:absolute;inset:0 auto 0 0;background:var(--teal);border-radius:5px;transition:width .5s cubic-bezier(.22,1,.36,1)}
+.bd-row .bar em{position:absolute;inset:0 auto 0 0;background:rgba(212,61,42,.45);border-radius:5px}
+.bd-row .pts{text-align:right;color:var(--paper);font-variant-numeric:tabular-nums}
+.rubric-note{font-family:var(--sans);font-size:10.5px;color:var(--mut);margin-top:14px;line-height:1.8}
+.weak{margin-top:14px;border-left:2px solid var(--vermil);padding:10px 14px;font-family:var(--sans);font-size:12px;color:#cfc8b8;background:rgba(212,61,42,.07);border-radius:0 4px 4px 0}
+/* 三路径图例 */
+.pathleg{display:flex;gap:20px;font-family:var(--sans);font-size:11.5px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
+.pathleg i{display:inline-block;width:12px;height:3px;vertical-align:3px;margin-right:7px;border-radius:2px}
+
+/* ============ 页脚 ============ */
+footer{border-top:1px solid rgba(244,239,228,.14);padding:8vh 6vw;max-width:1280px;margin:0 auto}
+footer h3{font-size:22px;font-weight:900;margin-bottom:18px}
+footer .srclist{font-family:var(--sans);font-size:11.5px;color:var(--mut);columns:2;column-gap:40px;line-height:2.1}
+@media(max-width:700px){footer .srclist{columns:1}}
+footer .srclist a{color:#b7ad9a;text-decoration:none;border-bottom:1px dotted #55503f}
+footer .srclist a:hover{color:var(--gold)}
+footer .disclaim{margin-top:30px;font-family:var(--sans);font-size:10.5px;color:#6a6355;line-height:1.9;border-top:1px dashed rgba(244,239,228,.15);padding-top:20px}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<nav>
+  <div class="brand">渡 口</div>
+  <div class="links">
+    <a href="#s1">数据全景</a><a href="#s2">宏观与政策</a><a href="#s-tracks">八条赛道</a><a href="#s3">学历航道</a>
+    <a href="#s4">名词与公式</a><a href="#s5">交互模型</a><a href="#s6">未来展望</a>
+  </div>
+</nav>
+<!-- ================= HERO ================= -->
+<header id="hero">
+  <div class="seal">毕业<br>渡口<br>·<br>乙巳</div>
+  <div class="era">A QUANTITATIVE FIELD REPORT · 2026—2030</div>
+  <h1>
+    <span class="outline">应届生的</span><br>
+    <span class="red">渡　口</span>
+  </h1>
+  <div class="bignumber">
+    <div class="n"><span id="counter">0</span><span style="font-size:.35em;color:var(--mut)">　万</span></div>
+    <div class="lbl">2026 届全国普通高校毕业生预计规模——史上最大的一届，正走向同一个渡口。就业、考研、读博、考公，四条航道水位各不相同。</div>
+  </div>
+  <div class="scrollhint"><div class="line"></div>SCROLL · 开始渡河</div>
+</header>
+
+<div class="marquee"><div class="track" id="mq"></div></div>
+
+<!-- ================= 第一章 数据全景 ================= -->
+<section id="s1">
+  <div class="kicker">CHAPTER 01 · 数据全景</div>
+  <h2 class="title reveal"><span class="zh-num">壹</span>潮水有多大？<br>先把数字摆上桌</h2>
+  <p class="subtitle reveal">所有判断之前，先看供给端的三股潮水：毕业生总量、考研退潮、以及年轻人的就业水位。以下数据均来自教育部、国家统计局与第三方机构的公开发布。</p>
+
+  <div class="statwall reveal">
+    <div class="stat"><div class="v">1270<small>万</small></div><div class="k">2026届高校毕业生预计规模（同比 +48 万）</div></div>
+    <div class="stat"><div class="v">343<small>万</small></div><div class="k">2026 年考研报名人数——三连降，较 2023 年峰值减少 131 万</div></div>
+    <div class="stat"><div class="v">18.9<small>%</small></div><div class="k">2026 年 8 月 16–24 岁（不含在校生）城镇青年失业率，追平新口径以来最高</div></div>
+    <div class="stat"><div class="v">6435<small>元</small></div><div class="k">2025 届本科生毕业半年后平均月收入（麦可思）</div></div>
+    <div class="stat"><div class="v">98:1</div><div class="k">2026 年度国考过审人数与招录计划之比（371.8 万过审 / 3.81 万招录）</div></div>
+    <div class="stat"><div class="v">20.16<small>万</small></div><div class="k">2025 年博士招生人数，首次突破 20 万（同比 +17.8%）</div></div>
+  </div>
+  <p class="src">来源：教育部、国家统计局、国家公务员局、麦可思研究院，2024–2026 公开发布。</p>
+
+  <div class="grid2" style="margin-top:56px">
+    <div class="chart-card reveal">
+      <div class="tag">供给</div>
+      <h3>毕业生规模：潮位三连涨</h3>
+      <div class="cap">全国普通高校毕业生人数（万人）· 教育部</div>
+      <svg viewBox="0 0 560 300" id="ch-grad"></svg>
+      <p class="src">2026 届为教育部 2025-11 公布的预计数。</p>
+    </div>
+    <div class="chart-card reveal">
+      <div class="tag">退潮</div>
+      <h3>考研报名：三年退掉 131 万人</h3>
+      <div class="cap">全国硕士研究生考试报名人数（万人）· 教育部</div>
+      <svg viewBox="0 0 560 300" id="ch-kaoyan"></svg>
+      <p class="src">2026 年报名 343 万，较 2023 年峰值 474 万下降 27.6%。</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:26px">
+    <div class="chart-card reveal">
+      <div class="tag">水位</div>
+      <h3>青年失业率：每年夏天的尖峰</h3>
+      <div class="cap">16–24 岁城镇青年失业率（%，不含在校生口径）· 国家统计局</div>
+      <svg viewBox="0 0 560 300" id="ch-unemp"></svg>
+      <p class="src">毕业季（7–8 月）季节性冲高：2026 年 8 月 18.9%，追平新口径发布以来最高值。</p>
+    </div>
+    <div class="chart-card reveal">
+      <div class="tag">回报</div>
+      <h3>本科起薪：慢爬坡</h3>
+      <div class="cap">本科毕业生毕业半年后平均月收入（元）· 麦可思就业蓝皮书</div>
+      <svg viewBox="0 0 560 300" id="ch-salary"></svg>
+      <p class="src">2023 届月入过万者仅 7.0%；2025 届高职生半年后月收入 4882 元。</p>
+    </div>
+  </div>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">结构</div>
+    <h3>「学历倒挂」：offer 获得率与学历不成正比</h3>
+    <div class="cap">不同学历应届生的 offer 获得率调研（%）· 智联招聘 2024 调研 / 2025 春招数据</div>
+    <svg viewBox="0 0 1100 260" id="ch-invert"></svg>
+    <p class="src">2024 年调研：普本院校硕博 offer 率 33.2%，首次低于本科 43.9%；2025 年春招：专科约 56% ＞ 本科约 45% ＞ 硕博约 40%。学历溢价正在被「技能匹配」重新定价。</p>
+  </div>
+</section>
+<!-- ================= 第二章 宏观与政策 ================= -->
+<section id="s2">
+  <div class="kicker">CHAPTER 02 · 宏观与政策</div>
+  <h2 class="title reveal"><span class="zh-num">贰</span>潮水的上游：<br>宏观经济与政策闸门</h2>
+  <p class="subtitle reveal">就业市场的水位，由上游的宏观经济与政策闸门共同决定。GDP 增速换挡、政策工具箱持续开闸——这两条线索决定了未来几年岗位供给的基本盘。</p>
+
+  <div class="grid2">
+    <div class="chart-card reveal">
+      <div class="tag">宏观</div>
+      <h3>GDP：从「5%左右」到区间目标</h3>
+      <div class="cap">中国 GDP 实际增速（%）· 政府工作报告 / 国家统计局</div>
+      <svg viewBox="0 0 560 300" id="ch-gdp"></svg>
+      <p class="src">2025 年实际增长 5.0%（总量 140.19 万亿元）；2026 年目标 4.5%–5%，为第三次采用区间目标。</p>
+    </div>
+    <div class="chart-card reveal">
+      <div class="tag">吸纳</div>
+      <h3>城镇新增就业：1200 万的底线</h3>
+      <div class="cap">城镇新增就业（万人）· 政府工作报告</div>
+      <svg viewBox="0 0 560 300" id="ch-jobs"></svg>
+      <p class="src">2025 年实际完成 1267 万人，城镇调查失业率均值 5.2%；2026 年目标新增就业 1200 万人以上、失业率 5.5% 左右。</p>
+    </div>
+  </div>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">传导</div>
+    <h3>政策 → 岗位的传导链条</h3>
+    <div class="cap">把鼠标悬停在任一环节上，看清每一环如何作用于下一段水流</div>
+    <div class="chain" id="chain1">
+      <div class="node"><div class="ic">🏛️</div><h5>政策闸门</h5><p>国企增人增资延至 2026 年底 · 城乡社区新增岗位原则上全部面向毕业生 · 秋季岗位信息 1200 万+</p></div>
+      <div class="arrow">➜</div>
+      <div class="node"><div class="ic">🏗️</div><h5>岗位供给</h5><p>政策性岗位「能扩尽扩」· 8 月底前完成招录 · 三支一扶 / 百万就业见习扩容</p></div>
+      <div class="arrow">➜</div>
+      <div class="node"><div class="ic">🏢</div><h5>企业用人</h5><p>宏观增速 4.5%–5% 决定市场化岗位弹性 · 民企吸纳约八成就业</p></div>
+      <div class="arrow">➜</div>
+      <div class="node"><div class="ic">🧭</div><h5>个体选择</h5><p>就业 / 考研 / 考公 / 慢就业的分流比例随水位变化而摆动</p></div>
+      <div class="arrow">➜</div>
+      <div class="node"><div class="ic">💴</div><h5>薪资定价</h5><p>供需差额最终沉淀为起薪与涨薪曲线——2025 届本科 6435 元</p></div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:56px">
+    <div class="reveal">
+      <h3 style="font-size:22px;font-weight:900;margin-bottom:20px">政策时间轴 <span style="font-family:var(--sans);font-size:11px;color:var(--mut);letter-spacing:.2em">POLICY TIMELINE</span></h3>
+      <div class="timeline">
+        <div class="tl-item"><div class="yr">2022 · 05</div><h4>国办发文稳青年就业<span class="badge pol">政策</span></h4><p>《关于进一步做好高校毕业生等青年就业创业工作的通知》：三支一扶、百万就业见习制度确立。</p></div>
+        <div class="tl-item"><div class="yr">2020–2025</div><h4>专业学位研究生扩容<span class="badge pol">政策</span></h4><p>《专业学位研究生教育发展方案》：专硕扩大至硕士招生总规模约 2/3，大幅增加专业博士招生。</p></div>
+        <div class="tl-item"><div class="yr">2024 · 11</div><h4>「能扩尽扩」<span class="badge pol">政策</span></h4><p>教育部部署 2025 届就业创业工作：政策性岗位能扩尽扩，8 月底前完成招录。</p></div>
+        <div class="tl-item"><div class="yr">2025 · 04</div><h4>三部门联合通知<span class="badge pol">政策</span></h4><p>人社部、教育部、财政部发文：国企一次性增人增资政策延续至 2026 年 12 月 31 日。</p></div>
+        <div class="tl-item"><div class="yr">2025 · 11</div><h4>「扩容提质行动」<span class="badge pol">政策</span></h4><p>教育部部署 2026 届就业扩容提质行动，秋季学期提供岗位信息超 1200 万个；同时公布 2026 届毕业生预计 1270 万人。</p></div>
+        <div class="tl-item"><div class="yr">2026 · 08</div><h4>社区岗位向毕业生全开<span class="badge pol">政策</span></h4><p>人社部等三部门：城乡社区新增岗位原则上全部面向高校毕业生。</p></div>
+      </div>
+    </div>
+    <div class="reveal">
+      <h3 style="font-size:22px;font-weight:900;margin-bottom:20px">大事件时间轴 <span style="font-family:var(--sans);font-size:11px;color:var(--mut);letter-spacing:.2em">EVENTS</span></h3>
+      <div class="timeline">
+        <div class="tl-item"><div class="yr">2023</div><h4>考研报名见顶 474 万<span class="badge evt">事件</span></h4><p>此后连续三年下降，「考研热」正式退潮；读研的机会成本被重新计算。</p></div>
+        <div class="tl-item"><div class="yr">2024</div><h4>「学历倒挂」首次出现<span class="badge evt">事件</span></h4><p>智联调研显示普本硕博 offer 获得率（33.2%）首次低于本科（43.9%）。</p></div>
+        <div class="tl-item"><div class="yr">2025</div><h4>博士招生破 20 万<span class="badge evt">事件</span></h4><p>博士招生 20.16 万（+17.8%），博士毕业 11.29 万首破 10 万；每年约 10 万+ 博士争夺约 3.5 万个高校教职，企业研发岗成为博士就业第一大渠道。</p></div>
+        <div class="tl-item"><div class="yr">2025</div><h4>第七批新职业发布<span class="badge evt">事件</span></h4><p>人社部发布 17 个新职业、42 个新工种（生成式 AI 系统测试员、无人机群飞行规划员等）；2019 年以来累计 110 个新职业。2026 年 7 月再公示 12 个新职业（具身智能机器人应用技术员等）。</p></div>
+        <div class="tl-item"><div class="yr">2026</div><h4>国考「缩招 + 升温」<span class="badge evt">事件</span></h4><p>2026 年度国考 371.8 万人过审（+30.2 万），招录 3.81 万人——2019 年以来首次缩招，过审竞争比 98:1，实际参考竞争比 74:1。</p></div>
+        <div class="tl-item"><div class="yr">2026</div><h4>青年失业率高位运行<span class="badge evt">事件</span></h4><p>8 月 16–24 岁青年失业率 18.9%，追平新口径以来最高；AI 筛简历、AI 面试加速渗透招聘环节，翻译、基础编程等岗位首当其冲。</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">新大陆</div>
+    <h3>新就业形态与「慢就业」</h3>
+    <div class="cap">结构性变化的关键数字</div>
+    <div class="statwall" style="border:none">
+      <div class="stat"><div class="v">2<small>亿+</small></div><div class="k">全国灵活就业人员规模；2025 年新就业形态招聘职位数同比 +15.1%（智联）</div></div>
+      <div class="stat"><div class="v">≈20<small>%</small></div><div class="k">2024 届选择「慢就业」的比例；自由职业占 13.2%（智联 2024 调研）</div></div>
+      <div class="stat"><div class="v">22.5<small>%</small></div><div class="k">C9 高校本科直接就业比例（2024 届），较 2022 届的 31.5% 下降 9 个百分点（牛客白皮书）</div></div>
+      <div class="stat"><div class="v">110</div><div class="k">2019 年以来人社部发布的新职业总数（七批），AI 相关工种密集出现</div></div>
+    </div>
+    <p class="src">含义：「不就业」不等于「不工作」。渡口的航道正在变多，但每条航道都需要不同的船票。</p>
+  </div>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">镜像</div>
+    <h3>灵活就业镜像：骑手收入 vs 应届本科起薪（分城市层级）</h3>
+    <div class="cap">美团高频骑手（月接单 ≥22 天）2025Q1 分城市档位月均收入（官方披露）vs 应届本科起薪（6435 元 × 城市系数的模型值）</div>
+    <svg viewBox="0 0 1100 360" id="ch-rider"></svg>
+    <div class="legend">
+      <span><i style="background:#3d8b8b"></i>高频骑手 · 众包（实测）</span>
+      <span><i style="background:#d43d2a"></i>高频骑手 · 乐跑/专职（实测）</span>
+      <span><i style="background:#c9a227"></i>应届本科起薪（模型值）</span>
+    </div>
+    <p class="src">来源：美团 2025Q1 官方披露（东方网转引，城市档位为美团 A/B/C-D 分级口径）；本科起薪＝麦可思 6435 元 × 城市系数（模型 01 同款假设）。</p>
+    <div class="statwall" style="border:none;margin-top:18px">
+      <div class="stat"><div class="v">7496<small>元</small></div><div class="k">2024 年外卖员月均收入（+10.0%），高于蓝领均值——中国新就业形态研究中心《2024 蓝领报告》（新华网转引）</div></div>
+      <div class="stat"><div class="v">≈24<small>%</small></div><div class="k">骑手学历大专及以上占比（大专 16.8% + 本科及以上 7.1%）——中国社科院社会学所调查</div></div>
+      <div class="stat"><div class="v">336<small>万</small></div><div class="k">美团月均有单骑手数（2024）；网约车驾驶员证 748.3 万本（交通部，2024-10）· 广州网约车单车日均营收 359 元（2025-08 交通局月报）</div></div>
+      <div class="stat"><div class="v">43.8<small>%</small></div><div class="k">灵活就业者月收入 ≤5000 元的占比；超 1 万元者 10.4%——艾瑞 2022 调研（国家发改委网站引用）</div></div>
+    </div>
+    <div class="assump">解读：在四五线城市，高频骑手收入（7230 元）已达到普通本科应届起薪模型值（4505 元）的 1.6 倍——「学历倒挂」的另一种表达。但注意口径差异：骑手收入对应 26 天 × 10 小时以上的高强度劳动且无社保全额缴纳，时薪并不占优；且骑手收入方差极大、中位数低于均值（社科院调研：专送骑手月均 5672 元、众包 4208 元）。这是「过渡性蓄水池」，不是「职业终点站」。</div>
+  </div>
+</section>
+<!-- ================= 第三章 八条赛道 ================= -->
+<section id="s-tracks">
+  <div class="kicker">CHAPTER 03 · 八条赛道</div>
+  <h2 class="title reveal"><span class="zh-num">叁</span>选赛道 &gt; 升学历：<br>八个细分专业的对照研究</h2>
+  <p class="subtitle reveal">生物基础研究 · 生物制药 · 基础医学 · 临床医学 · 金融 · 互联网 · AI · 电子电力——八条赛道的起薪、学历依赖度与行业景气度全面对照。所有数字标注来源；无权威数据处明确标注「定性」。</p>
+
+  <div class="chart-card reveal">
+    <div class="tag">地图</div>
+    <h3>赛道象限：起薪 × 学历依赖度</h3>
+    <div class="cap">横轴＝赛道对高学历的依赖程度（1–10，报告构造）· 纵轴＝本科应届月起薪（元，模型锚定值）· 颜色＝2025–2026 行业景气</div>
+    <svg viewBox="0 0 1100 520" id="ch-tracks"></svg>
+    <div class="legend">
+      <span><i style="background:#d43d2a"></i>景气上行</span>
+      <span><i style="background:#c9a227"></i>平稳 / 慢热</span>
+      <span><i style="background:#3a5f8a"></i>收缩承压</span>
+      <span><i style="background:#3d8b8b"></i>剧烈分化</span>
+    </div>
+    <p class="src">解读：右上角＝高薪但必须读研读博（临床医学）；右下角＝本科起薪低、不深造几乎无路（生物/基础医学）；左上角＝本科即可兑现（电子电力、互联网）。「学历倒挂」集中在右下象限。</p>
+  </div>
+
+  <div class="tracks reveal" style="margin-top:26px">
+    <div class="track">
+      <div class="tno">TRACK 01</div><h3>生物基础研究</h3><div class="en">BIO-SCIENCE / BIOINFORMATICS</div>
+      <span class="temp cold">收缩承压</span>
+      <ul>
+        <li><span>本科起薪锚点</span><b>≈5100 元</b></li>
+        <li><span>学历依赖度</span><b>9.5 / 10</b></li>
+        <li><span>深造常态</span><b>考研为基本盘</b></li>
+      </ul>
+      <p class="fact">麦可思曾多次将生物科学、生物工程列入「红牌」专业；生物学研究生就业率个案仅 74.8%–78.6%。顶尖院校升学率可达 80%+（港中大深圳），但全国层面本科直接就业岗位稀薄。</p>
+      <p class="tsrc">来源：麦可思红牌专业榜（2015/2017 版）、广西医科大学/陕师大 2024 学位点年报、港中大（深圳）2025 就业质量报告。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 02</div><h3>生物制药</h3><div class="en">BIOPHARMA / PHARMACY</div>
+      <span class="temp split">剧烈分化 · 出海回暖</span>
+      <ul>
+        <li><span>本科起薪锚点</span><b>≈5700 元</b></li>
+        <li><span>博士校招保底</span><b>40 万/年</b></li>
+        <li><span>学历依赖度</span><b>8 / 10</b></li>
+      </ul>
+      <p class="fact">一半是海水：2024 年创新药一级市场融资 41.3 亿美元（-21.2%），「十年最艰难」；一半是火焰：2025 年 License-out 交易 157 笔、首付款 70 亿美元、总金额约 1357 亿美元（翻倍）。研发岗三年涨薪 6.8%–12.5%。</p>
+      <p class="tsrc">来源：医药魔方（钛媒体/财联社转引）、薪智薪酬报告、国药集团 2025 校招公告（博士 3 年保底 ≥40 万/年）。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 03</div><h3>基础医学</h3><div class="en">BASIC MEDICINE</div>
+      <span class="temp cold">本科就业困难</span>
+      <ul>
+        <li><span>本科起薪锚点</span><b>≈5500 元</b></li>
+        <li><span>三甲病理科门槛</span><b>硕士起步</b></li>
+        <li><span>学历依赖度</span><b>9 / 10</b></li>
+      </ul>
+      <p class="fact">学科定位即「研究型」，本科阶段几乎无对口岗位：主流出路是保研/考研、出国（20%–30%）、科研助理。2026 年工信部、教育部等九部门联合发文开发科研助理岗吸纳毕业生——政策正在为这条赛道「造岗」。</p>
+      <p class="tsrc">来源：九部门科研助理岗文件（2026，上观新闻）、专业解读（搜狐，定性）、药企临床前岗薪资（定性）。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 04</div><h3>临床医学</h3><div class="en">CLINICAL MEDICINE</div>
+      <span class="temp warm">长坡厚雪 · 超高门槛</span>
+      <ul>
+        <li><span>本科起薪</span><b>5150 元</b></li>
+        <li><span>已入学读研率</span><b>44%（第一）</b></li>
+        <li><span>学历依赖度</span><b>10 / 10</b></li>
+      </ul>
+      <p class="fact">「5+3+X」培养：5 年本科 + 3 年规培（专硕四证合一）+ 2–4 年专培。起薪最低的一档，但五年后涨幅 132%（各门类第一）、换职业比例仅 18%（最低）——用十年时间换终身护城河。三甲门槛：一般硕士、顶级博士。</p>
+      <p class="tsrc">来源：麦可思 2023/2025 版蓝皮书、国家卫健委 2014 规培指导意见、健康界（三甲门槛调查）。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 05</div><h3>金 融</h3><div class="en">FINANCE</div>
+      <span class="temp cold">减员降薪周期</span>
+      <ul>
+        <li><span>本科起薪锚点</span><b>≈6500 元</b></li>
+        <li><span>2024 证券业减员</span><b>-1.96 万人</b></li>
+        <li><span>学历依赖度</span><b>7 / 10</b></li>
+      </ul>
+      <p class="fact">2024 年证券从业人数净流出 19,637 人（-5.1%），超八成券商缩编；基金整体降薪约 20%，金融央企限薪持续收紧。头部券商应届硕士 base 传闻从 3.8 万降至 2.85 万/月（自媒体口径，存疑）。学历仍是硬门槛，但门票在贬值。</p>
+      <p class="tsrc">来源：界面新闻（中证协数据）、证券时报、财新、雪球爆料（存疑已标注）。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 06</div><h3>互联网</h3><div class="en">INTERNET / SOFTWARE</div>
+      <span class="temp warm">回暖 · AI 导向</span>
+      <ul>
+        <li><span>本科起薪锚点</span><b>≈7500 元</b></li>
+        <li><span>2026 届大厂校招</span><b>全面扩招</b></li>
+        <li><span>学历依赖度</span><b>5 / 10</b></li>
+      </ul>
+      <p class="fact">2026 届校招：阿里 7000+ offer（AI 岗占比超 60%）、字节 5000+（研发 +23%）、京东 3.5 万、美团 6000、腾讯实习 10000+。但计算机类本科落实率 82.4%（倒数第 11）、软件工程首次跌出高薪专业 TOP10——「码农」普涨时代结束，AI 技能成为新分水岭。</p>
+      <p class="tsrc">来源：界面新闻/杭州日报（2026 校招）、麦可思 2025/2026 版（落实率与高薪榜，个别数字待与原文核对）。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 07</div><h3>AI · 人工智能</h3><div class="en">ARTIFICIAL INTELLIGENCE</div>
+      <span class="temp hot">景气上行</span>
+      <ul>
+        <li><span>本科起薪</span><b>6546 元</b></li>
+        <li><span>人才缺口</span><b>500 万+</b></li>
+        <li><span>学历依赖度</span><b>6 / 10</b></li>
+      </ul>
+      <p class="fact">供需比约 1:10；要求 AI 技能的职位平均年薪 29.6 万（溢价 7.8 万），AI 技术岗年薪 50 万+ 占比 30.9%。字节硕士 AI 算法岗最高起薪破 40 万/年。但 2026 年纯算法工程师岗增速降至 12.8%（「调参型」过剩），架构师 +76.7%——金字塔尖热、塔腰开始挤。</p>
+      <p class="tsrc">来源：麦可思 2025 版、猎聘《2025 中国 AI 人才奇点报告》《2026 供需趋势洞察》、中智咨询 2025 应届生调研。</p>
+    </div>
+    <div class="track">
+      <div class="tno">TRACK 08</div><h3>电子电力</h3><div class="en">EE / SEMICONDUCTOR / GRID</div>
+      <span class="temp split">剧烈分化 · 芯片热光伏冷</span>
+      <ul>
+        <li><span>本科起薪</span><b>7160–7814 元</b></li>
+        <li><span>集成电路缺口</span><b>30–35 万</b></li>
+        <li><span>学历依赖度</span><b>5 / 10</b></li>
+      </ul>
+      <p class="fact">微电子 7814 元登顶 2025 届高薪专业榜，电气工程 7160 元、近五年 4 次绿牌；国家电网 2025 校招录用 26,310 人。芯片设计岗年薪中位数破 60 万（资深）。但光伏两年减员超 22 万、累计亏损超千亿——同一学科，冰火两重天。</p>
+      <p class="tsrc">来源：麦可思 2026 版、工信部《集成电路产业人才白皮书》（媒体转引）、国网录用公示统计、中国工控网（光伏减员）。</p>
+    </div>
+  </div>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">底座数据</div>
+    <h3>八赛道 × 三学历：应届起薪模型表（元/月，税前）</h3>
+    <div class="cap">此表同时是下方【模型 03】升学计算器的薪资底座 · 黑体字为模型取值，灰色小字为公开数据锚点</div>
+    <table class="paytable">
+      <tr><th>赛道</th><th>本科</th><th>硕士</th><th>博士</th><th style="text-align:left">年涨幅假设</th><th style="text-align:left">主要数据锚点</th></tr>
+      <tr><td>生物基础研究</td><td>5100<br><span class="anchor">生物科学类 5094</span></td><td>7500</td><td>13000</td><td style="text-align:left">5%</td><td style="text-align:left"><span class="anchor">麦可思专业类口径（年份存疑）；科研助理岗政策</span></td></tr>
+      <tr><td>生物制药</td><td>5700<br><span class="anchor">药学类 5702</span></td><td>10000<br><span class="anchor">广药研发 12–15 万/年</span></td><td>20000<br><span class="anchor">国药博士保底 40 万/年</span></td><td style="text-align:left">6%</td><td style="text-align:left"><span class="anchor">麦可思 2022 届；央企校招公告；薪智</span></td></tr>
+      <tr><td>基础医学</td><td>5500</td><td>8000</td><td>15000</td><td style="text-align:left">6%</td><td style="text-align:left"><span class="anchor">三甲病理科硕士起步；药企临床前 ≈8k（定性）</span></td></tr>
+      <tr><td>临床医学</td><td>5150<br><span class="anchor">临床 2024 届 5150</span></td><td>8000</td><td>15000</td><td style="text-align:left">8%</td><td style="text-align:left"><span class="anchor">麦可思；五年后涨幅 132% 支撑高涨幅假设</span></td></tr>
+      <tr><td>金 融</td><td>6500<br><span class="anchor">中智全市场 6695</span></td><td>11000</td><td>15000</td><td style="text-align:left">4%</td><td style="text-align:left"><span class="anchor">中智 2025；券商减员降薪周期压低涨幅</span></td></tr>
+      <tr><td>互联网</td><td>7500<br><span class="anchor">开发职业类 7314</span></td><td>11000</td><td>18000</td><td style="text-align:left">5%</td><td style="text-align:left"><span class="anchor">麦可思 2025 届职业类；大厂校招回暖</span></td></tr>
+      <tr><td>AI 人工智能</td><td>6500<br><span class="anchor">人工智能专业 6546</span></td><td>15000<br><span class="anchor">大厂 AI 岗溢价</span></td><td>25000<br><span class="anchor">算法岗 50 万+ 占 30.9%</span></td><td style="text-align:left">7%</td><td style="text-align:left"><span class="anchor">麦可思 2024 届；猎聘 AI 人才报告</span></td></tr>
+      <tr><td>电子电力</td><td>7200<br><span class="anchor">电气 7160 / 微电子 7814</span></td><td>13000<br><span class="anchor">IC 行业年薪 25.6 万（含经验）</span></td><td>20000</td><td style="text-align:left">6%</td><td style="text-align:left"><span class="anchor">麦可思 2026 版；猎聘集成电路报告</span></td></tr>
+      <tr style="border-top:2px solid rgba(201,162,39,.5)"><td>全市场参照</td><td>6435–6695</td><td>9426</td><td>15523</td><td style="text-align:left">—</td><td style="text-align:left"><span class="anchor">麦可思 2025 届 / 中智咨询 2025 应届生调研</span></td></tr>
+    </table>
+    <p class="src">重要声明：除灰色锚点外，黑体取值为<b style="color:var(--gold)">模型假设</b>——在公开锚点之间按学历溢价结构（中智：硕/本 ≈1.41、博/本 ≈2.32）内插，用于相对比较，不是任何具体个体的薪资承诺。</p>
+  </div>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">院校溢价</div>
+    <h3>院校层次 × 本科起薪：锚点实测 + 八赛道模型曲线</h3>
+    <div class="cap">金色虚线＝公开实测锚点（高职 4882 / 地方本科 6095 / 双一流 8366 / 顶尖 13245 元）· 彩色实线＝按赛道锚点等比构造的模型曲线 · 点击上方按钮可单选赛道</div>
+    <div class="seg" id="tier-toggle" style="margin-bottom:16px">
+      <button data-i="-1" class="on">全部赛道</button>
+      <button data-i="0">生物基础</button><button data-i="1">生物制药</button><button data-i="2">基础医学</button><button data-i="3">临床医学</button><button data-i="4">金融</button><button data-i="5">互联网</button><button data-i="6">AI</button><button data-i="7">电子电力</button>
+    </div>
+    <svg viewBox="0 0 1100 480" id="ch-tier"></svg>
+    <div class="assump">数据可得性声明：<b style="color:var(--gold)">「分专业 × 院校层次」的完整薪资曲线目前没有任何公开数据源</b>——麦可思只公布院校层次的整体均值，薪酬指数榜只公布院校整体均值。本图金色虚线为实测锚点（麦可思 2026 版：高职 4882 / 地方本科 6095 / 双一流 8366；中国薪酬指数研究机构 2026 榜：清华 13245 元）；彩色曲线＝赛道本科锚点 × 层次系数（专科 0.76 / 普通本科 1.00 / 双一流 1.30 / 顶尖 2.02，系数来自上述实测比值），用于展示「院校溢价在每条赛道上同向放大」的结构，而非精确预测。</div>
+  </div>
+</section>
+<!-- ================= 第四章 三条航道 ================= -->
+<section id="s3">
+  <div class="kicker">CHAPTER 04 · 三条航道</div>
+  <h2 class="title reveal"><span class="zh-num">肆</span>本科、硕士、博士：<br>三条航道的水文报告</h2>
+  <p class="subtitle reveal">学历不是线性的阶梯，而是三条流速、暗礁、入海口都不同的航道。下面的对比全部基于公开数据；结论是反直觉的——更高的学历，不必然等于更高的 offer 率。</p>
+
+  <div class="lanes reveal">
+    <div class="lane bach">
+      <div class="lvl">ROUTE A · 本科直接就业</div>
+      <h3>本 科</h3>
+      <ul>
+        <li><span>半年后平均月收入（2025 届）</span><b>6435 元</b></li>
+        <li><span>offer 获得率（2024 智联调研）</span><b>43.9%</b></li>
+        <li><span>月入过万占比（2023 届）</span><b>7.0%</b></li>
+        <li><span>核心优势</span><b>成本最低 · 试错空间大</b></li>
+        <li><span>主要暗礁</span><b>起薪爬坡慢 · AI 替代首当其冲</b></li>
+      </ul>
+    </div>
+    <div class="lane mast">
+      <div class="lvl">ROUTE B · 硕士</div>
+      <h3>硕 士</h3>
+      <ul>
+        <li><span>2026 年考研报名</span><b>343 万 ↓</b></li>
+        <li><span>2025 年硕士招生（首破 120 万）</span><b>123.68 万</b></li>
+        <li><span>报录比（估算口径）</span><b>≈ 2.8 : 1</b></li>
+        <li><span>核心优势</span><b>门槛型岗位的入场券</b></li>
+        <li><span>主要暗礁</span><b>普本硕博 offer 率 33.2%，已低于本科</b></li>
+      </ul>
+    </div>
+    <div class="lane doct">
+      <div class="lvl">ROUTE C · 博士</div>
+      <h3>博 士</h3>
+      <ul>
+        <li><span>2025 年博士招生（+17.8%）</span><b>20.16 万</b></li>
+        <li><span>2025 年博士毕业（首破 10 万）</span><b>11.29 万</b></li>
+        <li><span>高校教职岗位供给 / 年（约）</span><b>3.5 万个</b></li>
+        <li><span>核心优势</span><b>企业研发岗已成第一大去向</b></li>
+        <li><span>主要暗礁</span><b>教职供需 3:1 · 博后「再卷一站」</b></li>
+      </ul>
+    </div>
+  </div>
+  <p class="src">来源：教育部《2025 年全国教育事业发展统计公报》、智联招聘 2024 调研、麦可思、公开报道（详见文末来源清单）。</p>
+
+  <div class="chart-card reveal" style="margin-top:26px">
+    <div class="tag">第四条航道</div>
+    <h3>考公：最窄的桥，最密的脚印</h3>
+    <div class="cap">国家公务员考试过审人数与招录计划（万人 / 竞争比）· 国家公务员局</div>
+    <svg viewBox="0 0 1100 280" id="ch-gongwu"></svg>
+    <p class="src">2026 年度国考为 2019 年以来首次缩招（3.81 万，-1630 人），过审人数却增加 30.2 万——「最稳的岸」正在变成「最挤的桥」。2025 年度国考 67.2% 的计划（2.67 万个）专招应届生。</p>
+  </div>
+
+  <div class="formula reveal">
+    <div class="fname">FORMULA 01 · 竞争烈度</div>
+    <div class="eq">竞争烈度 = <span class="frac"><span class="top">合格竞争者数 N</span><span class="bot">有效岗位数 P</span></span> × 岗位吸引力系数 α</div>
+    <div class="note">以 2026 国考为例：N = 371.8 万，P = 3.81 万，名义烈度 ≈ 98；剔除弃考后（实际参考 283.1 万）降至 ≈ 74。考研的名义报录比仅 ≈ 2.8——数值上考研「温和」得多，但 α（岗位/学位对未来现金流的贴现价值）完全不同：公考的 α 是「稳定性溢价」，考研的 α 是「延迟兑现的期权」。</div>
+  </div>
+</section>
+
+<!-- ================= 第四章 名词与公式 ================= -->
+<section id="s4">
+  <div class="kicker">CHAPTER 05 · 名词与公式</div>
+  <h2 class="title reveal"><span class="zh-num">伍</span>渡口词典：<br>读懂这场游戏的术语</h2>
+  <p class="subtitle reveal">点击卡片展开释义。理解这些词，才算拿到读报告的钥匙。</p>
+
+  <div class="glossary reveal" id="glossary">
+    <div class="term"><h4>学历倒挂<span>CREDENTIAL INVERSION</span></h4><div class="def">指更高学历群体的就业结果反而弱于较低学历群体的现象。2024 年智联调研中，普本院校硕博毕业生 offer 获得率（33.2%）首次低于本科生（43.9%）；2025 年春招专科生 offer 率（约 56%）高于本科（约 45%）与硕博（约 40%）。本质是「岗位需求结构」与「学历供给结构」错配：市场缺技能型、应用型人才，而非通用型高学历。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>慢就业<span>DELAYED EMPLOYMENT</span></h4><div class="def">毕业后不立即就业也不升学，以游学、备考、兼职、考察等方式延缓进入职场的选择。智联调研显示 2024 届约 20% 毕业生选择慢就业，自由职业占 13.2%。它是缓冲垫，也是双刃剑——窗口期过后简历空窗会提高再进入成本。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>结构性失业<span>STRUCTURAL UNEMPLOYMENT</span></h4><div class="def">不是没有岗位，而是「岗位要的技能」与「劳动者有的技能」不匹配造成的失业。当前青年失业率高位（2026 年 8 月 18.9%）与制造业、AI 相关岗位缺人并存，即为典型的结构性矛盾，而非总量矛盾。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>新就业形态<span>NEW EMPLOYMENT FORMS</span></h4><div class="def">依托平台经济、数字技术产生的灵活就业方式（网约配送、内容创作、AI 数据服务等）。全国灵活就业人员已超 2 亿；2025 年新就业形态招聘职位数同比 +15.1%。2019 年以来人社部已发布 110 个新职业。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>政策性岗位<span>POLICY-FUNDED POSTS</span></h4><div class="def">由政府出资或政策创设、定向吸纳毕业生的岗位：公务员、事业编、国企扩招、三支一扶、西部计划、城乡社区岗位、就业见习等。2026 届「扩容提质行动」单秋季学期即提供岗位信息超 1200 万个；2026 年 8 月起城乡社区新增岗位原则上全部面向毕业生。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>机会成本<span>OPPORTUNITY COST</span></h4><div class="def">为得到某种东西而放弃的最大收益。读研 2–3 年的机会成本 = 同期工作的全部收入 + 工龄带来的涨薪与晋升。2025 届本科起薪 6435 元/月，三年直接就业的机会成本（税前，静态）约 23 万元——这是考研决策中必须减去的数字。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>信号理论<span>SIGNALING THEORY</span></h4><div class="def">诺贝尔经济学奖得主斯宾塞提出：学历的核心功能之一是向雇主发送「能力信号」。当某一层级的学历供给过剩（如硕士三年扩招、博士招生破 20 万），信号的「区分度」被稀释，雇主转而寻找更贵的信号：院校层级、实习质量、作品集、竞赛。</div><div class="hint">点击展开 ▾</div></div>
+    <div class="term"><h4>缓冲性升学<span>BUFFER ENROLLMENT</span></h4><div class="def">把升学当作推迟就业的「蓄水池」而非增值投资的行为。判别标准：如果读研期间没有积累到差异化的技能或资源，毕业时将面对与三年前同质的竞争——且竞争者更多。2025 年硕士招生 123.68 万首破 120 万，蓄水池本身也在拥挤。</div><div class="hint">点击展开 ▾</div></div>
+  </div>
+
+  <div class="formula reveal">
+    <div class="fname">FORMULA 02 · 个人竞争力指数（本报告构建）</div>
+    <div class="eq">C = w₁·E + w₂·P + w₃·S + w₄·R + w₅·X</div>
+    <div class="note">E＝院校与学历信号，P＝实习/项目履历，S＝可验证硬技能，R＝推荐与连接，X＝差异化作品/经历。当 E 的市场通胀加速（供给过剩），理性策略是把边际投入转向 P、S、X——这正是「学历倒挂」数据的微观解释。下方【模型 02】把五个抽象维度进一步转化为八项可自评的硬指标（院校、学历、排名、实习段数、英语分数、证书个数、竞赛级别、作品有无），逐项赋分。</div>
+  </div>
+
+  <div class="formula reveal">
+    <div class="fname">FORMULA 03 · 读研净现值 NPV</div>
+    <div class="eq">NPV = Σ<sub>t=n+1</sub><sup>T</sup> <span class="frac"><span class="top">ΔS<sub>t</sub></span><span class="bot">(1+r)<sup>t</sup></span></span> − ( Σ<sub>t=1</sub><sup>n</sup> <span class="frac"><span class="top">W<sub>t</sub></span><span class="bot">(1+r)<sup>t</sup></span></span> + C<sub>学费</sub> )</div>
+    <div class="note">n＝读研年限；ΔS<sub>t</sub>＝第 t 年硕士与本科的薪资差；W<sub>t</sub>＝放弃的工作收入；r＝贴现率。只有当「学历溢价 ΔS」在足够多年里持续为正且超过机会成本时，读研才是一笔正净现值投资。考研报名三连降（474→343 万）正是百万考生集体重算这道题的结果。【模型 03】让你自己代入参数。</div>
+  </div>
+</section>
+<!-- ================= 第五章 交互模型 ================= -->
+<section id="s5">
+  <div class="kicker">CHAPTER 06 · 交互模型</div>
+  <h2 class="title reveal"><span class="zh-num">陆</span>三个可交互模型：<br>把方向盘交给你</h2>
+  <p class="subtitle reveal">拖动滑块、切换选项，模型会实时重算。所有系数均为<b style="color:var(--gold)">模型假设</b>（锚定公开数据的合理推断），用于演示量化思维，不构成职业建议。</p>
+
+  <!-- 模型 1：薪资预估 -->
+  <div class="model reveal" data-no="MODEL 01">
+    <h3>起薪预估器 · Salary Compass</h3>
+    <div class="mdesc">以麦可思 2025 届本科半年后月收入 6435 元为基准锚点，按学历、城市、行业的公开薪酬结构差异推演你的起薪区间与五年曲线。</div>
+    <div class="controls">
+      <div class="ctl"><label>学历</label>
+        <div class="seg" id="m1-edu">
+          <button data-v="0.76">高职/大专</button>
+          <button data-v="1.0" class="on">本科</button>
+          <button data-v="1.35">硕士</button>
+          <button data-v="1.9">博士</button>
+        </div>
+      </div>
+      <div class="ctl"><label>城市层级</label>
+        <div class="seg" id="m1-city">
+          <button data-v="1.22">一线</button>
+          <button data-v="1.0" class="on">新一线</button>
+          <button data-v="0.85">二线</button>
+          <button data-v="0.70">三线及以下</button>
+        </div>
+      </div>
+      <div class="ctl"><label>行业赛道</label>
+        <div class="seg" id="m1-ind">
+          <button data-v="1.30">AI / 互联网</button>
+          <button data-v="1.25">金融</button>
+          <button data-v="1.05" class="on">先进制造</button>
+          <button data-v="0.90">教育 / 公共</button>
+          <button data-v="0.82">传统行业</button>
+        </div>
+      </div>
+      <div class="ctl"><label>年涨薪假设 <span class="val" id="m1-gv">5%</span></label>
+        <input type="range" id="m1-g" min="0" max="12" value="5" step="0.5">
+      </div>
+    </div>
+    <div class="out">
+      <div><div class="big" id="m1-salary">—</div><div class="olbl">预估起薪（元/月，税前）</div></div>
+      <div><div class="big" id="m1-y5">—</div><div class="olbl">五年后月薪（按涨薪假设外推）</div></div>
+      <div style="grid-column:span 2;min-width:260px"><svg viewBox="0 0 420 150" id="m1-chart"></svg><div class="olbl">五年薪资曲线（模型推演）</div></div>
+    </div>
+    <div class="assump">假设锚点：本科 6435 元（麦可思 2025 届）、高职 4882 元（→系数 0.76）；硕士 ×1.35、博士 ×1.9 为基于公开薪酬分位的推断系数；城市/行业系数为结构相对值。真实薪资分布方差极大，本模型给出的是「中位数附近的预期」，不是承诺。</div>
+  </div>
+
+  <!-- 模型 2：竞争力模拟（指标化重做） -->
+  <div class="model reveal" data-no="MODEL 02">
+    <h3>竞争力罗盘 · 可自评的八项硬指标</h3>
+    <div class="mdesc">不再凭感觉打分——八项指标全部是可数、可查、可验证的事实项（院校、学历、排名、实习段数、英语分数、证书个数、竞赛级别、作品有无），每项对应明确分值，合计 100 分。按你的真实情况点选。</div>
+    <div class="controls">
+      <div class="ctl"><label>① 院校层次 <span class="val">满分 15</span></label>
+        <div class="seg m2" data-k="school">
+          <button data-v="15">双一流</button><button data-v="9" class="on">普通本科</button><button data-v="5">高职/专科</button>
+        </div>
+      </div>
+      <div class="ctl"><label>② 最高学历 <span class="val">满分 15</span></label>
+        <div class="seg m2" data-k="degree">
+          <button data-v="15">博士</button><button data-v="11">硕士</button><button data-v="7" class="on">本科</button><button data-v="4">专科</button>
+        </div>
+      </div>
+      <div class="ctl"><label>③ 专业成绩排名 <span class="val">满分 12</span></label>
+        <div class="seg m2" data-k="rank">
+          <button data-v="12">前 5%</button><button data-v="9" class="on">前 20%</button><button data-v="6">前 50%</button><button data-v="3">50% 之后</button>
+        </div>
+      </div>
+      <div class="ctl"><label>④ 对口实习（≥3个月/段）<span class="val">满分 18</span></label>
+        <div class="seg m2" data-k="intern">
+          <button data-v="0">无</button><button data-v="8" class="on">1 段</button><button data-v="13">2 段</button><button data-v="18">3 段+ / 累计1年</button>
+        </div>
+      </div>
+      <div class="ctl"><label>⑤ 英语 <span class="val">满分 8</span></label>
+        <div class="seg m2" data-k="eng">
+          <button data-v="8">六级550+/雅思7</button><button data-v="5" class="on">六级通过</button><button data-v="3">四级通过</button><button data-v="0">未通过</button>
+        </div>
+      </div>
+      <div class="ctl"><label>⑥ 高含金量证书 <span class="val">满分 12</span></label>
+        <div class="seg m2" data-k="cert">
+          <button data-v="0" class="on">无</button><button data-v="4">1 项</button><button data-v="8">2 项</button><button data-v="12">3 项+</button>
+        </div>
+      </div>
+      <div class="ctl"><label>⑦ 科研 / 竞赛 <span class="val">满分 12</span></label>
+        <div class="seg m2" data-k="contest">
+          <button data-v="0" class="on">无</button><button data-v="4">校级</button><button data-v="8">省级/参与课题</button><button data-v="12">国家级/一作论文</button>
+        </div>
+      </div>
+      <div class="ctl"><label>⑧ 作品 / 项目 <span class="val">满分 8</span></label>
+        <div class="seg m2" data-k="work">
+          <button data-v="0">无</button><button data-v="4" class="on">课程/实训项目</button><button data-v="8">上线产品/开源/作品集</button>
+        </div>
+      </div>
+    </div>
+    <div class="out">
+      <div><div class="big" id="m2-score">—</div><div class="olbl">竞争力总分（满分 100）</div></div>
+      <div style="grid-column:span 2;min-width:260px">
+        <div class="olbl" id="m2-verdict">—</div>
+        <div class="gauge"><div class="fill" id="m2-fill"></div></div>
+        <div class="olbl" style="margin-top:6px">在 1270 万同届中的模拟分位</div>
+      </div>
+      <div><div class="big" id="m2-ratio">—</div><div class="olbl">对标国考 98:1 烈度的等效竞争比</div></div>
+    </div>
+    <div class="bd" id="m2-bd"></div>
+    <div class="weak" id="m2-weak">—</div>
+    <div class="rubric-note">分值设计逻辑（报告构造，可复现）：实习与证书合计 30 分——回应「学历倒挂」中企业对「即战力」的定价；院校+学历 30 分——信号仍重要但不再过半；证书示例：CPA / 法考 / CFA / 软考（中高级）/ 教资 / 执业医师 / 专利。分位映射假设同届均分 42、标准差 16（逻辑斯蒂近似），仅供方向参考。</div>
+  </div>
+
+  <!-- 模型 3：升学路径计算器（就业/读研/读博） -->
+  <div class="model reveal" data-no="MODEL 03">
+    <h3>升学路径计算器 · 就业 vs 读研 vs 读博</h3>
+    <div class="mdesc">基于 FORMULA 03 的净现值框架，升级为三路径对比：起薪直接取自上方「八赛道 × 三学历」模型表，并按你设定的上岸概率折算期望值（EV）。先选赛道，再调参数。</div>
+    <div class="controls">
+      <div class="ctl" style="grid-column:span 2"><label>行业赛道（决定本/硕/博起薪）</label>
+        <div class="seg" id="m3-track">
+          <button data-i="0">生物基础研究</button><button data-i="1">生物制药</button><button data-i="2">基础医学</button><button data-i="3">临床医学</button><button data-i="4" class="on">金融</button><button data-i="5">互联网</button><button data-i="6">AI 人工智能</button><button data-i="7">电子电力</button>
+        </div>
+      </div>
+      <div class="ctl"><label>硕士学制 <span class="val" id="m3-nsv">3 年</span></label><input type="range" id="m3-ns" min="2" max="3" value="3" step="1"></div>
+      <div class="ctl"><label>读博总年限（直博/硕博）<span class="val" id="m3-ndv">5 年</span></label><input type="range" id="m3-nd" min="3" max="7" value="5" step="1"></div>
+      <div class="ctl"><label>考研上岸概率 <span class="val" id="m3-psv">36%</span></label><input type="range" id="m3-ps" min="10" max="90" value="36" step="1"></div>
+      <div class="ctl"><label>读博完成概率 <span class="val" id="m3-pdv">65%</span></label><input type="range" id="m3-pd" min="20" max="95" value="65" step="1"></div>
+      <div class="ctl"><label>硕士年净成本 <span class="val" id="m3-csv">3.0 万</span></label><input type="range" id="m3-cs" min="0" max="6" value="3" step="0.5"></div>
+      <div class="ctl"><label>博士年净成本（助学金抵扣后）<span class="val" id="m3-cdv">1.0 万</span></label><input type="range" id="m3-cd" min="0" max="3" value="1" step="0.5"></div>
+      <div class="ctl"><label>薪资年涨幅 <span class="val" id="m3-gv">4%</span></label><input type="range" id="m3-g" min="2" max="10" value="4" step="0.5"></div>
+      <div class="ctl"><label>贴现率 r <span class="val" id="m3-rv">3%</span></label><input type="range" id="m3-r" min="1" max="8" value="3" step="0.5"></div>
+    </div>
+    <div class="out" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+      <div><div class="big" style="color:var(--teal)" id="m3-a">—</div><div class="olbl">路径 A · 直接就业<br>20 年贴现财富（万元）</div></div>
+      <div><div class="big" style="color:var(--gold)" id="m3-b">—</div><div class="olbl">路径 B · 读研（EV）<br>20 年贴现财富（万元）</div></div>
+      <div><div class="big" style="color:var(--vermil)" id="m3-c">—</div><div class="olbl">路径 C · 读博（EV）<br>20 年贴现财富（万元）</div></div>
+      <div><div class="big" id="m3-best">—</div><div class="olbl" id="m3-bestlbl">当前参数下的期望值最优路径</div></div>
+    </div>
+    <div style="margin-top:18px">
+      <svg viewBox="0 0 900 260" id="m3-chart" style="width:100%;height:auto"></svg>
+      <div class="pathleg">
+        <span><i style="background:#3d8b8b"></i>A · 直接就业（<span id="m3-la">—</span>）</span>
+        <span><i style="background:#c9a227"></i>B · 读研后就业（<span id="m3-lb">—</span>）</span>
+        <span><i style="background:#d43d2a"></i>C · 读博后就业（<span id="m3-lc">—</span>）</span>
+      </div>
+      <div class="olbl" style="margin-top:6px" id="m3-note">累计贴现财富曲线（万元，20 年）· 曲线为「成功上岸」情形；上方大数字已按上岸概率折算期望值</div>
+    </div>
+    <div class="assump">假设：起点为本科应届；薪资取赛道模型表；EV＝p×上岸后路径NPV＋(1−p)×晚 1 年直接就业NPV；读研/读博期间收入为 0、计净成本；未考虑规培专培（临床医学实际现金流更后移）、非升即走、行业周期与个体方差。临床医学赛道请把「读博总年限」理解为规培+专培合并年限再解读。</div>
+  </div>
+</section>
+
+<!-- ================= 第六章 未来展望 ================= -->
+<section id="s6">
+  <div class="kicker">CHAPTER 07 · 未来展望 2026—2030</div>
+  <h2 class="title reveal"><span class="zh-num">柒</span>未来五年：<br>潮向判断与渡河策略</h2>
+  <p class="subtitle reveal">以下为基于前述数据的结构化推演——非精确预测，而是「如果趋势延续」的情景判断。</p>
+
+  <div class="outlook-card reveal"><h4><span>判断 01</span>供给端：2027 年前后触顶，但高位平台期很长</h4><p>2026 届 1270 万之后，毕业生规模增速将随适龄人口与毛入学率趋稳而放缓，但 1200 万+ 的年供给将贯穿整个「十五五」。结论：稀缺性不会回到学历本身，竞争烈度只会从「学历维度」转移到「技能与经验维度」。</p></div>
+  <div class="outlook-card reveal"><h4><span>判断 02</span>考研：报名人数或继续阴跌，但「好学校的门票」不贬值</h4><p>474→343 万的三连降是机会成本的理性重算；同期硕士招生首破 120 万，报录比已降至 ≈2.8:1。分化将加剧：顶尖院校与强就业导向专业（AI、集成电路、临床等）依然拥挤，普通院校硕士的信号价值继续稀释。</p></div>
+  <div class="outlook-card reveal"><h4><span>判断 03</span>博士：从「学术独木桥」转向「产业研发主航道」</h4><p>博士招生 20.16 万 vs 高校教职约 3.5 万/年——学术轨道的供需缺口接近 3:1，且随毕业潮扩大。企业研发岗已成博士第一大去向；未来五年，「博士进企业」将从备选变为默认项，产业界对博士的定价权上升。</p></div>
+  <div class="outlook-card reveal"><h4><span>判断 04</span>薪资：起薪慢爬坡，分化快拉大</h4><p>基准情景（GDP 4.5%–5%）：本科起薪年名义涨幅约 3%–5%，2028 年前后中位数有望站上 7000 元；但 AI/金融等赛道与传统赛道的起薪差可能从约 1.6 倍拉大到 2 倍——「选赛道」的收益将首次系统性超过「升学历」。</p></div>
+  <div class="outlook-card reveal"><h4><span>判断 05</span>AI：不是抢饭碗，而是改写「入门岗」的定义</h4><p>翻译、基础编程、初级文书等「学徒制入口」岗位收缩，切断了部分职业的传统上升通道；同时生成式 AI 系统测试员等 110+ 新职业在创造新入口。渡河策略的第一原则：<b style="color:var(--gold)">把 AI 变成桨，而不是把它当作对岸。</b></p></div>
+  <div class="outlook-card reveal"><h4><span>判断 06</span>政策底：托底明确，但托的是「底线」不是「上限」</h4><p>国企增人增资延至 2026 年底、社区岗位全开、1200 万+ 岗位信息——政策兜底力度空前，意味着「完全失业」的风险可控；但政策性岗位以稳定、低薪、低弹性为特征，上限同样清晰。</p></div>
+
+  <div class="chart-card reveal" style="margin-top:40px">
+    <div class="tag">终局公式</div>
+    <h3>给渡河者的一句话</h3>
+    <div class="cap">在供给过剩的时代，定价权属于稀缺性</div>
+    <div class="formula" style="margin:10px 0 6px;box-shadow:6px 6px 0 rgba(201,162,39,.8)">
+      <div class="eq">你的价格 ≈ 市场均价 ± <span class="frac"><span class="top">你的不可替代性</span><span class="bot">同赛道供给量</span></span></div>
+      <div class="note">学历决定你站上哪条船；技能、作品与履历决定你在船上的位置。潮水不会退，但桨一直在你自己手里。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 页脚 ================= -->
+<footer>
+  <h3>数据来源</h3>
+  <div class="srclist">
+    · 教育部：2026届毕业生 1270 万（新华网转引，2025-11）<br>
+    · 教育部：考研报名人数 2023–2026（新京报等转引）<br>
+    · 教育部《2025 年全国教育事业发展统计公报》（2026-07）<br>
+    · 教育部《专业学位研究生教育发展方案（2020—2025）》<br>
+    · 国家公务员局：2025/2026 年度国考数据（新华网、财新、人民日报客户端）<br>
+    · 国家统计局：16–24 岁青年失业率（不含在校生口径，财新、澎湃转引）<br>
+    · 麦可思研究院：就业蓝皮书 2024–2026（新浪财经等转引）<br>
+    · 智联招聘：2024 年就业力调研、2025 春招数据（36氪等转引）<br>
+    · 牛客：2025 春招白皮书（C9 直接就业比例，财新转引）<br>
+    · 政府工作报告 2026（新华网、中新网）<br>
+    · 人社部等三部门：社区岗位通知（2026-08，澎湃新闻）<br>
+    · 人社部：新职业发布（新华网、央视网）<br>
+    · 国办 / 教育部 / 人社部历年青年就业政策文件（政府网站全文）<br>
+    · 麦可思 2025/2026 版蓝皮书：分专业高薪榜、临床医学读研率、专业落实率（第一财经、国际电子商情、高考直通车转引）<br>
+    · 中智咨询《2025 年应届生调研报告》：分学历起薪（博 15523 / 硕 9426 / 本 6695）<br>
+    · 猎聘：《2025 中国 AI 人才奇点报告》《2026 人工智能行业人才供需趋势洞察》《2026 集成电路行业人才供需洞察》（澎湃、凤凰、三个皮匠转引）<br>
+    · 医药魔方 / 动脉智库：创新药投融资与 License-out 交易（钛媒体、财联社转引）<br>
+    · 国药集团 2025 全球校招公告（博士 3 年保底 ≥40 万/年）、广药研发岗薪资报道<br>
+    · 工信部《集成电路产业人才白皮书》（缺口 30–35 万，中国工业新闻网转引）<br>
+    · 界面新闻 / 杭州日报：2026 届大厂校招规模；界面新闻：证券业减员（中证协数据）<br>
+    · 证券时报 / 财新：券商基金降薪；中国工控网 / ZAKER / 投资界：光伏行业减员亏损<br>
+    · 国家卫健委 2014 规培指导意见、六部门 2015 医教协同意见；健康界：三甲学历门槛调查<br>
+    · 九部门科研助理岗文件（2026，上观新闻）；高校就业质量报告（港中大深圳、广西医科大学、陕师大）<br>
+    · 北外 / 南中医 / 南信大：预聘制与博士后年薪制度文件；高校人才网：「非升即走」机制<br>
+    · 中国薪酬指数研究机构《2026 全国高校毕业生薪酬指数排行榜 TOP100》（清华 13245 元，薪酬网 2026-06）<br>
+    · 美团官方披露：2025Q1 高频骑手分城市档位收入（东方网、财新、中新网转引）；王兴内部信（时代财经、新浪财经转述）<br>
+    · 中国新就业形态研究中心：《2023/2024 中国蓝领群体就业研究报告》（外卖员月均 7496 元，新华网）<br>
+    · 中国社科院社会学所：外卖骑手职业群体调查（学历结构）；孙萍课题组（骑手收入分布）<br>
+    · 交通运输部：网约车驾驶员证与订单量（央视网）；广州市交通运输局网约车市场月报<br>
+    · 国家发改委网站：灵活就业 2 亿人及收入分布调研引用（艾瑞、美团研究院、腾景&蚂蚁）<br>
+    · ILO《中国的新就业形态和劳动者权益保障》
+  </div>
+  <div class="disclaim">
+    免责与方法说明：本报告为数据综述 + 量化模型演示，所有历史数值均引自上述公开来源；所有「预估 / 推演 / 系数」均为模型假设，不构成就业、升学或投资建议。交互模型为静态简化模型，未考虑个体异质性、区域产业结构与宏观波动。制作时间：2026 年 10 月。单文件离线运行，无外部依赖。
+  </div>
+</footer>
+<script>
+/* ============ 工具 ============ */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const SVGNS='http://www.w3.org/2000/svg';
+const C={paper:'#f4efe4',mut:'#8a8175',vermil:'#d43d2a',gold:'#c9a227',teal:'#3d8b8b',blue:'#3a5f8a',grid:'rgba(244,239,228,.12)'};
+function el(t,a,p){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(p,x,y,s,o={}){const t=el('text',Object.assign({x,y,fill:C.mut,'font-size':10.5,'font-family':'PingFang SC,Microsoft YaHei,sans-serif'},o),p);t.textContent=s;return t}
+
+/* 通用柱状图 */
+function barChart(id,data,{unit='',colors=null,vb='0 0 560 300',pad=52}={}){
+  const svg=document.getElementById(id);svg.setAttribute('viewBox',vb);
+  const [,,W,H]=vb.split(' ').map(Number);
+  const max=Math.max(...data.map(d=>d.v))*1.15;
+  const bw=(W-pad*2)/data.length;
+  [0.25,0.5,0.75,1].forEach(f=>{el('line',{x1:pad,y1:H-40-(H-70)*f,x2:W-20,y2:H-40-(H-70)*f,stroke:C.grid,'stroke-dasharray':'3 4'},svg)});
+  data.forEach((d,i)=>{
+    const h=(H-70)*d.v/max, x=pad+i*bw+bw*.18, y=H-40-h;
+    const col=d.c||(colors?colors[i]:C.vermil);
+    const r=el('rect',{x,y,width:bw*.64,height:h,fill:col,rx:3,opacity:.92},svg);
+    r.style.transformOrigin=`${x+bw*.32}px ${H-40}px`;r.style.transform='scaleY(0)';r.style.transition='transform 1s cubic-bezier(.22,1,.36,1) '+(i*.12)+'s';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>r.style.transform='scaleY(1)'));
+    txt(svg,x+bw*.32,y-8,d.v.toLocaleString()+unit,{'text-anchor':'middle',fill:C.paper,'font-size':12,'font-weight':700});
+    txt(svg,x+bw*.32,H-20,d.label,{'text-anchor':'middle','font-size':11});
+    if(d.note)txt(svg,x+bw*.32,H-7,d.note,{'text-anchor':'middle','font-size':9,fill:C.gold});
+  });
+}
+/* 通用折线图 */
+function lineChart(id,labels,series,{unit='%',vb='0 0 560 300',pad=52,ymin=null}={}){
+  const svg=document.getElementById(id);svg.setAttribute('viewBox',vb);
+  const [,,W,H]=vb.split(' ').map(Number);
+  const all=series.flatMap(s=>s.data);
+  const lo=ymin!==null?ymin:Math.min(...all)*.92, hi=Math.max(...all)*1.06;
+  const X=i=>pad+(W-pad-30)*(i/(labels.length-1)), Y=v=>H-40-(H-75)*(v-lo)/(hi-lo);
+  [0.25,0.5,0.75,1].forEach(f=>{const y=H-40-(H-75)*f;el('line',{x1:pad,y1:y,x2:W-30,y2:y,stroke:C.grid,'stroke-dasharray':'3 4'},svg)});
+  labels.forEach((l,i)=>txt(svg,X(i),H-20,l,{'text-anchor':'middle','font-size':9.5}));
+  series.forEach(s=>{
+    const pts=s.data.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
+    const pl=el('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'},svg);
+    const len=pl.getTotalLength();pl.style.strokeDasharray=len;pl.style.strokeDashoffset=len;pl.style.transition='stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>pl.style.strokeDashoffset=0));
+    s.data.forEach((v,i)=>{
+      el('circle',{cx:X(i),cy:Y(v),r:3.5,fill:'#12100d',stroke:s.color,'stroke-width':2},svg);
+      if(s.showVal)txt(svg,X(i),Y(v)-10,v+unit,{'text-anchor':'middle',fill:C.paper,'font-size':11,'font-weight':700});
+    });
+  });
+}
+
+/* ============ 导航 & 进度 & 浮现 ============ */
+addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  $('#progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+$$('.reveal').forEach(e=>io.observe(e));
+
+/* 大数字滚动 */
+let counted=false;
+const cio=new IntersectionObserver(es=>{if(es[0].isIntersecting&&!counted){counted=true;
+  const t0=performance.now(),dur=2200,target=1270;
+  (function tick(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,4);
+    $('#counter').textContent=Math.round(target*e).toLocaleString();
+    if(p<1)requestAnimationFrame(tick)})(t0);
+  cio.disconnect();
+}},{threshold:.4});
+cio.observe($('#counter'));
+
+/* 跑马灯 */
+const mqItems='2026届毕业生 <b>1270万</b> · 考研报名三连降至 <b>343万</b> · 青年失业率 8月 <b>18.9%</b> · 本科起薪 <b>6435元/月</b> · 国考竞争比 <b>98:1</b> · 博士招生破 <b>20万</b> · 新职业累计 <b>110个</b> · 灵活就业 <b>2亿+</b> · ';
+$('#mq').innerHTML=(mqItems+' · ').repeat(4);
+
+/* 名词卡片 */
+$$('#glossary .term').forEach(t=>t.addEventListener('click',()=>{
+  t.classList.toggle('open');
+  t.querySelector('.hint').textContent=t.classList.contains('open')?'点击收起 ▴':'点击展开 ▾';
+}));
+
+/* ============ 图表渲染（首次可见时） ============ */
+const chartIO=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;chartIO.unobserve(e.target);
+  const id=e.target.id;
+  if(id==='ch-grad')barChart(id,[{label:'2024届',v:1179,c:C.teal},{label:'2025届',v:1222,c:C.gold},{label:'2026届·预计',v:1270,c:C.vermil}],{unit:''});
+  if(id==='ch-kaoyan')barChart(id,[{label:'2023',v:474,c:C.vermil},{label:'2024',v:438,c:C.gold},{label:'2025',v:388,c:C.teal},{label:'2026',v:343,c:C.blue}],{});
+  if(id==='ch-unemp')lineChart(id,['25-12','26-03','26-04','26-05','26-06','26-07','26-08'],[{data:[16.5,16.9,16.3,15.6,14.9,17.9,18.9],color:C.vermil,showVal:true}],{ymin:13});
+  if(id==='ch-salary')barChart(id,[{label:'2023届',v:6050,c:C.teal},{label:'2024届',v:6199,c:C.gold},{label:'2025届',v:6435,c:C.vermil},{label:'2025届·高职',v:4882,c:C.blue}],{});
+  if(id==='ch-invert'){
+    const svg=e.target,vb=[0,0,1100,260];svg.setAttribute('viewBox',vb.join(' '));
+    const groups=[
+      {yr:'2024 智联调研',rows:[['普本院校·硕博',33.2,C.vermil],['普本院校·本科',43.9,C.teal]]},
+      {yr:'2025 春招',rows:[['专科',56,C.gold],['本科',45,C.teal],['硕博',40,C.vermil]]}
+    ];
+    let y=30;
+    groups.forEach(g=>{
+      txt(svg,10,y+14,g.yr,{fill:C.paper,'font-size':13,'font-weight':700});
+      g.rows.forEach(r=>{
+        txt(svg,180,y+14,r[0],{'font-size':11.5});
+        const w=r[1]/60*620;
+        const bar=el('rect',{x:290,y,width:0,height:20,fill:r[2],rx:3,opacity:.92},svg);
+        bar.style.transition='width 1.2s cubic-bezier(.22,1,.36,1)';requestAnimationFrame(()=>requestAnimationFrame(()=>bar.setAttribute('width',w)));
+        txt(svg,290+w+10,y+15,r[1]+'%',{fill:C.paper,'font-size':12,'font-weight':700});
+        y+=36;
+      });
+      y+=26;
+    });
+    txt(svg,290,248,'注：offer 获得率＝获得至少一份录用通知的毕业生占比（调研口径，非同届普查）',{fill:C.mut,'font-size':9.5});
+  }
+  if(id==='ch-gdp'){
+    barChart(id,[
+      {label:'2025 目标',v:5.0,c:C.blue,note:'“左右”'},
+      {label:'2025 实际',v:5.0,c:C.gold,note:'140.19万亿'},
+      {label:'2026 目标下限',v:4.5,c:C.teal},
+      {label:'2026 目标上限',v:5.0,c:C.vermil,note:'区间目标'}
+    ],{unit:'%'});
+  }
+  if(id==='ch-jobs')barChart(id,[{label:'2025 实际',v:1267,c:C.gold,note:'失业率均值5.2%'},{label:'2026 目标',v:1200,c:C.teal,note:'“以上” · 失业率5.5%左右'}],{});
+  if(id==='ch-gongwu'){
+    const svg=e.target;svg.setAttribute('viewBox','0 0 1100 280');
+    const data=[
+      {yr:'2025年度',shen:341.6,lu:3.97,ratio:'86:1',ref:'—'},
+      {yr:'2026年度',shen:371.8,lu:3.81,ratio:'98:1',ref:'实际参考 283.1 万 → 74:1'}
+    ];
+    data.forEach((d,i)=>{
+      const gy=40+i*120;
+      txt(svg,10,gy+16,d.yr,{fill:C.paper,'font-size':14,'font-weight':700});
+      txt(svg,130,gy-8,'过审 '+d.shen+' 万',{'font-size':10.5});
+      const w=d.shen/400*640;
+      const b=el('rect',{x:130,y:gy,width:0,height:26,fill:C.vermil,rx:3,opacity:.9},svg);
+      b.style.transition='width 1.2s cubic-bezier(.22,1,.36,1) '+(i*.2)+'s';requestAnimationFrame(()=>requestAnimationFrame(()=>b.setAttribute('width',w)));
+      txt(svg,130,gy+52,'招录 '+d.lu+' 万',{'font-size':10.5});
+      const b2=el('rect',{x:130,y:gy+34,width:0,height:26,fill:C.gold,rx:3},svg);
+      b2.style.transition='width 1.2s cubic-bezier(.22,1,.36,1) '+(i*.2)+'s';requestAnimationFrame(()=>requestAnimationFrame(()=>b2.setAttribute('width',Math.max(6,d.lu/400*640))));
+      const bx=130+w+18;
+      txt(svg,bx,gy+20,d.ratio,{fill:C.gold,'font-size':22,'font-weight':700,'font-family':'Noto Serif SC,serif'});
+      if(d.ref!=='—')txt(svg,bx,gy+42,d.ref,{'font-size':10,fill:C.mut});
+      txt(svg,bx,gy+64,i===0?'67.2% 计划专招应届生':'2019 年以来首次缩招（-1630 人）',{'font-size':10,fill:C.mut});
+    });
+    txt(svg,130,272,'红色＝过审人数 · 金色＝招录计划（同比例尺）',{fill:C.mut,'font-size':9.5});
+  }
+},{threshold:.3}));
+['ch-grad','ch-kaoyan','ch-unemp','ch-salary','ch-invert','ch-gdp','ch-jobs','ch-gongwu'].forEach(id=>chartIO.observe(document.getElementById(id)));
+
+/* ============ 赛道象限图 ============ */
+const tracksIO=new IntersectionObserver(es=>{
+  if(!es[0].isIntersecting)return;tracksIO.disconnect();
+  const svg=document.getElementById('ch-tracks'),W=1100,H=520;
+  const padL=90,padR=50,padT=30,padB=60;
+  const X=v=>padL+(W-padL-padR)*(v-3)/(10.6-3), Y=v=>H-padB-(H-padT-padB)*(v-4400)/(8200-4400);
+  // 网格与轴
+  [5000,6000,7000,8000].forEach(v=>{
+    el('line',{x1:padL,y1:Y(v),x2:W-padR,y2:Y(v),stroke:C.grid,'stroke-dasharray':'3 4'},svg);
+    txt(svg,padL-10,Y(v)+4,v.toLocaleString(),{'text-anchor':'end','font-size':10});
+  });
+  [4,5,6,7,8,9,10].forEach(v=>{
+    el('line',{x1:X(v),y1:padT,x2:X(v),y2:H-padB,stroke:C.grid,'stroke-dasharray':'3 4'},svg);
+    txt(svg,X(v),H-padB+20,v,{'text-anchor':'middle','font-size':10});
+  });
+  // 象限分界线：全国本科均值 6435、依赖度 7
+  el('line',{x1:padL,y1:Y(6435),x2:W-padR,y2:Y(6435),stroke:C.gold,'stroke-dasharray':'6 5','stroke-width':1.2},svg);
+  txt(svg,W-padR-4,Y(6435)-7,'全国本科均值 6435 元（麦可思 2025 届）',{'text-anchor':'end','font-size':10,fill:C.gold});
+  el('line',{x1:X(7),y1:padT,x2:X(7),y2:H-padB,stroke:'rgba(244,239,228,.3)','stroke-dasharray':'6 5','stroke-width':1.2},svg);
+  // 轴标题
+  txt(svg,(padL+W-padR)/2,H-12,'学历依赖度（不深造的困难程度 →）',{'text-anchor':'middle','font-size':11.5,fill:C.paper});
+  const yt=txt(svg,18,(padT+H-padB)/2,'本科应届月起薪（元）',{'text-anchor':'middle','font-size':11.5,fill:C.paper});
+  yt.setAttribute('transform',`rotate(-90 18 ${(padT+H-padB)/2})`);
+  // 象限注释
+  txt(svg,X(4.4),Y(7950),'本科即可兑现',{'font-size':11,fill:C.mut});
+  txt(svg,X(9.8),Y(7950),'高薪 · 高门槛',{'font-size':11,fill:C.mut});
+  txt(svg,X(9.8),Y(4650),'「学历倒挂」重灾区',{'font-size':11,fill:C.mut});
+  const pts=[
+    {n:'生物基础研究',x:9.5,y:5100,c:C.blue,dy:-14},
+    {n:'生物制药',x:8,y:5700,c:C.teal,dy:-14},
+    {n:'基础医学',x:9,y:5500,c:C.blue,dy:22},
+    {n:'临床医学',x:10,y:5150,c:C.gold,dy:-14},
+    {n:'金融',x:7,y:6500,c:C.blue,dy:-14},
+    {n:'互联网',x:5,y:7500,c:C.gold,dy:-14},
+    {n:'AI 人工智能',x:6,y:6546,c:C.vermil,dy:24},
+    {n:'电子电力',x:5,y:7200,c:C.teal,dy:26}
+  ];
+  pts.forEach((p,i)=>{
+    const cx=X(p.x),cy=Y(p.y);
+    el('circle',{cx,cy,r:26,fill:p.c,opacity:.14},svg);
+    const dot=el('circle',{cx,cy,r:0,fill:p.c,stroke:'#12100d','stroke-width':2},svg);
+    dot.style.transition='r .7s cubic-bezier(.22,1,.36,1) '+(i*.09)+'s';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>dot.setAttribute('r',9)));
+    txt(svg,cx,cy+p.dy,p.n,{'text-anchor':'middle','font-size':12,fill:C.paper,'font-weight':700});
+    txt(svg,cx,cy+p.dy+13,p.y.toLocaleString()+' 元',{'text-anchor':'middle','font-size':9.5,fill:C.mut});
+  });
+},{threshold:.3});
+tracksIO.observe(document.getElementById('ch-tracks'));
+
+/* ============ 院校层次 × 起薪曲线 ============ */
+const TIER={names:['高职/专科','普通本科','双一流','顶尖（清北交级）'],mult:[0.76,1.0,1.30,2.02],anchor:[4882,6095,8366,13245]};
+const TIER_COLORS=['#5a7ea6','#3d8b8b','#8a8175','#c9a227','#a86ab8','#d43d2a','#e2a13c','#6fb3c9'];
+let tierSel=-1;
+$$('#tier-toggle button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#tier-toggle button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  tierSel=parseInt(b.dataset.i);drawTier();
+}));
+function drawTier(){
+  const svg=document.getElementById('ch-tier');if(!svg)return;svg.innerHTML='';
+  const W=1100,H=480,padL=80,padR=190,padT=30,padB=55;
+  const X=i=>padL+(W-padL-padR)*(i/3), Y=v=>H-padB-(H-padT-padB)*(v-3000)/(16000-3000);
+  [4000,6000,8000,10000,12000,14000].forEach(v=>{
+    el('line',{x1:padL,y1:Y(v),x2:W-padR,y2:Y(v),stroke:C.grid,'stroke-dasharray':'3 4'},svg);
+    txt(svg,padL-10,Y(v)+4,(v/1000)+'k',{'text-anchor':'end','font-size':10});
+  });
+  TIER.names.forEach((n,i)=>txt(svg,X(i),H-padB+22,n,{'text-anchor':'middle','font-size':11.5,fill:C.paper}));
+  TRACKS.forEach((t,ti)=>{
+    const vals=TIER.mult.map(m=>Math.round(t.ben*m));
+    const op=tierSel===-1||tierSel===ti?1:0.12;
+    const pts=vals.map((v,i)=>X(i)+','+Y(v)).join(' ');
+    el('polyline',{points:pts,fill:'none',stroke:TIER_COLORS[ti],'stroke-width':tierSel===ti?3.5:2,opacity:op,'stroke-linejoin':'round'},svg);
+    vals.forEach((v,i)=>el('circle',{cx:X(i),cy:Y(v),r:3,fill:'#12100d',stroke:TIER_COLORS[ti],'stroke-width':2,opacity:op},svg));
+  });
+  // 右端标签：按数值排序并强制最小间距，避免重叠
+  const labels=TRACKS.map((t,ti)=>({ti,name:t.name,v:Math.round(t.ben*TIER.mult[3])})).sort((a,b)=>b.v-a.v);
+  let lastY=-999;
+  labels.forEach(L=>{
+    const op=tierSel===-1||tierSel===L.ti?1:0.12;
+    let ly=Y(L.v);if(ly<lastY+15)ly=lastY+15;lastY=ly;
+    el('line',{x1:W-padR+2,y1:Y(L.v),x2:W-padR+9,y2:ly,stroke:TIER_COLORS[L.ti],'stroke-width':1,opacity:op*.6},svg);
+    txt(svg,W-padR+12,ly+4,L.name+' '+L.v.toLocaleString(),{'font-size':10.5,fill:TIER_COLORS[L.ti],opacity:op,'font-weight':tierSel===L.ti?700:400});
+  });
+  const ap=TIER.anchor.map((v,i)=>X(i)+','+Y(v)).join(' ');
+  el('polyline',{points:ap,fill:'none',stroke:C.gold,'stroke-width':2,'stroke-dasharray':'7 5',opacity:.95},svg);
+  TIER.anchor.forEach((v,i)=>{
+    el('circle',{cx:X(i),cy:Y(v),r:4.5,fill:C.gold,stroke:'#12100d','stroke-width':2},svg);
+    txt(svg,X(i),Y(v)-10,v.toLocaleString(),{'text-anchor':'middle','font-size':10.5,fill:C.gold,'font-weight':700});
+  });
+  txt(svg,padL,padT-12,'金色虚线＝公开实测锚点 · 彩色实线＝模型构造曲线',{'font-size':10,fill:C.mut});
+}
+const tierIO=new IntersectionObserver(es=>{if(es[0].isIntersecting){drawTier();tierIO.disconnect()}},{threshold:.3});
+tierIO.observe(document.getElementById('ch-tier'));
+
+/* ============ 骑手收入 vs 应届起薪（分城市） ============ */
+const riderIO=new IntersectionObserver(es=>{
+  if(!es[0].isIntersecting)return;riderIO.disconnect();
+  const svg=document.getElementById('ch-rider'),W=1100,H=360;
+  const padL=70,padR=30,padT=45,padB=55;
+  const Y=v=>H-padB-(H-padT-padB)*(v/14000);
+  [0,3000,6000,9000,12000].forEach(v=>{
+    el('line',{x1:padL,y1:Y(v),x2:W-padR,y2:Y(v),stroke:C.grid,'stroke-dasharray':'3 4'},svg);
+    txt(svg,padL-10,Y(v)+4,v===0?'0':(v/1000)+'k',{'text-anchor':'end','font-size':10});
+  });
+  const cities=['一线（北上广深）','省会/发达地市（A级）','发达二线（B级）','四五线（C/D级）'];
+  const series=[
+    {name:'众包',data:[10100,8763,8421,7230],c:'#3d8b8b'},
+    {name:'乐跑',data:[12593,11705,11232,9836],c:'#d43d2a'},
+    {name:'本科应届',data:[7851,6435,5470,4505],c:'#c9a227'}
+  ];
+  const gw=(W-padL-padR)/4, bw=52, gap=8;
+  cities.forEach((city,gi)=>{
+    const gx=padL+gi*gw;
+    series.forEach((s,si)=>{
+      const v=s.data[gi], x=gx+gw/2-(bw*3+gap*2)/2+si*(bw+gap), h=Y(0)-Y(v), y=Y(v);
+      const r=el('rect',{x,y,width:bw,height:h,fill:s.c,rx:3,opacity:.92},svg);
+      r.style.transformOrigin=`${x+bw/2}px ${Y(0)}px`;r.style.transform='scaleY(0)';
+      r.style.transition='transform .9s cubic-bezier(.22,1,.36,1) '+((gi*3+si)*.08)+'s';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>r.style.transform='scaleY(1)'));
+      txt(svg,x+bw/2,y-7,v.toLocaleString(),{'text-anchor':'middle','font-size':10,fill:C.paper,'font-weight':700});
+    });
+    txt(svg,gx+gw/2,H-padB+22,city,{'text-anchor':'middle','font-size':11,fill:C.paper});
+  });
+  // 四五线反超注释
+  const gx3=padL+3*gw+gw/2;
+  txt(svg,gx3,padT-8,'四五线：骑手收入 ≈ 本科应届模型起薪 ×1.6',{'text-anchor':'middle','font-size':11,fill:C.gold,'font-weight':700});
+},{threshold:.3});
+riderIO.observe(document.getElementById('ch-rider'));
+
+/* ============ 模型 01：起薪预估 ============ */
+const m1={edu:1.0,city:1.0,ind:1.05,g:5};
+function segBind(id,key){
+  $$('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{
+    $$('#'+id+' button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    m1[key]=parseFloat(b.dataset.v);m1run();
+  }));
+}
+segBind('m1-edu','edu');segBind('m1-city','city');segBind('m1-ind','ind');
+$('#m1-g').addEventListener('input',e=>{m1.g=parseFloat(e.target.value);$('#m1-gv').textContent=m1.g+'%';m1run()});
+function m1run(){
+  const base=6435*m1.edu*m1.city*m1.ind;
+  $('#m1-salary').innerHTML=Math.round(base).toLocaleString()+'<small> 元/月</small>';
+  const y5=base*Math.pow(1+m1.g/100,5);
+  $('#m1-y5').innerHTML=Math.round(y5).toLocaleString()+'<small> 元/月</small>';
+  const svg=$('#m1-chart');svg.innerHTML='';
+  const vals=[0,1,2,3,4,5].map(t=>base*Math.pow(1+m1.g/100,t));
+  const hi=Math.max(...vals)*1.08, lo=Math.min(...vals)*.9;
+  const X=i=>34+i*(420-54)/5, Y=v=>150-24-(150-46)*(v-lo)/(hi-lo);
+  [0.33,0.66,1].forEach(f=>el('line',{x1:34,y1:150-24-(150-46)*f,x2:400,y2:150-24-(150-46)*f,stroke:C.grid,'stroke-dasharray':'3 4'},svg));
+  const pts=vals.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
+  el('polygon',{points:`34,${150-24} `+pts+` ${X(5)},${150-24}`,fill:'rgba(212,61,42,.15)'},svg);
+  el('polyline',{points:pts,fill:'none',stroke:C.gold,'stroke-width':2.5,'stroke-linecap':'round'},svg);
+  vals.forEach((v,i)=>{
+    el('circle',{cx:X(i),cy:Y(v),r:3,fill:'#12100d',stroke:C.gold,'stroke-width':2},svg);
+    txt(svg,X(i),146,'Y'+i,{'text-anchor':'middle','font-size':9});
+    if(i%2===0||i===5)txt(svg,X(i),Y(v)-8,Math.round(v/1000)+'k',{'text-anchor':'middle','font-size':9,fill:C.paper});
+  });
+}
+m1run();
+
+/* ============ 模型 02：竞争力罗盘（八项硬指标） ============ */
+const M2K=[
+  {k:'school',name:'院校层次',max:15},{k:'degree',name:'最高学历',max:15},
+  {k:'rank',name:'专业排名',max:12},{k:'intern',name:'对口实习',max:18},
+  {k:'eng',name:'英语',max:8},{k:'cert',name:'高含金量证书',max:12},
+  {k:'contest',name:'科研/竞赛',max:12},{k:'work',name:'作品/项目',max:8}
+];
+const m2={school:9,degree:7,rank:9,intern:8,eng:5,cert:0,contest:0,work:4};
+$$('.seg.m2').forEach(seg=>{
+  seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    m2[seg.dataset.k]=parseFloat(b.dataset.v);m2run();
+  }));
+});
+function m2run(){
+  const total=M2K.reduce((s,d)=>s+m2[d.k],0);
+  $('#m2-score').textContent=total;
+  const pct=1/(1+Math.exp(-(total-42)/16));
+  $('#m2-fill').style.width=(pct*100).toFixed(1)+'%';
+  $('#m2-ratio').textContent=Math.max(1,Math.round(98*(1-pct)))+':1';
+  const verdict=total<35?'逆水行舟：多项硬指标空白，先补「成本最低、见效最快」的一项（见下方短板体检）。'
+    :total<55?'中流击水：处于均值区间，集中突破一项高权重指标即可明显改变分位。'
+    :total<75?'上游航道：进入前 30% 分位，差异化（作品/科研）决定你是「优秀」还是「不可替代」。'
+    :'领航区：前 10% 分位。此刻最大的变量是赛道选择——站上对的船比拼命划桨更重要。';
+  $('#m2-verdict').textContent='超越约 '+Math.round(pct*100)+'% 的同届竞争者 · '+verdict;
+  const bd=$('#m2-bd');bd.innerHTML='';
+  M2K.forEach(d=>{
+    const v=m2[d.k],row=document.createElement('div');row.className='bd-row';
+    row.innerHTML='<span>'+d.name+' <span style="color:#6a6355">/ '+d.max+'</span></span>'
+      +'<div class="bar"><em style="width:100%"></em><i style="width:'+(v/d.max*100)+'%"></i></div>'
+      +'<span class="pts">+'+v+'</span>';
+    bd.appendChild(row);
+  });
+  const gaps=M2K.map(d=>({name:d.name,gap:d.max-m2[d.k]})).filter(d=>d.gap>0).sort((a,b)=>b.gap-a.gap).slice(0,3);
+  $('#m2-weak').innerHTML=gaps.length?
+    '短板体检：提升空间最大的三项依次是 <b style="color:var(--gold)">'+gaps.map(g=>g.name+'（还可 +'+g.gap+' 分）').join('、')+'</b>。提示：实习段数、证书个数、英语分数是唯三「投入时间即可确定提升」的指标——边际成本远低于更换院校或学历。'
+    :'八项全部满分——你已站在同届顶端，剩下的变量只有赛道与时机。';
+}
+m2run();
+
+/* ============ 模型 03：就业 vs 读研 vs 读博 ============ */
+const TRACKS=[
+  {name:'生物基础研究',ben:5100,shuo:7500,bo:13000,g:5},
+  {name:'生物制药',ben:5700,shuo:10000,bo:20000,g:6},
+  {name:'基础医学',ben:5500,shuo:8000,bo:15000,g:6},
+  {name:'临床医学',ben:5150,shuo:8000,bo:15000,g:8},
+  {name:'金融',ben:6500,shuo:11000,bo:15000,g:4},
+  {name:'互联网',ben:7500,shuo:11000,bo:18000,g:5},
+  {name:'AI 人工智能',ben:6500,shuo:15000,bo:25000,g:7},
+  {name:'电子电力',ben:7200,shuo:13000,bo:20000,g:6}
+];
+const m3={track:4,ns:3,nd:5,ps:36,pd:65,cs:3,cd:1,g:4,r:3};
+$$('#m3-track button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#m3-track button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  m3.track=parseInt(b.dataset.i);
+  m3.g=TRACKS[m3.track].g;$('#m3-g').value=m3.g;$('#m3-gv').textContent=m3.g+'%';
+  m3run();
+}));
+function m3bind(id,key,fmt){
+  $('#'+id).addEventListener('input',e=>{
+    m3[key]=parseFloat(e.target.value);
+    $('#'+id+'v').textContent=fmt(m3[key]);
+    m3run();
+  });
+}
+m3bind('m3-ns','ns',v=>v+' 年');m3bind('m3-nd','nd',v=>v+' 年');
+m3bind('m3-ps','ps',v=>v+'%');m3bind('m3-pd','pd',v=>v+'%');
+m3bind('m3-cs','cs',v=>(+v).toFixed(1)+' 万');m3bind('m3-cd','cd',v=>(+v).toFixed(1)+' 万');
+m3bind('m3-g','g',v=>v+'%');m3bind('m3-r','r',v=>v+'%');
+function npvPath(delay,cost,monthly,g,r,T){
+  const cum=[];let s=0;
+  for(let t=1;t<=T;t++){
+    const inc=t<=delay?-cost:monthly*12/10000*Math.pow(1+g,t-delay-1);
+    s+=inc/Math.pow(1+r,t);cum.push(s);
+  }
+  return cum;
+}
+function m3run(){
+  const T=20,g=m3.g/100,r=m3.r/100,trk=TRACKS[m3.track];
+  const A=npvPath(0,0,trk.ben,g,r,T);
+  const B=npvPath(m3.ns,m3.cs,trk.shuo,g,r,T);
+  const Cp=npvPath(m3.nd,m3.cd,trk.bo,g,r,T);
+  const Af=npvPath(1,0,trk.ben,g,r,T); // 未上岸：晚 1 年就业
+  const evB=m3.ps/100*B[T-1]+(1-m3.ps/100)*Af[T-1];
+  const evC=m3.pd/100*Cp[T-1]+(1-m3.pd/100)*Af[T-1];
+  $('#m3-a').textContent=A[T-1].toFixed(1);
+  $('#m3-b').textContent=evB.toFixed(1);
+  $('#m3-c').textContent=evC.toFixed(1);
+  const opts=[['A · 就业',A[T-1]],['B · 读研',evB],['C · 读博',evC]].sort((x,y)=>y[1]-x[1]);
+  $('#m3-best').textContent=opts[0][0];
+  $('#m3-bestlbl').textContent='期望值最优（领先次优 '+(opts[0][1]-opts[1][1]).toFixed(1)+' 万元）· '+trk.name+'赛道';
+  $('#m3-la').textContent='本科 '+trk.ben.toLocaleString()+' 元起';
+  $('#m3-lb').textContent='硕士 '+trk.shuo.toLocaleString()+' 元起 · '+m3.ns+' 年在读';
+  $('#m3-lc').textContent='博士 '+trk.bo.toLocaleString()+' 元起 · '+m3.nd+' 年在读';
+  const svg=$('#m3-chart');svg.innerHTML='';
+  const all=[...A,...B,...Cp],hi=Math.max(...all)*1.06,lo=Math.min(...all,0)*1.12;
+  const W=900,H=260,X=i=>50+i*(W-80)/(T-1),Y=v=>H-30-(H-55)*(v-lo)/(hi-lo);
+  [0.25,0.5,0.75,1].forEach(f=>el('line',{x1:50,y1:H-30-(H-55)*f,x2:W-30,y2:H-30-(H-55)*f,stroke:C.grid,'stroke-dasharray':'3 4'},svg));
+  if(lo<0){el('line',{x1:50,y1:Y(0),x2:W-30,y2:Y(0),stroke:C.mut,'stroke-dasharray':'4 4'},svg);txt(svg,W-24,Y(0)+3,'0',{'font-size':9});}
+  [[A,'#3d8b8b'],[B,'#c9a227'],[Cp,'#d43d2a']].forEach(pair=>{
+    const arr=pair[0],col=pair[1];
+    el('polyline',{points:arr.map((v,i)=>X(i)+','+Y(v)).join(' '),fill:'none',stroke:col,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'},svg);
+    el('circle',{cx:X(T-1),cy:Y(arr[T-1]),r:3.5,fill:'#12100d',stroke:col,'stroke-width':2},svg);
+    txt(svg,X(T-1)-4,Y(arr[T-1])-8,arr[T-1].toFixed(0)+'万',{'text-anchor':'end','font-size':10,fill:C.paper,'font-weight':700});
+  });
+  [0,4,9,14,19].forEach(i=>txt(svg,X(i),H-12,'第'+(i+1)+'年',{'text-anchor':'middle','font-size':9}));
+  const cross=(a1,a2)=>{for(let t=1;t<T;t++){if(a1[t-1]<a2[t-1]&&a1[t]>=a2[t])return t+1}return null};
+  const cb=cross(B,A),cc=cross(Cp,A);
+  let msg=cb?('读研曲线在第 '+cb+' 年追上就业曲线；'):'20 年内读研曲线未追上就业曲线；';
+  msg+=cc?('读博曲线在第 '+cc+' 年追上就业曲线。'):'读博曲线 20 年内未追上就业曲线。';
+  $('#m3-note').textContent=msg+'（曲线为成功上岸情形；上方大数字已按上岸概率折算期望值 EV）';
+}
+m3run();
+</script>
+</body>
+</html>

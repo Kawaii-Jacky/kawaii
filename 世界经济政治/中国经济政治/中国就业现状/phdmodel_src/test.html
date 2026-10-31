@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test</title>
+<style>body{font-family:sans-serif;padding:20px}</style>
+</head>
+<body>
+<h1>诊断测试</h1>
+<div id="status"></div>
+<div id="chart" style="width:600px;height:300px;border:1px solid #ccc;margin:20px 0"></div>
+<script src="model.js"></script>
+<script>
+const log = (msg) => { console.log(msg); document.getElementById('status').innerHTML += msg + '<br>'; };
+log('1. 页面加载完成');
+log('2. PhDModel: ' + (typeof window.PhDModel !== 'undefined' ? '✓' : '✗'));
+if (window.PhDModel) {
+  log('3. IND_KEYS: ' + PhDModel.IND_KEYS.join(', '));
+  log('4. 运行测试模拟...');
+  try {
+    const r = PhDModel.evalRoute('AI', 'B', {N:100});
+    log('5. 模拟成功，均值: ' + r.mean.toFixed(1) + ' 万元');
+    
+    // 绘制简单图表
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 600 300');
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    
+    const data = r.meanInc.slice(0, 45);
+    const W = 600, H = 300, pl = 40, pr = 20, pt = 20, pb = 30;
+    const max = Math.max(...data);
+    const X = i => pl + (W - pl - pr) * i / (data.length - 1);
+    const Y = v => pt + (H - pt - pb) * (1 - v / max);
+    
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    path.setAttribute('points', data.map((v, i) => X(i) + ',' + Y(v)).join(' '));
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#2a78d6');
+    path.setAttribute('stroke-width', '2');
+    svg.appendChild(path);
+    
+    document.getElementById('chart').appendChild(svg);
+    log('6. 图表绘制完成 ✓');
+  } catch(e) {
+    log('✗ 错误: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
