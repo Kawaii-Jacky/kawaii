@@ -6,5 +6,7 @@
   "workbench.colorCustomizations": {
     "editor.foreground": "#e0e0e0" // 现代灰白色（避开刺眼的纯白，更柔和高级）
   },
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  // 新开的聊天会话默认使用「Allow all」（代码里的 autoApprove 档），不再逐个工具弹确认
+  "chat.permissions.default": "autoApprove"
 }
