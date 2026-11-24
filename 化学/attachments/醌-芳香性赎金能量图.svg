@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="420" viewBox="0 0 860 420" font-family="Segoe UI, Microsoft YaHei, Helvetica, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1F2933"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1D6FD1"/></marker><marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2E7D32"/></marker></defs>
+<rect width="860" height="420" fill="#FDFCF9"/>
+<text x="24.0" y="36.0" font-size="20" fill="#1F2933" text-anchor="start" font-weight="600" font-style="normal" opacity="1.0">「芳香性的赎金」能量账本</text>
+<text x="24.0" y="62.0" font-size="13" fill="#6B7280" text-anchor="start" font-weight="400" font-style="normal" opacity="1.0">示意性坐标：只表达高低顺序，不按真实能级比例</text>
+<line x1="70.00" y1="340.00" x2="830.00" y2="340.00" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" marker-end="url(#ar)"/>
+<line x1="70.00" y1="96.00" x2="70.00" y2="340.00" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" marker-end="url(#ar)"/>
+<text x="50.0" y="108.0" font-size="13" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">能量</text>
+<text x="820.0" y="362.0" font-size="13" fill="#6B7280" text-anchor="end" font-weight="400" font-style="normal" opacity="1.0">反应进程</text>
+<line x1="92.00" y1="278.00" x2="242.00" y2="278.00" stroke="#1F2933" stroke-width="3.2" stroke-linecap="round"/>
+<text x="167.0" y="264.0" font-size="14" fill="#1F2933" text-anchor="middle" font-weight="600" font-style="normal" opacity="1.0">苯型芳香环</text>
+<text x="167.0" y="300.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">低能 · 稳定</text>
+<line x1="352.00" y1="122.00" x2="498.00" y2="122.00" stroke="#C0392B" stroke-width="3.2" stroke-linecap="round"/>
+<text x="425.0" y="106.0" font-size="16" fill="#C0392B" text-anchor="middle" font-weight="600" font-style="normal" opacity="1.0">醌</text>
+<text x="425.0" y="146.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">高能 · 缺电子 · 亲电</text>
+<line x1="618.00" y1="292.00" x2="768.00" y2="292.00" stroke="#2E7D32" stroke-width="3.2" stroke-linecap="round"/>
+<text x="693.0" y="278.0" font-size="14" fill="#2E7D32" text-anchor="middle" font-weight="600" font-style="normal" opacity="1.0">氢醌</text>
+<text x="693.0" y="314.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">芳香族回来 · 稳定</text>
+<path d="M244,270 C300,182 318,162 346,136" fill="none" stroke="#C0392B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arR)"/>
+<text x="96.0" y="176.0" font-size="14" fill="#C0392B" text-anchor="start" font-weight="600" font-style="normal" opacity="1.0">① 氧化 / 脱氢</text>
+<text x="96.0" y="197.0" font-size="12" fill="#C0392B" text-anchor="start" font-weight="400" font-style="normal" opacity="1.0">交出芳香性：付赎金，环变「饿」</text>
+<path d="M500,132 C548,196 566,216 612,280" fill="none" stroke="#2E7D32" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arG)"/>
+<text x="846.0" y="208.0" font-size="14" fill="#2E7D32" text-anchor="end" font-weight="600" font-style="normal" opacity="1.0">② 还原（＋2e⁻ ＋2H⁺）</text>
+<text x="846.0" y="230.0" font-size="12" fill="#2E7D32" text-anchor="end" font-weight="400" font-style="normal" opacity="1.0">赎回芳香性：放能，这就是反应方向的驱动力</text>
+<text x="70.0" y="408.0" font-size="13" fill="#B26A00" text-anchor="start" font-weight="400" font-style="normal" opacity="1.0">记忆锚点：醌的活泼 ≠「多长了活性」，而是「提前把稳定性的预算花掉了」。</text>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="336" viewBox="0 0 880 336" font-family="Segoe UI, Microsoft YaHei, Helvetica, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1F2933"/></marker><marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B7791F"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1D6FD1"/></marker></defs>
+<rect width="880" height="336" fill="#FDFCF9"/>
+<text x="24.0" y="34.0" font-size="19" fill="#1F2933" text-anchor="start" font-weight="600">旋光度是怎么被读出来的</text>
+<text x="24.0" y="58.0" font-size="13" fill="#6B7280" text-anchor="start" font-weight="400">左：旋光仪光路；右：迎着光束看过去，振动面被扭转的方向</text>
+<line x1="88.0" y1="178.0" x2="498.0" y2="178.0" stroke="#E3B23C" stroke-width="3.4" stroke-linecap="round"/>
+<line x1="498.0" y1="178.0" x2="512.0" y2="178.0" stroke="#E3B23C" stroke-width="3.4" stroke-linecap="round" marker-end="url(#arA)"/>
+<rect x="26" y="152" width="62" height="52" rx="9" fill="#FFF4DA" stroke="#1F2933" stroke-width="1.8"/>
+<circle cx="57" cy="178" r="11" fill="#F6C445" stroke="#1F2933" stroke-width="1.2"/>
+<text x="57.0" y="226.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400">钠灯 589 nm</text>
+<g transform="rotate(0.0 150 178)">
+<rect x="144.5" y="145.0" width="11" height="66" rx="2" fill="#DCE6F1" stroke="#1F2933" stroke-width="1.8"/>
+<line x1="145.5" y1="158.4" x2="154.5" y2="150.4" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="145.5" y1="167.9" x2="154.5" y2="159.9" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="145.5" y1="177.3" x2="154.5" y2="169.3" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="145.5" y1="186.7" x2="154.5" y2="178.7" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="145.5" y1="196.1" x2="154.5" y2="188.1" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="145.5" y1="205.6" x2="154.5" y2="197.6" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+</g>
+<text x="150.0" y="132.0" font-size="12" fill="#1F2933" text-anchor="middle" font-weight="600">起偏器（固定）</text>
+<rect x="222" y="150" width="122" height="56" rx="8" fill="#E6F2FC" stroke="#1F2933" stroke-width="1.8"/>
+<text x="283.0" y="174.0" font-size="13" fill="#1F2933" text-anchor="middle" font-weight="600">样品管</text>
+<text x="283.0" y="193.0" font-size="11" fill="#6B7280" text-anchor="middle" font-weight="400">手性分子溶液</text>
+<text x="283.0" y="232.0" font-size="11" fill="#6B7280" text-anchor="middle" font-weight="400">光程 l、浓度 c、溶剂、温度</text>
+<g transform="rotate(-20 424 178)">
+<rect x="418.5" y="145.0" width="11" height="66" rx="2" fill="#DCE6F1" stroke="#1F2933" stroke-width="1.8"/>
+<line x1="419.5" y1="158.4" x2="428.5" y2="150.4" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="419.5" y1="167.9" x2="428.5" y2="159.9" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="419.5" y1="177.3" x2="428.5" y2="169.3" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="419.5" y1="186.7" x2="428.5" y2="178.7" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="419.5" y1="196.1" x2="428.5" y2="188.1" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+<line x1="419.5" y1="205.6" x2="428.5" y2="197.6" stroke="#1F2933" stroke-width="1.1" stroke-linecap="round"/>
+</g>
+<text x="424.0" y="132.0" font-size="12" fill="#1F2933" text-anchor="middle" font-weight="600">检偏器（转过 α）</text>
+<rect x="462" y="156" width="46" height="44" rx="7" fill="#EDEFF2" stroke="#1F2933" stroke-width="1.8"/>
+<text x="485.0" y="182.0" font-size="12" fill="#1F2933" text-anchor="middle" font-weight="600">检测</text>
+<text x="476.0" y="226.0" font-size="11" fill="#6B7280" text-anchor="middle" font-weight="400">转到这里恰好消光</text>
+<line x1="540.0" y1="96.0" x2="540.0" y2="300.0" stroke="#D8DEE6" stroke-width="1.4" stroke-linecap="round"/>
+<circle cx="712" cy="166" r="74" fill="#FFFFFF" stroke="#C7D0DA" stroke-width="1.6"/>
+<line x1="712.0" y1="92.0" x2="712.0" y2="240.0" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="712.0" y="80.0" font-size="13" fill="#6B7280" text-anchor="middle" font-weight="600">0°</text>
+<line x1="681.9" y1="233.6" x2="742.1" y2="98.4" stroke="#B7791F" stroke-width="2.8" stroke-linecap="round"/>
+<path d="M 712.0,108.0 A 58,58 0 0 1 735.6,113.0" fill="none" stroke="#B7791F" stroke-width="1.6" marker-end="url(#arA)"/>
+<text x="756.0" y="120.0" font-size="13" fill="#B7791F" text-anchor="middle" font-weight="600">+α</text>
+<line x1="742.1" y1="233.6" x2="681.9" y2="98.4" stroke="#1D6FD1" stroke-width="2.8" stroke-linecap="round"/>
+<path d="M 712.0,108.0 A 58,58 0 0 0 688.4,113.0" fill="none" stroke="#1D6FD1" stroke-width="1.6" marker-end="url(#arB)"/>
+<text x="668.0" y="120.0" font-size="13" fill="#1D6FD1" text-anchor="middle" font-weight="600">−α</text>
+<text x="712.0" y="264.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="600">虚线：起偏后的振动面（0°）</text>
+<text x="712.0" y="284.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="600">实线：右旋（+）与左旋（−）</text>
+<text x="24.0" y="320.0" font-size="12" fill="#B7791F" text-anchor="start" font-weight="400">α 是观测值：换成比旋光度 [α] = α /（l × c）后，才能在不同样品之间比较；正负号按观察者迎着光束看的方向定义。</text>
+</svg>

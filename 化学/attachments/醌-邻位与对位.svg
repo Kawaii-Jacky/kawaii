@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="410" viewBox="0 0 840 410" font-family="Segoe UI, Microsoft YaHei, Helvetica, Arial, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1F2933"/></marker><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1D6FD1"/></marker><marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker><marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2E7D32"/></marker></defs>
+<rect width="840" height="410" fill="#FDFCF9"/>
+<text x="24.0" y="36.0" font-size="20" fill="#1F2933" text-anchor="start" font-weight="600" font-style="normal" opacity="1.0">邻位与对位：同一个分子式，两种命运</text>
+<text x="24.0" y="62.0" font-size="14" fill="#6B7280" text-anchor="start" font-weight="400" font-style="normal" opacity="1.0">「邻」与「对」不是两种画法，而是两个稳定性、电位都不同的化合物</text>
+<polygon points="210.00,132.00 260.23,161.00 260.23,219.00 210.00,248.00 159.77,219.00 159.77,161.00" fill="none" stroke="#1F2933" stroke-width="2.4" stroke-linejoin="round"/>
+<line x1="251.23" y1="169.12" x2="251.23" y2="210.88" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="168.77" y1="210.88" x2="168.77" y2="169.12" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="210.00" y1="132.00" x2="210.00" y2="96.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="215.00" y1="125.00" x2="215.00" y2="100.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<text x="210.0" y="79.0" font-size="20" fill="#1F2933" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">O</text>
+<line x1="210.00" y1="248.00" x2="210.00" y2="284.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="205.00" y1="255.00" x2="205.00" y2="280.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<text x="210.0" y="315.0" font-size="20" fill="#1F2933" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">O</text>
+<text x="210.0" y="348.0" font-size="16" fill="#1F2933" text-anchor="middle" font-weight="600" font-style="normal" opacity="1.0">1,4-苯醌（对醌）</text>
+<text x="210.0" y="372.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">两个 C=O 隔着一个 C=C：交叉共轭，可长期存放</text>
+<polygon points="610.00,132.00 660.23,161.00 660.23,219.00 610.00,248.00 559.77,219.00 559.77,161.00" fill="none" stroke="#1F2933" stroke-width="2.4" stroke-linejoin="round"/>
+<line x1="648.70" y1="215.27" x2="612.53" y2="236.15" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="568.77" y1="210.88" x2="568.77" y2="169.12" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="610.00" y1="132.00" x2="610.00" y2="96.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="615.00" y1="125.00" x2="615.00" y2="100.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<text x="610.0" y="79.0" font-size="20" fill="#1F2933" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">O</text>
+<line x1="660.23" y1="161.00" x2="691.41" y2="143.00" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="668.79" y1="161.83" x2="690.44" y2="149.33" stroke="#1F2933" stroke-width="2.2" stroke-linecap="round"/>
+<text x="712.2" y="138.0" font-size="20" fill="#1F2933" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">O</text>
+<text x="610.0" y="348.0" font-size="16" fill="#C0392B" text-anchor="middle" font-weight="600" font-style="normal" opacity="1.0">1,2-苯醌（邻醌）</text>
+<text x="610.0" y="372.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">两个 C=O 相邻：更活泼，体内多为瞬时中间体</text>
+<line x1="388.00" y1="190.00" x2="444.00" y2="190.00" stroke="#6B7280" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="5 5"/>
+<text x="416.0" y="180.0" font-size="12" fill="#6B7280" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">vs</text>
+<text x="420.0" y="400.0" font-size="12" fill="#B26A00" text-anchor="middle" font-weight="400" font-style="normal" opacity="1.0">邻醌电子更「挤」，被进一步氧化、聚合的倾向更强 —— 这也是它在体内只以瞬时中间体出现的原因</text>
+</svg>
