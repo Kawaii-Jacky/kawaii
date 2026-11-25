@@ -5,5 +5,6 @@
   "theme": "obsidian",
   "baseFontSizeAction": true,
   "baseFontSize": 30,
-  "cssTheme": "Minimal"
+  "cssTheme": "Minimal",
+  "showRibbon": true
 }
